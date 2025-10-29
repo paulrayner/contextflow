@@ -1,0 +1,922 @@
+{
+  "id": "acme-ecommerce",
+  "name": "ACME E-Commerce Platform",
+  "contexts": [
+    {
+      "id": "ctx.storefront",
+      "name": "Storefront Experience",
+      "purpose": "Customer-facing web and mobile storefront for browsing products, viewing details, and managing shopping cart.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Presentation logic is clean, but shares session/cart state models directly with backend APIs without clear adapter layer.",
+      "positions": {
+        "flow": {
+          "x": 15
+        },
+        "strategic": {
+          "x": 45
+        },
+        "shared": {
+          "y": 95
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "High visibility. Primary revenue driver. Built with React/Next.js frontend and Node.js BFF (Backend-for-Frontend)."
+    },
+    {
+      "id": "ctx.catalog",
+      "name": "Product Catalog",
+      "purpose": "Manages product data, categories, pricing, inventory availability, and search indexing.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Well-defined API contracts. Clear ownership of product master data. Published events for inventory changes.",
+      "positions": {
+        "flow": {
+          "x": 10
+        },
+        "strategic": {
+          "x": 55
+        },
+        "shared": {
+          "y": 65
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Authoritative source for product information. Publishes domain events consumed by search, analytics, and storefront cache."
+    },
+    {
+      "id": "ctx.search",
+      "name": "Product Search & Discovery",
+      "purpose": "Provides fast full-text search, faceted filtering, and product recommendations.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Consumes catalog events to build optimized search indices. Clear interface boundaries.",
+      "positions": {
+        "flow": {
+          "x": 20
+        },
+        "strategic": {
+          "x": 70
+        },
+        "shared": {
+          "y": 75
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Uses Elasticsearch. Consumes catalog change events to keep search index up to date."
+    },
+    {
+      "id": "ctx.cart",
+      "name": "Shopping Cart",
+      "purpose": "Manages ephemeral and persistent shopping carts, promotions, and cart validation.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Some duplication with checkout logic. Pricing rules are partially replicated from catalog.",
+      "positions": {
+        "flow": {
+          "x": 30
+        },
+        "strategic": {
+          "x": 50
+        },
+        "shared": {
+          "y": 80
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Redis-backed session storage. Some technical debt around promotion calculation consistency."
+    },
+    {
+      "id": "ctx.checkout",
+      "name": "Checkout & Order Placement",
+      "purpose": "Orchestrates the checkout flow: address validation, payment authorization, order creation, and confirmation.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Orchestrates multiple downstream services. Some business logic leakage from payment and shipping domains.",
+      "positions": {
+        "flow": {
+          "x": 45
+        },
+        "strategic": {
+          "x": 48
+        },
+        "shared": {
+          "y": 85
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Complex orchestration logic. Critical path for revenue. Integrates with payment gateway, inventory, and order management."
+    },
+    {
+      "id": "ctx.payment",
+      "name": "Payment Processing",
+      "purpose": "Handles payment method tokenization, authorization, capture, refunds, and payment gateway integration.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Anti-corruption layer over external payment gateways (Stripe, PayPal). Clear domain boundaries.",
+      "positions": {
+        "flow": {
+          "x": 50
+        },
+        "strategic": {
+          "x": 65
+        },
+        "shared": {
+          "y": 70
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "PCI-compliant. Uses tokenization to avoid storing card data. Publishes payment events for downstream systems."
+    },
+    {
+      "id": "ctx.stripe",
+      "name": "Stripe Payment Gateway",
+      "purpose": "External payment processing service.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "External SaaS. Well-documented API.",
+      "positions": {
+        "flow": {
+          "x": 55
+        },
+        "strategic": {
+          "x": 90
+        },
+        "shared": {
+          "y": 55
+        }
+      },
+      "evolutionStage": "commodity/utility",
+      "codeSize": {
+        "bucket": "tiny"
+      },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Third-party service. Primary payment gateway."
+    },
+    {
+      "id": "ctx.orders",
+      "name": "Order Management",
+      "purpose": "Manages order lifecycle: creation, fulfillment tracking, cancellations, returns, and customer order history.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Clear bounded context. Publishes domain events for order state changes. Authoritative for order data.",
+      "positions": {
+        "flow": {
+          "x": 60
+        },
+        "strategic": {
+          "x": 52
+        },
+        "shared": {
+          "y": 75
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Event-sourced architecture. Publishes order events consumed by fulfillment, analytics, and customer service systems."
+    },
+    {
+      "id": "ctx.inventory",
+      "name": "Inventory Management",
+      "purpose": "Tracks product availability, warehouse stock levels, reservations, and restocking.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Integrates with legacy warehouse systems. Some data consistency challenges due to async replication.",
+      "positions": {
+        "flow": {
+          "x": 35
+        },
+        "strategic": {
+          "x": 45
+        },
+        "shared": {
+          "y": 55
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Eventually consistent with warehouse systems. Critical for preventing overselling. Some technical debt around reservation expiry."
+    },
+    {
+      "id": "ctx.warehouse",
+      "name": "Warehouse Management System (Legacy)",
+      "purpose": "Legacy on-premise system managing physical warehouse operations and shipping logistics.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "weak",
+      "boundaryNotes": "Legacy system with poorly documented APIs. Data synchronization challenges.",
+      "positions": {
+        "flow": {
+          "x": 70
+        },
+        "strategic": {
+          "x": 25
+        },
+        "shared": {
+          "y": 40
+        }
+      },
+      "evolutionStage": "genesis",
+      "codeSize": {
+        "bucket": "huge"
+      },
+      "isLegacy": true,
+      "isExternal": false,
+      "notes": "Built in-house 15 years ago. Java monolith. Poor API documentation. Scheduled for replacement but still mission-critical."
+    },
+    {
+      "id": "ctx.shipping",
+      "name": "Shipping Integration",
+      "purpose": "Integrates with carrier APIs (UPS, FedEx, USPS) for rate calculation, label generation, and shipment tracking.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Anti-corruption layer over multiple carrier APIs. Normalizes data models across carriers.",
+      "positions": {
+        "flow": {
+          "x": 75
+        },
+        "strategic": {
+          "x": 75
+        },
+        "shared": {
+          "y": 60
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Abstracts carrier-specific APIs. Publishes shipping events for order tracking updates."
+    },
+    {
+      "id": "ctx.carriers",
+      "name": "Shipping Carriers (UPS, FedEx, USPS)",
+      "purpose": "External shipping carrier services.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "External services with varying API quality.",
+      "positions": {
+        "flow": {
+          "x": 80
+        },
+        "strategic": {
+          "x": 85
+        },
+        "shared": {
+          "y": 45
+        }
+      },
+      "evolutionStage": "commodity/utility",
+      "codeSize": {
+        "bucket": "tiny"
+      },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Third-party carrier APIs. Varying levels of API maturity and reliability."
+    },
+    {
+      "id": "ctx.notifications",
+      "name": "Customer Notifications",
+      "purpose": "Sends transactional emails, SMS, and push notifications for order updates, promotions, and account activity.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Event-driven. Consumes events from multiple contexts. Clear template management.",
+      "positions": {
+        "flow": {
+          "x": 85
+        },
+        "strategic": {
+          "x": 70
+        },
+        "shared": {
+          "y": 70
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Uses SendGrid for email, Twilio for SMS. Template management via CMS."
+    },
+    {
+      "id": "ctx.customerService",
+      "name": "Customer Service Portal",
+      "purpose": "Internal tools for customer service reps to view orders, process returns, issue refunds, and manage customer inquiries.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Reads from multiple contexts. Some write operations bypass domain APIs and go directly to databases.",
+      "positions": {
+        "flow": {
+          "x": 90
+        },
+        "strategic": {
+          "x": 40
+        },
+        "shared": {
+          "y": 80
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Internal React admin panel. Some technical debt around direct database access bypassing domain boundaries."
+    },
+    {
+      "id": "ctx.analytics",
+      "name": "Analytics & Reporting",
+      "purpose": "Data warehouse and BI dashboards for business metrics, sales reporting, and product performance analysis.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Consumes events from multiple contexts. Some direct database replication for legacy systems.",
+      "positions": {
+        "flow": {
+          "x": 95
+        },
+        "strategic": {
+          "x": 60
+        },
+        "shared": {
+          "y": 50
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Snowflake data warehouse. dbt for transformations. Looker for BI. Event-driven ETL from domain events."
+    },
+    {
+      "id": "ctx.identity",
+      "name": "Customer Identity & Access",
+      "purpose": "Manages customer accounts, authentication, authorization, and profile data.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Clean boundaries. OAuth 2.0 / OpenID Connect. Publishes identity events.",
+      "positions": {
+        "flow": {
+          "x": 5
+        },
+        "strategic": {
+          "x": 68
+        },
+        "shared": {
+          "y": 60
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Uses Auth0 for authentication. Custom authorization layer for role-based access control."
+    },
+    {
+      "id": "ctx.recommendations",
+      "name": "Product Recommendations",
+      "purpose": "ML-powered product recommendations based on browsing history, purchase patterns, and collaborative filtering.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Consumes events from catalog, orders, and user behavior. Clear API boundaries.",
+      "positions": {
+        "flow": {
+          "x": 25
+        },
+        "strategic": {
+          "x": 58
+        },
+        "shared": {
+          "y": 65
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Python-based ML service. Training pipeline runs nightly. Real-time inference API for storefront."
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel.storefront-catalog",
+      "fromContextId": "ctx.storefront",
+      "toContextId": "ctx.catalog",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API with Redis cache",
+      "description": "Storefront queries catalog for product details, pricing, and availability."
+    },
+    {
+      "id": "rel.storefront-search",
+      "fromContextId": "ctx.storefront",
+      "toContextId": "ctx.search",
+      "pattern": "customer-supplier",
+      "communicationMode": "GraphQL API",
+      "description": "Storefront uses search service for product discovery and filtering."
+    },
+    {
+      "id": "rel.storefront-cart",
+      "fromContextId": "ctx.storefront",
+      "toContextId": "ctx.cart",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Storefront manages cart state via cart service."
+    },
+    {
+      "id": "rel.storefront-identity",
+      "fromContextId": "ctx.storefront",
+      "toContextId": "ctx.identity",
+      "pattern": "conformist",
+      "communicationMode": "OAuth 2.0 / JWT tokens",
+      "description": "Storefront conforms to identity service's authentication model."
+    },
+    {
+      "id": "rel.storefront-recommendations",
+      "fromContextId": "ctx.storefront",
+      "toContextId": "ctx.recommendations",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Storefront displays personalized product recommendations."
+    },
+    {
+      "id": "rel.search-catalog",
+      "fromContextId": "ctx.search",
+      "toContextId": "ctx.catalog",
+      "pattern": "conformist",
+      "communicationMode": "Event stream (Kafka)",
+      "description": "Search consumes catalog change events to update Elasticsearch indices."
+    },
+    {
+      "id": "rel.cart-catalog",
+      "fromContextId": "ctx.cart",
+      "toContextId": "ctx.catalog",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Cart validates product availability and pricing against catalog."
+    },
+    {
+      "id": "rel.cart-inventory",
+      "fromContextId": "ctx.cart",
+      "toContextId": "ctx.inventory",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Cart checks real-time inventory availability."
+    },
+    {
+      "id": "rel.checkout-cart",
+      "fromContextId": "ctx.checkout",
+      "toContextId": "ctx.cart",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Checkout retrieves cart contents for order creation."
+    },
+    {
+      "id": "rel.checkout-payment",
+      "fromContextId": "ctx.checkout",
+      "toContextId": "ctx.payment",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Checkout orchestrates payment authorization through payment service."
+    },
+    {
+      "id": "rel.checkout-orders",
+      "fromContextId": "ctx.checkout",
+      "toContextId": "ctx.orders",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Checkout creates orders in order management system."
+    },
+    {
+      "id": "rel.checkout-inventory",
+      "fromContextId": "ctx.checkout",
+      "toContextId": "ctx.inventory",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Checkout reserves inventory during order placement."
+    },
+    {
+      "id": "rel.payment-stripe",
+      "fromContextId": "ctx.payment",
+      "toContextId": "ctx.stripe",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "Stripe REST API",
+      "description": "Payment service wraps Stripe with domain-specific abstractions."
+    },
+    {
+      "id": "rel.orders-inventory",
+      "fromContextId": "ctx.orders",
+      "toContextId": "ctx.inventory",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API + Events",
+      "description": "Orders commits inventory reservations and publishes fulfillment events."
+    },
+    {
+      "id": "rel.orders-shipping",
+      "fromContextId": "ctx.orders",
+      "toContextId": "ctx.shipping",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API",
+      "description": "Orders requests shipping labels and tracking information."
+    },
+    {
+      "id": "rel.inventory-warehouse",
+      "fromContextId": "ctx.inventory",
+      "toContextId": "ctx.warehouse",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "SOAP API + Database replication",
+      "description": "Inventory wraps legacy warehouse system with modern API."
+    },
+    {
+      "id": "rel.shipping-carriers",
+      "fromContextId": "ctx.shipping",
+      "toContextId": "ctx.carriers",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "Carrier-specific APIs",
+      "description": "Shipping normalizes different carrier APIs into unified interface."
+    },
+    {
+      "id": "rel.notifications-orders",
+      "fromContextId": "ctx.notifications",
+      "toContextId": "ctx.orders",
+      "pattern": "conformist",
+      "communicationMode": "Event stream (Kafka)",
+      "description": "Notifications consumes order events to send customer updates."
+    },
+    {
+      "id": "rel.notifications-shipping",
+      "fromContextId": "ctx.notifications",
+      "toContextId": "ctx.shipping",
+      "pattern": "conformist",
+      "communicationMode": "Event stream (Kafka)",
+      "description": "Notifications consumes shipping events for tracking updates."
+    },
+    {
+      "id": "rel.customerService-orders",
+      "fromContextId": "ctx.customerService",
+      "toContextId": "ctx.orders",
+      "pattern": "customer-supplier",
+      "communicationMode": "REST API + Direct DB read",
+      "description": "Customer service queries and modifies orders (some boundary violations exist)."
+    },
+    {
+      "id": "rel.analytics-catalog",
+      "fromContextId": "ctx.analytics",
+      "toContextId": "ctx.catalog",
+      "pattern": "conformist",
+      "communicationMode": "Event stream (Kafka)",
+      "description": "Analytics consumes catalog events for product performance analysis."
+    },
+    {
+      "id": "rel.analytics-orders",
+      "fromContextId": "ctx.analytics",
+      "toContextId": "ctx.orders",
+      "pattern": "conformist",
+      "communicationMode": "Event stream (Kafka)",
+      "description": "Analytics consumes order events for sales reporting."
+    },
+    {
+      "id": "rel.analytics-warehouse",
+      "fromContextId": "ctx.analytics",
+      "toContextId": "ctx.warehouse",
+      "pattern": "conformist",
+      "communicationMode": "Database replication",
+      "description": "Analytics replicates warehouse data for operational reporting."
+    },
+    {
+      "id": "rel.recommendations-catalog",
+      "fromContextId": "ctx.recommendations",
+      "toContextId": "ctx.catalog",
+      "pattern": "conformist",
+      "communicationMode": "Event stream (Kafka)",
+      "description": "Recommendations consumes catalog events for ML model training."
+    },
+    {
+      "id": "rel.recommendations-orders",
+      "fromContextId": "ctx.recommendations",
+      "toContextId": "ctx.orders",
+      "pattern": "conformist",
+      "communicationMode": "Event stream (Kafka)",
+      "description": "Recommendations uses purchase history for collaborative filtering."
+    }
+  ],
+  "repos": [
+    {
+      "id": "repo.storefront-web",
+      "name": "storefront-web",
+      "remoteUrl": "https://github.com/acme-corp/storefront-web",
+      "contextId": "ctx.storefront",
+      "teamIds": ["team.customer-experience"],
+      "contributors": [
+        { "personId": "person.sarah" },
+        { "personId": "person.mike" },
+        { "personId": "person.jessica" }
+      ]
+    },
+    {
+      "id": "repo.catalog-service",
+      "name": "catalog-service",
+      "remoteUrl": "https://github.com/acme-corp/catalog-service",
+      "contextId": "ctx.catalog",
+      "teamIds": ["team.platform"],
+      "contributors": [
+        { "personId": "person.david" },
+        { "personId": "person.emma" }
+      ]
+    },
+    {
+      "id": "repo.search-service",
+      "name": "search-service",
+      "remoteUrl": "https://github.com/acme-corp/search-service",
+      "contextId": "ctx.search",
+      "teamIds": ["team.platform"],
+      "contributors": [
+        { "personId": "person.david" },
+        { "personId": "person.alex" }
+      ]
+    },
+    {
+      "id": "repo.cart-service",
+      "name": "cart-service",
+      "remoteUrl": "https://github.com/acme-corp/cart-service",
+      "contextId": "ctx.cart",
+      "teamIds": ["team.checkout"],
+      "contributors": [
+        { "personId": "person.rachel" },
+        { "personId": "person.tom" }
+      ]
+    },
+    {
+      "id": "repo.checkout-service",
+      "name": "checkout-service",
+      "remoteUrl": "https://github.com/acme-corp/checkout-service",
+      "contextId": "ctx.checkout",
+      "teamIds": ["team.checkout"],
+      "contributors": [
+        { "personId": "person.rachel" },
+        { "personId": "person.tom" },
+        { "personId": "person.lisa" }
+      ]
+    },
+    {
+      "id": "repo.payment-service",
+      "name": "payment-service",
+      "remoteUrl": "https://github.com/acme-corp/payment-service",
+      "contextId": "ctx.payment",
+      "teamIds": ["team.payments"],
+      "contributors": [
+        { "personId": "person.kevin" },
+        { "personId": "person.amanda" }
+      ]
+    },
+    {
+      "id": "repo.order-service",
+      "name": "order-service",
+      "remoteUrl": "https://github.com/acme-corp/order-service",
+      "contextId": "ctx.orders",
+      "teamIds": ["team.fulfillment"],
+      "contributors": [
+        { "personId": "person.chris" },
+        { "personId": "person.nicole" }
+      ]
+    },
+    {
+      "id": "repo.inventory-service",
+      "name": "inventory-service",
+      "remoteUrl": "https://github.com/acme-corp/inventory-service",
+      "contextId": "ctx.inventory",
+      "teamIds": ["team.fulfillment"],
+      "contributors": [
+        { "personId": "person.chris" },
+        { "personId": "person.brian" }
+      ]
+    },
+    {
+      "id": "repo.warehouse-monolith",
+      "name": "warehouse-system-legacy",
+      "remoteUrl": "https://github.com/acme-corp/warehouse-system-legacy",
+      "contextId": "ctx.warehouse",
+      "teamIds": ["team.operations"],
+      "contributors": [
+        { "personId": "person.robert" }
+      ],
+      "analysisSummary": "Legacy Java monolith. Minimal test coverage. Poor documentation."
+    },
+    {
+      "id": "repo.shipping-integration",
+      "name": "shipping-integration",
+      "remoteUrl": "https://github.com/acme-corp/shipping-integration",
+      "contextId": "ctx.shipping",
+      "teamIds": ["team.fulfillment"],
+      "contributors": [
+        { "personId": "person.chris" },
+        { "personId": "person.brian" }
+      ]
+    },
+    {
+      "id": "repo.notification-service",
+      "name": "notification-service",
+      "remoteUrl": "https://github.com/acme-corp/notification-service",
+      "contextId": "ctx.notifications",
+      "teamIds": ["team.platform"],
+      "contributors": [
+        { "personId": "person.emma" },
+        { "personId": "person.alex" }
+      ]
+    },
+    {
+      "id": "repo.cs-portal",
+      "name": "customer-service-portal",
+      "remoteUrl": "https://github.com/acme-corp/customer-service-portal",
+      "contextId": "ctx.customerService",
+      "teamIds": ["team.customer-experience"],
+      "contributors": [
+        { "personId": "person.jessica" },
+        { "personId": "person.mike" }
+      ]
+    },
+    {
+      "id": "repo.analytics-warehouse",
+      "name": "analytics-data-warehouse",
+      "remoteUrl": "https://github.com/acme-corp/analytics-data-warehouse",
+      "contextId": "ctx.analytics",
+      "teamIds": ["team.data-engineering"],
+      "contributors": [
+        { "personId": "person.maya" },
+        { "personId": "person.james" }
+      ]
+    },
+    {
+      "id": "repo.identity-service",
+      "name": "identity-service",
+      "remoteUrl": "https://github.com/acme-corp/identity-service",
+      "contextId": "ctx.identity",
+      "teamIds": ["team.platform"],
+      "contributors": [
+        { "personId": "person.kevin" },
+        { "personId": "person.david" }
+      ]
+    },
+    {
+      "id": "repo.recommendations-ml",
+      "name": "recommendations-ml-service",
+      "remoteUrl": "https://github.com/acme-corp/recommendations-ml-service",
+      "contextId": "ctx.recommendations",
+      "teamIds": ["team.data-engineering"],
+      "contributors": [
+        { "personId": "person.maya" },
+        { "personId": "person.sophia" }
+      ]
+    }
+  ],
+  "people": [
+    { "id": "person.sarah", "displayName": "Sarah Chen", "emails": ["sarah.chen@acme-corp.com"] },
+    { "id": "person.mike", "displayName": "Mike Johnson", "emails": ["mike.johnson@acme-corp.com"] },
+    { "id": "person.jessica", "displayName": "Jessica Martinez", "emails": ["jessica.martinez@acme-corp.com"] },
+    { "id": "person.david", "displayName": "David Kim", "emails": ["david.kim@acme-corp.com"] },
+    { "id": "person.emma", "displayName": "Emma Watson", "emails": ["emma.watson@acme-corp.com"] },
+    { "id": "person.alex", "displayName": "Alex Patel", "emails": ["alex.patel@acme-corp.com"] },
+    { "id": "person.rachel", "displayName": "Rachel Green", "emails": ["rachel.green@acme-corp.com"] },
+    { "id": "person.tom", "displayName": "Tom Anderson", "emails": ["tom.anderson@acme-corp.com"] },
+    { "id": "person.lisa", "displayName": "Lisa Wong", "emails": ["lisa.wong@acme-corp.com"] },
+    { "id": "person.kevin", "displayName": "Kevin Brown", "emails": ["kevin.brown@acme-corp.com"] },
+    { "id": "person.amanda", "displayName": "Amanda Lee", "emails": ["amanda.lee@acme-corp.com"] },
+    { "id": "person.chris", "displayName": "Chris Taylor", "emails": ["chris.taylor@acme-corp.com"] },
+    { "id": "person.nicole", "displayName": "Nicole Davis", "emails": ["nicole.davis@acme-corp.com"] },
+    { "id": "person.brian", "displayName": "Brian Wilson", "emails": ["brian.wilson@acme-corp.com"] },
+    { "id": "person.robert", "displayName": "Robert Miller", "emails": ["robert.miller@acme-corp.com"] },
+    { "id": "person.maya", "displayName": "Maya Singh", "emails": ["maya.singh@acme-corp.com"] },
+    { "id": "person.james", "displayName": "James Chen", "emails": ["james.chen@acme-corp.com"] },
+    { "id": "person.sophia", "displayName": "Sophia Rodriguez", "emails": ["sophia.rodriguez@acme-corp.com"] }
+  ],
+  "teams": [
+    {
+      "id": "team.customer-experience",
+      "name": "Customer Experience Squad",
+      "jiraBoard": "https://acme-corp.atlassian.net/jira/software/c/projects/CX/boards/12",
+      "topologyType": "stream-aligned"
+    },
+    {
+      "id": "team.checkout",
+      "name": "Checkout & Cart Team",
+      "jiraBoard": "https://acme-corp.atlassian.net/jira/software/c/projects/CHK/boards/15",
+      "topologyType": "stream-aligned"
+    },
+    {
+      "id": "team.payments",
+      "name": "Payments Team",
+      "jiraBoard": "https://acme-corp.atlassian.net/jira/software/c/projects/PAY/boards/18",
+      "topologyType": "complicated-subsystem"
+    },
+    {
+      "id": "team.fulfillment",
+      "name": "Fulfillment & Logistics",
+      "jiraBoard": "https://acme-corp.atlassian.net/jira/software/c/projects/FUL/boards/22",
+      "topologyType": "stream-aligned"
+    },
+    {
+      "id": "team.platform",
+      "name": "Platform Engineering",
+      "jiraBoard": "https://acme-corp.atlassian.net/jira/software/c/projects/PLAT/boards/5",
+      "topologyType": "platform"
+    },
+    {
+      "id": "team.data-engineering",
+      "name": "Data Engineering",
+      "jiraBoard": "https://acme-corp.atlassian.net/jira/software/c/projects/DATA/boards/28",
+      "topologyType": "platform"
+    },
+    {
+      "id": "team.operations",
+      "name": "Operations & Legacy Systems",
+      "jiraBoard": "https://acme-corp.atlassian.net/jira/software/c/projects/OPS/boards/32",
+      "topologyType": "enabling"
+    }
+  ],
+  "groups": [
+    {
+      "id": "group.customer-facing",
+      "label": "Customer-Facing Experience",
+      "color": "#E3F2FD",
+      "contextIds": ["ctx.storefront", "ctx.search", "ctx.recommendations"],
+      "notes": "Front-end systems directly visible to customers."
+    },
+    {
+      "id": "group.order-flow",
+      "label": "Order & Checkout Flow",
+      "color": "#FFF3E0",
+      "contextIds": ["ctx.cart", "ctx.checkout", "ctx.orders"],
+      "notes": "Core revenue-generating transactional flow."
+    },
+    {
+      "id": "group.fulfillment",
+      "label": "Fulfillment & Shipping",
+      "color": "#F3E5F5",
+      "contextIds": ["ctx.inventory", "ctx.warehouse", "ctx.shipping"],
+      "notes": "Physical goods handling and delivery."
+    },
+    {
+      "id": "group.platform-services",
+      "label": "Platform Services",
+      "color": "#E8F5E9",
+      "contextIds": ["ctx.catalog", "ctx.identity", "ctx.payment", "ctx.notifications"],
+      "notes": "Shared platform capabilities."
+    }
+  ],
+  "viewConfig": {
+    "flowStages": [
+      { "label": "Discovery", "position": 10 },
+      { "label": "Selection", "position": 30 },
+      { "label": "Purchase", "position": 50 },
+      { "label": "Fulfillment", "position": 70 },
+      { "label": "Post-Sale", "position": 90 }
+    ]
+  }
+}
