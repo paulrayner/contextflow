@@ -14,7 +14,7 @@
           "x": 15
         },
         "strategic": {
-          "x": 45
+          "x": 44
         },
         "shared": {
           "y": 95
@@ -40,7 +40,7 @@
           "x": 10
         },
         "strategic": {
-          "x": 55
+          "x": 58
         },
         "shared": {
           "y": 65
@@ -66,7 +66,7 @@
           "x": 20
         },
         "strategic": {
-          "x": 70
+          "x": 68
         },
         "shared": {
           "y": 75
@@ -92,7 +92,7 @@
           "x": 30
         },
         "strategic": {
-          "x": 50
+          "x": 48
         },
         "shared": {
           "y": 80
@@ -118,7 +118,7 @@
           "x": 45
         },
         "strategic": {
-          "x": 48
+          "x": 46
         },
         "shared": {
           "y": 85
@@ -144,7 +144,7 @@
           "x": 50
         },
         "strategic": {
-          "x": 65
+          "x": 62
         },
         "shared": {
           "y": 70
@@ -170,7 +170,7 @@
           "x": 55
         },
         "strategic": {
-          "x": 90
+          "x": 91
         },
         "shared": {
           "y": 55
@@ -196,7 +196,7 @@
           "x": 60
         },
         "strategic": {
-          "x": 52
+          "x": 50
         },
         "shared": {
           "y": 75
@@ -222,7 +222,7 @@
           "x": 35
         },
         "strategic": {
-          "x": 45
+          "x": 42
         },
         "shared": {
           "y": 55
@@ -248,13 +248,13 @@
           "x": 70
         },
         "strategic": {
-          "x": 25
+          "x": 30
         },
         "shared": {
           "y": 40
         }
       },
-      "evolutionStage": "genesis",
+      "evolutionStage": "custom-built",
       "codeSize": {
         "bucket": "huge"
       },
@@ -274,7 +274,7 @@
           "x": 75
         },
         "strategic": {
-          "x": 75
+          "x": 70
         },
         "shared": {
           "y": 60
@@ -300,7 +300,7 @@
           "x": 80
         },
         "strategic": {
-          "x": 85
+          "x": 86
         },
         "shared": {
           "y": 45
@@ -326,7 +326,7 @@
           "x": 85
         },
         "strategic": {
-          "x": 70
+          "x": 66
         },
         "shared": {
           "y": 70
@@ -352,7 +352,7 @@
           "x": 90
         },
         "strategic": {
-          "x": 40
+          "x": 38
         },
         "shared": {
           "y": 80
@@ -378,7 +378,7 @@
           "x": 95
         },
         "strategic": {
-          "x": 60
+          "x": 61
         },
         "shared": {
           "y": 50
@@ -404,7 +404,7 @@
           "x": 5
         },
         "strategic": {
-          "x": 68
+          "x": 64
         },
         "shared": {
           "y": 60
@@ -430,19 +430,71 @@
           "x": 25
         },
         "strategic": {
-          "x": 58
+          "x": 18
         },
         "shared": {
           "y": 65
         }
       },
-      "evolutionStage": "custom-built",
+      "evolutionStage": "genesis",
       "codeSize": {
         "bucket": "medium"
       },
       "isLegacy": false,
       "isExternal": false,
-      "notes": "Python-based ML service. Training pipeline runs nightly. Real-time inference API for storefront."
+      "notes": "Python-based ML service. Cutting-edge recommendation algorithms. Training pipeline runs nightly. Real-time inference API for storefront."
+    },
+    {
+      "id": "ctx.taxCalculation",
+      "name": "Tax Calculation Service",
+      "purpose": "External SaaS for real-time sales tax calculation, nexus determination, and tax compliance reporting.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "External SaaS with well-documented REST API. Clear contracts.",
+      "positions": {
+        "flow": {
+          "x": 48
+        },
+        "strategic": {
+          "x": 88
+        },
+        "shared": {
+          "y": 62
+        }
+      },
+      "evolutionStage": "commodity/utility",
+      "codeSize": {
+        "bucket": "tiny"
+      },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Third-party service (Avalara or TaxJar). Handles complex multi-jurisdictional tax calculation."
+    },
+    {
+      "id": "ctx.fraudDetection",
+      "name": "Fraud Detection Service",
+      "purpose": "External fraud screening and risk assessment for transactions and account activity.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "External SaaS with real-time scoring API. Clear integration patterns.",
+      "positions": {
+        "flow": {
+          "x": 52
+        },
+        "strategic": {
+          "x": 92
+        },
+        "shared": {
+          "y": 68
+        }
+      },
+      "evolutionStage": "commodity/utility",
+      "codeSize": {
+        "bucket": "tiny"
+      },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Third-party service (Sift, Stripe Radar, or similar). Real-time fraud scoring for orders and payments."
     }
   ],
   "relationships": [
@@ -645,6 +697,30 @@
       "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
       "description": "Recommendations uses purchase history for collaborative filtering."
+    },
+    {
+      "id": "rel.checkout-orders-partnership",
+      "fromContextId": "ctx.checkout",
+      "toContextId": "ctx.orders",
+      "pattern": "partnership",
+      "communicationMode": "Synchronous API + Events",
+      "description": "Checkout and Orders collaborate closely on transaction boundaries and state management. Joint ownership of order creation semantics."
+    },
+    {
+      "id": "rel.checkout-taxCalculation",
+      "fromContextId": "ctx.checkout",
+      "toContextId": "ctx.taxCalculation",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "REST API",
+      "description": "Checkout wraps external tax service with domain-specific abstractions for order tax calculation."
+    },
+    {
+      "id": "rel.payment-fraudDetection",
+      "fromContextId": "ctx.payment",
+      "toContextId": "ctx.fraudDetection",
+      "pattern": "conformist",
+      "communicationMode": "REST API",
+      "description": "Payment service consumes fraud scoring for risk assessment during payment authorization."
     }
   ],
   "repos": [
@@ -814,6 +890,17 @@
         { "personId": "person.maya" },
         { "personId": "person.sophia" }
       ]
+    },
+    {
+      "id": "repo.mobile-app-ios",
+      "name": "mobile-app-ios",
+      "remoteUrl": "https://github.com/acme-corp/mobile-app-ios",
+      "teamIds": ["team.customer-experience"],
+      "contributors": [
+        { "personId": "person.sarah" },
+        { "personId": "person.mike" }
+      ],
+      "analysisSummary": "Native iOS mobile app. In development, not yet mapped to a specific bounded context."
     }
   ],
   "people": [
@@ -908,6 +995,13 @@
       "color": "#E8F5E9",
       "contextIds": ["ctx.catalog", "ctx.identity", "ctx.payment", "ctx.notifications"],
       "notes": "Shared platform capabilities."
+    },
+    {
+      "id": "group.security-compliance",
+      "label": "Security & Compliance",
+      "color": "#FFEBEE",
+      "contextIds": ["ctx.payment", "ctx.identity", "ctx.fraudDetection"],
+      "notes": "Security-critical systems handling authentication, authorization, payments, and fraud prevention. Overlaps with Platform Services."
     }
   ],
   "viewConfig": {
