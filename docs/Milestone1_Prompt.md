@@ -14,7 +14,9 @@ Below are the key details you need to implement.
 ---
 
 ## 1. Data model and state
-The types are in `src/model/types.ts`. The store is in `src/model/store.ts` and already loads the demo Project.
+The types are in `src/model/types.ts`. The store is in `src/model/store.ts`.
+
+For Milestone 1, load `sample.project.json` at startup (can be hardcoded import for now).
 
 Use:
 - `projects[projectId]`
@@ -22,6 +24,11 @@ Use:
 - `selectedContextId`
 
 Do **not** change data shapes. Consume the existing model.
+
+**Tech stack:**
+- UI components: shadcn/ui (Radix primitives) + Tailwind CSS
+- Icons: lucide-react
+- Canvas: React Flow
 
 ---
 
@@ -41,9 +48,9 @@ Create a new `src/components/CanvasArea.tsx` that:
 
 3. Node style rules:
    - **Fill color**
-     - `core` → soft gold
-     - `supporting` → pale blue
-     - `generic` → light gray
+     - `core` → soft gold `#f8e7a1`
+     - `supporting` → pale blue `#dbeafe`
+     - `generic` → light gray `#f3f4f6`
    - **Border**
      - strong → thick solid
      - moderate → medium solid
@@ -57,10 +64,12 @@ Create a new `src/components/CanvasArea.tsx` that:
 4. Node selection:
    - Clicking sets `selectedContextId`.
    - Selected node visually highlights.
+   - Clicking empty canvas or pressing `Esc` deselects.
 
 5. Axes:
-   - X axis: stage markers from `project.viewConfig.flowStages[]` (e.g., "Discovery", "Selection", "Purchase", "Fulfillment", "Post-Sale")
-   - Y axis: simple "Customer/User-facing" → "Enabling/Platform"
+   - X axis: Wardley-style subtle gridlines with stage markers from `project.viewConfig.flowStages[]` (e.g., "Discovery", "Selection", "Purchase", "Fulfillment", "Post-Sale")
+   - Y axis: "User-Facing / Value Delivery" (top) → "Enabling / Platform" (bottom)
+   - Axis labels should be always visible.
 
 6. Enable React Flow pan/zoom.
 
@@ -94,8 +103,8 @@ tiny 120×70, small 140×80, medium 170×100, large 200×120, huge 240×140.
 
 ## 5. Edge details
 - Directed curved edges (arrow toward upstream).
-- `shared-kernel` and `partnership` → no arrow.
-- Optionally label edges with `pattern` (e.g. “conformist”).
+- `shared-kernel` and `partnership` → no arrow (symmetric edge).
+- Hovering an edge should show pattern name in tooltip (e.g., "conformist").
 
 ---
 
@@ -109,8 +118,11 @@ Show for selected context:
 - boundaryIntegrity + boundaryNotes
 - codeSize.bucket
 - isLegacy / isExternal
+- evolutionStage (if set)
+- Assigned repos (if any): show repo name, remoteUrl as clickable link
+- Teams (if repos assigned): show team names
 
-If none selected: “Select a context to inspect.”
+If none selected: "Select a context to inspect."
 
 ---
 
@@ -127,11 +139,12 @@ Professional, minimal, neutral palette:
 
 After running `npm install && npm run dev`, user should see:
 
-✅ Canvas with nodes laid out by Flow View positions  
-✅ Edges between contexts  
-✅ X-axis stage labels  
-✅ Left sidebar placeholder (“Unassigned Repos”)  
-✅ Right sidebar shows info for selected context  
+✅ Canvas with nodes laid out by Flow View positions
+✅ Edges between contexts
+✅ X-axis stage labels with Wardley-style gridlines
+✅ Y-axis labels always visible
+✅ Left sidebar placeholder ("Unassigned Repos")
+✅ Right sidebar shows info for selected context (including repos/teams if assigned)  
 
 ---
 

@@ -48,15 +48,15 @@ Render a believable Flow View map from `sample.project.json`.
 - Implement node selection:
   - Clicking a node highlights it and stores `selectedContextId`
 - Implement `<InspectorPanel />` basic (right side):
-  - When a context is selected, show read-only info (name, purpose, notes)
+  - When a context is selected, show read-only info (name, purpose, notes, repos, teams)
 - Implement pan, zoom, and Fit to Map
-- Implement autosave (serialize current Project to localStorage on edit)
+- Load `sample.project.json` at startup (hardcoded or from localStorage cache)
 
 ### Result
 At the end of Milestone 1 you can:
 - Show a real e-commerce platform map in Flow View
-- Click a context and talk about it
-- Autosave locally
+- Click a context and inspect its details (including repos and teams)
+- Navigate and explore the visualization
 This is already demoable in front of stakeholders.
 
 ---
