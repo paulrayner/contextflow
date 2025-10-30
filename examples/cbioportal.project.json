@@ -1,0 +1,455 @@
+{
+  "id": "cbioportal",
+  "name": "cBioPortal Demo Map",
+  "contexts": [
+    {
+      "id": "ctx.portalExperience",
+      "name": "Clinical & Genomic Data Portal",
+      "purpose": "Interactive portal UI for clinicians/researchers to explore studies, view mutations, survival plots, and cohort summaries.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Presentation logic and query semantics are tightly coupled; frontend leans directly on backend's data model.",
+      "positions": {
+        "flow": {
+          "x": 70
+        },
+        "strategic": {
+          "x": 40
+        },
+        "shared": {
+          "y": 90
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "High visibility. Drives perceived value for clinical/research users. Backed by React/MobX frontend and Java backend REST API."
+    },
+    {
+      "id": "ctx.publicApi",
+      "name": "Programmatic Access API",
+      "purpose": "Published REST API (OpenAPI spec) that external tools/scripts call for cohort data, mutations, and study metadata.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Contracts are documented and relatively stable. Backwards compatibility pressure comes from downstream consumers.",
+      "positions": {
+        "flow": {
+          "x": 80
+        },
+        "strategic": {
+          "x": 75
+        },
+        "shared": {
+          "y": 75
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Acts as an Open Host Service. External research consumers must conform to its language."
+    },
+    {
+      "id": "ctx.queryEngine",
+      "name": "Cohort / Query & Analysis Engine",
+      "purpose": "Query logic for cohorts, clinical/genomic joins, survival analysis, and study-level analytics.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Domain language from research bleeds into UI and API with few translation boundaries. Performance tuning drives design.",
+      "positions": {
+        "flow": {
+          "x": 55
+        },
+        "strategic": {
+          "x": 35
+        },
+        "shared": {
+          "y": 80
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "large"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Differentiator. Feeds both the Portal UI and programmatic API. Tight coupling to curated relational schemas."
+    },
+    {
+      "id": "ctx.sessionService",
+      "name": "Session & Virtual Study Service",
+      "purpose": "Stores user-created virtual studies, saved groups, and analysis sessions. Java + MongoDB, only reachable via backend proxy.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Backend mediates access. Frontend cannot talk to Mongo directly.",
+      "positions": {
+        "flow": {
+          "x": 60
+        },
+        "strategic": {
+          "x": 50
+        },
+        "shared": {
+          "y": 60
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Holds user-specific context like saved cohorts. Access controlled by backend-only proxy. Supports collaboration / revisitability."
+    },
+    {
+      "id": "ctx.ingestion",
+      "name": "Data Ingestion & Validation Pipeline",
+      "purpose": "Validates incoming study data (via validator/metaImport.py) and loads it into cBioPortal's datastore.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "weak",
+      "boundaryNotes": "Import scripts and validation logic live alongside backend code. Operational coupling and tribal knowledge.",
+      "positions": {
+        "flow": {
+          "x": 15
+        },
+        "strategic": {
+          "x": 45
+        },
+        "shared": {
+          "y": 40
+        }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": {
+        "bucket": "medium"
+      },
+      "isLegacy": true,
+      "isExternal": false,
+      "notes": "Onboarding new studies bottlenecks here. Mix of Python wrappers + Java import classes. Informal ownership, lots of implicit rules."
+    },
+    {
+      "id": "ctx.storageCore",
+      "name": "Clinical / Genomic Data Store",
+      "purpose": "Authoritative MySQL OLTP database (optionally ClickHouse for OLAP). Source of truth for study data, mutations, clinical attributes.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "weak",
+      "boundaryNotes": "Schema design is shared by ingestion, query engine, and API. Hard to evolve without coordinated changes everywhere.",
+      "positions": {
+        "flow": {
+          "x": 30
+        },
+        "strategic": {
+          "x": 55
+        },
+        "shared": {
+          "y": 30
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "huge"
+      },
+      "isLegacy": true,
+      "isExternal": false,
+      "notes": "High coupling. Acts as a shared kernel between ingestion and query/analysis. Performance tuning via Redis/ClickHouse leaks infra concerns upward."
+    },
+    {
+      "id": "ctx.oncokb",
+      "name": "OncoKB Knowledge Base",
+      "purpose": "External precision oncology knowledge base providing variant interpretation and clinical significance.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "We consume their taxonomy (conformist). We cannot rename or reshape their definitions.",
+      "positions": {
+        "flow": {
+          "x": 5
+        },
+        "strategic": {
+          "x": 90
+        },
+        "shared": {
+          "y": 35
+        }
+      },
+      "evolutionStage": "commodity/utility",
+      "codeSize": {
+        "bucket": "tiny"
+      },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "External upstream. We depend on OncoKB for classification of mutations and treatment implications."
+    },
+    {
+      "id": "ctx.genomeNexus",
+      "name": "Genome Nexus Annotation Service",
+      "purpose": "External high-throughput variant annotation/normalization service.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Consumed as a utility service for variant annotation; we adopt their model.",
+      "positions": {
+        "flow": {
+          "x": 5
+        },
+        "strategic": {
+          "x": 90
+        },
+        "shared": {
+          "y": 25
+        }
+      },
+      "evolutionStage": "commodity/utility",
+      "codeSize": {
+        "bucket": "tiny"
+      },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Provides standardized variant annotations and references. We treat it as commodity enrichment."
+    },
+    {
+      "id": "ctx.externalConsumers",
+      "name": "External Research Consumers",
+      "purpose": "Downstream partners and analyst workflows consuming exported cohorts and clinical/genomic insights via the public API.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "They depend on our published API contract. Backwards-compat pressure originates here.",
+      "positions": {
+        "flow": {
+          "x": 95
+        },
+        "strategic": {
+          "x": 85
+        },
+        "shared": {
+          "y": 85
+        }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": {
+        "bucket": "tiny"
+      },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Represents hospitals, research partners, downstream analysis pipelines. They integrate via our Open Host Service."
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel.portal_to_query",
+      "fromContextId": "ctx.portalExperience",
+      "toContextId": "ctx.queryEngine",
+      "pattern": "conformist",
+      "communicationMode": "internal service API / query endpoints",
+      "description": "Portal adopts query engine's domain language and result shapes without an anti-corruption layer."
+    },
+    {
+      "id": "rel.portal_to_publicApi",
+      "fromContextId": "ctx.portalExperience",
+      "toContextId": "ctx.publicApi",
+      "pattern": "conformist",
+      "communicationMode": "REST API (OpenAPI)",
+      "description": "UI and programmatic API share exposed terminology for mutations, studies, cohorts."
+    },
+    {
+      "id": "rel.publicApi_to_externalConsumers",
+      "fromContextId": "ctx.externalConsumers",
+      "toContextId": "ctx.publicApi",
+      "pattern": "open-host-service",
+      "communicationMode": "Published REST API / documented schema",
+      "description": "External research consumers must integrate via the published API contract; we promise stability."
+    },
+    {
+      "id": "rel.query_to_storage",
+      "fromContextId": "ctx.queryEngine",
+      "toContextId": "ctx.storageCore",
+      "pattern": "customer-supplier",
+      "communicationMode": "SQL / ClickHouse / Redis-assisted query paths",
+      "description": "Query/analysis is downstream of curated schema; storage defines what's possible/performance-feasible."
+    },
+    {
+      "id": "rel.storage_shared_kernel_ingestion",
+      "fromContextId": "ctx.ingestion",
+      "toContextId": "ctx.storageCore",
+      "pattern": "shared-kernel",
+      "communicationMode": "validator + import classes writing MySQL schema",
+      "description": "Ingestion pipeline and storage tightly co-own schema evolution; changes require coordination."
+    },
+    {
+      "id": "rel.backend_to_session",
+      "fromContextId": "ctx.sessionService",
+      "toContextId": "ctx.portalExperience",
+      "pattern": "customer-supplier",
+      "communicationMode": "Session state proxied via backend REST API",
+      "description": "Portal relies on persisted virtual studies / saved groups exposed via backend-only access to session service."
+    },
+    {
+      "id": "rel.query_to_oncokb",
+      "fromContextId": "ctx.queryEngine",
+      "toContextId": "ctx.oncokb",
+      "pattern": "conformist",
+      "communicationMode": "Variant interpretation API",
+      "description": "We adopt OncoKB's oncology significance classifications."
+    },
+    {
+      "id": "rel.query_to_genomenexus",
+      "fromContextId": "ctx.queryEngine",
+      "toContextId": "ctx.genomeNexus",
+      "pattern": "conformist",
+      "communicationMode": "Variant annotation API",
+      "description": "We consume Genome Nexus annotations as-is and treat them as authoritative enrichment."
+    }
+  ],
+  "repos": [
+    {
+      "id": "repo.cbioportalMain",
+      "name": "cbioportal",
+      "remoteUrl": "https://github.com/cBioPortal/cbioportal",
+      "contextId": "ctx.portalExperience",
+      "teamIds": [
+        "team.portalApp"
+      ],
+      "contributors": [
+        {
+          "personId": "person.aliceChen"
+        },
+        {
+          "personId": "person.marcusIto"
+        }
+      ],
+      "analysisSummary": "Primary codebase containing backend REST API, validator, import pipeline, and bundled frontend. High change velocity; boundary between ingestion and runtime logic is blurry."
+    },
+    {
+      "id": "repo.sessionService",
+      "name": "session-service",
+      "remoteUrl": "https://github.com/cBioPortal/session-service",
+      "contextId": "ctx.sessionService",
+      "teamIds": [
+        "team.portalApp"
+      ],
+      "contributors": [
+        {
+          "personId": "person.aliceChen"
+        },
+        {
+          "personId": "person.sofiaPatel"
+        }
+      ],
+      "analysisSummary": "Stores virtual studies / saved cohorts in MongoDB. Only reachable via backend proxy; front end never talks directly to it."
+    },
+    {
+      "id": "repo.dataHub",
+      "name": "datahub",
+      "remoteUrl": "https://github.com/cBioPortal/datahub",
+      "contextId": "ctx.ingestion",
+      "teamIds": [
+        "team.dataPipelines"
+      ],
+      "contributors": [
+        {
+          "personId": "person.sofiaPatel"
+        },
+        {
+          "personId": "person.marcusIto"
+        }
+      ],
+      "analysisSummary": "Validator, metaImport.py, and curated study data loading. Social bottleneck: knowledge concentrated in a few maintainers."
+    }
+  ],
+  "people": [
+    {
+      "id": "person.aliceChen",
+      "displayName": "Alice Chen",
+      "emails": [
+        "alice.chen@example.org"
+      ],
+      "teamIds": [
+        "team.portalApp"
+      ]
+    },
+    {
+      "id": "person.marcusIto",
+      "displayName": "Marcus Ito",
+      "emails": [
+        "marcus.ito@example.org"
+      ],
+      "teamIds": [
+        "team.portalApp",
+        "team.dataPipelines"
+      ]
+    },
+    {
+      "id": "person.sofiaPatel",
+      "displayName": "Sofia Patel",
+      "emails": [
+        "sofia.patel@example.org"
+      ],
+      "teamIds": [
+        "team.dataPipelines"
+      ]
+    }
+  ],
+  "teams": [
+    {
+      "id": "team.portalApp",
+      "name": "Portal Application Team",
+      "jiraBoard": "https://jira.example.org/secure/RapidBoard.jspa?rapidView=42",
+      "topologyType": "stream-aligned"
+    },
+    {
+      "id": "team.dataPipelines",
+      "name": "Data Ingestion & Curation Team",
+      "jiraBoard": "https://jira.example.org/secure/RapidBoard.jspa?rapidView=7",
+      "topologyType": "platform"
+    }
+  ],
+  "groups": [
+    {
+      "id": "group.researchInsights",
+      "label": "Research Insights Surface",
+      "color": "rgba(255,255,0,0.08)",
+      "contextIds": [
+        "ctx.portalExperience",
+        "ctx.queryEngine",
+        "ctx.publicApi",
+        "ctx.sessionService"
+      ],
+      "notes": "All clinician/research-facing capabilities. High perceived value. Drives funding and roadmap pressure."
+    },
+    {
+      "id": "group.dataPlatform",
+      "label": "Data Platform / Ingestion",
+      "color": "rgba(0,128,255,0.08)",
+      "contextIds": [
+        "ctx.ingestion",
+        "ctx.storageCore",
+        "ctx.oncokb",
+        "ctx.genomeNexus"
+      ],
+      "notes": "Data onboarding, curation, enrichment. Platform-like capability that other flows rely on."
+    }
+  ],
+  "viewConfig": {
+    "flowStages": [
+      {
+        "label": "Data Ingestion",
+        "position": 10
+      },
+      {
+        "label": "Curation & Harmonization",
+        "position": 30
+      },
+      {
+        "label": "Cohort Query / Analysis",
+        "position": 55
+      },
+      {
+        "label": "Clinical Insight Delivery",
+        "position": 80
+      }
+    ]
+  }
+}

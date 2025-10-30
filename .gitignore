@@ -1,11 +1,9 @@
 # Client-specific content
 docs/cBioPortal Demo/
-examples/cbioportal.project.json
 *.zip
 
 # IDE and AI assistant folders
 .claude/
-CLAUDE.md
 .cursor/
 .cursorrules
 .vscode/

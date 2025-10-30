@@ -1,7 +1,27 @@
 {
   "name": "contextflow",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Visual DDD context mapper with Flow and Strategic views",
+  "private": false,
+  "license": "MIT",
+  "author": "Paul Rayner",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulrayner/contextflow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paulrayner/contextflow/issues"
+  },
+  "homepage": "https://github.com/paulrayner/contextflow#readme",
+  "keywords": [
+    "ddd",
+    "domain-driven-design",
+    "bounded-context",
+    "context-mapping",
+    "wardley-map",
+    "architecture",
+    "visualization"
+  ],
   "scripts": {
     "dev": "vite --open",
     "build": "vite build",

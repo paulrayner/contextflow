@@ -15,7 +15,7 @@ ContextFlow helps teams map their system architecture as it actually exists — 
 
 The key differentiator: **two views of the same system**.
 
-- **Flow View** shows how value and data move left-to-right through your system (Discovery → Selection → Purchase → Fulfillment → Post-Sale)
+- **Flow View** shows how value and data move left-to-right through your system (stages are configurable per project: e.g., "Discovery → Selection → Purchase → Fulfillment → Post-Sale" for e-commerce, or "Ingest → Normalize → Analyze → Publish" for data pipelines)
 - **Strategic View** shows where each capability sits on the Wardley evolution axis (Genesis → Custom-built → Product/Rental → Commodity/Utility)
 
 Switch between views live. Same contexts, same relationships — different conversations.
@@ -98,4 +98,4 @@ If you're interested in the vision or want to provide early feedback, see [VISIO
 
 ## License
 
-MIT (planned upon initial release)
+MIT - see [LICENSE](LICENSE) file for details
