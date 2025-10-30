@@ -1,4 +1,4 @@
-# SPEC.md
+# Specification
 
 ## Goal
 Define what the MVP of ContextFlow must do, and the constraints it must respect.
@@ -18,19 +18,19 @@ Fields:
   - Drives border style (solid thick / solid / dashed)
   - `boundaryNotes` (why strong or weak)
 - `codeSize.bucket`: `tiny`, `small`, `medium`, `large`, `huge`
-  - Drives bubble size
+  - Drives bubble size (user-assigned in MVP; future: auto-calculated from LOC)
 - `isLegacy` (boolean)
   - Shows ⚠ Legacy badge
 - `isExternal` (boolean)
   - Marks this as an upstream/downstream context not owned by the organization (e.g. OncoKB, Genome Nexus, “External Research Consumers”)
   - External contexts should not accept repos
-- `notes` (freeform): assumptions, politics, bottlenecks, “this is guessed,” etc.
+- `notes` (freeform): assumptions, politics, bottlenecks, "this is guessed," etc.
 - Positioning:
   - `positions.flow.x`
   - `positions.strategic.x`
   - `positions.shared.y`
-- Optional storytelling:
-  - `evolutionStage`: `"genesis" | "custom-built" | "product/rental" | "commodity/utility"`
+- `evolutionStage`: `"genesis" | "custom-built" | "product/rental" | "commodity/utility"`
+  - Optional metadata that aligns with the horizontal Strategic View position where the user has placed the context
 
 ### Relationships between bounded contexts
 - Direction is always meaningful and points to the upstream context (the one with more power / defines the model)
@@ -73,8 +73,8 @@ Fields:
 
 ### Groups (capability clusters)
 - User-defined clusters of multiple bounded contexts
-- Rendered as a translucent, padded hull around those contexts
-- Overlap allowed
+- Rendered as a translucent, padded hull (convex polygon enclosing all member contexts) around those contexts
+- Overlap allowed (multiple hulls can cover the same canvas area)
 - Fields:
   - `label` (e.g. `"Data Platform / Ingestion"`)
   - `notes`

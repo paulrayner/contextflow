@@ -1,4 +1,4 @@
-# ARCHITECTURE.md
+# Architecture
 
 ## Overview
 ContextFlow is a local-first React application for mapping bounded contexts, their strategic relationships, and their code ownership.
@@ -25,7 +25,7 @@ This document defines how we build it.
 - Animation: Framer Motion
   - Smoothly animate node horizontal position when switching Flow ↔ Strategic views
 - State: Zustand store for editor state
-- Persistence: localStorage or IndexedDB for autosave, plus explicit JSON import/export
+- Persistence: localStorage (Milestone 1), IndexedDB (Milestone 2) for autosave, plus explicit JSON import/export
 - No backend service in MVP
 
 ---
@@ -65,7 +65,7 @@ export interface BoundedContext {
     shared: { y: number };    // vertical (0..100), shared across views
   };
 
-  evolutionStage?: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility';
+  evolutionStage?: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'; // aligns with Strategic View horizontal position
 
   codeSize?: {
     loc?: number;
@@ -204,7 +204,7 @@ export interface FlowStageMarker {
 - Renders groups
   - compute a convex hull (or padded bounding polygon) around all member contexts
   - draw a translucent blob with the group's label
-  - allow overlapping hulls
+  - allow overlapping hulls (multiple groups can cover the same canvas area)
 - Renders axes
   - Flow View:
     - X axis = `project.viewConfig.flowStages`
@@ -320,9 +320,11 @@ Text edits in the InspectorPanel (notes, boundaryNotes, etc.) are *not* undoable
 ---
 
 ## Persistence
-- After each state mutation, we serialize the active `Project` and store it locally (localStorage or IndexedDB)
+- After each state mutation, we serialize the active `Project` and store it locally
+  - Milestone 1: localStorage
+  - Milestone 2: migrate to IndexedDB for better performance with larger projects
 - We maintain a list of recently opened projects
-- On startup, `<ProjectPicker />` lists those projects (Miro-style “recent boards”)
+- On startup, `<ProjectPicker />` lists those projects (Miro-style "recent boards")
 - Export → download current `Project` as `project.json`
 - Import → upload `project.json`, add to store, select it
 

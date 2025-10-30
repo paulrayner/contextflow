@@ -32,6 +32,8 @@ ContextFlow sits in the middle:
 - It shows the gaps in boundaries (weak encapsulation, leaky ACL).
 - It ties code and teams to those boundaries so you can have an accountability conversation, not a “cool drawing” conversation.
 
+The user experience is designed to make domain visualization intuitive, expressive, and professional.
+
 ## Why offline / local first?
 Consulting reality:
 - You often work under NDA on-site or in walled-off VPCs.

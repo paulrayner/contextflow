@@ -1,4 +1,4 @@
-# PLAN.md
+# Plan
 
 ## Purpose
 This is the implementation roadmap for ContextFlow.
@@ -50,14 +50,13 @@ Render a believable Flow View map from `cbioportal.project.json`.
 - Implement `<InspectorPanel />` basic (right side):
   - When a context is selected, show read-only info (name, purpose, notes)
 - Implement pan, zoom, and Fit to Map
-- Implement Export Project as `project.json`
 - Implement autosave (serialize current Project to localStorage on edit)
 
 ### Result
 At the end of Milestone 1 you can:
 - Show a real cbioportal map in Flow View
 - Click a context and talk about it
-- Export the project file
+- Autosave locally
 This is already demoable in front of stakeholders.
 
 ---
@@ -86,8 +85,9 @@ Turn the visualization into an editable tool and introduce Strategic View.
   - Add Context
   - Fit to Map
   - Undo / Redo
-  - Import Project / Export Project
+  - Import / Export Project (JSON file upload/download)
   - Project name display
+- Migrate persistence from localStorage to IndexedDB for better performance
 - Implement undo/redo stack for structural actions:
   - add context
   - move context
