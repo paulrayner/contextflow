@@ -1,6 +1,6 @@
 # Claude Code Prompt — ContextFlow Milestone 1
 
-You are working inside a local-first React + Vite + TypeScript app called **ContextFlow**.
+You are working inside a React + Vite + TypeScript app called **ContextFlow**.
 
 ContextFlow maps bounded contexts, their relationships, and code ownership. It supports two synchronized projections of the same model: **Flow View** and **Strategic View**. For now, we are implementing **Milestone 1** from `docs/PLAN.md`.
 

@@ -34,19 +34,15 @@ ContextFlow sits in the middle:
 
 The user experience is designed to make domain visualization intuitive, expressive, and professional.
 
-## Why offline / local first?
-Consulting reality:
-- You often work under NDA on-site or in walled-off VPCs.
-- You’re given a dump of repos, not production access.
-- You need to map “how things really are” without uploading data to some SaaS.
+## Why browser-based with offline capability?
+ContextFlow works entirely in your browser. No server required. Data stays local by default.
 
-So ContextFlow:
-- Runs locally.
-- Autosaves locally.
-- Lets you import/export a single `project.json`.
-- Doesn’t push data anywhere unless you explicitly export.
+This design is particularly valuable for consulting scenarios:
+- Working under NDA on-site or in restricted network environments
+- Analyzing architecture from code repositories without production access
+- Mapping "how things really are" without uploading sensitive data to external services
 
-That “no leak by default” stance builds immediate trust in the room.
+ContextFlow runs in the browser, autosaves to local storage, and lets you import/export a single `project.json` file. Nothing leaves your machine unless you explicitly share it. This "private by default" stance builds immediate trust when working with sensitive organizational data.
 
 ## Why two views (Flow View and Strategic View)?
 Because you need two different conversations:

@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-ContextFlow is a local-first React application for mapping bounded contexts, their strategic relationships, and their code ownership.
+ContextFlow is a browser-based React application for mapping bounded contexts, their strategic relationships, and their code ownership.
 It presents two synchronized projections of the same model: Flow View and Strategic View.
 
 The core of the app is:
