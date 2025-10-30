@@ -4,14 +4,14 @@
 This is the implementation roadmap for ContextFlow.
 Each milestone is designed to produce something demoable and valuable on its own, and each step lines up with how we'll hand work to an AI pair (Claude Code) or a human dev.
 
-We will use `examples/cbioportal.project.json` as our demo fixture. That file encodes:
-- Realistic bounded contexts (Portal UI, Backend/API, Session Service, Validator/Import Pipeline, Clinical/Genomic Store, etc.)
-- External contexts (OncoKB, Genome Nexus, CIVIC / variant knowledge bases, External Research Consumers)
-- Relationships using DDD strategic patterns (customer-supplier, conformist, open-host-service, shared-kernel)
+We will use `examples/sample.project.json` as our demo fixture. That file encodes:
+- Realistic bounded contexts (Storefront, Product Catalog, Shopping Cart, Checkout, Payment, Order Management, Warehouse, etc.)
+- External contexts (Stripe Payment Gateway, Tax Service, Shipping Carriers, Fraud Detection)
+- Relationships using DDD strategic patterns (customer-supplier, conformist, anti-corruption-layer, open-host-service, published-language, shared-kernel, partnership)
 - Repos with clickable `remoteUrl`
 - Teams with Jira boards
-- Groups for "Research Insights Surface" and "Data Platform / Ingestion"
-- Flow View stages for Data Ingestion → Curation → Analysis → Clinical Insight Delivery
+- Groups for "Customer-Facing Services", "Platform Services", "Security & Compliance", etc.
+- Flow View stages for Discovery → Selection → Purchase → Fulfillment → Post-Sale
 - Positions for both Flow View and Strategic View
 
 ---
@@ -19,10 +19,10 @@ We will use `examples/cbioportal.project.json` as our demo fixture. That file en
 ## Milestone 1: Flow View core
 
 ### Goal
-Render a believable Flow View map from `cbioportal.project.json`.
+Render a believable Flow View map from `sample.project.json`.
 
 ### Deliverables
-- Hardcode-load `cbioportal.project.json` at startup (or choose it from a basic ProjectPicker).
+- Hardcode-load `sample.project.json` at startup (or load it from a basic ProjectPicker).
 - Implement `<CanvasArea />` using React Flow.
 - Render all `contexts` as bubbles positioned with:
   - x = `positions.flow.x`
@@ -43,7 +43,7 @@ Render a believable Flow View map from `cbioportal.project.json`.
   - Arrow points to `toContextId` (upstream)
   - `shared-kernel` / `partnership` should render symmetric (no dominant arrowhead)
 - Render Flow View X-axis stages using `project.viewConfig.flowStages`
-  - Example: “Data Ingestion”, “Cohort Query / Analysis”, “Clinical Insight Delivery”
+  - Example: "Discovery", "Selection", "Purchase", "Fulfillment", "Post-Sale"
 - Render Y-axis labels (top = user-facing / clinician-facing, bottom = enabling/platform)
 - Implement node selection:
   - Clicking a node highlights it and stores `selectedContextId`
@@ -54,7 +54,7 @@ Render a believable Flow View map from `cbioportal.project.json`.
 
 ### Result
 At the end of Milestone 1 you can:
-- Show a real cbioportal map in Flow View
+- Show a real e-commerce platform map in Flow View
 - Click a context and talk about it
 - Autosave locally
 This is already demoable in front of stakeholders.
