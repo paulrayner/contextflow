@@ -270,7 +270,7 @@ function YAxisLabels() {
   const { x, y, zoom } = useViewport()
 
   const labels = [
-    { text: 'User-Facing / Value Delivery', yPos: 600 },
+    { text: 'User-Facing / Value Delivery', yPos: 500 },
     { text: 'Enabling / Platform', yPos: 1400 }
   ]
 
