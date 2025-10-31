@@ -17,21 +17,24 @@ The UX is inspired by **Miro**, **Wardley Maps**, and the **Linear** aesthetic: 
 
 ## Design Philosophy
 
-> “Map what *is*, not what *should be* — and make that map effortless to navigate.”
+> "Map what *is*, not what *should be* — and make that map effortless to navigate."
 
-1. **The diagram is the UI.**  
+1. **The diagram is the UI.**
    The canvas is the primary interface; all interaction should feel natural and immediate.
 
-2. **Clarity over decoration.**  
+2. **Clarity over decoration.**
    Visual language communicates meaning (color, shape, border) without excess styling.
 
-3. **Direct manipulation.**  
+3. **Show only meaningful information.**
+   Don't display UI elements or empty states that provide no value to the user. If there's nothing useful to show, hide it.
+
+4. **Direct manipulation.**
    Users should never feel constrained — moving, resizing, and editing should feel smooth and reversible.
 
-4. **Respect cognitive flow.**  
-   The user’s focus moves from *overview → detail* naturally; no hidden hierarchies.
+5. **Respect cognitive flow.**
+   The user's focus moves from *overview → detail* naturally; no hidden hierarchies.
 
-5. **Facilitator-first.**  
+6. **Facilitator-first.**
    Optimized for domain mapping conversations, not data entry.
 
 ## Interaction Semantics

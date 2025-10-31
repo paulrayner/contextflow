@@ -30,7 +30,7 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-flow-renderer": "^11.10.2",
+    "reactflow": "^11.11.4",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.460.0",
     "zustand": "^4.5.0",
