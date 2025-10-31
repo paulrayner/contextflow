@@ -18,6 +18,8 @@ All notable changes to ContextFlow will be documented in this file.
 - Top bar with view toggle, Fit to Map, and project name display
 - Dark mode toggle
 - Autosave on all changes
+- Dynamic edge routing for shortest path connections between contexts
+- Light mode as default theme
 
 ## [0.1.0] - 2025-10-30
 
