@@ -30,6 +30,78 @@ const NODE_SIZES = {
   huge: { width: 240, height: 140 },
 }
 
+// Helper functions for dynamic edge positioning (floating edges pattern)
+function getNodeIntersection(intersectionNode: Node, targetNode: Node) {
+  const w = intersectionNode.width ?? 0
+  const h = intersectionNode.height ?? 0
+
+  const x2 = intersectionNode.position.x + w / 2
+  const y2 = intersectionNode.position.y + h / 2
+  const x1 = targetNode.position.x + (targetNode.width ?? 0) / 2
+  const y1 = targetNode.position.y + (targetNode.height ?? 0) / 2
+
+  const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h)
+  const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h)
+  const a = 1 / (Math.abs(xx1) + Math.abs(yy1))
+  const xx3 = a * xx1
+  const yy3 = a * yy1
+  const x = w * (xx3 + yy3) + x2
+  const y = h * (-xx3 + yy3) + y2
+
+  return { x, y }
+}
+
+function getEdgePosition(node: Node, intersectionPoint: { x: number; y: number }) {
+  const nx = node.position.x
+  const ny = node.position.y
+  const nw = node.width ?? 0
+  const nh = node.height ?? 0
+
+  // Calculate distances to each edge
+  const distToLeft = Math.abs(intersectionPoint.x - nx)
+  const distToRight = Math.abs(intersectionPoint.x - (nx + nw))
+  const distToTop = Math.abs(intersectionPoint.y - ny)
+  const distToBottom = Math.abs(intersectionPoint.y - (ny + nh))
+
+  // Return the closest edge
+  const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom)
+
+  if (minDist === distToLeft) return Position.Left
+  if (minDist === distToRight) return Position.Right
+  if (minDist === distToTop) return Position.Top
+  return Position.Bottom
+}
+
+function getEdgeParams(source: Node, target: Node) {
+  const sourceIntersectionPoint = getNodeIntersection(source, target)
+  const targetIntersectionPoint = getNodeIntersection(target, source)
+
+  const sourcePos = getEdgePosition(source, sourceIntersectionPoint)
+  const targetPos = getEdgePosition(target, targetIntersectionPoint)
+
+  // Calculate handle positions (center of the edge side)
+  const sourceX = source.position.x + (source.width ?? 0) / 2
+  const sourceY = source.position.y + (source.height ?? 0) / 2
+  const targetX = target.position.x + (target.width ?? 0) / 2
+  const targetY = target.position.y + (target.height ?? 0) / 2
+
+  // Adjust to edge center based on position
+  const sx = sourcePos === Position.Left ? source.position.x
+           : sourcePos === Position.Right ? source.position.x + (source.width ?? 0)
+           : sourceX
+  const sy = sourcePos === Position.Top ? source.position.y
+           : sourcePos === Position.Bottom ? source.position.y + (source.height ?? 0)
+           : sourceY
+  const tx = targetPos === Position.Left ? target.position.x
+           : targetPos === Position.Right ? target.position.x + (target.width ?? 0)
+           : targetX
+  const ty = targetPos === Position.Top ? target.position.y
+           : targetPos === Position.Bottom ? target.position.y + (target.height ?? 0)
+           : targetY
+
+  return { sx, sy, tx, ty, sourcePos, targetPos }
+}
+
 // Custom node component
 function ContextNode({ data }: NodeProps) {
   const context = data.context as BoundedContext
@@ -482,6 +554,8 @@ function YAxisLabels() {
 // Custom edge component with pattern label
 function RelationshipEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -494,13 +568,38 @@ function RelationshipEdge({
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
 
+  // Get node objects from React Flow to calculate dynamic positions
+  const { getNode } = useReactFlow()
+  const sourceNode = getNode(source)
+  const targetNode = getNode(target)
+
+  // Calculate dynamic edge positions if nodes are available with valid dimensions
+  let sx = sourceX
+  let sy = sourceY
+  let tx = targetX
+  let ty = targetY
+  let sourcePos = sourcePosition
+  let targetPos = targetPosition
+
+  if (sourceNode && targetNode &&
+      sourceNode.width && sourceNode.height &&
+      targetNode.width && targetNode.height) {
+    const edgeParams = getEdgeParams(sourceNode, targetNode)
+    sx = edgeParams.sx
+    sy = edgeParams.sy
+    tx = edgeParams.tx
+    ty = edgeParams.ty
+    sourcePos = edgeParams.sourcePos
+    targetPos = edgeParams.targetPos
+  }
+
   const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
+    sourceX: sx,
+    sourceY: sy,
+    sourcePosition: sourcePos,
+    targetX: tx,
+    targetY: ty,
+    targetPosition: targetPos,
   })
 
   // Non-directional patterns
@@ -650,8 +749,6 @@ function CanvasContent() {
         },
         width: size.width,
         height: size.height,
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
         draggable: true,
         selectable: true,
         connectable: false,
