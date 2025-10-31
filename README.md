@@ -6,12 +6,13 @@ ContextFlow is a visual DDD context mapper for analyzing bounded contexts, their
 
 ## What is ContextFlow?
 
-ContextFlow helps teams map their system architecture as it actually exists — not as the slide deck says it should be. It captures:
+ContextFlow helps teams map and edit their system architecture as it actually exists — not as the slide deck says it should be. It captures:
 
 - **Bounded contexts** with strategic classification (core/supporting/generic), boundary integrity (strong/moderate/weak), and visual properties
 - **DDD relationship patterns** between contexts (customer-supplier, conformist, anti-corruption layer, open-host service, shared kernel, partnership, etc.)
-- **Code ownership** linking repositories to contexts and teams
+- **Code ownership** linking repositories to contexts and teams via drag-and-drop
 - **Team topology** connecting teams to their boards and responsibilities
+- **Capability groups** as visual clusters of related contexts
 
 The key differentiator: **two views of the same system**.
 
@@ -42,27 +43,39 @@ Both views use the same underlying model. That's the unlock.
 
 - Browser-based, no backend required
 - Import/export as JSON
-- Connect contexts to actual GitHub repos
+- Drag repos onto contexts, link teams to boards
+- Full editing: drag nodes, create relationships, organize into groups
+- Autosave with undo/redo for structural changes
+- Light/dark theme support
 - Designed for DDD facilitators, platform architects, and teams doing strategic design
 
 ## Features
 
-**Current (Milestone 1 in progress):**
-- Visual canvas with pan/zoom
+**Current:**
+- Visual canvas with pan/zoom and fit-to-map
 - Bounded context nodes with strategic classification, boundary integrity, size, legacy/external badges
-- DDD relationship patterns rendered as directed edges
+- DDD relationship patterns rendered as directed edges with pattern-specific styling
 - Flow View with configurable value stream stages
 - Strategic View with Wardley evolution bands
-- Inspector panel for viewing context details
+- Live view switching with animated transitions
+- Full editing capabilities:
+  - Drag nodes to reposition (updates per-view coordinates)
+  - Multi-select and group drag with maintained relative positions
+  - Edit context properties (name, purpose, classification, boundary integrity, notes)
+  - Create/delete relationships with drag-to-connect workflow
+  - Create/delete capability groups (translucent hulls)
+- Repo sidebar with drag-to-assign functionality
+- Team and ownership details with clickable Jira board links
+- Inspector panel for editing context/relationship/group details
+- Undo/redo for structural changes (add/move/delete context, relationships, repo assignments, groups)
+- Theme toggle (light/dark mode)
+- Project autosave (localStorage)
+- Import/export project JSON
 
 **Planned:**
-- Full editing (drag nodes, create relationships, assign repos)
-- Undo/redo for structural changes
-- Repo sidebar with drag-to-assign
-- Team and ownership details
-- Group/cluster visualization
-- Multi-project support
-- Import/export project JSON
+- Multi-project picker (Miro-style recent boards)
+- IndexedDB persistence for better performance
+- Enhanced import/export options
 
 ## Getting Started
 
@@ -75,6 +88,14 @@ This starts the Vite dev server and opens the app in your browser.
 
 The demo loads `examples/sample.project.json` — an ACME E-Commerce platform with 20 contexts, external services (Stripe, shipping carriers, fraud detection), and realistic DDD relationship patterns.
 
+**Try it out:**
+- Toggle between Flow and Strategic views
+- Click a context to inspect and edit details
+- Drag repos from the left sidebar onto contexts
+- Multi-select contexts (Shift+click) and drag as a group
+- Create relationships by dragging from one context to another
+- Your changes autosave to localStorage
+
 ## Project Structure
 
 - `src/` – React app code (TypeScript + Vite)
@@ -84,17 +105,35 @@ The demo loads `examples/sample.project.json` — an ACME E-Commerce platform wi
 
 ## Project Status
 
-**Pre-release.** Milestone 1 (Flow View core) is in active development.
-
-Once M1 is complete and the tool is usable for basic context mapping, we'll release as open source under MIT license.
+**Beta.** Milestones 1-3 complete (Flow View, Strategic View, editing, repos, teams, groups). Ready for field testing with real projects.
 
 See [PLAN.md](docs/PLAN.md) for the full roadmap.
 
+## Foundations & Resources
+
+ContextFlow builds on established practices in domain-driven design, team topologies, and strategic mapping:
+
+**Start Here:**
+- [Adaptive Socio-Technical Systems with Architecture for Flow](https://www.infoq.com/articles/adaptive-socio-technical-systems-flow/) (InfoQ) — explains how system architecture and team design must co-evolve
+- [Architecture for Flow: Adaptive Systems with Domain-Driven Design, Wardley Mapping, and Team Topologies](https://www.amazon.com/Adaptive-Systems-Domain-Driven-Wardley-Topologies/dp/0137393032) by _Susanne Kaiser_ — integrates DDD, Wardley Mapping, and Team Topologies into a unified approach
+
+**Domain-Driven Design & Context Mapping:**
+- [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) by DDD Crew — visual template for documenting bounded contexts
+- [Context Mapper](https://contextmapper.org/) — complementary DSL-based context mapping tool
+
+**Wardley Mapping:**
+- [Learn Wardley Mapping](https://learnwardleymapping.com/) — interactive guide to strategic mapping
+- [Wardley Maps book](https://medium.com/wardleymaps) by Simon Wardley — original methodology and essays
+
+**Team Topologies:**
+- [Team Topologies: Organizing Business and Technology Teams for Fast Flow](https://www.amazon.com/Team-Topologies-Organizing-Business-Technology/dp/1942788819) by Matthew Skelton & Manuel Pais
+- [Domain-Driven Design Distilled](https://www.amazon.com/Domain-Driven-Design-Distilled-Vaughn-Vernon/dp/0134434420) by Vaughn Vernon — concise guide to strategic DDD
+
 ## Contributing
 
-Not accepting external contributions yet (pre-release). Once we hit MVP and open-source the project, we'll welcome issues and PRs.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-If you're interested in the vision or want to provide early feedback, see [VISION.md](docs/VISION.md).
+Whether you're reporting bugs, suggesting features, or submitting pull requests, your help is appreciated. See [VISION.md](docs/VISION.md) for the product vision and direction.
 
 ## License
 
