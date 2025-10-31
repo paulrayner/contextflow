@@ -9,3 +9,15 @@
 .badge {
   @apply text-[10px] leading-none px-1.5 py-0.5 rounded-md border border-neutral-400/40 bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200;
 }
+
+/* Remove ReactFlow's default node styling for group nodes */
+.react-flow__node.group-node {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.react-flow__node.group-node.selected {
+  box-shadow: none !important;
+}

@@ -297,105 +297,68 @@ function EvolutionBands() {
   )
 }
 
-// Component to render group overlays
-function GroupsOverlay({ groups }: { groups: Array<{ group: Group; minX: number; maxX: number; minY: number; maxY: number }> }) {
-  const { x, y, zoom } = useViewport()
-  const selectedGroupId = useEditorStore(s => s.selectedGroupId)
+// Group node component - renders as a ReactFlow node for proper pan/zoom
+function GroupNode({ data }: NodeProps) {
+  const group = data.group as Group
+  const isSelected = data.isSelected as boolean
+  const [isHovered, setIsHovered] = React.useState(false)
 
   // Detect dark mode
   const isDarkMode = document.documentElement.classList.contains('dark')
 
+  const groupColor = group.color || '#3b82f6'
+
+  // Convert hex color to rgba
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+
+  // Use rgba colors directly (no opacity on div) + add drop shadow in light mode
+  const bgAlpha = isDarkMode
+    ? (isSelected ? 0.15 : 0.08)
+    : (isSelected ? 0.5 : 0.4)
+
   return (
     <div
+      className="nodrag nopan"
       style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
         width: '100%',
         height: '100%',
-        pointerEvents: 'none',
-        zIndex: 0,
+        backgroundColor: hexToRgba(groupColor, bgAlpha),
+        borderRadius: '12px',
+        border: isSelected ? `2px solid ${groupColor}` : `2px dashed ${groupColor}`,
+        boxShadow: isDarkMode ? 'none' : `0 2px 10px ${hexToRgba(groupColor, 0.3)}`,
+        transition: 'all 0.2s',
+        position: 'relative',
+        cursor: 'pointer',
+        outline: 'none',
       }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {groups.map(({ group, minX, maxX, minY, maxY }) => {
-        const transformedMinX = minX * zoom + x
-        const transformedMinY = minY * zoom + y
-        const width = (maxX - minX) * zoom
-        const height = (maxY - minY) * zoom
-
-        const isSelected = group.id === selectedGroupId
-        const groupColor = group.color || '#3b82f6'
-
-        // Convert hex color to rgba
-        const hexToRgba = (hex: string, alpha: number) => {
-          const r = parseInt(hex.slice(1, 3), 16)
-          const g = parseInt(hex.slice(3, 5), 16)
-          const b = parseInt(hex.slice(5, 7), 16)
-          return `rgba(${r}, ${g}, ${b}, ${alpha})`
-        }
-
-        // Use rgba colors directly (no opacity on div) + add drop shadow in light mode
-        const bgAlpha = isDarkMode
-          ? (isSelected ? 0.15 : 0.08)
-          : (isSelected ? 0.5 : 0.4)
-
-        return (
-          <div
-            key={group.id}
-            style={{
-              position: 'absolute',
-              left: transformedMinX,
-              top: transformedMinY,
-              width,
-              height,
-              backgroundColor: hexToRgba(groupColor, bgAlpha),
-              borderRadius: '12px',
-              border: isSelected ? `2px solid ${groupColor}` : `2px dashed ${groupColor}`,
-              boxShadow: isDarkMode ? 'none' : `0 2px 10px ${hexToRgba(groupColor, 0.3)}`,
-              transition: 'all 0.2s',
-              pointerEvents: 'none',
-            }}
-            title={group.label}
-          >
-            {/* Group label - clickable to select group */}
-            <div
-              onClick={(e) => {
-                e.stopPropagation()
-                useEditorStore.setState({
-                  selectedGroupId: group.id,
-                  selectedContextId: null,
-                  selectedContextIds: []
-                })
-              }}
-              style={{
-                position: 'absolute',
-                top: '8px',
-                left: '12px',
-                fontSize: `${11 * zoom}px`,
-                fontWeight: 700,
-                color: groupColor,
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                padding: `${3 * zoom}px ${8 * zoom}px`,
-                borderRadius: `${4 * zoom}px`,
-                border: `1.5px solid ${groupColor}`,
-                pointerEvents: 'auto',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)'
-                e.currentTarget.style.boxShadow = `0 2px 8px ${hexToRgba(groupColor, 0.4)}`
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              {group.label}
-            </div>
-          </div>
-        )
-      })}
+      {/* Group label */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '8px',
+          left: '12px',
+          fontSize: '11px',
+          fontWeight: 700,
+          color: groupColor,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          padding: '3px 8px',
+          borderRadius: '4px',
+          border: `1.5px solid ${groupColor}`,
+          transition: 'all 0.15s',
+          transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+          boxShadow: isHovered ? `0 2px 8px ${hexToRgba(groupColor, 0.4)}` : 'none',
+        }}
+      >
+        {group.label}
+      </div>
     </div>
   )
 }
@@ -538,6 +501,7 @@ function RelationshipEdge({
 
 const nodeTypes = {
   context: ContextNode,
+  group: GroupNode,
 }
 
 const edgeTypes = {
@@ -566,6 +530,7 @@ function CanvasContent() {
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
+  const selectedGroupId = useEditorStore(s => s.selectedGroupId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
@@ -585,11 +550,11 @@ function CanvasContent() {
     })
   }, [fitView])
 
-  // Convert BoundedContexts to React Flow nodes
+  // Convert BoundedContexts and Groups to React Flow nodes
   const baseNodes: Node[] = useMemo(() => {
     if (!project) return []
 
-    return project.contexts.map((context) => {
+    const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
       // Map 0-100 positions to pixel coordinates
@@ -609,6 +574,7 @@ function CanvasContent() {
         style: {
           width: size.width,
           height: size.height,
+          zIndex: 10,
         },
         width: size.width,
         height: size.height,
@@ -619,7 +585,50 @@ function CanvasContent() {
         connectable: false,
       }
     })
-  }, [project, selectedContextId, viewMode])
+
+    // Create group nodes
+    const groupNodes = project.groups?.map((group) => {
+      const contexts = project.contexts.filter(c => group.contextIds.includes(c.id))
+      if (contexts.length === 0) return null
+
+      // Calculate bounding box for all contexts in group
+      const xPositions = contexts.map(c => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20)
+      const yPositions = contexts.map(c => c.positions.shared.y * 10)
+
+      const minX = Math.min(...xPositions) - 30
+      const maxX = Math.max(...xPositions) + 200
+      const minY = Math.min(...yPositions) - 30
+      const maxY = Math.max(...yPositions) + 150
+
+      return {
+        id: `group-${group.id}`,
+        type: 'group',
+        position: { x: minX, y: minY },
+        data: {
+          group,
+          isSelected: group.id === selectedGroupId,
+        },
+        style: {
+          width: maxX - minX,
+          height: maxY - minY,
+          zIndex: 0,
+          background: 'transparent',
+          border: 'none',
+          borderRadius: 0,
+          padding: 0,
+        },
+        className: 'group-node',
+        width: maxX - minX,
+        height: maxY - minY,
+        draggable: false,
+        selectable: true,
+        connectable: false,
+      }
+    }).filter(Boolean) as Node[] || []
+
+    // Return groups first (rendered behind), then contexts
+    return [...groupNodes, ...contextNodes]
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, viewMode])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChange] = useNodesState(baseNodes)
@@ -633,7 +642,7 @@ function CanvasContent() {
         return existingNode ? { ...existingNode, ...baseNode } : baseNode
       })
     })
-  }, [baseNodes, setNodes, selectedContextIds])
+  }, [baseNodes, setNodes, selectedContextIds, selectedGroupId])
 
   // Convert Relationships to React Flow edges
   const edges: Edge[] = useMemo(() => {
@@ -651,6 +660,18 @@ function CanvasContent() {
 
   // Handle node click
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    // Handle group node clicks
+    if (node.type === 'group') {
+      const groupId = node.id.replace('group-', '')
+      useEditorStore.setState({
+        selectedGroupId: groupId,
+        selectedContextId: null,
+        selectedContextIds: []
+      })
+      return
+    }
+
+    // Handle context node clicks
     if (event.shiftKey || event.metaKey || event.ctrlKey) {
       // Multi-select mode (Shift or Cmd/Ctrl)
       useEditorStore.getState().toggleContextSelection(node.id)
@@ -713,29 +734,6 @@ function CanvasContent() {
 
   const flowStages = project?.viewConfig.flowStages || []
 
-  // Render groups as background hulls
-  const renderGroupsOverlay = () => {
-    if (!project?.groups || project.groups.length === 0) return null
-
-    return project.groups.map(group => {
-      const contexts = project.contexts.filter(c => group.contextIds.includes(c.id))
-      if (contexts.length === 0) return null
-
-      // Calculate bounding box for all contexts in group
-      const xPositions = contexts.map(c => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20)
-      const yPositions = contexts.map(c => c.positions.shared.y * 10)
-
-      const minX = Math.min(...xPositions) - 30
-      const maxX = Math.max(...xPositions) + 200
-      const minY = Math.min(...yPositions) - 30
-      const maxY = Math.max(...yPositions) + 150
-
-      return { group, minX, maxX, minY, maxY }
-    }).filter(Boolean) as Array<{ group: any; minX: number; maxX: number; minY: number; maxY: number }>
-  }
-
-  const groupOverlays = renderGroupsOverlay()
-
   return (
     <div className="relative w-full h-full">
       <ReactFlow
@@ -759,13 +757,6 @@ function CanvasContent() {
       >
         {/* Wardley-style background with very subtle dots */}
         <Background gap={24} size={0.4} color="#e5e7eb" />
-
-        {/* Group overlays - render right after background to be underneath nodes/edges */}
-        {groupOverlays && groupOverlays.length > 0 && (
-          <Panel position="top-left" style={{ pointerEvents: 'auto', zIndex: 0 }}>
-            <GroupsOverlay groups={groupOverlays} />
-          </Panel>
-        )}
 
         <CustomControls />
         {viewMode === 'flow' ? (
