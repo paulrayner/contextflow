@@ -269,7 +269,7 @@ function EvolutionBands() {
     >
       {bands.map((band) => {
         const xPos = (band.position / 100) * 2000
-        const yPos = 40
+        const yPos = 960 // Bottom of canvas (1000 height - 40px padding)
 
         const transformedX = xPos * zoom + x
         const transformedY = yPos * zoom + y
@@ -318,8 +318,8 @@ function GroupNode({ data }: NodeProps) {
 
   // Use rgba colors directly (no opacity on div) + add drop shadow in light mode
   const bgAlpha = isDarkMode
-    ? (isSelected ? 0.15 : 0.08)
-    : (isSelected ? 0.5 : 0.4)
+    ? (isSelected ? 0.35 : 0.25)
+    : (isSelected ? 0.95 : 0.85)
 
   return (
     <div
@@ -363,13 +363,68 @@ function GroupNode({ data }: NodeProps) {
   )
 }
 
+// Component to render canvas boundary
+function CanvasBoundary() {
+  const { x, y, zoom } = useViewport()
+
+  // Canvas dimensions
+  const canvasWidth = 2000
+  const canvasHeight = 1000
+
+  // Transform canvas coordinates to screen coordinates
+  const transformedX = 0 * zoom + x
+  const transformedY = 0 * zoom + y
+  const width = canvasWidth * zoom
+  const height = canvasHeight * zoom
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        overflow: 'visible',
+        zIndex: 1,
+      }}
+    >
+      <svg
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          overflow: 'visible',
+        }}
+      >
+        <rect
+          x={transformedX}
+          y={transformedY}
+          width={width}
+          height={height}
+          rx={12 * zoom}
+          ry={12 * zoom}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          className="text-slate-300 dark:text-neutral-700"
+          opacity={0.4}
+        />
+      </svg>
+    </div>
+  )
+}
+
 // Component to render Y-axis labels that pan/zoom with canvas
 function YAxisLabels() {
   const { x, y, zoom } = useViewport()
 
   const labels = [
-    { text: 'User-Facing / Value Delivery', yPos: 500 },
-    { text: 'Enabling / Platform', yPos: 1400 }
+    { text: 'User-Facing / Value Delivery', yPos: 325 },
+    { text: 'Enabling / Platform', yPos: 1000 }
   ]
 
   return (
@@ -385,7 +440,7 @@ function YAxisLabels() {
       }}
     >
       {labels.map((label) => {
-        const xPos = -50
+        const xPos = -30
         const transformedX = xPos * zoom + x
         const transformedY = label.yPos * zoom + y
 
@@ -655,6 +710,7 @@ function CanvasContent() {
       type: 'relationship',
       data: { relationship: rel },
       animated: false,
+      zIndex: 5, // Above groups (0) but below contexts (10)
     }))
   }, [project])
 
@@ -757,6 +813,9 @@ function CanvasContent() {
       >
         {/* Wardley-style background with very subtle dots */}
         <Background gap={24} size={0.4} color="#e5e7eb" />
+
+        {/* Canvas boundary - marks the edges of the workspace */}
+        <CanvasBoundary />
 
         <CustomControls />
         {viewMode === 'flow' ? (
