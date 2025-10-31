@@ -8,6 +8,7 @@ docs/cBioPortal Demo/
 .cursorrules
 .vscode/
 .idea/
+.playwright-mcp/
 
 # OS files
 .DS_Store
