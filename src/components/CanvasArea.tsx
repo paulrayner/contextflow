@@ -12,6 +12,7 @@ import ReactFlow, {
   Handle,
   useViewport,
   useReactFlow,
+  NodeDragHandler,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useEditorStore } from '../model/store'
@@ -208,6 +209,59 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
   )
 }
 
+// Component to render Strategic View evolution bands
+function EvolutionBands() {
+  const { x, y, zoom } = useViewport()
+
+  const bands = [
+    { label: 'Genesis', position: 12.5, width: 25 },
+    { label: 'Custom-Built', position: 37.5, width: 25 },
+    { label: 'Product', position: 62.5, width: 25 },
+    { label: 'Commodity', position: 87.5, width: 25 },
+  ]
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 5,
+      }}
+    >
+      {bands.map((band) => {
+        const xPos = (band.position / 100) * 2000
+        const yPos = 40
+
+        const transformedX = xPos * zoom + x
+        const transformedY = yPos * zoom + y
+
+        return (
+          <div
+            key={band.label}
+            style={{
+              position: 'absolute',
+              left: transformedX,
+              top: transformedY,
+              transform: 'translate(-50%, -50%)',
+              whiteSpace: 'nowrap',
+              color: '#475569',
+              fontSize: `${15 * zoom}px`,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {band.label}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // Component to render Y-axis labels that pan/zoom with canvas
 function YAxisLabels() {
   const { x, y, zoom } = useViewport()
@@ -372,6 +426,8 @@ export function CanvasArea() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
+  const viewMode = useEditorStore(s => s.activeViewMode)
+  const updateContextPosition = useEditorStore(s => s.updateContextPosition)
 
   // Convert BoundedContexts to React Flow nodes
   const nodes: Node[] = useMemo(() => {
@@ -382,7 +438,9 @@ export function CanvasArea() {
 
       // Map 0-100 positions to pixel coordinates
       // Use a scale factor for better spacing
-      const x = (context.positions.flow.x / 100) * 2000
+      // Choose x position based on active view mode
+      const xPos = viewMode === 'flow' ? context.positions.flow.x : context.positions.strategic.x
+      const x = (xPos / 100) * 2000
       const y = (context.positions.shared.y / 100) * 1000
 
       return {
@@ -401,12 +459,12 @@ export function CanvasArea() {
         height: size.height,
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
-        draggable: false,
+        draggable: true,
         selectable: true,
         connectable: false,
       }
     })
-  }, [project, selectedContextId])
+  }, [project, selectedContextId, viewMode])
 
   // Convert Relationships to React Flow edges
   const edges: Edge[] = useMemo(() => {
@@ -432,11 +490,46 @@ export function CanvasArea() {
     useEditorStore.setState({ selectedContextId: null })
   }, [])
 
-  // Handle escape key (deselect)
+  // Handle node drag stop - update positions in store
+  const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
+    // Convert pixel coordinates back to 0-100 scale
+    const xPercent = (node.position.x / 2000) * 100
+    const yPercent = (node.position.y / 1000) * 100
+
+    const context = project?.contexts.find(c => c.id === node.id)
+    if (!context) return
+
+    // Update the appropriate position based on view mode
+    if (viewMode === 'flow') {
+      updateContextPosition(node.id, {
+        flow: { x: xPercent },
+        strategic: { x: context.positions.strategic.x },
+        shared: { y: yPercent },
+      })
+    } else {
+      updateContextPosition(node.id, {
+        flow: { x: context.positions.flow.x },
+        strategic: { x: xPercent },
+        shared: { y: yPercent },
+      })
+    }
+  }, [viewMode, updateContextPosition, project])
+
+  // Handle keyboard shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         useEditorStore.setState({ selectedContextId: null })
+      }
+      // Undo: Cmd/Ctrl + Z
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        useEditorStore.getState().undo()
+      }
+      // Redo: Cmd/Ctrl + Shift + Z
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault()
+        useEditorStore.getState().redo()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -448,12 +541,14 @@ export function CanvasArea() {
   return (
     <div className="relative w-full h-full">
       <ReactFlow
+        key={viewMode}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
+        onNodeDragStop={onNodeDragStop}
         fitView
         fitViewOptions={{
           padding: 0.15,
@@ -467,7 +562,11 @@ export function CanvasArea() {
         {/* Wardley-style background with very subtle dots */}
         <Background gap={24} size={0.4} color="#e5e7eb" />
         <CustomControls />
-        <StageLabels stages={flowStages} />
+        {viewMode === 'flow' ? (
+          <StageLabels stages={flowStages} />
+        ) : (
+          <EvolutionBands />
+        )}
         <YAxisLabels />
 
         {/* Arrow marker definition */}

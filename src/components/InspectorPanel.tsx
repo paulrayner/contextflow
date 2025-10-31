@@ -6,6 +6,7 @@ export function InspectorPanel() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
+  const updateContext = useEditorStore(s => s.updateContext)
 
   if (!project || !selectedContextId) {
     return null
@@ -27,76 +28,133 @@ export function InspectorPanel() {
   const teamIds = new Set(assignedRepos.flatMap(r => r.teamIds))
   const teams = project.teams.filter(t => teamIds.has(t.id))
 
+  const handleUpdate = (updates: Partial<typeof context>) => {
+    updateContext(context.id, updates)
+  }
+
   return (
     <div className="space-y-5">
       {/* Name */}
       <div>
-        <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">{context.name}</h3>
+        <input
+          type="text"
+          value={context.name}
+          onChange={(e) => handleUpdate({ name: e.target.value })}
+          className="w-full font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 -ml-2 outline-none"
+        />
       </div>
 
       {/* Purpose */}
-      {context.purpose && (
-        <Section label="Purpose">
-          <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{context.purpose}</p>
-        </Section>
-      )}
+      <Section label="Purpose">
+        <textarea
+          value={context.purpose || ''}
+          onChange={(e) => handleUpdate({ purpose: e.target.value })}
+          placeholder="What does this context do for the business?"
+          rows={3}
+          className="w-full text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1.5 outline-none resize-none"
+        />
+      </Section>
 
       {/* Strategic Classification */}
-      {context.strategicClassification && (
-        <Section label="Strategic Classification">
-          <Badge color={getClassificationColor(context.strategicClassification)}>
-            {context.strategicClassification}
-          </Badge>
-        </Section>
-      )}
+      <Section label="Strategic Classification">
+        <select
+          value={context.strategicClassification || ''}
+          onChange={(e) => handleUpdate({ strategicClassification: e.target.value as any })}
+          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+        >
+          <option value="">Not set</option>
+          <option value="core">Core</option>
+          <option value="supporting">Supporting</option>
+          <option value="generic">Generic</option>
+        </select>
+      </Section>
 
       {/* Boundary Integrity */}
-      {context.boundaryIntegrity && (
-        <Section label="Boundary Integrity">
-          <Badge color={getIntegrityColor(context.boundaryIntegrity)}>
-            {context.boundaryIntegrity}
-          </Badge>
-          {context.boundaryNotes && (
-            <p className="text-slate-600 dark:text-slate-400 mt-2.5 leading-relaxed">
-              {context.boundaryNotes}
-            </p>
-          )}
-        </Section>
-      )}
+      <Section label="Boundary Integrity">
+        <select
+          value={context.boundaryIntegrity || ''}
+          onChange={(e) => handleUpdate({ boundaryIntegrity: e.target.value as any })}
+          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+        >
+          <option value="">Not set</option>
+          <option value="strong">Strong</option>
+          <option value="moderate">Moderate</option>
+          <option value="weak">Weak</option>
+        </select>
+        <textarea
+          value={context.boundaryNotes || ''}
+          onChange={(e) => handleUpdate({ boundaryNotes: e.target.value })}
+          placeholder="Why is the boundary strong or weak?"
+          rows={2}
+          className="w-full mt-2 text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1.5 outline-none resize-none"
+        />
+      </Section>
 
       {/* Code Size */}
-      {context.codeSize?.bucket && (
-        <Section label="Code Size">
-          <Badge color="neutral">{context.codeSize.bucket}</Badge>
-        </Section>
-      )}
+      <Section label="Code Size">
+        <select
+          value={context.codeSize?.bucket || ''}
+          onChange={(e) => handleUpdate({ codeSize: { ...context.codeSize, bucket: e.target.value as any } })}
+          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+        >
+          <option value="">Not set</option>
+          <option value="tiny">Tiny</option>
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+          <option value="huge">Huge</option>
+        </select>
+      </Section>
 
       {/* Evolution Stage */}
-      {context.evolutionStage && (
-        <Section label="Evolution Stage">
-          <Badge color="neutral">{context.evolutionStage}</Badge>
-        </Section>
-      )}
+      <Section label="Evolution Stage">
+        <select
+          value={context.evolutionStage || ''}
+          onChange={(e) => handleUpdate({ evolutionStage: e.target.value as any })}
+          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+        >
+          <option value="">Not set</option>
+          <option value="genesis">Genesis</option>
+          <option value="custom-built">Custom-built</option>
+          <option value="product/rental">Product/Rental</option>
+          <option value="commodity/utility">Commodity/Utility</option>
+        </select>
+      </Section>
 
       {/* Flags */}
       <Section label="Attributes">
-        <div className="flex gap-2">
-          {context.isLegacy && <Badge color="amber">Legacy</Badge>}
-          {context.isExternal && <Badge color="gray">External</Badge>}
-          {!context.isLegacy && !context.isExternal && (
-            <span className="text-neutral-500 dark:text-neutral-400 text-xs">None</span>
-          )}
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={context.isLegacy || false}
+              onChange={(e) => handleUpdate({ isLegacy: e.target.checked })}
+              className="rounded border-slate-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-xs text-slate-700 dark:text-slate-300">Legacy system</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={context.isExternal || false}
+              onChange={(e) => handleUpdate({ isExternal: e.target.checked })}
+              className="rounded border-slate-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-xs text-slate-700 dark:text-slate-300">External context</span>
+          </label>
         </div>
       </Section>
 
       {/* Notes */}
-      {context.notes && (
-        <Section label="Notes">
-          <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-            {context.notes}
-          </p>
-        </Section>
-      )}
+      <Section label="Notes">
+        <textarea
+          value={context.notes || ''}
+          onChange={(e) => handleUpdate({ notes: e.target.value })}
+          placeholder="Assumptions, politics, bottlenecks, risks..."
+          rows={4}
+          className="w-full text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1.5 outline-none resize-none"
+        />
+      </Section>
 
       {/* Assigned Repos */}
       {assignedRepos.length > 0 && (

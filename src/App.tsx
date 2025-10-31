@@ -2,11 +2,11 @@ import React from 'react'
 import { useEditorStore } from './model/store'
 import { CanvasArea } from './components/CanvasArea'
 import { InspectorPanel } from './components/InspectorPanel'
+import { TopBar } from './components/TopBar'
 
 function App() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
-  const viewMode = useEditorStore(s => s.activeViewMode)
   const selectedContextId = useEditorStore(s => s.selectedContextId)
 
   const unassignedRepos = React.useMemo(() => {
@@ -37,22 +37,7 @@ function App() {
 
   return (
     <div className="w-screen h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-neutral-900 dark:text-neutral-100">
-      <header className="flex items-center gap-4 px-5 py-3 border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-        <div className="font-semibold text-base text-slate-800 dark:text-slate-100">
-          ContextFlow
-        </div>
-        {project && (
-          <>
-            <div className="text-slate-400 dark:text-slate-500">•</div>
-            <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
-              {project.name}
-            </div>
-          </>
-        )}
-        <div className="ml-auto flex items-center gap-2 text-xs text-slate-500 dark:text-neutral-400 font-medium uppercase tracking-wider">
-          <span>{viewMode === 'flow' ? 'Flow View' : 'Strategic View'}</span>
-        </div>
-      </header>
+      <TopBar />
 
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>
         {/* Repo Sidebar - collapsible */}
