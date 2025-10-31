@@ -294,7 +294,7 @@ function YAxisLabels() {
         return (
           <div
             key={label.text}
-            className="text-slate-600 dark:text-slate-300"
+            className="text-slate-700 dark:text-slate-200"
             style={{
               position: 'absolute',
               left: transformedX,
