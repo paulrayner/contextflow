@@ -199,7 +199,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
               top: transformedY,
               transform: 'translate(-50%, -50%)',
               whiteSpace: 'nowrap',
-              fontSize: `${15 * zoom}px`,
+              fontSize: `${22.5 * zoom}px`,
               fontWeight: 600,
               letterSpacing: '-0.01em',
             }}
@@ -252,7 +252,7 @@ function EvolutionBands() {
               top: transformedY,
               transform: 'translate(-50%, -50%)',
               whiteSpace: 'nowrap',
-              fontSize: `${15 * zoom}px`,
+              fontSize: `${22.5 * zoom}px`,
               fontWeight: 600,
               letterSpacing: '-0.01em',
             }}
@@ -302,7 +302,7 @@ function YAxisLabels() {
               transform: 'translate(0, -50%) rotate(-90deg)',
               transformOrigin: 'left center',
               whiteSpace: 'nowrap',
-              fontSize: `${11 * zoom}px`,
+              fontSize: `${16.5 * zoom}px`,
               fontWeight: 600,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
