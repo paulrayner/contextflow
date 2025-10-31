@@ -1,8 +1,23 @@
 import { create } from 'zustand'
 import type { Project, BoundedContext } from './types'
 import demoProject from '../../examples/sample.project.json'
+import { saveProject } from './persistence'
 
 export type ViewMode = 'flow' | 'strategic'
+
+// Helper to auto-save project after state changes
+function autosaveProject(projectId: string, project: Project) {
+  saveProject(project).catch((err) => {
+    console.error('Failed to autosave project:', err)
+  })
+}
+
+// Global callback for fitToMap - will be set by CanvasArea component
+let globalFitViewCallback: (() => void) | null = null
+
+export function setFitViewCallback(callback: () => void) {
+  globalFitViewCallback = callback
+}
 
 interface EditorCommand {
   type: 'moveContext' | 'addContext' | 'deleteContext'
@@ -38,6 +53,7 @@ interface EditorState {
   setSelectedContext: (contextId: string | null) => void
   setViewMode: (mode: ViewMode) => void
   addContext: (name: string) => void
+  deleteContext: (contextId: string) => void
   undo: () => void
   redo: () => void
   fitToMap: () => void
@@ -45,11 +61,19 @@ interface EditorState {
   importProject: (project: Project) => void
 }
 
-// basic initialization with demo project in memory
+// Basic initialization with demo project in memory
+// Demo project will be saved to IndexedDB on first load
+const initialProject = demoProject as Project
+
+// Save demo project to IndexedDB asynchronously
+saveProject(initialProject).catch((err) => {
+  console.error('Failed to save initial demo project:', err)
+})
+
 export const useEditorStore = create<EditorState>((set) => ({
-  activeProjectId: 'acme-ecommerce',
+  activeProjectId: initialProject.id,
   projects: {
-    'acme-ecommerce': demoProject as Project,
+    [initialProject.id]: initialProject,
   },
 
   activeViewMode: 'flow',
@@ -83,13 +107,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...updates,
     }
 
+    const updatedProject = {
+      ...project,
+      contexts: updatedContexts,
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
     return {
       projects: {
         ...state.projects,
-        [projectId]: {
-          ...project,
-          contexts: updatedContexts,
-        },
+        [projectId]: updatedProject,
       },
     }
   }),
@@ -113,6 +142,11 @@ export const useEditorStore = create<EditorState>((set) => ({
       positions: newPositions,
     }
 
+    const updatedProject = {
+      ...project,
+      contexts: updatedContexts,
+    }
+
     // Add to undo stack
     const command: EditorCommand = {
       type: 'moveContext',
@@ -123,13 +157,13 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
     return {
       projects: {
         ...state.projects,
-        [projectId]: {
-          ...project,
-          contexts: updatedContexts,
-        },
+        [projectId]: updatedProject,
       },
       undoStack: [...state.undoStack, command],
       redoStack: [], // Clear redo stack on new action
@@ -164,15 +198,56 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
+    const updatedProject = {
+      ...project,
+      contexts: [...project.contexts, newContext],
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
     return {
       projects: {
         ...state.projects,
-        [projectId]: {
-          ...project,
-          contexts: [...project.contexts, newContext],
-        },
+        [projectId]: updatedProject,
       },
       selectedContextId: newContext.id,
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  deleteContext: (contextId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const contextToDelete = project.contexts.find(c => c.id === contextId)
+    if (!contextToDelete) return state
+
+    const command: EditorCommand = {
+      type: 'deleteContext',
+      payload: {
+        context: contextToDelete,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      contexts: project.contexts.filter(c => c.id !== contextId),
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      selectedContextId: state.selectedContextId === contextId ? null : state.selectedContextId,
       undoStack: [...state.undoStack, command],
       redoStack: [],
     }
@@ -203,15 +278,22 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     } else if (command.type === 'addContext' && command.payload.context) {
       newContexts = newContexts.filter(c => c.id !== command.payload.context?.id)
+    } else if (command.type === 'deleteContext' && command.payload.context) {
+      newContexts = [...newContexts, command.payload.context]
     }
+
+    const updatedProject = {
+      ...project,
+      contexts: newContexts,
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
 
     return {
       projects: {
         ...state.projects,
-        [projectId]: {
-          ...project,
-          contexts: newContexts,
-        },
+        [projectId]: updatedProject,
       },
       undoStack: newUndoStack,
       redoStack: [...state.redoStack, command],
@@ -243,29 +325,40 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     } else if (command.type === 'addContext' && command.payload.context) {
       newContexts = [...newContexts, command.payload.context]
+    } else if (command.type === 'deleteContext' && command.payload.context) {
+      newContexts = newContexts.filter(c => c.id !== command.payload.context?.id)
     }
+
+    const updatedProject = {
+      ...project,
+      contexts: newContexts,
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
 
     return {
       projects: {
         ...state.projects,
-        [projectId]: {
-          ...project,
-          contexts: newContexts,
-        },
+        [projectId]: updatedProject,
       },
       undoStack: [...state.undoStack, command],
       redoStack: newRedoStack,
     }
   }),
 
-  fitToMap: () => set((state) => {
-    // TODO: Implement fit to map logic
-    return state
-  }),
+  fitToMap: () => {
+    if (globalFitViewCallback) {
+      globalFitViewCallback()
+    }
+  },
 
   exportProject: () => {},
 
   importProject: (project) => set((state) => {
+    // Autosave imported project
+    autosaveProject(project.id, project)
+
     return {
       projects: {
         ...state.projects,

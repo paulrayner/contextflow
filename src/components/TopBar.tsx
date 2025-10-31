@@ -1,6 +1,7 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon } from 'lucide-react'
+import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
   const projectId = useEditorStore(s => s.activeProjectId)
@@ -15,6 +16,8 @@ export function TopBar() {
   const addContext = useEditorStore(s => s.addContext)
   const exportProject = useEditorStore(s => s.exportProject)
   const importProject = useEditorStore(s => s.importProject)
+
+  const { theme, toggleTheme } = useTheme()
 
   const handleExport = () => {
     if (!project) return
@@ -142,6 +145,14 @@ export function TopBar() {
           onClick={handleImport}
           icon={<Upload size={16} />}
           tooltip="Import project JSON"
+        />
+
+        <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
+
+        <IconButton
+          onClick={toggleTheme}
+          icon={theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+          tooltip={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
         />
       </div>
     </header>

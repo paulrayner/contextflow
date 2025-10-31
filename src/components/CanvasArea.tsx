@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback, useEffect } from 'react'
 import ReactFlow, {
   Node,
   Edge,
@@ -13,9 +13,12 @@ import ReactFlow, {
   useViewport,
   useReactFlow,
   NodeDragHandler,
+  useNodesState,
+  ReactFlowProvider,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { useEditorStore } from '../model/store'
+import { motion } from 'framer-motion'
+import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship } from '../model/types'
 
 // Node size mapping
@@ -422,22 +425,37 @@ function CustomControls() {
   return <Controls position="bottom-right" onFitView={handleFitView} />
 }
 
-export function CanvasArea() {
+// Inner component that has access to React Flow context
+function CanvasContent() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
 
+  // Get React Flow instance for fitView
+  const { fitView } = useReactFlow()
+
+  // Register fitView callback with the store
+  useEffect(() => {
+    setFitViewCallback(() => {
+      fitView({
+        padding: 0.15,
+        duration: 200,
+        minZoom: 0.1,
+        maxZoom: 0.8,
+      })
+    })
+  }, [fitView])
+
   // Convert BoundedContexts to React Flow nodes
-  const nodes: Node[] = useMemo(() => {
+  const baseNodes: Node[] = useMemo(() => {
     if (!project) return []
 
     return project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
       // Map 0-100 positions to pixel coordinates
-      // Use a scale factor for better spacing
       // Choose x position based on active view mode
       const xPos = viewMode === 'flow' ? context.positions.flow.x : context.positions.strategic.x
       const x = (xPos / 100) * 2000
@@ -465,6 +483,20 @@ export function CanvasArea() {
       }
     })
   }, [project, selectedContextId, viewMode])
+
+  // Use React Flow's internal nodes state for smooth updates
+  const [nodes, setNodes, onNodesChange] = useNodesState(baseNodes)
+
+  // Update nodes when baseNodes change (view mode switch or context updates)
+  useEffect(() => {
+    setNodes((currentNodes) => {
+      return baseNodes.map((baseNode) => {
+        const existingNode = currentNodes.find(n => n.id === baseNode.id)
+        // Preserve any internal React Flow state while updating position
+        return existingNode ? { ...existingNode, ...baseNode } : baseNode
+      })
+    })
+  }, [baseNodes, setNodes])
 
   // Convert Relationships to React Flow edges
   const edges: Edge[] = useMemo(() => {
@@ -541,9 +573,9 @@ export function CanvasArea() {
   return (
     <div className="relative w-full h-full">
       <ReactFlow
-        key={viewMode}
         nodes={nodes}
         edges={edges}
+        onNodesChange={onNodesChange}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={onNodeClick}
@@ -590,5 +622,14 @@ export function CanvasArea() {
         </svg>
       </ReactFlow>
     </div>
+  )
+}
+
+// Outer wrapper component with ReactFlowProvider
+export function CanvasArea() {
+  return (
+    <ReactFlowProvider>
+      <CanvasContent />
+    </ReactFlowProvider>
   )
 }

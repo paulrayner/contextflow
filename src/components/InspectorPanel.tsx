@@ -1,12 +1,13 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Trash2 } from 'lucide-react'
 
 export function InspectorPanel() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const updateContext = useEditorStore(s => s.updateContext)
+  const deleteContext = useEditorStore(s => s.deleteContext)
 
   if (!project || !selectedContextId) {
     return null
@@ -32,16 +33,29 @@ export function InspectorPanel() {
     updateContext(context.id, updates)
   }
 
+  const handleDelete = () => {
+    if (window.confirm(`Delete "${context.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
+      deleteContext(context.id)
+    }
+  }
+
   return (
     <div className="space-y-5">
-      {/* Name */}
-      <div>
+      {/* Name and Delete Button */}
+      <div className="flex items-center gap-2">
         <input
           type="text"
           value={context.name}
           onChange={(e) => handleUpdate({ name: e.target.value })}
-          className="w-full font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 -ml-2 outline-none"
+          className="flex-1 font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 -ml-2 outline-none"
         />
+        <button
+          onClick={handleDelete}
+          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          title="Delete context"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
 
       {/* Purpose */}
