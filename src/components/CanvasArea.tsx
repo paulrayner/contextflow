@@ -192,13 +192,13 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
         return (
           <div
             key={stage.label}
+            className="text-slate-700 dark:text-slate-200"
             style={{
               position: 'absolute',
               left: transformedX,
               top: transformedY,
               transform: 'translate(-50%, -50%)',
               whiteSpace: 'nowrap',
-              color: '#475569',
               fontSize: `${15 * zoom}px`,
               fontWeight: 600,
               letterSpacing: '-0.01em',
@@ -245,13 +245,13 @@ function EvolutionBands() {
         return (
           <div
             key={band.label}
+            className="text-slate-700 dark:text-slate-200"
             style={{
               position: 'absolute',
               left: transformedX,
               top: transformedY,
               transform: 'translate(-50%, -50%)',
               whiteSpace: 'nowrap',
-              color: '#475569',
               fontSize: `${15 * zoom}px`,
               fontWeight: 600,
               letterSpacing: '-0.01em',
@@ -294,6 +294,7 @@ function YAxisLabels() {
         return (
           <div
             key={label.text}
+            className="text-slate-600 dark:text-slate-300"
             style={{
               position: 'absolute',
               left: transformedX,
@@ -301,12 +302,11 @@ function YAxisLabels() {
               transform: 'translate(0, -50%) rotate(-90deg)',
               transformOrigin: 'left center',
               whiteSpace: 'nowrap',
-              color: '#64748b',
               fontSize: `${11 * zoom}px`,
               fontWeight: 600,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              opacity: 0.75,
+              opacity: 0.9,
             }}
           >
             {label.text}
