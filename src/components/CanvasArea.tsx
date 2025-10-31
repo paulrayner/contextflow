@@ -34,6 +34,7 @@ const NODE_SIZES = {
 function ContextNode({ data }: NodeProps) {
   const context = data.context as BoundedContext
   const isSelected = data.isSelected as boolean
+  const isMemberOfSelectedGroup = data.isMemberOfSelectedGroup as boolean
   const [isHovered, setIsHovered] = React.useState(false)
   const [isDragOver, setIsDragOver] = React.useState(false)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
@@ -78,20 +79,28 @@ function ContextNode({ data }: NodeProps) {
   const borderStyle =
     context.boundaryIntegrity === 'weak' ? 'dashed' : 'solid'
 
-  // Border color - subtle, professional (highlight when dragging over)
-  const borderColor = isDragOver ? '#3b82f6' : isSelected ? '#64748b' : '#cbd5e1'
+  // Consolidated highlight state for selected or group member contexts
+  const isHighlighted = isSelected || isMemberOfSelectedGroup
 
-  // Box shadow for visual depth - softer, more professional
+  // Border color - use blue for highlighted contexts
+  const borderColor = isDragOver ? '#3b82f6'
+    : isHighlighted ? '#3b82f6'
+    : '#cbd5e1'
+
+  // External context ring style (used in hover and default states)
+  const externalRing = '0 0 0 2px white, 0 0 0 3px #cbd5e1'
+
+  // Box shadow for visual depth
   const shadow = isDragOver
     ? '0 0 0 3px #3b82f6, 0 8px 16px -4px rgba(59, 130, 246, 0.3)'
-    : isSelected
-    ? '0 0 0 2px #e0e7ff, 0 4px 12px -2px rgba(0, 0, 0, 0.15)'
+    : isHighlighted
+    ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
     : isHovered
     ? context.isExternal
-      ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 4px 8px -1px rgba(0, 0, 0, 0.12)'
+      ? `${externalRing}, 0 4px 8px -1px rgba(0, 0, 0, 0.12)`
       : '0 2px 8px -1px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.08)'
     : context.isExternal
-    ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 2px 6px 0 rgba(0, 0, 0, 0.06)'
+    ? `${externalRing}, 0 2px 6px 0 rgba(0, 0, 0, 0.06)`
     : '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
 
   return (
@@ -588,6 +597,7 @@ function CanvasContent() {
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
+  const updateMultipleContextPositions = useEditorStore(s => s.updateMultipleContextPositions)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
 
   // Get React Flow instance for fitView
@@ -609,6 +619,9 @@ function CanvasContent() {
   const baseNodes: Node[] = useMemo(() => {
     if (!project) return []
 
+    // Find the selected group (if any)
+    const selectedGroup = selectedGroupId ? project.groups.find(g => g.id === selectedGroupId) : null
+
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
@@ -618,6 +631,9 @@ function CanvasContent() {
       const x = (xPos / 100) * 2000
       const y = (context.positions.shared.y / 100) * 1000
 
+      // Check if this context is a member of the selected group
+      const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id) || false
+
       return {
         id: context.id,
         type: 'context',
@@ -625,6 +641,7 @@ function CanvasContent() {
         data: {
           context,
           isSelected: context.id === selectedContextId || selectedContextIds.includes(context.id),
+          isMemberOfSelectedGroup,
         },
         style: {
           width: size.width,
@@ -686,7 +703,7 @@ function CanvasContent() {
   }, [project, selectedContextId, selectedContextIds, selectedGroupId, viewMode])
 
   // Use React Flow's internal nodes state for smooth updates
-  const [nodes, setNodes, onNodesChange] = useNodesState(baseNodes)
+  const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)
 
   // Update nodes when baseNodes change (view mode switch or context updates)
   useEffect(() => {
@@ -742,30 +759,181 @@ function CanvasContent() {
     useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null })
   }, [])
 
+  // Wrap onNodesChange to handle multi-select drag
+  const onNodesChange = useCallback((changes: any[]) => {
+    // Get currently selected nodes from React Flow's internal state
+    const selectedNodes = nodes.filter(n => n.selected && n.type === 'context')
+    const reactFlowSelectedIds = selectedNodes.map(n => n.id)
+
+    // Combine React Flow selection with our store selection
+    const allSelectedIds = [...new Set([...selectedContextIds, ...reactFlowSelectedIds])]
+
+    const positionChanges = changes.filter(c => c.type === 'position')
+
+    // Check if React Flow is already handling multi-select drag
+    // (sending position changes for all selected nodes at once)
+    const isReactFlowMultiDrag = positionChanges.length > 1 &&
+                                  positionChanges.length === allSelectedIds.length
+
+    if (isReactFlowMultiDrag) {
+      // React Flow is already handling multi-select drag correctly for box selection
+      // Just pass through the changes
+      onNodesChangeOriginal(changes)
+
+      // Check if this is the end of the drag (dragging: false)
+      const dragEndChanges = positionChanges.filter(c => c.dragging === false)
+      if (dragEndChanges.length > 0 && project) {
+        // Save positions for all selected nodes
+        const positionsMap: Record<string, BoundedContext['positions']> = {}
+
+        allSelectedIds.forEach(contextId => {
+          const ctx = project.contexts.find(c => c.id === contextId)
+          const visualNode = nodes.find(n => n.id === contextId)
+          if (!ctx || !visualNode) return
+
+          const newX = (visualNode.position.x / 2000) * 100
+          const newY = (visualNode.position.y / 1000) * 100
+
+          if (viewMode === 'flow') {
+            positionsMap[contextId] = {
+              flow: { x: newX },
+              strategic: { x: ctx.positions.strategic.x },
+              shared: { y: newY },
+            }
+          } else {
+            positionsMap[contextId] = {
+              flow: { x: ctx.positions.flow.x },
+              strategic: { x: newX },
+              shared: { y: newY },
+            }
+          }
+        })
+
+        updateMultipleContextPositions(positionsMap)
+      }
+      return
+    }
+
+    // Handle case where React Flow sends position change for only one node
+    // but multiple are selected (happens with Shift+Click selection)
+    const positionChange = changes.find(
+      (change) =>
+        change.type === 'position' &&
+        change.position &&
+        allSelectedIds.includes(change.id) &&
+        allSelectedIds.length > 1
+    )
+
+    if (positionChange) {
+      // Find the node being dragged
+      const draggedNode = nodes.find(n => n.id === positionChange.id)
+      if (!draggedNode) {
+        onNodesChangeOriginal(changes)
+        return
+      }
+
+      // Calculate delta
+      const deltaX = positionChange.position.x - draggedNode.position.x
+      const deltaY = positionChange.position.y - draggedNode.position.y
+
+      // Create position changes for all other selected nodes
+      const additionalChanges = allSelectedIds
+        .filter(id => id !== positionChange.id)
+        .map(id => {
+          const node = nodes.find(n => n.id === id)
+          if (!node) return null
+
+          return {
+            type: 'position',
+            id,
+            dragging: true,
+            position: {
+              x: node.position.x + deltaX,
+              y: node.position.y + deltaY,
+            },
+          }
+        })
+        .filter(Boolean)
+
+      // Apply all changes together
+      onNodesChangeOriginal([...changes, ...additionalChanges])
+    } else {
+      // Normal change, pass through
+      onNodesChangeOriginal(changes)
+    }
+  }, [nodes, selectedContextIds, onNodesChangeOriginal])
+
   // Handle node drag stop - update positions in store
   const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
-    // Convert pixel coordinates back to 0-100 scale
-    const xPercent = (node.position.x / 2000) * 100
-    const yPercent = (node.position.y / 1000) * 100
+    console.log('=== onNodeDragStop called for node:', node.id)
 
-    const context = project?.contexts.find(c => c.id === node.id)
-    if (!context) return
+    if (!project) return
 
-    // Update the appropriate position based on view mode
-    if (viewMode === 'flow') {
-      updateContextPosition(node.id, {
-        flow: { x: xPercent },
-        strategic: { x: context.positions.strategic.x },
-        shared: { y: yPercent },
+    // Get currently selected nodes from React Flow's internal state
+    const selectedNodes = nodes.filter(n => n.selected && n.type === 'context')
+    const reactFlowSelectedIds = selectedNodes.map(n => n.id)
+
+    console.log('selectedNodes in onNodeDragStop:', reactFlowSelectedIds)
+
+    // Combine React Flow selection with our store selection
+    const allSelectedIds = [...new Set([...selectedContextIds, ...reactFlowSelectedIds])]
+
+    // Check if this node is part of a multi-selection
+    const isMultiSelected = allSelectedIds.includes(node.id) && allSelectedIds.length > 1
+
+    console.log('onNodeDragStop - isMultiSelected:', isMultiSelected, 'allSelectedIds:', allSelectedIds)
+
+    if (isMultiSelected) {
+      // For multi-select, save the current visual positions of ALL selected nodes
+      // (React Flow has already moved them visually during the drag)
+      const positionsMap: Record<string, BoundedContext['positions']> = {}
+
+      allSelectedIds.forEach(contextId => {
+        const ctx = project.contexts.find(c => c.id === contextId)
+        const visualNode = nodes.find(n => n.id === contextId)
+        if (!ctx || !visualNode) return
+
+        // Get the CURRENT visual position (after React Flow's drag)
+        const newX = (visualNode.position.x / 2000) * 100
+        const newY = (visualNode.position.y / 1000) * 100
+
+        if (viewMode === 'flow') {
+          positionsMap[contextId] = {
+            flow: { x: newX },
+            strategic: { x: ctx.positions.strategic.x },
+            shared: { y: newY },
+          }
+        } else {
+          positionsMap[contextId] = {
+            flow: { x: ctx.positions.flow.x },
+            strategic: { x: newX },
+            shared: { y: newY },
+          }
+        }
       })
+
+      console.log('Saving positions for multi-select:', positionsMap)
+      updateMultipleContextPositions(positionsMap)
     } else {
-      updateContextPosition(node.id, {
-        flow: { x: context.positions.flow.x },
-        strategic: { x: xPercent },
-        shared: { y: yPercent },
-      })
+      // Single node move
+      const xPercent = (node.position.x / 2000) * 100
+      const yPercent = (node.position.y / 1000) * 100
+
+      if (viewMode === 'flow') {
+        updateContextPosition(node.id, {
+          flow: { x: xPercent },
+          strategic: { x: context.positions.strategic.x },
+          shared: { y: yPercent },
+        })
+      } else {
+        updateContextPosition(node.id, {
+          flow: { x: context.positions.flow.x },
+          strategic: { x: xPercent },
+          shared: { y: yPercent },
+        })
+      }
     }
-  }, [viewMode, updateContextPosition, project])
+  }, [viewMode, updateContextPosition, updateMultipleContextPositions, project, selectedContextIds, nodes])
 
   // Handle keyboard shortcuts
   React.useEffect(() => {
