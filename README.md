@@ -1,8 +1,15 @@
 # ContextFlow
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+
+**[🚀 Live Demo](https://thepaulrayner.com/contextflow/)** | Explore the ACME E-Commerce example!
+
 **Map reality, not aspiration.**
 
 ContextFlow is a visual DDD context mapper for analyzing bounded contexts, their relationships, and code ownership across two synchronized views: **Flow** (value stream) and **Strategic** (Wardley evolution).
+
+![ContextFlow Screenshot](docs/context-flow-3.png)
 
 ## What is ContextFlow?
 
@@ -16,8 +23,15 @@ ContextFlow helps teams map and edit their system architecture as it actually ex
 
 The key differentiator: **two views of the same system**.
 
-- **Flow View** shows how value and data move left-to-right through your system (stages are configurable per project: e.g., "Discovery → Selection → Purchase → Fulfillment → Post-Sale" for e-commerce, or "Ingest → Normalize → Analyze → Publish" for data pipelines)
-- **Strategic View** shows where each capability sits on the Wardley evolution axis (Genesis → Custom-built → Product/Rental → Commodity/Utility)
+### Flow View
+Shows how value and data move left-to-right through your system (stages are configurable per project: e.g., "Discovery → Selection → Purchase → Fulfillment → Post-Sale" for e-commerce, or "Ingest → Normalize → Analyze → Publish" for data pipelines)
+
+![Flow View](docs/context-flow-1.png)
+
+### Strategic View
+Shows where each capability sits on the Wardley evolution axis (Genesis → Custom-built → Product/Rental → Commodity/Utility)
+
+![Strategic View](docs/context-flow-2.png)
 
 Switch between views live. Same contexts, same relationships — different conversations.
 

@@ -10,8 +10,8 @@ function getInitialTheme(): Theme {
   }
 
   // Fall back to system preference
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark'
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    return 'light'
   }
 
   return 'light'
