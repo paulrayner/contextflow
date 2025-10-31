@@ -7,6 +7,19 @@ interface GroupCreateDialogProps {
   onCancel: () => void
 }
 
+const PRESET_COLORS = [
+  { name: 'Blue', hex: '#3b82f6' },
+  { name: 'Purple', hex: '#a855f7' },
+  { name: 'Pink', hex: '#ec4899' },
+  { name: 'Red', hex: '#ef4444' },
+  { name: 'Orange', hex: '#f97316' },
+  { name: 'Amber', hex: '#f59e0b' },
+  { name: 'Green', hex: '#10b981' },
+  { name: 'Teal', hex: '#14b8a6' },
+  { name: 'Cyan', hex: '#06b6d4' },
+  { name: 'Indigo', hex: '#6366f1' },
+]
+
 export function GroupCreateDialog({ contextCount, onConfirm, onCancel }: GroupCreateDialogProps) {
   const [label, setLabel] = React.useState('')
   const [color, setColor] = React.useState('#3b82f6')
@@ -61,6 +74,26 @@ export function GroupCreateDialog({ contextCount, onConfirm, onCancel }: GroupCr
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               Color
             </label>
+
+            {/* Preset color swatches */}
+            <div className="grid grid-cols-5 gap-2 mb-3">
+              {PRESET_COLORS.map((preset) => (
+                <button
+                  key={preset.hex}
+                  type="button"
+                  onClick={() => setColor(preset.hex)}
+                  className={`w-full aspect-square rounded-md border-2 transition-all hover:scale-110 ${
+                    color === preset.hex
+                      ? 'border-slate-900 dark:border-slate-100 ring-2 ring-offset-2 ring-slate-400'
+                      : 'border-slate-300 dark:border-neutral-600'
+                  }`}
+                  style={{ backgroundColor: preset.hex }}
+                  title={preset.name}
+                />
+              ))}
+            </div>
+
+            {/* Custom color picker and hex input */}
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -72,6 +105,7 @@ export function GroupCreateDialog({ contextCount, onConfirm, onCancel }: GroupCr
                 type="text"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
+                placeholder="#3b82f6"
                 className="flex-1 text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
               />
             </div>

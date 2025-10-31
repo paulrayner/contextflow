@@ -146,16 +146,34 @@ Tie code and ownership to the map, and add capability groupings.
   - name
   - jiraBoard
   - topologyType
+- Add multi-select and group move:
+  - Multi-select contexts with Shift/Cmd/Ctrl + click (already implemented)
+  - Visual highlight for all selected contexts (selection border)
+  - Dragging any selected context moves the entire selection as a group
+  - Maintain relative positions between contexts during group move
+  - Groups automatically adjust to follow their member contexts
+  - Record group move as single undo/redo action
+  - Multi-selection does not affect InspectorPanel (remains on single selected context or group)
+  - Click canvas to deselect all
+- Add Relationships:
+  - Add "Add Relationship" button in InspectorPanel when a context is selected
+  - Trigger `<RelationshipCreateDialog />`:
+    - Select target context (dropdown or canvas click)
+    - Select DDD pattern (customer-supplier, conformist, anti-corruption-layer, open-host-service, published-language, shared-kernel, partnership, separate-ways)
+    - Optional notes
+  - Render relationship as edge on canvas with pattern label on hover
+  - Allow deleting relationships from InspectorPanel
 - Add Groups:
   - Multi-select contexts on canvas (Shift+click or marquee)
-  - “Create Group” triggers `<GroupCreateOverlay />`
-    - label (“Data Platform / Ingestion”)
+  - "Create Group" triggers `<GroupCreateOverlay />`
+    - label ("Data Platform / Ingestion")
     - optional notes
     - optional tint color
   - Render group as translucent hull behind those member contexts
   - Selecting a group opens it in InspectorPanel for editing/removal/deletion
 - Add undo/redo support for:
   - assign/unassign repo to context
+  - add/delete relationship
   - create/delete group
 
 ### Result

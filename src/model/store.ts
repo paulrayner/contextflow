@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Project, BoundedContext } from './types'
 import demoProject from '../../examples/sample.project.json'
-import { saveProject } from './persistence'
+import { saveProject, loadProject } from './persistence'
 
 export type ViewMode = 'flow' | 'strategic'
 
@@ -20,16 +20,21 @@ export function setFitViewCallback(callback: () => void) {
 }
 
 interface EditorCommand {
-  type: 'moveContext' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship'
   payload: {
     contextId?: string
+    contextIds?: string[]
     oldPositions?: BoundedContext['positions']
     newPositions?: BoundedContext['positions']
+    positionsMap?: Record<string, { old: BoundedContext['positions'], new: BoundedContext['positions'] }>
     context?: BoundedContext
     repoId?: string
     oldContextId?: string
     newContextId?: string
     group?: any
+    groupId?: string
+    relationship?: any
+    relationshipId?: string
   }
 }
 
@@ -55,6 +60,7 @@ interface EditorState {
   // Actions
   updateContext: (contextId: string, updates: Partial<BoundedContext>) => void
   updateContextPosition: (contextId: string, newPositions: BoundedContext['positions']) => void
+  updateMultipleContextPositions: (positionsMap: Record<string, BoundedContext['positions']>) => void
   setSelectedContext: (contextId: string | null) => void
   toggleContextSelection: (contextId: string) => void
   clearContextSelection: () => void
@@ -65,6 +71,9 @@ interface EditorState {
   unassignRepo: (repoId: string) => void
   createGroup: (label: string, color?: string, notes?: string) => void
   deleteGroup: (groupId: string) => void
+  removeContextFromGroup: (groupId: string, contextId: string) => void
+  addRelationship: (fromContextId: string, toContextId: string, pattern: string, description?: string) => void
+  deleteRelationship: (relationshipId: string) => void
   undo: () => void
   redo: () => void
   fitToMap: () => void
@@ -166,6 +175,58 @@ export const useEditorStore = create<EditorState>((set) => ({
         contextId,
         oldPositions,
         newPositions,
+      },
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [], // Clear redo stack on new action
+    }
+  }),
+
+  updateMultipleContextPositions: (positionsMap) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    // Build map of old positions for undo
+    const oldPositionsMap: Record<string, { old: BoundedContext['positions'], new: BoundedContext['positions'] }> = {}
+
+    // Update all contexts
+    const updatedContexts = project.contexts.map(context => {
+      const newPositions = positionsMap[context.id]
+      if (newPositions) {
+        oldPositionsMap[context.id] = {
+          old: context.positions,
+          new: newPositions
+        }
+        return {
+          ...context,
+          positions: newPositions
+        }
+      }
+      return context
+    })
+
+    const updatedProject = {
+      ...project,
+      contexts: updatedContexts,
+    }
+
+    // Add to undo stack
+    const command: EditorCommand = {
+      type: 'moveContextGroup',
+      payload: {
+        positionsMap: oldPositionsMap,
       },
     }
 
@@ -455,6 +516,125 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
+  removeContextFromGroup: (groupId, contextId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const group = project.groups.find(g => g.id === groupId)
+    if (!group) return state
+
+    // Don't do anything if context isn't in the group
+    if (!group.contextIds.includes(contextId)) return state
+
+    const command: EditorCommand = {
+      type: 'removeFromGroup',
+      payload: {
+        groupId,
+        contextId,
+      },
+    }
+
+    const updatedGroup = {
+      ...group,
+      contextIds: group.contextIds.filter(id => id !== contextId),
+    }
+
+    const updatedProject = {
+      ...project,
+      groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  addRelationship: (fromContextId, toContextId, pattern, description) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const newRelationship = {
+      id: `rel-${Date.now()}`,
+      fromContextId,
+      toContextId,
+      pattern,
+      description,
+    }
+
+    const command: EditorCommand = {
+      type: 'addRelationship',
+      payload: {
+        relationship: newRelationship,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      relationships: [...project.relationships, newRelationship],
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  deleteRelationship: (relationshipId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const relationship = project.relationships.find(r => r.id === relationshipId)
+    if (!relationship) return state
+
+    const command: EditorCommand = {
+      type: 'deleteRelationship',
+      payload: {
+        relationship,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      relationships: project.relationships.filter(r => r.id !== relationshipId),
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
   undo: () => set((state) => {
     if (state.undoStack.length === 0) return state
 
@@ -470,6 +650,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     let newContexts = project.contexts
     let newRepos = project.repos
     let newGroups = project.groups
+    let newRelationships = project.relationships
 
     if (command.type === 'moveContext' && command.payload.contextId && command.payload.oldPositions) {
       const contextIndex = newContexts.findIndex(c => c.id === command.payload.contextId)
@@ -480,6 +661,18 @@ export const useEditorStore = create<EditorState>((set) => ({
           positions: command.payload.oldPositions,
         }
       }
+    } else if (command.type === 'moveContextGroup' && command.payload.positionsMap) {
+      // Restore old positions for all moved contexts
+      newContexts = newContexts.map(context => {
+        const positionData = command.payload.positionsMap?.[context.id]
+        if (positionData) {
+          return {
+            ...context,
+            positions: positionData.old
+          }
+        }
+        return context
+      })
     } else if (command.type === 'addContext' && command.payload.context) {
       newContexts = newContexts.filter(c => c.id !== command.payload.context?.id)
     } else if (command.type === 'deleteContext' && command.payload.context) {
@@ -506,6 +699,20 @@ export const useEditorStore = create<EditorState>((set) => ({
       newGroups = newGroups.filter(g => g.id !== command.payload.group?.id)
     } else if (command.type === 'deleteGroup' && command.payload.group) {
       newGroups = [...newGroups, command.payload.group]
+    } else if (command.type === 'removeFromGroup' && command.payload.groupId && command.payload.contextId) {
+      // Re-add the context to the group
+      const groupIndex = newGroups.findIndex(g => g.id === command.payload.groupId)
+      if (groupIndex !== -1) {
+        newGroups = [...newGroups]
+        newGroups[groupIndex] = {
+          ...newGroups[groupIndex],
+          contextIds: [...newGroups[groupIndex].contextIds, command.payload.contextId],
+        }
+      }
+    } else if (command.type === 'addRelationship' && command.payload.relationship) {
+      newRelationships = newRelationships.filter(r => r.id !== command.payload.relationship?.id)
+    } else if (command.type === 'deleteRelationship' && command.payload.relationship) {
+      newRelationships = [...newRelationships, command.payload.relationship]
     }
 
     const updatedProject = {
@@ -513,6 +720,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       contexts: newContexts,
       repos: newRepos,
       groups: newGroups,
+      relationships: newRelationships,
     }
 
     // Autosave
@@ -543,6 +751,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     let newContexts = project.contexts
     let newRepos = project.repos
     let newGroups = project.groups
+    let newRelationships = project.relationships
 
     if (command.type === 'moveContext' && command.payload.contextId && command.payload.newPositions) {
       const contextIndex = newContexts.findIndex(c => c.id === command.payload.contextId)
@@ -553,6 +762,18 @@ export const useEditorStore = create<EditorState>((set) => ({
           positions: command.payload.newPositions,
         }
       }
+    } else if (command.type === 'moveContextGroup' && command.payload.positionsMap) {
+      // Restore new positions for all moved contexts
+      newContexts = newContexts.map(context => {
+        const positionData = command.payload.positionsMap?.[context.id]
+        if (positionData) {
+          return {
+            ...context,
+            positions: positionData.new
+          }
+        }
+        return context
+      })
     } else if (command.type === 'addContext' && command.payload.context) {
       newContexts = [...newContexts, command.payload.context]
     } else if (command.type === 'deleteContext' && command.payload.context) {
@@ -579,6 +800,20 @@ export const useEditorStore = create<EditorState>((set) => ({
       newGroups = [...newGroups, command.payload.group]
     } else if (command.type === 'deleteGroup' && command.payload.group) {
       newGroups = newGroups.filter(g => g.id !== command.payload.group?.id)
+    } else if (command.type === 'removeFromGroup' && command.payload.groupId && command.payload.contextId) {
+      // Remove the context from the group
+      const groupIndex = newGroups.findIndex(g => g.id === command.payload.groupId)
+      if (groupIndex !== -1) {
+        newGroups = [...newGroups]
+        newGroups[groupIndex] = {
+          ...newGroups[groupIndex],
+          contextIds: newGroups[groupIndex].contextIds.filter(id => id !== command.payload.contextId),
+        }
+      }
+    } else if (command.type === 'addRelationship' && command.payload.relationship) {
+      newRelationships = [...newRelationships, command.payload.relationship]
+    } else if (command.type === 'deleteRelationship' && command.payload.relationship) {
+      newRelationships = newRelationships.filter(r => r.id !== command.payload.relationship?.id)
     }
 
     const updatedProject = {
@@ -586,6 +821,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       contexts: newContexts,
       repos: newRepos,
       groups: newGroups,
+      relationships: newRelationships,
     }
 
     // Autosave
@@ -623,3 +859,19 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 }))
+
+// Load saved project from IndexedDB on startup
+loadProject(initialProject.id).then(savedProject => {
+  if (savedProject) {
+    console.log('Loaded saved project from IndexedDB')
+    useEditorStore.setState({
+      projects: {
+        [savedProject.id]: savedProject
+      }
+    })
+  } else {
+    console.log('No saved project found, using demo project')
+  }
+}).catch(err => {
+  console.error('Failed to load project from IndexedDB:', err)
+})

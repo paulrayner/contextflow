@@ -865,23 +865,17 @@ function CanvasContent() {
 
   // Handle node drag stop - update positions in store
   const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
-    console.log('=== onNodeDragStop called for node:', node.id)
-
     if (!project) return
 
     // Get currently selected nodes from React Flow's internal state
     const selectedNodes = nodes.filter(n => n.selected && n.type === 'context')
     const reactFlowSelectedIds = selectedNodes.map(n => n.id)
 
-    console.log('selectedNodes in onNodeDragStop:', reactFlowSelectedIds)
-
     // Combine React Flow selection with our store selection
     const allSelectedIds = [...new Set([...selectedContextIds, ...reactFlowSelectedIds])]
 
     // Check if this node is part of a multi-selection
     const isMultiSelected = allSelectedIds.includes(node.id) && allSelectedIds.length > 1
-
-    console.log('onNodeDragStop - isMultiSelected:', isMultiSelected, 'allSelectedIds:', allSelectedIds)
 
     if (isMultiSelected) {
       // For multi-select, save the current visual positions of ALL selected nodes
@@ -912,10 +906,12 @@ function CanvasContent() {
         }
       })
 
-      console.log('Saving positions for multi-select:', positionsMap)
       updateMultipleContextPositions(positionsMap)
     } else {
       // Single node move
+      const context = project.contexts.find(c => c.id === node.id)
+      if (!context) return
+
       const xPercent = (node.position.x / 2000) * 100
       const yPercent = (node.position.y / 1000) * 100
 

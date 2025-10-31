@@ -1,6 +1,7 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight } from 'lucide-react'
+import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 
 export function InspectorPanel() {
   const projectId = useEditorStore(s => s.activeProjectId)
@@ -10,9 +11,13 @@ export function InspectorPanel() {
   const updateContext = useEditorStore(s => s.updateContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
   const deleteGroup = useEditorStore(s => s.deleteGroup)
+  const removeContextFromGroup = useEditorStore(s => s.removeContextFromGroup)
   const unassignRepo = useEditorStore(s => s.unassignRepo)
+  const addRelationship = useEditorStore(s => s.addRelationship)
+  const deleteRelationship = useEditorStore(s => s.deleteRelationship)
 
   const [expandedTeamId, setExpandedTeamId] = React.useState<string | null>(null)
+  const [showRelationshipDialog, setShowRelationshipDialog] = React.useState(false)
 
   if (!project) {
     return null
@@ -39,18 +44,9 @@ export function InspectorPanel() {
 
     return (
       <div className="space-y-5">
-        {/* Label and Delete Button */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
-            {group.label}
-          </div>
-          <button
-            onClick={handleDeleteGroup}
-            className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-            title="Delete group"
-          >
-            <Trash2 size={14} />
-          </button>
+        {/* Label */}
+        <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+          {group.label}
         </div>
 
         {/* Color */}
@@ -79,16 +75,38 @@ export function InspectorPanel() {
         <Section label={`Member Contexts (${memberContexts.length})`}>
           <div className="space-y-1">
             {memberContexts.map(context => (
-              <button
+              <div
                 key={context.id}
-                onClick={() => useEditorStore.setState({ selectedContextId: context.id, selectedGroupId: null })}
-                className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
+                className="flex items-center gap-2 group"
               >
-                {context.name}
-              </button>
+                <button
+                  onClick={() => useEditorStore.setState({ selectedContextId: context.id, selectedGroupId: null })}
+                  className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
+                >
+                  {context.name}
+                </button>
+                <button
+                  onClick={() => removeContextFromGroup(group.id, context.id)}
+                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                  title="Remove from group"
+                >
+                  <X size={12} />
+                </button>
+              </div>
             ))}
           </div>
         </Section>
+
+        {/* Delete Group - at bottom to avoid confusion with close button */}
+        <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
+          <button
+            onClick={handleDeleteGroup}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+          >
+            <Trash2 size={14} />
+            Delete Group
+          </button>
+        </div>
       </div>
     )
   }
@@ -114,6 +132,9 @@ export function InspectorPanel() {
   const teamIds = new Set(assignedRepos.flatMap(r => r.teamIds))
   const teams = project.teams.filter(t => teamIds.has(t.id))
 
+  // Find groups this context is a member of
+  const memberOfGroups = project.groups.filter(g => g.contextIds.includes(context.id))
+
   const handleUpdate = (updates: Partial<typeof context>) => {
     updateContext(context.id, updates)
   }
@@ -126,21 +147,14 @@ export function InspectorPanel() {
 
   return (
     <div className="space-y-5">
-      {/* Name and Delete Button */}
-      <div className="flex items-center gap-2">
+      {/* Name */}
+      <div>
         <input
           type="text"
           value={context.name}
           onChange={(e) => handleUpdate({ name: e.target.value })}
-          className="flex-1 font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 -ml-2 outline-none"
+          className="w-full font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 -ml-2 outline-none"
         />
-        <button
-          onClick={handleDelete}
-          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-          title="Delete context"
-        >
-          <Trash2 size={14} />
-        </button>
       </div>
 
       {/* Purpose */}
@@ -374,6 +388,165 @@ export function InspectorPanel() {
           </div>
         </Section>
       )}
+
+      {/* Member of Groups */}
+      {memberOfGroups.length > 0 && (
+        <Section label="Member of Groups">
+          <div className="flex flex-wrap gap-2">
+            {memberOfGroups.map(group => (
+              <div
+                key={group.id}
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded border transition-all group/chip"
+                style={{
+                  backgroundColor: group.color ? `${group.color}15` : '#3b82f615',
+                  borderColor: group.color || '#3b82f6',
+                }}
+              >
+                <button
+                  onClick={() => useEditorStore.setState({ selectedGroupId: group.id, selectedContextId: null })}
+                  className="text-xs font-medium hover:underline"
+                  style={{ color: group.color || '#3b82f6' }}
+                >
+                  {group.label}
+                </button>
+                <button
+                  onClick={() => removeContextFromGroup(group.id, context.id)}
+                  className="p-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/chip:opacity-100"
+                  title="Remove from group"
+                >
+                  <X size={10} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Relationships */}
+      {(() => {
+        const outgoing = project.relationships.filter(r => r.fromContextId === context.id)
+        const incoming = project.relationships.filter(r => r.toContextId === context.id)
+        const hasRelationships = outgoing.length > 0 || incoming.length > 0
+
+        return (
+          <Section label="Relationships">
+            {/* Outgoing relationships */}
+            {outgoing.length > 0 && (
+              <div className="mb-3">
+                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
+                  Outgoing
+                </div>
+                <div className="space-y-2">
+                  {outgoing.map(rel => {
+                    const targetContext = project.contexts.find(c => c.id === rel.toContextId)
+                    return (
+                      <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <ArrowRight size={12} className="text-slate-400 flex-shrink-0" />
+                            <span className="text-slate-700 dark:text-slate-300 font-medium">
+                              {targetContext?.name || 'Unknown'}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 ml-5 mt-0.5">
+                            {rel.pattern}
+                          </div>
+                          {rel.description && (
+                            <div className="text-[10px] text-slate-600 dark:text-slate-400 ml-5 mt-1">
+                              {rel.description}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => deleteRelationship(rel.id)}
+                          className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/rel:opacity-100"
+                          title="Delete relationship"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Incoming relationships */}
+            {incoming.length > 0 && (
+              <div className="mb-3">
+                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
+                  Incoming
+                </div>
+                <div className="space-y-2">
+                  {incoming.map(rel => {
+                    const sourceContext = project.contexts.find(c => c.id === rel.fromContextId)
+                    return (
+                      <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />
+                            <span className="text-slate-700 dark:text-slate-300 font-medium">
+                              {sourceContext?.name || 'Unknown'}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 ml-5 mt-0.5">
+                            {rel.pattern}
+                          </div>
+                          {rel.description && (
+                            <div className="text-[10px] text-slate-600 dark:text-slate-400 ml-5 mt-1">
+                              {rel.description}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => deleteRelationship(rel.id)}
+                          className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/rel:opacity-100"
+                          title="Delete relationship"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Add Relationship button */}
+            <button
+              onClick={() => setShowRelationshipDialog(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-300 rounded transition-colors"
+            >
+              <Plus size={12} />
+              Add Relationship
+            </button>
+          </Section>
+        )
+      })()}
+
+      {/* Relationship Dialog */}
+      {showRelationshipDialog && (
+        <RelationshipCreateDialog
+          fromContext={context}
+          availableContexts={project.contexts.filter(c => c.id !== context.id)}
+          onConfirm={(toContextId, pattern, description) => {
+            addRelationship(context.id, toContextId, pattern, description)
+            setShowRelationshipDialog(false)
+          }}
+          onCancel={() => setShowRelationshipDialog(false)}
+        />
+      )}
+
+      {/* Delete Context - at bottom to avoid confusion with close button */}
+      <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
+        <button
+          onClick={handleDelete}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+        >
+          <Trash2 size={14} />
+          Delete Context
+        </button>
+      </div>
     </div>
   )
 }
