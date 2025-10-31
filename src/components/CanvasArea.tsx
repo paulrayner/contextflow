@@ -19,7 +19,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
-import type { BoundedContext, Relationship } from '../model/types'
+import type { BoundedContext, Relationship, Group } from '../model/types'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -35,8 +35,35 @@ function ContextNode({ data }: NodeProps) {
   const context = data.context as BoundedContext
   const isSelected = data.isSelected as boolean
   const [isHovered, setIsHovered] = React.useState(false)
+  const [isDragOver, setIsDragOver] = React.useState(false)
+  const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
 
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer.types.includes('application/contextflow-repo')) {
+      setIsDragOver(true)
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    const repoId = e.dataTransfer.getData('application/contextflow-repo')
+    if (repoId) {
+      assignRepoToContext(repoId, context.id)
+    }
+  }
 
   // Fill color based on strategic classification
   const fillColor =
@@ -51,11 +78,13 @@ function ContextNode({ data }: NodeProps) {
   const borderStyle =
     context.boundaryIntegrity === 'weak' ? 'dashed' : 'solid'
 
-  // Border color - subtle, professional
-  const borderColor = isSelected ? '#64748b' : '#cbd5e1'
+  // Border color - subtle, professional (highlight when dragging over)
+  const borderColor = isDragOver ? '#3b82f6' : isSelected ? '#64748b' : '#cbd5e1'
 
   // Box shadow for visual depth - softer, more professional
-  const shadow = isSelected
+  const shadow = isDragOver
+    ? '0 0 0 3px #3b82f6, 0 8px 16px -4px rgba(59, 130, 246, 0.3)'
+    : isSelected
     ? '0 0 0 2px #e0e7ff, 0 4px 12px -2px rgba(0, 0, 0, 0.15)'
     : isHovered
     ? context.isExternal
@@ -90,6 +119,9 @@ function ContextNode({ data }: NodeProps) {
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
       {/* Legacy badge */}
       {context.isLegacy && (
@@ -265,6 +297,109 @@ function EvolutionBands() {
   )
 }
 
+// Component to render group overlays
+function GroupsOverlay({ groups }: { groups: Array<{ group: Group; minX: number; maxX: number; minY: number; maxY: number }> }) {
+  const { x, y, zoom } = useViewport()
+  const selectedGroupId = useEditorStore(s => s.selectedGroupId)
+
+  // Detect dark mode
+  const isDarkMode = document.documentElement.classList.contains('dark')
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    >
+      {groups.map(({ group, minX, maxX, minY, maxY }) => {
+        const transformedMinX = minX * zoom + x
+        const transformedMinY = minY * zoom + y
+        const width = (maxX - minX) * zoom
+        const height = (maxY - minY) * zoom
+
+        const isSelected = group.id === selectedGroupId
+        const groupColor = group.color || '#3b82f6'
+
+        // Convert hex color to rgba
+        const hexToRgba = (hex: string, alpha: number) => {
+          const r = parseInt(hex.slice(1, 3), 16)
+          const g = parseInt(hex.slice(3, 5), 16)
+          const b = parseInt(hex.slice(5, 7), 16)
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`
+        }
+
+        // Use rgba colors directly (no opacity on div) + add drop shadow in light mode
+        const bgAlpha = isDarkMode
+          ? (isSelected ? 0.15 : 0.08)
+          : (isSelected ? 0.5 : 0.4)
+
+        return (
+          <div
+            key={group.id}
+            style={{
+              position: 'absolute',
+              left: transformedMinX,
+              top: transformedMinY,
+              width,
+              height,
+              backgroundColor: hexToRgba(groupColor, bgAlpha),
+              borderRadius: '12px',
+              border: isSelected ? `2px solid ${groupColor}` : `2px dashed ${groupColor}`,
+              boxShadow: isDarkMode ? 'none' : `0 2px 10px ${hexToRgba(groupColor, 0.3)}`,
+              transition: 'all 0.2s',
+              pointerEvents: 'none',
+            }}
+            title={group.label}
+          >
+            {/* Group label - clickable to select group */}
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                useEditorStore.setState({
+                  selectedGroupId: group.id,
+                  selectedContextId: null,
+                  selectedContextIds: []
+                })
+              }}
+              style={{
+                position: 'absolute',
+                top: '8px',
+                left: '12px',
+                fontSize: `${11 * zoom}px`,
+                fontWeight: 700,
+                color: groupColor,
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: `${3 * zoom}px ${8 * zoom}px`,
+                borderRadius: `${4 * zoom}px`,
+                border: `1.5px solid ${groupColor}`,
+                pointerEvents: 'auto',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)'
+                e.currentTarget.style.boxShadow = `0 2px 8px ${hexToRgba(groupColor, 0.4)}`
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              {group.label}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // Component to render Y-axis labels that pan/zoom with canvas
 function YAxisLabels() {
   const { x, y, zoom } = useViewport()
@@ -430,8 +565,10 @@ function CanvasContent() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
+  const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
+  const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
 
   // Get React Flow instance for fitView
   const { fitView } = useReactFlow()
@@ -467,7 +604,7 @@ function CanvasContent() {
         position: { x, y },
         data: {
           context,
-          isSelected: context.id === selectedContextId,
+          isSelected: context.id === selectedContextId || selectedContextIds.includes(context.id),
         },
         style: {
           width: size.width,
@@ -496,7 +633,7 @@ function CanvasContent() {
         return existingNode ? { ...existingNode, ...baseNode } : baseNode
       })
     })
-  }, [baseNodes, setNodes])
+  }, [baseNodes, setNodes, selectedContextIds])
 
   // Convert Relationships to React Flow edges
   const edges: Edge[] = useMemo(() => {
@@ -513,13 +650,19 @@ function CanvasContent() {
   }, [project])
 
   // Handle node click
-  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    useEditorStore.setState({ selectedContextId: node.id })
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    if (event.shiftKey || event.metaKey || event.ctrlKey) {
+      // Multi-select mode (Shift or Cmd/Ctrl)
+      useEditorStore.getState().toggleContextSelection(node.id)
+    } else {
+      // Single select
+      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null })
+    }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null })
   }, [])
 
   // Handle node drag stop - update positions in store
@@ -570,6 +713,29 @@ function CanvasContent() {
 
   const flowStages = project?.viewConfig.flowStages || []
 
+  // Render groups as background hulls
+  const renderGroupsOverlay = () => {
+    if (!project?.groups || project.groups.length === 0) return null
+
+    return project.groups.map(group => {
+      const contexts = project.contexts.filter(c => group.contextIds.includes(c.id))
+      if (contexts.length === 0) return null
+
+      // Calculate bounding box for all contexts in group
+      const xPositions = contexts.map(c => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20)
+      const yPositions = contexts.map(c => c.positions.shared.y * 10)
+
+      const minX = Math.min(...xPositions) - 30
+      const maxX = Math.max(...xPositions) + 200
+      const minY = Math.min(...yPositions) - 30
+      const maxY = Math.max(...yPositions) + 150
+
+      return { group, minX, maxX, minY, maxY }
+    }).filter(Boolean) as Array<{ group: any; minX: number; maxX: number; minY: number; maxY: number }>
+  }
+
+  const groupOverlays = renderGroupsOverlay()
+
   return (
     <div className="relative w-full h-full">
       <ReactFlow
@@ -593,6 +759,14 @@ function CanvasContent() {
       >
         {/* Wardley-style background with very subtle dots */}
         <Background gap={24} size={0.4} color="#e5e7eb" />
+
+        {/* Group overlays - render right after background to be underneath nodes/edges */}
+        {groupOverlays && groupOverlays.length > 0 && (
+          <Panel position="top-left" style={{ pointerEvents: 'auto', zIndex: 0 }}>
+            <GroupsOverlay groups={groupOverlays} />
+          </Panel>
+        )}
+
         <CustomControls />
         {viewMode === 'flow' ? (
           <StageLabels stages={flowStages} />

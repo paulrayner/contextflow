@@ -3,11 +3,20 @@ import { useEditorStore } from './model/store'
 import { CanvasArea } from './components/CanvasArea'
 import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
+import { RepoSidebar } from './components/RepoSidebar'
+import { GroupCreateDialog } from './components/GroupCreateDialog'
+import { Users, X } from 'lucide-react'
 
 function App() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
+  const selectedGroupId = useEditorStore(s => s.selectedGroupId)
+  const selectedContextIds = useEditorStore(s => s.selectedContextIds)
+  const clearContextSelection = useEditorStore(s => s.clearContextSelection)
+  const createGroup = useEditorStore(s => s.createGroup)
+
+  const [showGroupDialog, setShowGroupDialog] = React.useState(false)
 
   const unassignedRepos = React.useMemo(() => {
     return project?.repos?.filter(r => !r.contextId) || []
@@ -20,7 +29,7 @@ function App() {
 
   const hasUnassignedRepos = unassignedRepos.length > 0
   const showRepoSidebar = hasUnassignedRepos && !isRepoSidebarCollapsed
-  const hasRightSidebar = !!selectedContextId
+  const hasRightSidebar = !!selectedContextId || !!selectedGroupId
 
   const gridCols = showRepoSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
                  : showRepoSidebar ? 'grid-cols-[240px_1fr]'
@@ -38,6 +47,41 @@ function App() {
   return (
     <div className="w-screen h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-neutral-900 dark:text-neutral-100">
       <TopBar />
+
+      {/* Multi-select floating panel */}
+      {selectedContextIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-4">
+          <div className="text-sm text-slate-700 dark:text-slate-300">
+            {selectedContextIds.length} context{selectedContextIds.length !== 1 ? 's' : ''} selected
+          </div>
+          <button
+            onClick={() => setShowGroupDialog(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors"
+          >
+            <Users size={14} />
+            Create Group
+          </button>
+          <button
+            onClick={clearContextSelection}
+            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            title="Clear selection"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Group creation dialog */}
+      {showGroupDialog && (
+        <GroupCreateDialog
+          contextCount={selectedContextIds.length}
+          onConfirm={(label, color, notes) => {
+            createGroup(label, color, notes)
+            setShowGroupDialog(false)
+          }}
+          onCancel={() => setShowGroupDialog(false)}
+        />
+      )}
 
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>
         {/* Repo Sidebar - collapsible */}
@@ -58,10 +102,13 @@ function App() {
               </button>
             </div>
             <div className="flex-1 px-4 pb-4 text-xs overflow-y-auto">
-              <div className="text-slate-500 dark:text-neutral-400">
-                {/* TODO RepoSidebar list */}
-                (coming soon)
-              </div>
+              <RepoSidebar
+                repos={unassignedRepos}
+                teams={project?.teams || []}
+                onRepoAssign={(repoId, contextId) => {
+                  // Will be implemented with drag-and-drop
+                }}
+              />
             </div>
           </aside>
         )}
@@ -86,8 +133,8 @@ function App() {
           <CanvasArea />
         </section>
 
-        {/* Inspector Panel - only shown when context is selected */}
-        {selectedContextId && (
+        {/* Inspector Panel - shown when context or group is selected */}
+        {(selectedContextId || selectedGroupId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>
