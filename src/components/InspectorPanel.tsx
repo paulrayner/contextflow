@@ -21,7 +21,8 @@ export function InspectorPanel() {
   const [expandedRepoId, setExpandedRepoId] = React.useState<string | null>(null)
   const [showRelationshipDialog, setShowRelationshipDialog] = React.useState(false)
   const [useCodeCohesionAPI, setUseCodeCohesionAPI] = React.useState(() => {
-    return localStorage.getItem('contextflow.useCodeCohesionAPI') === 'true'
+    const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
+    return stored === null ? true : stored === 'true' // Default to true if not set
   })
 
   const handleToggleAPI = (checked: boolean) => {
