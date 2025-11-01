@@ -18,6 +18,14 @@ export function InspectorPanel() {
 
   const [expandedTeamId, setExpandedTeamId] = React.useState<string | null>(null)
   const [showRelationshipDialog, setShowRelationshipDialog] = React.useState(false)
+  const [useCodeCohesionAPI, setUseCodeCohesionAPI] = React.useState(() => {
+    return localStorage.getItem('contextflow.useCodeCohesionAPI') === 'true'
+  })
+
+  const handleToggleAPI = (checked: boolean) => {
+    setUseCodeCohesionAPI(checked)
+    localStorage.setItem('contextflow.useCodeCohesionAPI', String(checked))
+  }
 
   if (!project) {
     return null
@@ -272,99 +280,32 @@ export function InspectorPanel() {
       {/* Assigned Repos */}
       {assignedRepos.length > 0 && (
         <Section label="Assigned Repositories">
+          {/* API Toggle */}
+          <div className="mb-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useCodeCohesionAPI}
+                onChange={(e) => handleToggleAPI(e.target.checked)}
+                className="rounded border-slate-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
+              />
+              <span className="text-xs text-slate-700 dark:text-slate-300">Use CodeCohesion API</span>
+            </label>
+          </div>
+
           <div className="space-y-2">
             {assignedRepos.map(repo => {
               const repoTeams = project.teams.filter(t => repo.teamIds.includes(t.id))
-              const contributors = repo.contributors
-                .map(c => project.people.find(p => p.id === c.personId))
-                .filter((p): p is NonNullable<typeof p> => !!p)
-
               return (
-                <div key={repo.id} className="bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 p-2.5 rounded">
-                  {/* Repo name and unassign button */}
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <div className="font-medium text-slate-900 dark:text-slate-100 flex-1">
-                      {repo.name}
-                    </div>
-                    <button
-                      onClick={() => unassignRepo(repo.id)}
-                      className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                      title="Unassign repo"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-
-                  {/* Remote URL */}
-                  {repo.remoteUrl && (
-                    <a
-                      href={repo.remoteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mb-2"
-                    >
-                      <span className="truncate">{repo.remoteUrl}</span>
-                      <ExternalLink size={10} className="flex-shrink-0" />
-                    </a>
-                  )}
-
-                  {/* Team chips */}
-                  {repoTeams.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {repoTeams.map(team => (
-                        <button
-                          key={team.id}
-                          onClick={() => setExpandedTeamId(expandedTeamId === team.id ? null : team.id)}
-                          className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded text-[10px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
-                          title={team.topologyType ? `${team.name} (${team.topologyType})` : team.name}
-                        >
-                          <Users size={10} className="inline mr-0.5" />
-                          {team.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Expanded team details */}
-                  {expandedTeamId && repoTeams.some(t => t.id === expandedTeamId) && (
-                    <div className="bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-600 rounded p-2 mt-2">
-                      {(() => {
-                        const team = repoTeams.find(t => t.id === expandedTeamId)
-                        if (!team) return null
-                        return (
-                          <>
-                            <div className="font-medium text-slate-900 dark:text-slate-100 mb-1">
-                              {team.name}
-                            </div>
-                            {team.topologyType && (
-                              <div className="text-[10px] text-slate-600 dark:text-slate-400 mb-1">
-                                Type: {team.topologyType}
-                              </div>
-                            )}
-                            {team.jiraBoard && (
-                              <a
-                                href={team.jiraBoard}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 dark:text-blue-400 text-[10px] flex items-center gap-1 hover:underline"
-                              >
-                                <span className="truncate">Jira Board</span>
-                                <ExternalLink size={9} className="flex-shrink-0" />
-                              </a>
-                            )}
-                          </>
-                        )
-                      })()}
-                    </div>
-                  )}
-
-                  {/* Contributors */}
-                  {contributors.length > 0 && (
-                    <div className="text-[10px] text-slate-600 dark:text-slate-400 mt-2">
-                      Contributors: {contributors.map(c => c.displayName).join(', ')}
-                    </div>
-                  )}
-                </div>
+                <RepoCard
+                  key={repo.id}
+                  repo={repo}
+                  project={project}
+                  useAPI={useCodeCohesionAPI}
+                  expandedTeamId={expandedTeamId}
+                  onToggleTeam={setExpandedTeamId}
+                  onUnassign={unassignRepo}
+                />
               )
             })}
           </div>
@@ -549,6 +490,170 @@ export function InspectorPanel() {
       </div>
     </div>
   )
+}
+
+// Repo card component
+function RepoCard({
+  repo,
+  project,
+  useAPI,
+  expandedTeamId,
+  onToggleTeam,
+  onUnassign,
+}: {
+  repo: any
+  project: any
+  useAPI: boolean
+  expandedTeamId: string | null
+  onToggleTeam: (id: string | null) => void
+  onUnassign: (repoId: string) => void
+}) {
+  const repoTeams = project.teams.filter((t: any) => repo.teamIds.includes(t.id))
+  const staticContributors = repo.contributors
+    .map((c: any) => project.people.find((p: any) => p.id === c.personId))
+    .filter((p: any): p is NonNullable<typeof p> => !!p)
+
+  // Fetch API contributors if enabled
+  const { contributors: apiContributors, loading, error } = useCodeCohesionContributors(repo.name, useAPI)
+
+  // Determine which contributors to display
+  const contributorsToDisplay = useAPI
+    ? (apiContributors || [])
+    : staticContributors.map(c => c.displayName)
+
+  const dataSource = useAPI
+    ? (loading ? 'Loading...' : error ? 'API Error' : 'Live data')
+    : 'Static data'
+
+  return (
+    <div className="bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 p-2.5 rounded">
+      {/* Repo name and unassign button */}
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <div className="font-medium text-slate-900 dark:text-slate-100 flex-1">
+          {repo.name}
+        </div>
+        <button
+          onClick={() => onUnassign(repo.id)}
+          className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+          title="Unassign repo"
+        >
+          <X size={12} />
+        </button>
+      </div>
+
+      {/* Remote URL */}
+      {repo.remoteUrl && (
+        <a
+          href={repo.remoteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mb-2"
+        >
+          <span className="truncate">{repo.remoteUrl}</span>
+          <ExternalLink size={10} className="flex-shrink-0" />
+        </a>
+      )}
+
+      {/* Team chips */}
+      {repoTeams.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {repoTeams.map((team: any) => (
+            <button
+              key={team.id}
+              onClick={() => onToggleTeam(expandedTeamId === team.id ? null : team.id)}
+              className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded text-[10px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
+              title={team.topologyType ? `${team.name} (${team.topologyType})` : team.name}
+            >
+              <Users size={10} className="inline mr-0.5" />
+              {team.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Expanded team details */}
+      {expandedTeamId && repoTeams.some((t: any) => t.id === expandedTeamId) && (
+        <div className="bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-600 rounded p-2 mt-2">
+          {(() => {
+            const team = repoTeams.find((t: any) => t.id === expandedTeamId)
+            if (!team) return null
+            return (
+              <>
+                <div className="font-medium text-slate-900 dark:text-slate-100 mb-1">
+                  {team.name}
+                </div>
+                {team.topologyType && (
+                  <div className="text-[10px] text-slate-600 dark:text-slate-400 mb-1">
+                    Type: {team.topologyType}
+                  </div>
+                )}
+                {team.jiraBoard && (
+                  <a
+                    href={team.jiraBoard}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 text-[10px] flex items-center gap-1 hover:underline"
+                  >
+                    <span className="truncate">Jira Board</span>
+                    <ExternalLink size={9} className="flex-shrink-0" />
+                  </a>
+                )}
+              </>
+            )
+          })()}
+        </div>
+      )}
+
+      {/* Contributors */}
+      {(contributorsToDisplay.length > 0 || loading || error) && (
+        <div className="mt-2">
+          <div className="text-[10px] text-slate-600 dark:text-slate-400">
+            Contributors ({dataSource}): {loading ? 'Loading...' : error ? error : contributorsToDisplay.join(', ')}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Hook to fetch contributors from CodeCohesion API
+function useCodeCohesionContributors(repoName: string, enabled: boolean) {
+  const [contributors, setContributors] = React.useState<string[] | null>(null)
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (!enabled || !repoName) {
+      setContributors(null)
+      setError(null)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    fetch(`https://codecohesion-api-production.up.railway.app/api/repos/${repoName}/contributors?limit=5&days=90`)
+      .then(res => {
+        if (!res.ok) throw new Error(`API error: ${res.status}`)
+        return res.json()
+      })
+      .then(data => {
+        // Extract contributor names from API response
+        // Assuming response format: { contributors: [...] }
+        const names = Array.isArray(data.contributors)
+          ? data.contributors.map((c: any) => c.name || c.login || c.email || 'Unknown')
+          : []
+        setContributors(names)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to fetch contributors:', err)
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [repoName, enabled])
+
+  return { contributors, loading, error }
 }
 
 // Helper components

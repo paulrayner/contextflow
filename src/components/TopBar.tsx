@@ -6,8 +6,10 @@ import { useTheme } from '../hooks/useTheme'
 export function TopBar() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
+  const projects = useEditorStore(s => s.projects)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const setViewMode = useEditorStore(s => s.setViewMode)
+  const setActiveProject = useEditorStore(s => s.setActiveProject)
   const canUndo = useEditorStore(s => s.undoStack.length > 0)
   const canRedo = useEditorStore(s => s.redoStack.length > 0)
   const undo = useEditorStore(s => s.undo)
@@ -67,13 +69,21 @@ export function TopBar() {
         ContextFlow
       </div>
 
-      {/* Project Name */}
+      {/* Project Selector */}
       {project && (
         <>
           <div className="text-slate-400 dark:text-slate-500">•</div>
-          <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
-            {project.name}
-          </div>
+          <select
+            value={projectId || ''}
+            onChange={(e) => setActiveProject(e.target.value)}
+            className="text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none cursor-pointer"
+          >
+            {Object.values(projects).map(p => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
         </>
       )}
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Project, BoundedContext } from './types'
 import demoProject from '../../examples/sample.project.json'
+import cbioportalProject from '../../examples/cbioportal.project.json'
 import { saveProject, loadProject } from './persistence'
 
 export type ViewMode = 'flow' | 'strategic'
@@ -65,6 +66,7 @@ interface EditorState {
   toggleContextSelection: (contextId: string) => void
   clearContextSelection: () => void
   setViewMode: (mode: ViewMode) => void
+  setActiveProject: (projectId: string) => void
   addContext: (name: string) => void
   deleteContext: (contextId: string) => void
   assignRepoToContext: (repoId: string, contextId: string) => void
@@ -81,19 +83,28 @@ interface EditorState {
   importProject: (project: Project) => void
 }
 
-// Basic initialization with demo project in memory
-// Demo project will be saved to IndexedDB on first load
-const initialProject = demoProject as Project
+// Basic initialization with both demo and cbioportal projects in memory
+// Both projects will be saved to IndexedDB on first load
+const sampleProject = demoProject as Project
+const cbioportal = cbioportalProject as Project
 
-// Save demo project to IndexedDB asynchronously
-saveProject(initialProject).catch((err) => {
-  console.error('Failed to save initial demo project:', err)
+// Save both projects to IndexedDB asynchronously
+saveProject(sampleProject).catch((err) => {
+  console.error('Failed to save sample project:', err)
+})
+saveProject(cbioportal).catch((err) => {
+  console.error('Failed to save cbioportal project:', err)
 })
 
+// Get last active project from localStorage, or default to sample
+const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
+const initialActiveProjectId = storedProjectId || sampleProject.id
+
 export const useEditorStore = create<EditorState>((set) => ({
-  activeProjectId: initialProject.id,
+  activeProjectId: initialActiveProjectId,
   projects: {
-    [initialProject.id]: initialProject,
+    [sampleProject.id]: sampleProject,
+    [cbioportal.id]: cbioportal,
   },
 
   activeViewMode: 'flow',
@@ -267,6 +278,19 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   setViewMode: (mode) => set({ activeViewMode: mode }),
+
+  setActiveProject: (projectId) => set((state) => {
+    if (!state.projects[projectId]) return state
+    localStorage.setItem('contextflow.activeProjectId', projectId)
+    return {
+      activeProjectId: projectId,
+      selectedContextId: null,
+      selectedGroupId: null,
+      selectedContextIds: [],
+      undoStack: [],
+      redoStack: [],
+    }
+  }),
 
   addContext: (name) => set((state) => {
     const projectId = state.activeProjectId
@@ -860,18 +884,30 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 }))
 
-// Load saved project from IndexedDB on startup
-loadProject(initialProject.id).then(savedProject => {
-  if (savedProject) {
-    console.log('Loaded saved project from IndexedDB')
-    useEditorStore.setState({
-      projects: {
-        [savedProject.id]: savedProject
-      }
-    })
+// Load saved projects from IndexedDB on startup
+Promise.all([
+  loadProject(sampleProject.id),
+  loadProject(cbioportal.id)
+]).then(([savedSample, savedCbioportal]) => {
+  const projects: Record<string, Project> = {}
+
+  if (savedSample) {
+    console.log('Loaded saved sample project from IndexedDB')
+    projects[savedSample.id] = savedSample
   } else {
-    console.log('No saved project found, using demo project')
+    console.log('No saved sample project found, using default')
+    projects[sampleProject.id] = sampleProject
   }
+
+  if (savedCbioportal) {
+    console.log('Loaded saved cbioportal project from IndexedDB')
+    projects[savedCbioportal.id] = savedCbioportal
+  } else {
+    console.log('No saved cbioportal project found, using default')
+    projects[cbioportal.id] = cbioportal
+  }
+
+  useEditorStore.setState({ projects })
 }).catch(err => {
-  console.error('Failed to load project from IndexedDB:', err)
+  console.error('Failed to load projects from IndexedDB:', err)
 })
