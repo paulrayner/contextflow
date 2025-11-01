@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Eye, EyeOff } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
+  const settingsRef = useRef<HTMLDivElement>(null)
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const projects = useEditorStore(s => s.projects)
@@ -23,8 +24,24 @@ export function TopBar() {
   const showRelationships = useEditorStore(s => s.showRelationships)
   const toggleShowGroups = useEditorStore(s => s.toggleShowGroups)
   const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
+  const groupOpacity = useEditorStore(s => s.groupOpacity)
+  const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
 
   const { theme, toggleTheme } = useTheme()
+  const [showSettings, setShowSettings] = useState(false)
+
+  // Close settings popover when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setShowSettings(false)
+      }
+    }
+    if (showSettings) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showSettings])
 
   const handleExport = () => {
     if (!project) return
@@ -132,24 +149,6 @@ export function TopBar() {
         </button>
       </div>
 
-      {/* Filter Toggles - only visible in Flow and Strategic views */}
-      {(viewMode === 'flow' || viewMode === 'strategic') && (
-        <div className="ml-8 flex items-center gap-2">
-          <IconButton
-            onClick={toggleShowGroups}
-            icon={showGroups ? <Eye size={16} /> : <EyeOff size={16} />}
-            label="Groups"
-            tooltip={showGroups ? 'Hide groups' : 'Show groups'}
-          />
-          <IconButton
-            onClick={toggleShowRelationships}
-            icon={showRelationships ? <Eye size={16} /> : <EyeOff size={16} />}
-            label="Relationships"
-            tooltip={showRelationships ? 'Hide relationships' : 'Show relationships'}
-          />
-        </div>
-      )}
-
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
         <IconButton
@@ -208,11 +207,103 @@ export function TopBar() {
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
-        <IconButton
-          onClick={toggleTheme}
-          icon={theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-          tooltip={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-        />
+        <div className="relative" ref={settingsRef}>
+          <IconButton
+            onClick={() => setShowSettings(!showSettings)}
+            icon={<Settings size={16} />}
+            tooltip="Settings"
+          />
+
+          {showSettings && (
+            <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 z-50">
+              <div className="space-y-4">
+                {/* Appearance Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Appearance</h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {theme === 'light' ? <Sun size={14} className="text-slate-600 dark:text-slate-400" /> : <Moon size={14} className="text-slate-600 dark:text-slate-400" />}
+                      <span className="text-xs text-slate-600 dark:text-slate-400">
+                        {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={toggleTheme}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                      style={{ backgroundColor: theme === 'dark' ? '#3b82f6' : '#cbd5e1' }}
+                    >
+                      <span
+                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                        style={{ transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)' }}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-neutral-700" />
+
+                {/* View Filters Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">View Filters</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-slate-600 dark:text-slate-400">Show Groups</span>
+                      <button
+                        onClick={toggleShowGroups}
+                        className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                        style={{ backgroundColor: showGroups ? '#3b82f6' : '#cbd5e1' }}
+                      >
+                        <span
+                          className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                          style={{ transform: showGroups ? 'translateX(18px)' : 'translateX(2px)' }}
+                        />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-slate-600 dark:text-slate-400">Show Relationships</span>
+                      <button
+                        onClick={toggleShowRelationships}
+                        className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                        style={{ backgroundColor: showRelationships ? '#3b82f6' : '#cbd5e1' }}
+                      >
+                        <span
+                          className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                          style={{ transform: showRelationships ? 'translateX(18px)' : 'translateX(2px)' }}
+                        />
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+                      Available in Flow & Strategic views
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-neutral-700" />
+
+                {/* Display Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Display</h3>
+                  <div>
+                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
+                      Group Opacity: {Math.round(groupOpacity * 100)}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={groupOpacity * 100}
+                      onChange={(e) => setGroupOpacity(parseInt(e.target.value) / 100)}
+                      className="w-full h-2 bg-slate-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer"
+                      style={{
+                        accentColor: theme === 'light' ? '#3b82f6' : '#60a5fa'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

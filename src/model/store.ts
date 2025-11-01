@@ -3,6 +3,7 @@ import type { Project, BoundedContext, Actor, ActorConnection } from './types'
 import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
 import { saveProject, loadProject } from './persistence'
+import { config } from '../config'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
@@ -85,6 +86,9 @@ interface EditorState {
   showGroups: boolean
   showRelationships: boolean
 
+  // UI preferences
+  groupOpacity: number
+
   undoStack: EditorCommand[]
   redoStack: EditorCommand[]
 
@@ -116,6 +120,7 @@ interface EditorState {
   updateActorConnection: (connectionId: string, updates: Partial<ActorConnection>) => void
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
+  setGroupOpacity: (opacity: number) => void
   undo: () => void
   redo: () => void
   fitToMap: () => void
@@ -197,9 +202,21 @@ export const useEditorStore = create<EditorState>((set) => ({
     distillation: { zoom: 1, panX: 0, panY: 0 },
   },
 
-  // View filters (default to ON)
-  showGroups: true,
-  showRelationships: true,
+  // View filters (default to ON, load from localStorage if available)
+  showGroups: (() => {
+    const stored = localStorage.getItem('contextflow.showGroups')
+    return stored !== null ? stored === 'true' : true
+  })(),
+  showRelationships: (() => {
+    const stored = localStorage.getItem('contextflow.showRelationships')
+    return stored !== null ? stored === 'true' : true
+  })(),
+
+  // UI preferences (load from localStorage if available)
+  groupOpacity: (() => {
+    const stored = localStorage.getItem('contextflow.groupOpacity')
+    return stored !== null ? parseFloat(stored) : config.ui.groupOpacity
+  })(),
 
   undoStack: [],
   redoStack: [],
@@ -1026,9 +1043,22 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
-  toggleShowGroups: () => set((state) => ({ showGroups: !state.showGroups })),
+  toggleShowGroups: () => set((state) => {
+    const newValue = !state.showGroups
+    localStorage.setItem('contextflow.showGroups', String(newValue))
+    return { showGroups: newValue }
+  }),
 
-  toggleShowRelationships: () => set((state) => ({ showRelationships: !state.showRelationships })),
+  toggleShowRelationships: () => set((state) => {
+    const newValue = !state.showRelationships
+    localStorage.setItem('contextflow.showRelationships', String(newValue))
+    return { showRelationships: newValue }
+  }),
+
+  setGroupOpacity: (opacity) => {
+    localStorage.setItem('contextflow.groupOpacity', String(opacity))
+    set({ groupOpacity: opacity })
+  },
 
   undo: () => set((state) => {
     if (state.undoStack.length === 0) return state

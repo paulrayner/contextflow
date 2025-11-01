@@ -386,6 +386,7 @@ function GroupNode({ data }: NodeProps) {
   const group = data.group as Group
   const isSelected = data.isSelected as boolean
   const [isHovered, setIsHovered] = React.useState(false)
+  const groupOpacity = useEditorStore(s => s.groupOpacity)
 
   // Detect dark mode
   const isDarkMode = document.documentElement.classList.contains('dark')
@@ -395,32 +396,26 @@ function GroupNode({ data }: NodeProps) {
   // Check if color is already in rgba format
   const isRgba = groupColor.startsWith('rgba(')
 
-  // Convert hex color to rgba
-  const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-
-  // Extract base color for border (without alpha)
-  const getBorderColor = () => {
-    if (isRgba) {
-      // Extract RGB values from rgba and return as rgb
-      const match = groupColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+  // Extract RGB values from either hex or rgba format
+  const getRgbValues = (color: string): [number, number, number] => {
+    if (color.startsWith('rgba(') || color.startsWith('rgb(')) {
+      const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
       if (match) {
-        return `rgb(${match[1]}, ${match[2]}, ${match[3]})`
+        return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])]
       }
     }
-    return groupColor
+    // Hex format
+    const r = parseInt(color.slice(1, 3), 16)
+    const g = parseInt(color.slice(3, 5), 16)
+    const b = parseInt(color.slice(5, 7), 16)
+    return [r, g, b]
   }
 
-  // Background color: use as-is if rgba, otherwise apply alpha to hex
-  const backgroundColor = isRgba
-    ? groupColor
-    : hexToRgba(groupColor, isDarkMode ? (isSelected ? 0.35 : 0.25) : (isSelected ? 0.95 : 0.85))
+  const [r, g, b] = getRgbValues(groupColor)
 
-  const borderColor = getBorderColor()
+  // Apply consistent opacity to all groups
+  const backgroundColor = `rgba(${r}, ${g}, ${b}, ${groupOpacity})`
+  const borderColor = `rgb(${r}, ${g}, ${b})`
 
   return (
     <div
@@ -431,7 +426,7 @@ function GroupNode({ data }: NodeProps) {
         backgroundColor: backgroundColor,
         borderRadius: '12px',
         border: isSelected ? `2px solid ${borderColor}` : `2px dashed ${borderColor}`,
-        boxShadow: isDarkMode ? 'none' : (isRgba ? 'none' : `0 2px 10px ${hexToRgba(groupColor, 0.3)}`),
+        boxShadow: isDarkMode ? 'none' : `0 2px 10px rgba(${r}, ${g}, ${b}, 0.3)`,
         transition: 'all 0.2s',
         position: 'relative',
         cursor: 'pointer',
