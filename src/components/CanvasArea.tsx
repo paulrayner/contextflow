@@ -548,7 +548,11 @@ function ActorConnectionEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
+  const selectedActorId = useEditorStore(s => s.selectedActorId)
   const connection = data?.connection as ActorConnection | undefined
+
+  // Highlight if this connection belongs to the selected actor
+  const isHighlighted = source === selectedActorId
 
   // Get node objects from React Flow to calculate dynamic positions
   const { getNode } = useReactFlow()
@@ -590,8 +594,8 @@ function ActorConnectionEdge({
         className="react-flow__edge-path"
         d={edgePath}
         style={{
-          stroke: isHovered ? '#60a5fa' : '#94a3b8',
-          strokeWidth: isHovered ? 2 : 1.5,
+          stroke: isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
+          strokeWidth: isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
           strokeDasharray: '5,5',
           fill: 'none',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -1129,6 +1133,12 @@ function CanvasContent() {
     // Find the selected group (if any)
     const selectedGroup = selectedGroupId ? project.groups.find(g => g.id === selectedGroupId) : null
 
+    // Find connected contexts for selected actor
+    const selectedActorConnections = selectedActorId
+      ? project.actorConnections?.filter(ac => ac.actorId === selectedActorId) || []
+      : []
+    const connectedContextIds = new Set(selectedActorConnections.map(ac => ac.contextId))
+
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
@@ -1146,8 +1156,10 @@ function CanvasContent() {
         y = (context.positions.shared.y / 100) * 1000
       }
 
-      // Check if this context is a member of the selected group
-      const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id) || false
+      // Check if this context is highlighted (by group or actor selection)
+      const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id)
+        || connectedContextIds.has(context.id)
+        || false
 
       return {
         id: context.id,
@@ -1306,7 +1318,7 @@ function CanvasContent() {
       : []
 
     return [...relationshipEdges, ...actorConnectionEdges]
-  }, [project, viewMode, showRelationships])
+  }, [project, viewMode, showRelationships, selectedActorId])
 
   // Handle node click
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
