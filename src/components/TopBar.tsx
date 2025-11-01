@@ -92,20 +92,6 @@ export function TopBar() {
     addActor(name)
   }
 
-  const handleAddKeyframe = () => {
-    const date = prompt('Enter year (e.g., "2027") or year-quarter (e.g., "2027-Q2"):')
-    if (!date) return
-
-    // Basic validation
-    if (!/^\d{4}(-Q[1-4])?$/.test(date)) {
-      alert('Invalid date format. Use "2027" or "2027-Q2"')
-      return
-    }
-
-    const label = prompt('Keyframe label (optional):')
-    addKeyframe(date, label || undefined)
-  }
-
   return (
     <header className="flex items-center gap-4 px-5 py-3 border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
       {/* Logo */}
