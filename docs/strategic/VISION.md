@@ -144,13 +144,16 @@ This makes temporal thinking **unavoidable**—you can't ignore the time dimensi
 
 Instead of trying to animate every moment, you define **discrete keyframes** at strategic dates:
 - **2027**: Post-platform-migration architecture
-- **2029**: After legacy decommissioning
+- **Q2 2028**: After legacy decommissioning
 - **2032**: Fully commoditized state
 
 Each keyframe captures:
-- Where contexts will be positioned (in both Flow and Strategic views)
+- Where contexts will be positioned in Strategic View (Wardley Map)
 - Which contexts exist (new ones appear, old ones disappear)
 - Labels describing what this keyframe represents
+
+**Date Granularity:**
+Keyframes use year or year-quarter format (`"2027"` or `"2027-Q2"`). This matches how strategic evolution actually happens—measured in years and quarters, not days or weeks. Genesis capabilities don't become commodities overnight; the journey takes years.
 
 ### Visualizing the Journey: Interpolation and Animation
 

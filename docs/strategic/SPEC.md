@@ -82,7 +82,7 @@ When viewing a date **between two keyframes**, the system calculates interpolate
 
 **How to edit metadata:**
 - Click keyframe marker on slider → popup shows:
-  - Date (editable)
+  - Date (editable, format: "2027" or "2027-Q2")
   - Label (editable)
   - "Delete keyframe" button
 
@@ -90,6 +90,11 @@ When viewing a date **between two keyframes**, the system calculates interpolate
 - Changing a keyframe date re-sorts it in the timeline
 - Deleting a keyframe removes it entirely (interpolation adjusts)
 - Cannot delete the "today" keyframe (it's implicit)
+
+**Date Examples:**
+- `"2027"` - Entire year 2027
+- `"2027-Q2"` - Q2 2027 (April-June)
+- `"2030-Q4"` - Q4 2030 (October-December)
 
 ### Viewing All Keyframes
 
@@ -273,11 +278,18 @@ When viewing a date **between two keyframes**, the system calculates interpolate
 
 **Requirement:** System must prevent invalid temporal states.
 
-**Rules:**
+**Date Format:**
+- Year only: `"2027"`, `"2030"`
+- Year with quarter: `"2027-Q1"`, `"2027-Q2"`, `"2027-Q3"`, `"2027-Q4"`
+- Regex pattern: `^\d{4}(-Q[1-4])?$`
+
+**Validation Rules:**
 - Keyframe dates must be unique (no duplicates)
-- Keyframe dates should be in chronological order (auto-sorted)
+- Keyframe dates must be in chronological order (auto-sorted)
+- Year must be a valid 4-digit year
+- Quarter (if present) must be Q1, Q2, Q3, or Q4
 - Warning if keyframe is >10 years in the future
-- Error if keyframe date is before project creation date (optional)
+- Error if keyframe date is malformed
 
 ### Position Validation
 
@@ -490,7 +502,7 @@ These questions should be resolved during design phase, informed by user testing
 ```typescript
 interface TemporalKeyframe {
   id: string;
-  date: string; // ISO date (YYYY-MM-DD)
+  date: string; // Year or Year-Quarter format: "2027" or "2027-Q2"
   label?: string; // e.g., "Post-migration", "After platform consolidation"
 
   // ONLY Strategic View positions are stored in keyframes
@@ -514,6 +526,12 @@ interface Project {
   };
 }
 ```
+
+**Date Format Rationale:**
+- Strategic evolution happens over years, not days/weeks
+- Year format (e.g., `"2027"`) for long-term projections
+- Optional quarter (e.g., `"2027-Q2"`) for near-term roadmap planning
+- Avoids false precision of specific dates
 
 **Note:** Flow View and Distillation View positions are NOT stored in keyframes. They remain constant using the base `positions.flow` and `positions.distillation` from each BoundedContext.
 
