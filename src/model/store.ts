@@ -121,6 +121,7 @@ interface EditorState {
   addKeyframe: (date: string, label?: string) => void
   deleteKeyframe: (keyframeId: string) => void
   updateKeyframe: (keyframeId: string, updates: Partial<TemporalKeyframe>) => void
+  updateKeyframeContextPosition: (keyframeId: string, contextId: string, x: number, y: number) => void
 
   // Actions
   updateContext: (contextId: string, updates: Partial<BoundedContext>) => void
@@ -1540,6 +1541,45 @@ export const useEditorStore = create<EditorState>((set) => ({
     const updatedKeyframes = project.temporal.keyframes.map(kf =>
       kf.id === keyframeId ? { ...kf, ...updates } : kf
     ).sort((a, b) => a.date.localeCompare(b.date))
+
+    const updatedProject = {
+      ...project,
+      temporal: {
+        ...project.temporal,
+        keyframes: updatedKeyframes,
+      },
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  updateKeyframeContextPosition: (keyframeId, contextId, x, y) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project || !project.temporal) return state
+
+    const updatedKeyframes = project.temporal.keyframes.map(kf => {
+      if (kf.id === keyframeId) {
+        return {
+          ...kf,
+          positions: {
+            ...kf.positions,
+            [contextId]: { x, y },
+          },
+        }
+      }
+      return kf
+    })
 
     const updatedProject = {
       ...project,

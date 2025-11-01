@@ -26,6 +26,9 @@
     "dev": "vite --open",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
@@ -50,6 +53,7 @@
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.3.0",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "vitest": "^4.0.6"
   }
 }

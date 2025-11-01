@@ -23,7 +23,6 @@ import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, Actor, ActorConnection } from '../model/types'
 import { User } from 'lucide-react'
-import { calculateBezierEndpointAngle } from '../utils/bezierMath'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 
@@ -1049,11 +1048,8 @@ function RelationshipEdge({
   // Non-directional patterns
   const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership'
 
-  // Calculate arrow angle from Bezier curve endpoint tangent
-  const arrowAngle = calculateBezierEndpointAngle(edgePath)
-
-  // Arrow color based on state
-  const arrowColor = isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1'
+  // Use ReactFlow's built-in marker system (automatically handles rotation)
+  const markerId = isSelected ? 'arrow-selected' : isHovered ? 'arrow-hover' : 'arrow-default'
 
   return (
     <>
@@ -1067,20 +1063,8 @@ function RelationshipEdge({
           fill: 'none',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
-        markerEnd="none"
+        markerEnd={isSymmetric ? undefined : `url(#${markerId})`}
       />
-      {/* Custom arrow at endpoint with correct angle */}
-      {!isSymmetric && (
-        <g transform={`translate(${tx}, ${ty}) rotate(${arrowAngle})`}>
-          <path
-            d="M -8 -4 L 0 0 L -8 4 Z"
-            fill={arrowColor}
-            style={{
-              transition: 'fill 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
-          />
-        </g>
-      )}
       {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
@@ -1183,6 +1167,7 @@ function CanvasContent() {
   // Temporal state
   const currentDate = useEditorStore(s => s.temporal.currentDate)
   const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
+  const updateKeyframeContextPosition = useEditorStore(s => s.updateKeyframeContextPosition)
 
   // Get React Flow instance for fitView
   const { fitView } = useReactFlow()
@@ -1601,6 +1586,9 @@ function CanvasContent() {
       return
     }
 
+    // Check if we're in temporal mode with an active keyframe (Strategic View only)
+    const isEditingKeyframe = viewMode === 'strategic' && project.temporal?.enabled && activeKeyframeId
+
     // Get currently selected nodes from React Flow's internal state
     const selectedNodes = nodes.filter(n => n.selected && n.type === 'context')
     const reactFlowSelectedIds = selectedNodes.map(n => n.id)
@@ -1614,42 +1602,56 @@ function CanvasContent() {
     if (isMultiSelected) {
       // For multi-select, save the current visual positions of ALL selected nodes
       // (React Flow has already moved them visually during the drag)
-      const positionsMap: Record<string, BoundedContext['positions']> = {}
 
-      allSelectedIds.forEach(contextId => {
-        const ctx = project.contexts.find(c => c.id === contextId)
-        const visualNode = nodes.find(n => n.id === contextId)
-        if (!ctx || !visualNode) return
+      if (isEditingKeyframe) {
+        // Update keyframe positions for all selected nodes
+        allSelectedIds.forEach(contextId => {
+          const visualNode = nodes.find(n => n.id === contextId)
+          if (!visualNode) return
 
-        // Get the CURRENT visual position (after React Flow's drag)
-        const newX = (visualNode.position.x / 2000) * 100
-        const newY = (visualNode.position.y / 1000) * 100
+          const newX = (visualNode.position.x / 2000) * 100
+          const newY = (visualNode.position.y / 1000) * 100
+          updateKeyframeContextPosition(activeKeyframeId!, contextId, newX, newY)
+        })
+      } else {
+        // Update base positions
+        const positionsMap: Record<string, BoundedContext['positions']> = {}
 
-        if (viewMode === 'distillation') {
-          positionsMap[contextId] = {
-            flow: { x: ctx.positions.flow.x },
-            strategic: { x: ctx.positions.strategic.x },
-            distillation: { x: newX, y: 100 - newY }, // Invert Y back to 0=bottom, 100=top
-            shared: { y: ctx.positions.shared.y },
+        allSelectedIds.forEach(contextId => {
+          const ctx = project.contexts.find(c => c.id === contextId)
+          const visualNode = nodes.find(n => n.id === contextId)
+          if (!ctx || !visualNode) return
+
+          // Get the CURRENT visual position (after React Flow's drag)
+          const newX = (visualNode.position.x / 2000) * 100
+          const newY = (visualNode.position.y / 1000) * 100
+
+          if (viewMode === 'distillation') {
+            positionsMap[contextId] = {
+              flow: { x: ctx.positions.flow.x },
+              strategic: { x: ctx.positions.strategic.x },
+              distillation: { x: newX, y: 100 - newY }, // Invert Y back to 0=bottom, 100=top
+              shared: { y: ctx.positions.shared.y },
+            }
+          } else if (viewMode === 'flow') {
+            positionsMap[contextId] = {
+              flow: { x: newX },
+              strategic: { x: ctx.positions.strategic.x },
+              distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
+              shared: { y: newY },
+            }
+          } else {
+            positionsMap[contextId] = {
+              flow: { x: ctx.positions.flow.x },
+              strategic: { x: newX },
+              distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
+              shared: { y: newY },
+            }
           }
-        } else if (viewMode === 'flow') {
-          positionsMap[contextId] = {
-            flow: { x: newX },
-            strategic: { x: ctx.positions.strategic.x },
-            distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
-            shared: { y: newY },
-          }
-        } else {
-          positionsMap[contextId] = {
-            flow: { x: ctx.positions.flow.x },
-            strategic: { x: newX },
-            distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
-            shared: { y: newY },
-          }
-        }
-      })
+        })
 
-      updateMultipleContextPositions(positionsMap)
+        updateMultipleContextPositions(positionsMap)
+      }
     } else {
       // Single node move
       const context = project.contexts.find(c => c.id === node.id)
@@ -1658,30 +1660,36 @@ function CanvasContent() {
       const xPercent = (node.position.x / 2000) * 100
       const yPercent = (node.position.y / 1000) * 100
 
-      if (viewMode === 'distillation') {
-        updateContextPosition(node.id, {
-          flow: { x: context.positions.flow.x },
-          strategic: { x: context.positions.strategic.x },
-          distillation: { x: xPercent, y: 100 - yPercent }, // Invert Y back to 0=bottom, 100=top
-          shared: { y: context.positions.shared.y },
-        })
-      } else if (viewMode === 'flow') {
-        updateContextPosition(node.id, {
-          flow: { x: xPercent },
-          strategic: { x: context.positions.strategic.x },
-          distillation: { x: context.positions.distillation.x, y: context.positions.distillation.y },
-          shared: { y: yPercent },
-        })
+      // If editing a keyframe in Strategic View, update keyframe positions
+      if (isEditingKeyframe) {
+        updateKeyframeContextPosition(activeKeyframeId!, node.id, xPercent, yPercent)
       } else {
-        updateContextPosition(node.id, {
-          flow: { x: context.positions.flow.x },
-          strategic: { x: xPercent },
-          distillation: { x: context.positions.distillation.x, y: context.positions.distillation.y },
-          shared: { y: yPercent },
-        })
+        // Otherwise update base positions
+        if (viewMode === 'distillation') {
+          updateContextPosition(node.id, {
+            flow: { x: context.positions.flow.x },
+            strategic: { x: context.positions.strategic.x },
+            distillation: { x: xPercent, y: 100 - yPercent }, // Invert Y back to 0=bottom, 100=top
+            shared: { y: context.positions.shared.y },
+          })
+        } else if (viewMode === 'flow') {
+          updateContextPosition(node.id, {
+            flow: { x: xPercent },
+            strategic: { x: context.positions.strategic.x },
+            distillation: { x: context.positions.distillation.x, y: context.positions.distillation.y },
+            shared: { y: yPercent },
+          })
+        } else {
+          updateContextPosition(node.id, {
+            flow: { x: context.positions.flow.x },
+            strategic: { x: xPercent },
+            distillation: { x: context.positions.distillation.x, y: context.positions.distillation.y },
+            shared: { y: yPercent },
+          })
+        }
       }
     }
-  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, project, selectedContextIds, nodes])
+  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId])
 
   // Handle keyboard shortcuts
   React.useEffect(() => {

@@ -27,12 +27,10 @@ export function TopBar() {
   const groupOpacity = useEditorStore(s => s.groupOpacity)
   const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
   const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
-  const addKeyframe = useEditorStore(s => s.addKeyframe)
   const temporalEnabled = project?.temporal?.enabled || false
 
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
-  const [showAddKeyframe, setShowAddKeyframe] = useState(false)
 
   // Close settings popover when clicking outside
   useEffect(() => {
@@ -203,16 +201,6 @@ export function TopBar() {
                   style={{ transform: temporalEnabled ? 'translateX(18px)' : 'translateX(2px)' }}
                 />
               </button>
-              {temporalEnabled && (
-                <button
-                  onClick={handleAddKeyframe}
-                  className="px-2.5 py-1.5 text-xs font-medium rounded transition-colors text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-slate-100"
-                  title="Add keyframe"
-                >
-                  <Plus size={14} className="inline mr-1" />
-                  Keyframe
-                </button>
-              )}
             </div>
           </>
         )}
