@@ -452,6 +452,68 @@
       }
     ]
   },
-  "actors": [],
-  "actorConnections": []
+  "actors": [
+    {
+      "id": "actor.clinical-researcher",
+      "name": "Clinical Researcher",
+      "description": "Oncology researchers exploring patient cohorts, survival data, and mutation patterns for research studies",
+      "position": 20
+    },
+    {
+      "id": "actor.treating-oncologist",
+      "name": "Treating Oncologist",
+      "description": "Clinicians looking up genomic profiles and treatment options for specific cancer patients",
+      "position": 45
+    },
+    {
+      "id": "actor.bioinformatician",
+      "name": "Bioinformatician",
+      "description": "Computational biologists using programmatic API access to integrate cBioPortal data into analysis pipelines",
+      "position": 70
+    }
+  ],
+  "actorConnections": [
+    {
+      "id": "conn.researcher-portal",
+      "actorId": "actor.clinical-researcher",
+      "contextId": "ctx.portalExperience",
+      "notes": "Primary interface for exploring studies and cohorts"
+    },
+    {
+      "id": "conn.researcher-query",
+      "actorId": "actor.clinical-researcher",
+      "contextId": "ctx.queryEngine",
+      "notes": "Runs survival analysis and cohort queries"
+    },
+    {
+      "id": "conn.researcher-session",
+      "actorId": "actor.clinical-researcher",
+      "contextId": "ctx.sessionService",
+      "notes": "Saves virtual studies and custom patient groups"
+    },
+    {
+      "id": "conn.oncologist-portal",
+      "actorId": "actor.treating-oncologist",
+      "contextId": "ctx.portalExperience",
+      "notes": "Views patient genomic profiles and treatment options"
+    },
+    {
+      "id": "conn.oncologist-query",
+      "actorId": "actor.treating-oncologist",
+      "contextId": "ctx.queryEngine",
+      "notes": "Queries mutation data for specific patients"
+    },
+    {
+      "id": "conn.bioinformatician-api",
+      "actorId": "actor.bioinformatician",
+      "contextId": "ctx.publicApi",
+      "notes": "Programmatic access for data integration pipelines"
+    },
+    {
+      "id": "conn.bioinformatician-query",
+      "actorId": "actor.bioinformatician",
+      "contextId": "ctx.queryEngine",
+      "notes": "Accesses cohort data for computational analysis"
+    }
+  ]
 }
