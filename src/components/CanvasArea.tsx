@@ -446,16 +446,21 @@ function GroupNode({ data }: NodeProps) {
           position: 'absolute',
           top: '8px',
           left: '12px',
-          fontSize: '11px',
-          fontWeight: 700,
-          color: borderColor,
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          padding: '3px 8px',
-          borderRadius: '4px',
-          border: `1.5px solid ${borderColor}`,
+          fontSize: '12px',
+          fontWeight: 600,
+          color: isDarkMode ? '#e2e8f0' : '#1e293b',
+          backgroundColor: 'transparent',
+          padding: '4px 10px',
+          borderRadius: '6px',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           transition: 'all 0.15s',
           transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-          boxShadow: isHovered ? (isRgba ? 'none' : `0 2px 8px ${hexToRgba(groupColor, 0.4)}`) : 'none',
+          textShadow: isDarkMode
+            ? '0 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6)'
+            : '0 1px 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8)',
+          pointerEvents: 'none',
+          zIndex: 1000,
         }}
       >
         {group.label}
