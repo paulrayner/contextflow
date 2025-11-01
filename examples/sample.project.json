@@ -971,35 +971,35 @@
     {
       "id": "group.customer-facing",
       "label": "Customer-Facing Experience",
-      "color": "#E3F2FD",
+      "color": "rgba(59, 130, 246, 0.25)",
       "contextIds": ["ctx.storefront", "ctx.search", "ctx.recommendations"],
       "notes": "Front-end systems directly visible to customers."
     },
     {
       "id": "group.order-flow",
       "label": "Order & Checkout Flow",
-      "color": "#FFF3E0",
+      "color": "rgba(251, 146, 60, 0.25)",
       "contextIds": ["ctx.cart", "ctx.checkout", "ctx.orders"],
       "notes": "Core revenue-generating transactional flow."
     },
     {
       "id": "group.fulfillment",
       "label": "Fulfillment & Shipping",
-      "color": "#F3E5F5",
+      "color": "rgba(139, 92, 246, 0.25)",
       "contextIds": ["ctx.inventory", "ctx.warehouse", "ctx.shipping"],
       "notes": "Physical goods handling and delivery."
     },
     {
       "id": "group.platform-services",
       "label": "Platform Services",
-      "color": "#E8F5E9",
+      "color": "rgba(34, 197, 94, 0.25)",
       "contextIds": ["ctx.catalog", "ctx.identity", "ctx.payment", "ctx.notifications"],
       "notes": "Shared platform capabilities."
     },
     {
       "id": "group.security-compliance",
       "label": "Security & Compliance",
-      "color": "#FFEBEE",
+      "color": "rgba(239, 68, 68, 0.25)",
       "contextIds": ["ctx.payment", "ctx.identity", "ctx.fraudDetection"],
       "notes": "Security-critical systems handling authentication, authorization, payments, and fraud prevention. Overlaps with Platform Services."
     }
