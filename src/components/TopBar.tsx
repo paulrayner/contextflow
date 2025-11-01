@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Eye, EyeOff } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
@@ -19,6 +19,10 @@ export function TopBar() {
   const addActor = useEditorStore(s => s.addActor)
   const exportProject = useEditorStore(s => s.exportProject)
   const importProject = useEditorStore(s => s.importProject)
+  const showGroups = useEditorStore(s => s.showGroups)
+  const showRelationships = useEditorStore(s => s.showRelationships)
+  const toggleShowGroups = useEditorStore(s => s.toggleShowGroups)
+  const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
 
   const { theme, toggleTheme } = useTheme()
 
@@ -127,6 +131,24 @@ export function TopBar() {
           Strategic
         </button>
       </div>
+
+      {/* Filter Toggles - only visible in Flow and Strategic views */}
+      {(viewMode === 'flow' || viewMode === 'strategic') && (
+        <div className="ml-8 flex items-center gap-2">
+          <IconButton
+            onClick={toggleShowGroups}
+            icon={showGroups ? <Eye size={16} /> : <EyeOff size={16} />}
+            label="Groups"
+            tooltip={showGroups ? 'Hide groups' : 'Show groups'}
+          />
+          <IconButton
+            onClick={toggleShowRelationships}
+            icon={showRelationships ? <Eye size={16} /> : <EyeOff size={16} />}
+            label="Relationships"
+            tooltip={showRelationships ? 'Hide relationships' : 'Show relationships'}
+          />
+        </div>
+      )}
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">

@@ -1099,6 +1099,8 @@ function CanvasContent() {
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
   const selectedActorId = useEditorStore(s => s.selectedActorId)
   const viewMode = useEditorStore(s => s.activeViewMode)
+  const showGroups = useEditorStore(s => s.showGroups)
+  const showRelationships = useEditorStore(s => s.showRelationships)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
   const updateMultipleContextPositions = useEditorStore(s => s.updateMultipleContextPositions)
   const updateActorPosition = useEditorStore(s => s.updateActorPosition)
@@ -1224,6 +1226,9 @@ function CanvasContent() {
         ]
       : groupNodes
 
+    // Apply group visibility filter
+    const finalGroupNodes = showGroups ? reorderedGroupNodes : []
+
     // Create actor nodes (only in Strategic view)
     const actorNodes: Node[] = viewMode === 'strategic' && project.actors
       ? project.actors.map((actor) => {
@@ -1253,8 +1258,8 @@ function CanvasContent() {
       : []
 
     // Return groups first (with selected on top), then contexts, then actors
-    return [...reorderedGroupNodes, ...contextNodes, ...actorNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, viewMode])
+    return [...finalGroupNodes, ...contextNodes, ...actorNodes]
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, viewMode, showGroups])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)
@@ -1274,8 +1279,8 @@ function CanvasContent() {
   const edges: Edge[] = useMemo(() => {
     if (!project) return []
 
-    // Hide relationships in distillation view (focus on classification only)
-    const relationshipEdges = viewMode !== 'distillation'
+    // Filter relationships based on view mode and visibility toggle
+    const relationshipEdges = (viewMode !== 'distillation' && showRelationships)
       ? project.relationships.map((rel) => ({
           id: rel.id,
           source: rel.fromContextId,
@@ -1301,7 +1306,7 @@ function CanvasContent() {
       : []
 
     return [...relationshipEdges, ...actorConnectionEdges]
-  }, [project, viewMode])
+  }, [project, viewMode, showRelationships])
 
   // Handle node click
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {

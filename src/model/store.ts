@@ -81,6 +81,10 @@ interface EditorState {
     distillation: { zoom: number; panX: number; panY: number }
   }
 
+  // View filters
+  showGroups: boolean
+  showRelationships: boolean
+
   undoStack: EditorCommand[]
   redoStack: EditorCommand[]
 
@@ -110,6 +114,8 @@ interface EditorState {
   createActorConnection: (actorId: string, contextId: string) => void
   deleteActorConnection: (connectionId: string) => void
   updateActorConnection: (connectionId: string, updates: Partial<ActorConnection>) => void
+  toggleShowGroups: () => void
+  toggleShowRelationships: () => void
   undo: () => void
   redo: () => void
   fitToMap: () => void
@@ -190,6 +196,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     strategic: { zoom: 1, panX: 0, panY: 0 },
     distillation: { zoom: 1, panX: 0, panY: 0 },
   },
+
+  // View filters (default to ON)
+  showGroups: true,
+  showRelationships: true,
 
   undoStack: [],
   redoStack: [],
@@ -1015,6 +1025,10 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
   }),
+
+  toggleShowGroups: () => set((state) => ({ showGroups: !state.showGroups })),
+
+  toggleShowRelationships: () => set((state) => ({ showRelationships: !state.showRelationships })),
 
   undo: () => set((state) => {
     if (state.undoStack.length === 0) return state

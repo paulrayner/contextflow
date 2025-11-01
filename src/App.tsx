@@ -12,6 +12,7 @@ function App() {
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
+  const selectedActorId = useEditorStore(s => s.selectedActorId)
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const clearContextSelection = useEditorStore(s => s.clearContextSelection)
   const createGroup = useEditorStore(s => s.createGroup)
@@ -29,7 +30,7 @@ function App() {
 
   const hasUnassignedRepos = unassignedRepos.length > 0
   const showRepoSidebar = hasUnassignedRepos && !isRepoSidebarCollapsed
-  const hasRightSidebar = !!selectedContextId || !!selectedGroupId
+  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedActorId
 
   const gridCols = showRepoSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
                  : showRepoSidebar ? 'grid-cols-[240px_1fr]'
@@ -133,8 +134,8 @@ function App() {
           <CanvasArea />
         </section>
 
-        {/* Inspector Panel - shown when context or group is selected */}
-        {(selectedContextId || selectedGroupId) && (
+        {/* Inspector Panel - shown when context, group, or actor is selected */}
+        {(selectedContextId || selectedGroupId || selectedActorId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>
