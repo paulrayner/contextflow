@@ -4,6 +4,20 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.4.0] - 2025-11-01
+
+- Temporal evolution mode for Strategic View showing context positions over time
+- Interactive timeline slider with year markers and keyframe indicators
+- Keyframe creation via double-click on timeline to capture context positions at specific dates
+- Keyframe editing mode to adjust future state positions (lock/unlock with Edit button)
+- Keyframe management: edit labels, duplicate, delete via context menu
+- Timeline playback animation with play/pause controls to visualize evolution
+- Context position interpolation with smooth animation between keyframes
+- Context fade in/out effects when appearing or disappearing at different time periods
+- Groups and relationships automatically hidden during keyframe editing for clarity
+- Jump to current year with "Now" button
+- Temporal position display in Inspector Panel showing evolution stage at selected date
+
 ## [0.3.0] - 2025-11-01
 
 - Multi-project support with project switcher dropdown in top bar
