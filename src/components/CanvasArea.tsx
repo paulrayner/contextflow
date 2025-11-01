@@ -392,6 +392,9 @@ function GroupNode({ data }: NodeProps) {
 
   const groupColor = group.color || '#3b82f6'
 
+  // Check if color is already in rgba format
+  const isRgba = groupColor.startsWith('rgba(')
+
   // Convert hex color to rgba
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16)
@@ -400,10 +403,24 @@ function GroupNode({ data }: NodeProps) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
 
-  // Use rgba colors directly (no opacity on div) + add drop shadow in light mode
-  const bgAlpha = isDarkMode
-    ? (isSelected ? 0.35 : 0.25)
-    : (isSelected ? 0.95 : 0.85)
+  // Extract base color for border (without alpha)
+  const getBorderColor = () => {
+    if (isRgba) {
+      // Extract RGB values from rgba and return as rgb
+      const match = groupColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+      if (match) {
+        return `rgb(${match[1]}, ${match[2]}, ${match[3]})`
+      }
+    }
+    return groupColor
+  }
+
+  // Background color: use as-is if rgba, otherwise apply alpha to hex
+  const backgroundColor = isRgba
+    ? groupColor
+    : hexToRgba(groupColor, isDarkMode ? (isSelected ? 0.35 : 0.25) : (isSelected ? 0.95 : 0.85))
+
+  const borderColor = getBorderColor()
 
   return (
     <div
@@ -411,10 +428,10 @@ function GroupNode({ data }: NodeProps) {
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: hexToRgba(groupColor, bgAlpha),
+        backgroundColor: backgroundColor,
         borderRadius: '12px',
-        border: isSelected ? `2px solid ${groupColor}` : `2px dashed ${groupColor}`,
-        boxShadow: isDarkMode ? 'none' : `0 2px 10px ${hexToRgba(groupColor, 0.3)}`,
+        border: isSelected ? `2px solid ${borderColor}` : `2px dashed ${borderColor}`,
+        boxShadow: isDarkMode ? 'none' : (isRgba ? 'none' : `0 2px 10px ${hexToRgba(groupColor, 0.3)}`),
         transition: 'all 0.2s',
         position: 'relative',
         cursor: 'pointer',
@@ -431,14 +448,14 @@ function GroupNode({ data }: NodeProps) {
           left: '12px',
           fontSize: '11px',
           fontWeight: 700,
-          color: groupColor,
+          color: borderColor,
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
           padding: '3px 8px',
           borderRadius: '4px',
-          border: `1.5px solid ${groupColor}`,
+          border: `1.5px solid ${borderColor}`,
           transition: 'all 0.15s',
           transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-          boxShadow: isHovered ? `0 2px 8px ${hexToRgba(groupColor, 0.4)}` : 'none',
+          boxShadow: isHovered ? (isRgba ? 'none' : `0 2px 8px ${hexToRgba(groupColor, 0.4)}`) : 'none',
         }}
       >
         {group.label}
@@ -705,6 +722,200 @@ function YAxisLabels() {
   )
 }
 
+// Component to render Distillation View regions and axes
+function DistillationRegions() {
+  const { x, y, zoom } = useViewport()
+
+  // Define regions with background colors
+  const regions = [
+    { name: 'Core', xStart: 50, xEnd: 100, yStart: 67, yEnd: 100, color: 'rgba(251, 191, 36, 0.12)' }, // amber/gold
+    { name: 'Supporting (High Diff)', xStart: 0, xEnd: 50, yStart: 67, yEnd: 100, color: 'rgba(59, 130, 246, 0.12)' }, // blue
+    { name: 'Supporting (Med Diff)', xStart: 0, xEnd: 100, yStart: 33, yEnd: 67, color: 'rgba(59, 130, 246, 0.12)' }, // blue
+    { name: 'Generic', xStart: 0, xEnd: 100, yStart: 0, yEnd: 33, color: 'rgba(148, 163, 184, 0.12)' }, // slate/gray
+  ]
+
+  // Grid lines at key thresholds
+  const gridLines = [
+    { type: 'horizontal' as const, position: 33, label: '' },
+    { type: 'horizontal' as const, position: 50, label: '' },
+    { type: 'horizontal' as const, position: 67, label: '' },
+    { type: 'vertical' as const, position: 50, label: '' },
+  ]
+
+  // Axis labels
+  const xAxisLabels = [
+    { text: 'Simple', xPos: 250, yPos: 980 },
+    { text: 'Complex', xPos: 1750, yPos: 980 },
+  ]
+
+  const yAxisLabels = [
+    { text: 'Differentiating', xPos: 50, yPos: 100 },
+    { text: 'Commodity', xPos: 50, yPos: 900 },
+  ]
+
+  return (
+    <>
+      {/* Background regions */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      >
+        {regions.map((region) => {
+          const width = ((region.xEnd - region.xStart) / 100) * 2000
+          const height = ((region.yEnd - region.yStart) / 100) * 1000
+          const xPos = (region.xStart / 100) * 2000
+          const yPos = (1 - region.yEnd / 100) * 1000
+
+          const transformedX = xPos * zoom + x
+          const transformedY = yPos * zoom + y
+          const transformedWidth = width * zoom
+          const transformedHeight = height * zoom
+
+          return (
+            <div
+              key={region.name}
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                width: transformedWidth,
+                height: transformedHeight,
+                backgroundColor: region.color,
+                border: '1px solid rgba(148, 163, 184, 0.2)',
+              }}
+            />
+          )
+        })}
+
+        {/* Grid lines */}
+        {gridLines.map((line, idx) => {
+          if (line.type === 'horizontal') {
+            const yPos = (1 - line.position / 100) * 1000
+            const transformedY = yPos * zoom + y
+            return (
+              <div
+                key={`grid-h-${idx}`}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: transformedY,
+                  width: `${2000 * zoom}px`,
+                  height: '1px',
+                  backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                  marginLeft: `${x}px`,
+                }}
+              />
+            )
+          } else {
+            const xPos = (line.position / 100) * 2000
+            const transformedX = xPos * zoom + x
+            return (
+              <div
+                key={`grid-v-${idx}`}
+                style={{
+                  position: 'absolute',
+                  left: transformedX,
+                  top: 0,
+                  width: '1px',
+                  height: `${1000 * zoom}px`,
+                  backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                  marginTop: `${y}px`,
+                }}
+              />
+            )
+          }
+        })}
+      </div>
+
+      {/* X-axis labels */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 5,
+        }}
+      >
+        {xAxisLabels.map((label) => {
+          const transformedX = label.xPos * zoom + x
+          const transformedY = label.yPos * zoom + y
+
+          return (
+            <div
+              key={label.text}
+              className="text-slate-700 dark:text-slate-200"
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                transform: 'translate(-50%, -50%)',
+                whiteSpace: 'nowrap',
+                fontSize: `${18 * zoom}px`,
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                opacity: 0.8,
+              }}
+            >
+              {label.text}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Y-axis labels */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 5,
+        }}
+      >
+        {yAxisLabels.map((label) => {
+          const transformedX = label.xPos * zoom + x
+          const transformedY = label.yPos * zoom + y
+
+          return (
+            <div
+              key={label.text}
+              className="text-slate-700 dark:text-slate-200"
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                transform: 'translate(0, -50%) rotate(-90deg)',
+                transformOrigin: 'left center',
+                whiteSpace: 'nowrap',
+                fontSize: `${18 * zoom}px`,
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                opacity: 0.8,
+              }}
+            >
+              {label.text}
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
 // Custom edge component with pattern label
 function RelationshipEdge({
   id,
@@ -884,10 +1095,18 @@ function CanvasContent() {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
       // Map 0-100 positions to pixel coordinates
-      // Choose x position based on active view mode
-      const xPos = viewMode === 'flow' ? context.positions.flow.x : context.positions.strategic.x
-      const x = (xPos / 100) * 2000
-      const y = (context.positions.shared.y / 100) * 1000
+      // Choose position based on active view mode
+      let x, y
+      if (viewMode === 'distillation') {
+        // Distillation view uses independent 2D space
+        x = (context.positions.distillation.x / 100) * 2000
+        y = (1 - context.positions.distillation.y / 100) * 1000 // Invert Y for distillation (0 = bottom, 100 = top)
+      } else {
+        // Flow and Strategic views share Y axis
+        const xPos = viewMode === 'flow' ? context.positions.flow.x : context.positions.strategic.x
+        x = (xPos / 100) * 2000
+        y = (context.positions.shared.y / 100) * 1000
+      }
 
       // Check if this context is a member of the selected group
       const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id) || false
@@ -914,14 +1133,21 @@ function CanvasContent() {
       }
     })
 
-    // Create group nodes
-    const groupNodes = project.groups?.map((group) => {
+    // Create group nodes (not shown in distillation view)
+    const groupNodes = viewMode !== 'distillation' && project.groups?.map((group) => {
       const contexts = project.contexts.filter(c => group.contextIds.includes(c.id))
       if (contexts.length === 0) return null
 
       // Calculate bounding box for all contexts in group
-      const xPositions = contexts.map(c => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20)
-      const yPositions = contexts.map(c => c.positions.shared.y * 10)
+      let xPositions, yPositions
+      if (viewMode === 'distillation') {
+        // Not used since groups are hidden in distillation view
+        xPositions = []
+        yPositions = []
+      } else {
+        xPositions = contexts.map(c => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20)
+        yPositions = contexts.map(c => c.positions.shared.y * 10)
+      }
 
       const minX = Math.min(...xPositions) - 30
       const maxX = Math.max(...xPositions) + 200
@@ -1004,15 +1230,18 @@ function CanvasContent() {
   const edges: Edge[] = useMemo(() => {
     if (!project) return []
 
-    const relationshipEdges = project.relationships.map((rel) => ({
-      id: rel.id,
-      source: rel.fromContextId,
-      target: rel.toContextId,
-      type: 'relationship',
-      data: { relationship: rel },
-      animated: false,
-      zIndex: 5, // Above groups (0) but below contexts (10)
-    }))
+    // Hide relationships in distillation view (focus on classification only)
+    const relationshipEdges = viewMode !== 'distillation'
+      ? project.relationships.map((rel) => ({
+          id: rel.id,
+          source: rel.fromContextId,
+          target: rel.toContextId,
+          type: 'relationship',
+          data: { relationship: rel },
+          animated: false,
+          zIndex: 5, // Above groups (0) but below contexts (10)
+        }))
+      : []
 
     // Add actor connection edges (only in Strategic view)
     const actorConnectionEdges: Edge[] = viewMode === 'strategic' && project.actorConnections
@@ -1100,16 +1329,25 @@ function CanvasContent() {
           const newX = (visualNode.position.x / 2000) * 100
           const newY = (visualNode.position.y / 1000) * 100
 
-          if (viewMode === 'flow') {
+          if (viewMode === 'distillation') {
+            positionsMap[contextId] = {
+              flow: { x: ctx.positions.flow.x },
+              strategic: { x: ctx.positions.strategic.x },
+              distillation: { x: newX, y: 100 - newY }, // Invert Y back to 0=bottom, 100=top
+              shared: { y: ctx.positions.shared.y },
+            }
+          } else if (viewMode === 'flow') {
             positionsMap[contextId] = {
               flow: { x: newX },
               strategic: { x: ctx.positions.strategic.x },
+              distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
               shared: { y: newY },
             }
           } else {
             positionsMap[contextId] = {
               flow: { x: ctx.positions.flow.x },
               strategic: { x: newX },
+              distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
               shared: { y: newY },
             }
           }
@@ -1208,16 +1446,25 @@ function CanvasContent() {
         const newX = (visualNode.position.x / 2000) * 100
         const newY = (visualNode.position.y / 1000) * 100
 
-        if (viewMode === 'flow') {
+        if (viewMode === 'distillation') {
+          positionsMap[contextId] = {
+            flow: { x: ctx.positions.flow.x },
+            strategic: { x: ctx.positions.strategic.x },
+            distillation: { x: newX, y: 100 - newY }, // Invert Y back to 0=bottom, 100=top
+            shared: { y: ctx.positions.shared.y },
+          }
+        } else if (viewMode === 'flow') {
           positionsMap[contextId] = {
             flow: { x: newX },
             strategic: { x: ctx.positions.strategic.x },
+            distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
             shared: { y: newY },
           }
         } else {
           positionsMap[contextId] = {
             flow: { x: ctx.positions.flow.x },
             strategic: { x: newX },
+            distillation: { x: ctx.positions.distillation.x, y: ctx.positions.distillation.y },
             shared: { y: newY },
           }
         }
@@ -1232,16 +1479,25 @@ function CanvasContent() {
       const xPercent = (node.position.x / 2000) * 100
       const yPercent = (node.position.y / 1000) * 100
 
-      if (viewMode === 'flow') {
+      if (viewMode === 'distillation') {
+        updateContextPosition(node.id, {
+          flow: { x: context.positions.flow.x },
+          strategic: { x: context.positions.strategic.x },
+          distillation: { x: xPercent, y: 100 - yPercent }, // Invert Y back to 0=bottom, 100=top
+          shared: { y: context.positions.shared.y },
+        })
+      } else if (viewMode === 'flow') {
         updateContextPosition(node.id, {
           flow: { x: xPercent },
           strategic: { x: context.positions.strategic.x },
+          distillation: { x: context.positions.distillation.x, y: context.positions.distillation.y },
           shared: { y: yPercent },
         })
       } else {
         updateContextPosition(node.id, {
           flow: { x: context.positions.flow.x },
           strategic: { x: xPercent },
+          distillation: { x: context.positions.distillation.x, y: context.positions.distillation.y },
           shared: { y: yPercent },
         })
       }
@@ -1299,12 +1555,19 @@ function CanvasContent() {
         <CanvasBoundary />
 
         <CustomControls />
-        {viewMode === 'flow' ? (
-          <StageLabels stages={flowStages} />
+        {viewMode === 'distillation' ? (
+          <DistillationRegions />
+        ) : viewMode === 'flow' ? (
+          <>
+            <StageLabels stages={flowStages} />
+            <YAxisLabels />
+          </>
         ) : (
-          <EvolutionBands />
+          <>
+            <EvolutionBands />
+            <YAxisLabels />
+          </>
         )}
-        <YAxisLabels />
 
         {/* Arrow marker definitions */}
         <svg style={{ position: 'absolute', top: 0, left: 0 }}>
