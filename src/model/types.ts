@@ -16,6 +16,11 @@ export interface Project {
   viewConfig: {
     flowStages: FlowStageMarker[]
   }
+
+  temporal?: {
+    enabled: boolean
+    keyframes: TemporalKeyframe[]
+  }
 }
 
 export interface BoundedContext {
@@ -125,4 +130,21 @@ export interface ActorConnection {
   actorId: string   // which actor
   contextId: string // which bounded context
   notes?: string
+}
+
+export interface TemporalKeyframe {
+  id: string
+  date: string // Year or Year-Quarter: "2027" or "2027-Q2"
+  label?: string
+
+  // Strategic View positions only
+  positions: {
+    [contextId: string]: {
+      x: number // Evolution axis (0-100)
+      y: number // Value chain proximity (0-100)
+    }
+  }
+
+  // Which contexts exist at this point in time
+  activeContextIds: string[]
 }

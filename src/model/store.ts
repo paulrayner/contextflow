@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Project, BoundedContext, Actor, ActorConnection } from './types'
+import type { Project, BoundedContext, Actor, ActorConnection, TemporalKeyframe } from './types'
 import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
 import { saveProject, loadProject } from './persistence'
@@ -107,6 +107,13 @@ interface EditorState {
 
   undoStack: EditorCommand[]
   redoStack: EditorCommand[]
+
+  // Temporal actions
+  toggleTemporalMode: () => void
+  setCurrentDate: (date: string | null) => void
+  addKeyframe: (date: string, label?: string) => void
+  deleteKeyframe: (keyframeId: string) => void
+  updateKeyframe: (keyframeId: string, updates: Partial<TemporalKeyframe>) => void
 
   // Actions
   updateContext: (contextId: string, updates: Partial<BoundedContext>) => void
@@ -1389,6 +1396,146 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedContextId: null,
       selectedActorId: null,
       selectedActorConnectionId: null,
+    }
+  }),
+
+  // Temporal actions
+  toggleTemporalMode: () => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const currentlyEnabled = project.temporal?.enabled || false
+
+    const updatedProject = {
+      ...project,
+      temporal: {
+        enabled: !currentlyEnabled,
+        keyframes: project.temporal?.keyframes || [],
+      },
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  setCurrentDate: (date) => set(() => ({
+    // This will be used by the TimeSlider component
+    // For Milestone 1, we just need to store this state
+    // Interpolation will be implemented in Milestone 2
+  })),
+
+  addKeyframe: (date, label) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    // Capture current Strategic View positions for all contexts
+    const positions: { [contextId: string]: { x: number; y: number } } = {}
+    project.contexts.forEach(context => {
+      positions[context.id] = {
+        x: context.positions.strategic.x,
+        y: context.positions.shared.y,
+      }
+    })
+
+    const newKeyframe: TemporalKeyframe = {
+      id: `keyframe-${Date.now()}`,
+      date,
+      label,
+      positions,
+      activeContextIds: project.contexts.map(c => c.id),
+    }
+
+    const existingKeyframes = project.temporal?.keyframes || []
+    const updatedKeyframes = [...existingKeyframes, newKeyframe].sort((a, b) => {
+      // Sort by date (simple string comparison works for "YYYY" and "YYYY-QN" formats)
+      return a.date.localeCompare(b.date)
+    })
+
+    const updatedProject = {
+      ...project,
+      temporal: {
+        enabled: project.temporal?.enabled || true,
+        keyframes: updatedKeyframes,
+      },
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  deleteKeyframe: (keyframeId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project || !project.temporal) return state
+
+    const updatedProject = {
+      ...project,
+      temporal: {
+        ...project.temporal,
+        keyframes: project.temporal.keyframes.filter(kf => kf.id !== keyframeId),
+      },
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  updateKeyframe: (keyframeId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project || !project.temporal) return state
+
+    const updatedKeyframes = project.temporal.keyframes.map(kf =>
+      kf.id === keyframeId ? { ...kf, ...updates } : kf
+    ).sort((a, b) => a.date.localeCompare(b.date))
+
+    const updatedProject = {
+      ...project,
+      temporal: {
+        ...project.temporal,
+        keyframes: updatedKeyframes,
+      },
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
     }
   }),
 }))

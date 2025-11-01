@@ -23,6 +23,7 @@ import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, Actor, ActorConnection } from '../model/types'
 import { User } from 'lucide-react'
+import { TimeSlider } from './TimeSlider'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -1034,17 +1035,23 @@ function RelationshipEdge({
     targetPos = edgeParams.targetPos
   }
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getStraightPath({
     sourceX: sx,
     sourceY: sy,
-    sourcePosition: sourcePos,
     targetX: tx,
     targetY: ty,
-    targetPosition: targetPos,
   })
 
   // Non-directional patterns
   const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership'
+
+  // Select arrow marker based on state
+  const getMarkerEnd = () => {
+    if (isSymmetric) return undefined
+    if (isSelected) return 'url(#arrow-selected)'
+    if (isHovered) return 'url(#arrow-hover)'
+    return 'url(#arrow-default)'
+  }
 
   return (
     <>
@@ -1058,7 +1065,7 @@ function RelationshipEdge({
           fill: 'none',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
-        markerEnd={isSymmetric ? undefined : 'url(#arrow)'}
+        markerEnd={getMarkerEnd()}
       />
       {/* Invisible wider path for easier hovering and clicking */}
       <path
@@ -1662,6 +1669,7 @@ function CanvasContent() {
 
   return (
     <div className="relative w-full h-full">
+      <TimeSlider />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -1708,9 +1716,9 @@ function CanvasContent() {
         {/* Arrow marker definitions */}
         <svg style={{ position: 'absolute', top: 0, left: 0 }}>
           <defs>
-            {/* Marker for relationship edges */}
+            {/* Marker for relationship edges - default state */}
             <marker
-              id="arrow"
+              id="arrow-default"
               viewBox="0 0 10 10"
               refX="8"
               refY="5"
@@ -1721,6 +1729,36 @@ function CanvasContent() {
               <path
                 d="M 0 0 L 10 5 L 0 10 z"
                 fill="#cbd5e1"
+              />
+            </marker>
+            {/* Marker for relationship edges - hover state */}
+            <marker
+              id="arrow-hover"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="5"
+              markerHeight="5"
+              orient="auto"
+            >
+              <path
+                d="M 0 0 L 10 5 L 0 10 z"
+                fill="#475569"
+              />
+            </marker>
+            {/* Marker for relationship edges - selected state */}
+            <marker
+              id="arrow-selected"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="5"
+              markerHeight="5"
+              orient="auto"
+            >
+              <path
+                d="M 0 0 L 10 5 L 0 10 z"
+                fill="#3b82f6"
               />
             </marker>
             {/* Marker for actor connection edges */}

@@ -26,9 +26,13 @@ export function TopBar() {
   const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
   const groupOpacity = useEditorStore(s => s.groupOpacity)
   const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
+  const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
+  const addKeyframe = useEditorStore(s => s.addKeyframe)
+  const temporalEnabled = project?.temporal?.enabled || false
 
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
+  const [showAddKeyframe, setShowAddKeyframe] = useState(false)
 
   // Close settings popover when clicking outside
   useEffect(() => {
@@ -88,6 +92,20 @@ export function TopBar() {
     const name = prompt('Actor name:')
     if (!name) return
     addActor(name)
+  }
+
+  const handleAddKeyframe = () => {
+    const date = prompt('Enter year (e.g., "2027") or year-quarter (e.g., "2027-Q2"):')
+    if (!date) return
+
+    // Basic validation
+    if (!/^\d{4}(-Q[1-4])?$/.test(date)) {
+      alert('Invalid date format. Use "2027" or "2027-Q2"')
+      return
+    }
+
+    const label = prompt('Keyframe label (optional):')
+    addKeyframe(date, label || undefined)
   }
 
   return (
@@ -166,6 +184,37 @@ export function TopBar() {
             label="Add Actor"
             tooltip="Add new actor"
           />
+        )}
+
+        {/* Temporal Mode toggle - only visible in Strategic View */}
+        {viewMode === 'strategic' && (
+          <>
+            <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-600 dark:text-slate-400">Temporal</span>
+              <button
+                onClick={toggleTemporalMode}
+                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                style={{ backgroundColor: temporalEnabled ? '#3b82f6' : '#cbd5e1' }}
+                title="Enable temporal mode"
+              >
+                <span
+                  className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  style={{ transform: temporalEnabled ? 'translateX(18px)' : 'translateX(2px)' }}
+                />
+              </button>
+              {temporalEnabled && (
+                <button
+                  onClick={handleAddKeyframe}
+                  className="px-2.5 py-1.5 text-xs font-medium rounded transition-colors text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-slate-100"
+                  title="Add keyframe"
+                >
+                  <Plus size={14} className="inline mr-1" />
+                  Keyframe
+                </button>
+              )}
+            </div>
+          </>
         )}
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
