@@ -726,31 +726,40 @@ function YAxisLabels() {
 function DistillationRegions() {
   const { x, y, zoom } = useViewport()
 
-  // Define regions with background colors
+  // Define regions with background colors matching Nick Tune's chart
+  // X-axis = Business Differentiation (0=Low, 100=High)
+  // Y-axis = Model Complexity (0=Low, 100=High)
   const regions = [
-    { name: 'Core', xStart: 50, xEnd: 100, yStart: 67, yEnd: 100, color: 'rgba(251, 191, 36, 0.12)' }, // amber/gold
-    { name: 'Supporting (High Diff)', xStart: 0, xEnd: 50, yStart: 67, yEnd: 100, color: 'rgba(59, 130, 246, 0.12)' }, // blue
-    { name: 'Supporting (Med Diff)', xStart: 0, xEnd: 100, yStart: 33, yEnd: 67, color: 'rgba(59, 130, 246, 0.12)' }, // blue
-    { name: 'Generic', xStart: 0, xEnd: 100, yStart: 0, yEnd: 33, color: 'rgba(148, 163, 184, 0.12)' }, // slate/gray
+    // GENERIC: Left column (low business differentiation, any complexity)
+    { name: 'GENERIC', xStart: 0, xEnd: 33, yStart: 0, yEnd: 100, color: 'rgba(153, 153, 153, 0.30)', textColor: '#fff', labelX: 16.5, labelY: 50 },
+
+    // SUPPORTING: Middle column + bottom-right
+    { name: 'SUPPORTING', xStart: 33, xEnd: 100, yStart: 0, yEnd: 50, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: 66.5, labelY: 25 },
+    { name: 'SUPPORTING', xStart: 33, xEnd: 67, yStart: 50, yEnd: 100, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: 50, labelY: 75 },
+
+    // CORE: Top-right (high differentiation, high complexity)
+    { name: 'CORE', xStart: 67, xEnd: 100, yStart: 50, yEnd: 100, color: 'rgba(93, 186, 164, 0.35)', textColor: '#fff', labelX: 83.5, labelY: 75 },
   ]
 
-  // Grid lines at key thresholds
+  // Grid lines at key thresholds - only between different domain categories
   const gridLines = [
-    { type: 'horizontal' as const, position: 33, label: '' },
-    { type: 'horizontal' as const, position: 50, label: '' },
-    { type: 'horizontal' as const, position: 67, label: '' },
-    { type: 'vertical' as const, position: 50, label: '' },
+    { type: 'vertical' as const, position: 33, label: '' }, // Differentiation: Generic/Supporting boundary
+    { type: 'vertical' as const, position: 67, label: '' }, // Differentiation: Supporting/Core boundary
   ]
 
-  // Axis labels
+  // Axis labels - matching Nick Tune's layout
+  // X-axis (bottom) = Business Differentiation (Low to High)
   const xAxisLabels = [
-    { text: 'Simple', xPos: 250, yPos: 980 },
-    { text: 'Complex', xPos: 1750, yPos: 980 },
+    { text: 'Low', xPos: 100, yPos: 980 },
+    { text: 'Business Differentiation', xPos: 1000, yPos: 980 },
+    { text: 'High', xPos: 1900, yPos: 980 },
   ]
 
+  // Y-axis (left) = Model Complexity (Low to High)
   const yAxisLabels = [
-    { text: 'Differentiating', xPos: 50, yPos: 100 },
-    { text: 'Commodity', xPos: 50, yPos: 900 },
+    { text: 'High', xPos: 50, yPos: 100 },
+    { text: 'Model Complexity', xPos: 50, yPos: 500 },
+    { text: 'Low', xPos: 50, yPos: 900 },
   ]
 
   return (
@@ -767,7 +776,7 @@ function DistillationRegions() {
           zIndex: 0,
         }}
       >
-        {regions.map((region) => {
+        {regions.map((region, idx) => {
           const width = ((region.xEnd - region.xStart) / 100) * 2000
           const height = ((region.yEnd - region.yStart) / 100) * 1000
           const xPos = (region.xStart / 100) * 2000
@@ -778,23 +787,49 @@ function DistillationRegions() {
           const transformedWidth = width * zoom
           const transformedHeight = height * zoom
 
+          // Calculate label position
+          const labelX = (region.labelX / 100) * 2000
+          const labelY = (1 - region.labelY / 100) * 1000
+          const transformedLabelX = labelX * zoom + x
+          const transformedLabelY = labelY * zoom + y
+
           return (
-            <div
-              key={region.name}
-              style={{
-                position: 'absolute',
-                left: transformedX,
-                top: transformedY,
-                width: transformedWidth,
-                height: transformedHeight,
-                backgroundColor: region.color,
-                border: '1px solid rgba(148, 163, 184, 0.2)',
-              }}
-            />
+            <React.Fragment key={`region-${idx}`}>
+              <div
+                style={{
+                  position: 'absolute',
+                  left: transformedX,
+                  top: transformedY,
+                  width: transformedWidth,
+                  height: transformedHeight,
+                  backgroundColor: region.color,
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                }}
+              />
+              {/* Region label */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: transformedLabelX,
+                  top: transformedLabelY,
+                  transform: 'translate(-50%, -50%)',
+                  color: region.textColor,
+                  fontSize: `${48 * zoom}px`,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  opacity: 0.85,
+                  pointerEvents: 'none',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                }}
+              >
+                {region.name}
+              </div>
+            </React.Fragment>
           )
         })}
 
-        {/* Grid lines */}
+        {/* Grid lines - dotted white like Nick Tune's chart */}
         {gridLines.map((line, idx) => {
           if (line.type === 'horizontal') {
             const yPos = (1 - line.position / 100) * 1000
@@ -808,7 +843,7 @@ function DistillationRegions() {
                   top: transformedY,
                   width: `${2000 * zoom}px`,
                   height: '1px',
-                  backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                  background: 'repeating-linear-gradient(to right, rgba(255, 255, 255, 0.3) 0px, rgba(255, 255, 255, 0.3) 5px, transparent 5px, transparent 10px)',
                   marginLeft: `${x}px`,
                 }}
               />
@@ -825,7 +860,7 @@ function DistillationRegions() {
                   top: 0,
                   width: '1px',
                   height: `${1000 * zoom}px`,
-                  backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                  background: 'repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0px, rgba(255, 255, 255, 0.3) 5px, transparent 5px, transparent 10px)',
                   marginTop: `${y}px`,
                 }}
               />

@@ -8,18 +8,18 @@ export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
 // Classification logic based on distillation position
 export function classifyFromDistillationPosition(x: number, y: number): 'core' | 'supporting' | 'generic' {
-  // y represents Business Differentiation (0-100)
-  // x represents Model Complexity (0-100)
+  // x = Business Differentiation (0-100, horizontal)
+  // y = Model Complexity (0-100, vertical)
 
-  if (y >= 67) {
-    // High differentiation
-    return x >= 50 ? 'core' : 'supporting'
-  } else if (y >= 33) {
-    // Medium differentiation
-    return 'supporting'
-  } else {
-    // Low differentiation
+  if (x < 33) {
+    // Low differentiation (left column)
     return 'generic'
+  } else if (x >= 67 && y >= 50) {
+    // High differentiation, high complexity (top-right)
+    return 'core'
+  } else {
+    // Everything else (middle + bottom-right)
+    return 'supporting'
   }
 }
 
@@ -78,6 +78,7 @@ interface EditorState {
   canvasView: {
     flow: { zoom: number; panX: number; panY: number }
     strategic: { zoom: number; panX: number; panY: number }
+    distillation: { zoom: number; panX: number; panY: number }
   }
 
   undoStack: EditorCommand[]
@@ -127,6 +128,35 @@ if (!sampleProject.actorConnections) sampleProject.actorConnections = []
 if (!cbioportal.actors) cbioportal.actors = []
 if (!cbioportal.actorConnections) cbioportal.actorConnections = []
 
+// Migrate contexts to include distillation position if missing
+sampleProject.contexts = sampleProject.contexts.map(context => {
+  if (!context.positions.distillation) {
+    return {
+      ...context,
+      positions: {
+        ...context.positions,
+        distillation: { x: 50, y: 50 },
+      },
+      strategicClassification: context.strategicClassification || 'supporting',
+    }
+  }
+  return context
+})
+
+cbioportal.contexts = cbioportal.contexts.map(context => {
+  if (!context.positions.distillation) {
+    return {
+      ...context,
+      positions: {
+        ...context.positions,
+        distillation: { x: 50, y: 50 },
+      },
+      strategicClassification: context.strategicClassification || 'supporting',
+    }
+  }
+  return context
+})
+
 // Save both projects to IndexedDB asynchronously
 saveProject(sampleProject).catch((err) => {
   console.error('Failed to save sample project:', err)
@@ -158,6 +188,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   canvasView: {
     flow: { zoom: 1, panX: 0, panY: 0 },
     strategic: { zoom: 1, panX: 0, panY: 0 },
+    distillation: { zoom: 1, panX: 0, panY: 0 },
   },
 
   undoStack: [],
@@ -209,10 +240,17 @@ export const useEditorStore = create<EditorState>((set) => ({
     const oldContext = project.contexts[contextIndex]
     const oldPositions = oldContext.positions
 
+    // Auto-classify based on distillation position
+    const newClassification = classifyFromDistillationPosition(
+      newPositions.distillation.x,
+      newPositions.distillation.y
+    )
+
     const updatedContexts = [...project.contexts]
     updatedContexts[contextIndex] = {
       ...updatedContexts[contextIndex],
       positions: newPositions,
+      strategicClassification: newClassification,
     }
 
     const updatedProject = {
@@ -348,8 +386,10 @@ export const useEditorStore = create<EditorState>((set) => ({
       positions: {
         flow: { x: 50 },
         strategic: { x: 50 },
+        distillation: { x: 50, y: 50 },
         shared: { y: 50 },
       },
+      strategicClassification: 'supporting', // Default to supporting (middle of distillation map)
     }
 
     const command: EditorCommand = {
@@ -1232,6 +1272,22 @@ export const useEditorStore = create<EditorState>((set) => ({
     // Ensure backwards compatibility with projects that don't have actors/actorConnections
     if (!project.actors) project.actors = []
     if (!project.actorConnections) project.actorConnections = []
+
+    // Migrate contexts to include distillation position if missing
+    project.contexts = project.contexts.map(context => {
+      if (!context.positions.distillation) {
+        return {
+          ...context,
+          positions: {
+            ...context.positions,
+            distillation: { x: 50, y: 50 },
+          },
+          // Set initial classification if missing
+          strategicClassification: context.strategicClassification || 'supporting',
+        }
+      }
+      return context
+    })
 
     // Autosave imported project
     autosaveProject(project.id, project)

@@ -18,6 +18,7 @@ export function InspectorPanel() {
   const addRelationship = useEditorStore(s => s.addRelationship)
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
   const updateActor = useEditorStore(s => s.updateActor)
+  const setViewMode = useEditorStore(s => s.setViewMode)
   const deleteActor = useEditorStore(s => s.deleteActor)
   const createActorConnection = useEditorStore(s => s.createActorConnection)
   const deleteActorConnection = useEditorStore(s => s.deleteActorConnection)
@@ -281,18 +282,36 @@ export function InspectorPanel() {
         />
       </Section>
 
-      {/* Strategic Classification */}
-      <Section label="Strategic Classification">
-        <select
-          value={context.strategicClassification || ''}
-          onChange={(e) => handleUpdate({ strategicClassification: e.target.value as any })}
-          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
-        >
-          <option value="">Not set</option>
-          <option value="core">Core</option>
-          <option value="supporting">Supporting</option>
-          <option value="generic">Generic</option>
-        </select>
+      {/* Domain Classification (position-based) */}
+      <Section label="Domain Classification">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${
+                context.strategicClassification === 'core'
+                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+                  : context.strategicClassification === 'supporting'
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              {context.strategicClassification === 'core' && '⚡ Core'}
+              {context.strategicClassification === 'supporting' && '🔧 Supporting'}
+              {context.strategicClassification === 'generic' && '📦 Generic'}
+              {!context.strategicClassification && 'Not classified'}
+            </span>
+          </div>
+          <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+            <div>Complexity: {context.positions.distillation?.x?.toFixed(0) ?? 50}/100</div>
+            <div>Differentiation: {context.positions.distillation?.y?.toFixed(0) ?? 50}/100</div>
+          </div>
+          <button
+            onClick={() => setViewMode('distillation')}
+            className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+          >
+            Adjust in Distillation View
+          </button>
+        </div>
       </Section>
 
       {/* Boundary Integrity */}

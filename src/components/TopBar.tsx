@@ -104,7 +104,17 @@ export function TopBar() {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           }`}
         >
-          Flow View
+          Flow
+        </button>
+        <button
+          onClick={() => setViewMode('distillation')}
+          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+            viewMode === 'distillation'
+              ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+          }`}
+        >
+          Distillation
         </button>
         <button
           onClick={() => setViewMode('strategic')}
@@ -114,7 +124,7 @@ export function TopBar() {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           }`}
         >
-          Strategic View
+          Strategic
         </button>
       </div>
 
