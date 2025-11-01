@@ -4,6 +4,19 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.3.0] - 2025-11-01
+
+- Multi-project support with project switcher dropdown in top bar
+- CodeCohesion API integration for live repository data (contributors and stats)
+- Repository statistics display showing file count, lines of code, and primary language
+- Top 5 contributors from last 90 days (when CodeCohesion API is enabled)
+- Collapsible repo info pills with expandable details panel
+- cBioPortal demo project added alongside ACME E-Commerce example
+- Repo and team chips now use consistent blue styling for visual harmony
+- Teams section moved before repositories in inspector panel
+- GitHub repository links improved with better color contrast
+- API configuration extracted to config file for future user-configurable integrations
+
 ## [0.2.0] - 2025-10-30
 
 - Strategic View with Wardley evolution bands (Genesis/Custom-Built/Product/Commodity)
