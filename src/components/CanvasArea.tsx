@@ -456,11 +456,7 @@ function GroupNode({ data }: NodeProps) {
           WebkitBackdropFilter: 'blur(8px)',
           transition: 'all 0.15s',
           transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-          textShadow: isDarkMode
-            ? '0 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.6)'
-            : '0 1px 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8)',
           pointerEvents: 'none',
-          zIndex: 1000,
         }}
       >
         {group.label}
@@ -1220,6 +1216,14 @@ function CanvasContent() {
       }
     }).filter(Boolean) as Node[] || []
 
+    // Reorder groups to bring selected group to front (renders last = on top)
+    const reorderedGroupNodes = selectedGroupId
+      ? [
+          ...groupNodes.filter(g => g.id !== `group-${selectedGroupId}`),
+          ...groupNodes.filter(g => g.id === `group-${selectedGroupId}`)
+        ]
+      : groupNodes
+
     // Create actor nodes (only in Strategic view)
     const actorNodes: Node[] = viewMode === 'strategic' && project.actors
       ? project.actors.map((actor) => {
@@ -1248,8 +1252,8 @@ function CanvasContent() {
         })
       : []
 
-    // Return groups first (rendered behind), then contexts, then actors (on top)
-    return [...groupNodes, ...contextNodes, ...actorNodes]
+    // Return groups first (with selected on top), then contexts, then actors
+    return [...reorderedGroupNodes, ...contextNodes, ...actorNodes]
   }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, viewMode])
 
   // Use React Flow's internal nodes state for smooth updates
