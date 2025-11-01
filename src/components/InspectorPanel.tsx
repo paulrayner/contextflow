@@ -2,6 +2,7 @@ import React from 'react'
 import { useEditorStore } from '../model/store'
 import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
+import { config } from '../config'
 
 export function InspectorPanel() {
   const projectId = useEditorStore(s => s.activeProjectId)
@@ -697,7 +698,8 @@ function useCodeCohesionContributors(repoName: string, enabled: boolean) {
     setLoading(true)
     setError(null)
 
-    fetch(`https://codecohesion-api-production.up.railway.app/api/repos/${repoName}/contributors?limit=5&days=90`)
+    const { apiBaseUrl, contributors: { limit, days } } = config.integrations.codecohesion
+    fetch(`${apiBaseUrl}/repos/${repoName}/contributors?limit=${limit}&days=${days}`)
       .then(res => {
         if (!res.ok) throw new Error(`API error: ${res.status}`)
         return res.json()
@@ -737,7 +739,7 @@ function useCodeCohesionRepoStats(repoName: string, enabled: boolean) {
     setLoading(true)
     setError(null)
 
-    fetch(`https://codecohesion-api-production.up.railway.app/api/repos/${repoName}/stats`)
+    fetch(`${config.integrations.codecohesion.apiBaseUrl}/repos/${repoName}/stats`)
       .then(res => {
         if (!res.ok) throw new Error(`API error: ${res.status}`)
         return res.json()
