@@ -550,18 +550,8 @@ function RepoCard({
 
   return (
     <div>
-      {/* Collapsed: Repo chip + Team chips */}
+      {/* Collapsed: Team chips + Repo chip */}
       <div className="flex flex-wrap gap-1 items-center group">
-        {/* Repo chip */}
-        <button
-          onClick={() => onToggleRepo(isExpanded ? null : repo.id)}
-          className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded text-[10px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors flex items-center gap-1"
-        >
-          <GitBranch size={10} />
-          {repo.name}
-          {isExpanded ? ' ▼' : ' ▶'}
-        </button>
-
         {/* Team chips */}
         {repoTeams.map((team: any) => (
           <button
@@ -574,6 +564,16 @@ function RepoCard({
             {team.name}
           </button>
         ))}
+
+        {/* Repo chip */}
+        <button
+          onClick={() => onToggleRepo(isExpanded ? null : repo.id)}
+          className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded text-[10px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors flex items-center gap-1"
+        >
+          <GitBranch size={10} />
+          {repo.name}
+          {isExpanded ? ' ▼' : ' ▶'}
+        </button>
 
         {/* Unassign button (visible on hover) */}
         <button
