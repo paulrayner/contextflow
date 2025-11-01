@@ -402,6 +402,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: contextId,
     selectedContextIds: [], // clear multi-select when single-selecting
     selectedGroupId: null, // clear group selection
+    selectedRelationshipId: null, // clear relationship selection
   }),
 
   toggleContextSelection: (contextId) => set((state) => {
@@ -409,6 +410,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     return {
       selectedContextId: null, // clear single selection
       selectedGroupId: null, // clear group selection
+      selectedRelationshipId: null, // clear relationship selection
       selectedContextIds: isSelected
         ? state.selectedContextIds.filter(id => id !== contextId)
         : [...state.selectedContextIds, contextId],
@@ -419,6 +421,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextIds: [],
     selectedContextId: null,
     selectedGroupId: null,
+    selectedRelationshipId: null,
   }),
 
   setViewMode: (mode) => set({ activeViewMode: mode }),

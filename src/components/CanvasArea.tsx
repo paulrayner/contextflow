@@ -1004,8 +1004,10 @@ function RelationshipEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
+  const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
+  const isSelected = id === selectedRelationshipId
 
   // Get node objects from React Flow to calculate dynamic positions
   const { getNode } = useReactFlow()
@@ -1051,14 +1053,14 @@ function RelationshipEdge({
         className="react-flow__edge-path"
         d={edgePath}
         style={{
-          stroke: isHovered ? '#475569' : '#cbd5e1',
-          strokeWidth: isHovered ? 2.5 : 1.5,
+          stroke: isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1',
+          strokeWidth: isSelected ? 2.5 : isHovered ? 2.5 : 1.5,
           fill: 'none',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         markerEnd={isSymmetric ? undefined : 'url(#arrow)'}
       />
-      {/* Invisible wider path for easier hovering */}
+      {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
         style={{
@@ -1066,14 +1068,25 @@ function RelationshipEdge({
           strokeWidth: 20,
           fill: 'none',
           cursor: 'pointer',
+          pointerEvents: 'all',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={(e) => {
+          e.stopPropagation()
+          useEditorStore.setState({
+            selectedRelationshipId: id,
+            selectedContextId: null,
+            selectedContextIds: [],
+            selectedGroupId: null,
+            selectedActorId: null,
+          })
+        }}
       >
         <title>{pattern}</title>
       </path>
-      {/* Tooltip label on hover */}
-      {isHovered && (
+      {/* Tooltip label on hover or when selected */}
+      {(isHovered || isSelected) && (
         <g>
           <rect
             x={labelX - 50}
@@ -1136,6 +1149,7 @@ function CanvasContent() {
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
   const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const showGroups = useEditorStore(s => s.showGroups)
   const showRelationships = useEditorStore(s => s.showRelationships)
@@ -1173,6 +1187,14 @@ function CanvasContent() {
       : []
     const connectedContextIds = new Set(selectedActorConnections.map(ac => ac.contextId))
 
+    // Find connected contexts for selected relationship
+    const selectedRelationship = selectedRelationshipId
+      ? project.relationships.find(r => r.id === selectedRelationshipId)
+      : null
+    const relationshipConnectedContextIds = new Set(
+      selectedRelationship ? [selectedRelationship.fromContextId, selectedRelationship.toContextId] : []
+    )
+
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
@@ -1190,9 +1212,10 @@ function CanvasContent() {
         y = (context.positions.shared.y / 100) * 1000
       }
 
-      // Check if this context is highlighted (by group or actor selection)
+      // Check if this context is highlighted (by group, actor, or relationship selection)
       const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id)
         || connectedContextIds.has(context.id)
+        || relationshipConnectedContextIds.has(context.id)
         || false
 
       return {
@@ -1305,7 +1328,7 @@ function CanvasContent() {
 
     // Return groups first (with selected on top), then contexts, then actors
     return [...finalGroupNodes, ...contextNodes, ...actorNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, viewMode, showGroups])
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, viewMode, showGroups])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)
@@ -1352,7 +1375,21 @@ function CanvasContent() {
       : []
 
     return [...relationshipEdges, ...actorConnectionEdges]
-  }, [project, viewMode, showRelationships, selectedActorId])
+  }, [project, viewMode, showRelationships, selectedActorId, selectedRelationshipId])
+
+  // Handle edge click
+  const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+    // Only handle relationship edges, not actor connections
+    if (edge.type === 'relationship') {
+      useEditorStore.setState({
+        selectedRelationshipId: edge.id,
+        selectedContextId: null,
+        selectedContextIds: [],
+        selectedGroupId: null,
+        selectedActorId: null,
+      })
+    }
+  }, [])
 
   // Handle node click
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -1364,6 +1401,7 @@ function CanvasContent() {
         selectedContextId: null,
         selectedContextIds: [],
         selectedActorId: null,
+        selectedRelationshipId: null,
       })
       return
     }
@@ -1380,13 +1418,13 @@ function CanvasContent() {
       useEditorStore.getState().toggleContextSelection(node.id)
     } else {
       // Single select
-      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null })
+      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedRelationshipId: null })
     }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedRelationshipId: null })
   }, [])
 
   // Wrap onNodesChange to handle multi-select drag
@@ -1631,8 +1669,11 @@ function CanvasContent() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
+        edgesClickable={true}
+        elementsSelectable={true}
         fitView
         fitViewOptions={{
           padding: 0.15,
