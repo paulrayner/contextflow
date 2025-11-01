@@ -24,6 +24,22 @@ export function classifyFromDistillationPosition(x: number, y: number): 'core' |
   }
 }
 
+// Evolution classification based on strategic position (Wardley evolution axis)
+export function classifyFromStrategicPosition(x: number): 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility' {
+  // x = Evolution (0-100, horizontal on Strategic View)
+  // Divide into 4 equal zones matching Wardley evolution stages
+
+  if (x < 25) {
+    return 'genesis'
+  } else if (x < 50) {
+    return 'custom-built'
+  } else if (x < 75) {
+    return 'product/rental'
+  } else {
+    return 'commodity/utility'
+  }
+}
+
 // Helper to auto-save project after state changes
 function autosaveProject(projectId: string, project: Project) {
   saveProject(project).catch((err) => {
@@ -139,30 +155,38 @@ if (!sampleProject.actorConnections) sampleProject.actorConnections = []
 if (!cbioportal.actors) cbioportal.actors = []
 if (!cbioportal.actorConnections) cbioportal.actorConnections = []
 
-// Migrate contexts to include distillation position if missing
+// Migrate contexts to include distillation position and evolution stage if missing
 sampleProject.contexts = sampleProject.contexts.map(context => {
-  if (!context.positions.distillation) {
+  const needsDistillation = !context.positions.distillation
+  const needsEvolution = !context.evolutionStage
+
+  if (needsDistillation || needsEvolution) {
     return {
       ...context,
       positions: {
         ...context.positions,
-        distillation: { x: 50, y: 50 },
+        distillation: context.positions.distillation || { x: 50, y: 50 },
       },
       strategicClassification: context.strategicClassification || 'supporting',
+      evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
     }
   }
   return context
 })
 
 cbioportal.contexts = cbioportal.contexts.map(context => {
-  if (!context.positions.distillation) {
+  const needsDistillation = !context.positions.distillation
+  const needsEvolution = !context.evolutionStage
+
+  if (needsDistillation || needsEvolution) {
     return {
       ...context,
       positions: {
         ...context.positions,
-        distillation: { x: 50, y: 50 },
+        distillation: context.positions.distillation || { x: 50, y: 50 },
       },
       strategicClassification: context.strategicClassification || 'supporting',
+      evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
     }
   }
   return context
@@ -273,11 +297,15 @@ export const useEditorStore = create<EditorState>((set) => ({
       newPositions.distillation.y
     )
 
+    // Auto-classify evolution based on strategic position
+    const newEvolution = classifyFromStrategicPosition(newPositions.strategic.x)
+
     const updatedContexts = [...project.contexts]
     updatedContexts[contextIndex] = {
       ...updatedContexts[contextIndex],
       positions: newPositions,
       strategicClassification: newClassification,
+      evolutionStage: newEvolution,
     }
 
     const updatedProject = {
@@ -326,9 +354,19 @@ export const useEditorStore = create<EditorState>((set) => ({
           old: context.positions,
           new: newPositions
         }
+
+        // Auto-classify based on new positions
+        const newClassification = classifyFromDistillationPosition(
+          newPositions.distillation.x,
+          newPositions.distillation.y
+        )
+        const newEvolution = classifyFromStrategicPosition(newPositions.strategic.x)
+
         return {
           ...context,
-          positions: newPositions
+          positions: newPositions,
+          strategicClassification: newClassification,
+          evolutionStage: newEvolution,
         }
       }
       return context
@@ -1317,17 +1355,20 @@ export const useEditorStore = create<EditorState>((set) => ({
     if (!project.actors) project.actors = []
     if (!project.actorConnections) project.actorConnections = []
 
-    // Migrate contexts to include distillation position if missing
+    // Migrate contexts to include distillation position and evolution stage if missing
     project.contexts = project.contexts.map(context => {
-      if (!context.positions.distillation) {
+      const needsDistillation = !context.positions.distillation
+      const needsEvolution = !context.evolutionStage
+
+      if (needsDistillation || needsEvolution) {
         return {
           ...context,
           positions: {
             ...context.positions,
-            distillation: { x: 50, y: 50 },
+            distillation: context.positions.distillation || { x: 50, y: 50 },
           },
-          // Set initial classification if missing
           strategicClassification: context.strategicClassification || 'supporting',
+          evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
         }
       }
       return context

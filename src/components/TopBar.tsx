@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings, Box } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
@@ -153,7 +153,7 @@ export function TopBar() {
       <div className="ml-auto flex items-center gap-2">
         <IconButton
           onClick={handleAddContext}
-          icon={<Plus size={16} />}
+          icon={<Box size={16} />}
           label="Add Context"
           tooltip="Add new bounded context"
         />

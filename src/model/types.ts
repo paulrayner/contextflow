@@ -35,7 +35,7 @@ export interface BoundedContext {
     shared: { y: number }           // vertical (0..100), shared across Flow/Strategic views
   }
 
-  evolutionStage?: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'
+  evolutionStage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'
 
   codeSize?: {
     loc?: number

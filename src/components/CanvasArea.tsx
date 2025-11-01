@@ -339,45 +339,84 @@ function EvolutionBands() {
     { label: 'Commodity', position: 87.5, width: 25 },
   ]
 
+  // Zone dividers at 25%, 50%, 75%
+  const zoneDividers = [25, 50, 75]
+
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 5,
-      }}
-    >
-      {bands.map((band) => {
-        const xPos = (band.position / 100) * 2000
-        const yPos = 960 // Bottom of canvas (1000 height - 40px padding)
+    <>
+      {/* Zone divider lines */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 3,
+        }}
+      >
+        {zoneDividers.map((position) => {
+          const xPos = (position / 100) * 2000
+          const transformedX = xPos * zoom + x
 
-        const transformedX = xPos * zoom + x
-        const transformedY = yPos * zoom + y
+          return (
+            <div
+              key={`divider-${position}`}
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: 0,
+                width: '1px',
+                height: `${1000 * zoom}px`,
+                background: 'repeating-linear-gradient(to bottom, rgba(148, 163, 184, 0.3) 0px, rgba(148, 163, 184, 0.3) 5px, transparent 5px, transparent 10px)',
+                marginTop: `${y}px`,
+              }}
+            />
+          )
+        })}
+      </div>
 
-        return (
-          <div
-            key={band.label}
-            className="text-slate-700 dark:text-slate-200"
-            style={{
-              position: 'absolute',
-              left: transformedX,
-              top: transformedY,
-              transform: 'translate(-50%, -50%)',
-              whiteSpace: 'nowrap',
-              fontSize: `${22.5 * zoom}px`,
-              fontWeight: 600,
-              letterSpacing: '-0.01em',
-            }}
-          >
-            {band.label}
-          </div>
-        )
-      })}
-    </div>
+      {/* Band labels */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 5,
+        }}
+      >
+        {bands.map((band) => {
+          const xPos = (band.position / 100) * 2000
+          const yPos = 960 // Bottom of canvas (1000 height - 40px padding)
+
+          const transformedX = xPos * zoom + x
+          const transformedY = yPos * zoom + y
+
+          return (
+            <div
+              key={band.label}
+              className="text-slate-700 dark:text-slate-200"
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                transform: 'translate(-50%, -50%)',
+                whiteSpace: 'nowrap',
+                fontSize: `${22.5 * zoom}px`,
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {band.label}
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
 

@@ -285,7 +285,7 @@ export function InspectorPanel() {
       {/* Domain Classification (position-based) */}
       <Section label="Domain Classification">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
             <span
               className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${
                 context.strategicClassification === 'core'
@@ -300,17 +300,17 @@ export function InspectorPanel() {
               {context.strategicClassification === 'generic' && '📦 Generic'}
               {!context.strategicClassification && 'Not classified'}
             </span>
+            <button
+              onClick={() => setViewMode('distillation')}
+              className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+            >
+              Update
+            </button>
           </div>
           <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
             <div>Complexity: {context.positions.distillation?.x?.toFixed(0) ?? 50}/100</div>
             <div>Differentiation: {context.positions.distillation?.y?.toFixed(0) ?? 50}/100</div>
           </div>
-          <button
-            onClick={() => setViewMode('distillation')}
-            className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
-          >
-            Adjust in Distillation View
-          </button>
         </div>
       </Section>
 
@@ -351,19 +351,22 @@ export function InspectorPanel() {
         </select>
       </Section>
 
-      {/* Evolution Stage */}
+      {/* Evolution Stage (position-based) */}
       <Section label="Evolution Stage">
-        <select
-          value={context.evolutionStage || ''}
-          onChange={(e) => handleUpdate({ evolutionStage: e.target.value as any })}
-          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
-        >
-          <option value="">Not set</option>
-          <option value="genesis">Genesis</option>
-          <option value="custom-built">Custom-built</option>
-          <option value="product/rental">Product/Rental</option>
-          <option value="commodity/utility">Commodity/Utility</option>
-        </select>
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
+            {context.evolutionStage === 'genesis' && '🌱 Genesis'}
+            {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
+            {context.evolutionStage === 'product/rental' && '📦 Product'}
+            {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
+          </span>
+          <button
+            onClick={() => setViewMode('strategic')}
+            className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+          >
+            Update
+          </button>
+        </div>
       </Section>
 
       {/* Flags */}
