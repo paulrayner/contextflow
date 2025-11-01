@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, Code } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 
 export function InspectorPanel() {
@@ -278,6 +278,24 @@ export function InspectorPanel() {
         />
       </Section>
 
+      {/* Teams */}
+      {teams.length > 0 && (
+        <Section label="Teams">
+          <div className="space-y-1">
+            {teams.map(team => (
+              <div key={team.id} className="text-neutral-700 dark:text-neutral-300">
+                {team.name}
+                {team.topologyType && (
+                  <span className="text-neutral-500 dark:text-neutral-400 text-xs ml-2">
+                    ({team.topologyType})
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
       {/* Assigned Repos */}
       {assignedRepos.length > 0 && (
         <Section label="Assigned Repositories">
@@ -310,24 +328,6 @@ export function InspectorPanel() {
                 />
               )
             })}
-          </div>
-        </Section>
-      )}
-
-      {/* Teams */}
-      {teams.length > 0 && (
-        <Section label="Teams">
-          <div className="space-y-1">
-            {teams.map(team => (
-              <div key={team.id} className="text-neutral-700 dark:text-neutral-300">
-                {team.name}
-                {team.topologyType && (
-                  <span className="text-neutral-500 dark:text-neutral-400 text-xs ml-2">
-                    ({team.topologyType})
-                  </span>
-                )}
-              </div>
-            ))}
           </div>
         </Section>
       )}
@@ -555,9 +555,9 @@ function RepoCard({
         {/* Repo chip */}
         <button
           onClick={() => onToggleRepo(isExpanded ? null : repo.id)}
-          className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center gap-1"
+          className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded text-[10px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors flex items-center gap-1"
         >
-          <Code size={10} />
+          <GitBranch size={10} />
           {repo.name}
           {isExpanded ? ' ▼' : ' ▶'}
         </button>
