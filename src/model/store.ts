@@ -1,10 +1,27 @@
 import { create } from 'zustand'
-import type { Project, BoundedContext } from './types'
+import type { Project, BoundedContext, Actor, ActorConnection } from './types'
 import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
 import { saveProject, loadProject } from './persistence'
 
-export type ViewMode = 'flow' | 'strategic'
+export type ViewMode = 'flow' | 'strategic' | 'distillation'
+
+// Classification logic based on distillation position
+export function classifyFromDistillationPosition(x: number, y: number): 'core' | 'supporting' | 'generic' {
+  // y represents Business Differentiation (0-100)
+  // x represents Model Complexity (0-100)
+
+  if (y >= 67) {
+    // High differentiation
+    return x >= 50 ? 'core' : 'supporting'
+  } else if (y >= 33) {
+    // Medium differentiation
+    return 'supporting'
+  } else {
+    // Low differentiation
+    return 'generic'
+  }
+}
 
 // Helper to auto-save project after state changes
 function autosaveProject(projectId: string, project: Project) {
@@ -21,7 +38,7 @@ export function setFitViewCallback(callback: () => void) {
 }
 
 interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection'
   payload: {
     contextId?: string
     contextIds?: string[]
@@ -36,6 +53,12 @@ interface EditorCommand {
     groupId?: string
     relationship?: any
     relationshipId?: string
+    actor?: Actor
+    actorId?: string
+    oldPosition?: number
+    newPosition?: number
+    actorConnection?: ActorConnection
+    actorConnectionId?: string
   }
 }
 
@@ -48,6 +71,8 @@ interface EditorState {
   selectedContextId: string | null
   selectedRelationshipId: string | null
   selectedGroupId: string | null
+  selectedActorId: string | null
+  selectedActorConnectionId: string | null
   selectedContextIds: string[] // for multi-select
 
   canvasView: {
@@ -76,6 +101,14 @@ interface EditorState {
   removeContextFromGroup: (groupId: string, contextId: string) => void
   addRelationship: (fromContextId: string, toContextId: string, pattern: string, description?: string) => void
   deleteRelationship: (relationshipId: string) => void
+  addActor: (name: string) => void
+  deleteActor: (actorId: string) => void
+  updateActor: (actorId: string, updates: Partial<Actor>) => void
+  updateActorPosition: (actorId: string, newPosition: number) => void
+  setSelectedActor: (actorId: string | null) => void
+  createActorConnection: (actorId: string, contextId: string) => void
+  deleteActorConnection: (connectionId: string) => void
+  updateActorConnection: (connectionId: string, updates: Partial<ActorConnection>) => void
   undo: () => void
   redo: () => void
   fitToMap: () => void
@@ -87,6 +120,12 @@ interface EditorState {
 // Both projects will be saved to IndexedDB on first load
 const sampleProject = demoProject as Project
 const cbioportal = cbioportalProject as Project
+
+// Ensure projects have actors and actorConnections arrays (for backwards compatibility)
+if (!sampleProject.actors) sampleProject.actors = []
+if (!sampleProject.actorConnections) sampleProject.actorConnections = []
+if (!cbioportal.actors) cbioportal.actors = []
+if (!cbioportal.actorConnections) cbioportal.actorConnections = []
 
 // Save both projects to IndexedDB asynchronously
 saveProject(sampleProject).catch((err) => {
@@ -112,6 +151,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedContextId: null,
   selectedRelationshipId: null,
   selectedGroupId: null,
+  selectedActorId: null,
+  selectedActorConnectionId: null,
   selectedContextIds: [],
 
   canvasView: {
@@ -286,6 +327,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       activeProjectId: projectId,
       selectedContextId: null,
       selectedGroupId: null,
+      selectedActorId: null,
+      selectedActorConnectionId: null,
       selectedContextIds: [],
       undoStack: [],
       redoStack: [],
@@ -659,6 +702,280 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
+  addActor: (name) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const newActor: Actor = {
+      id: `actor-${Date.now()}`,
+      name,
+      position: 50,
+    }
+
+    const command: EditorCommand = {
+      type: 'addActor',
+      payload: {
+        actor: newActor,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      actors: [...(project.actors || []), newActor],
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      selectedActorId: newActor.id,
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  deleteActor: (actorId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const actor = project.actors?.find(a => a.id === actorId)
+    if (!actor) return state
+
+    const command: EditorCommand = {
+      type: 'deleteActor',
+      payload: {
+        actor,
+      },
+    }
+
+    // Also delete any actor connections for this actor
+    const updatedActorConnections = (project.actorConnections || []).filter(
+      ac => ac.actorId !== actorId
+    )
+
+    const updatedProject = {
+      ...project,
+      actors: project.actors.filter(a => a.id !== actorId),
+      actorConnections: updatedActorConnections,
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      selectedActorId: state.selectedActorId === actorId ? null : state.selectedActorId,
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  updateActor: (actorId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const actorIndex = project.actors?.findIndex(a => a.id === actorId) ?? -1
+    if (actorIndex === -1) return state
+
+    const updatedActors = [...(project.actors || [])]
+    updatedActors[actorIndex] = {
+      ...updatedActors[actorIndex],
+      ...updates,
+    }
+
+    const updatedProject = {
+      ...project,
+      actors: updatedActors,
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  updateActorPosition: (actorId, newPosition) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const actorIndex = project.actors?.findIndex(a => a.id === actorId) ?? -1
+    if (actorIndex === -1) return state
+
+    const actor = project.actors[actorIndex]
+    const oldPosition = actor.position
+
+    const updatedActors = [...(project.actors || [])]
+    updatedActors[actorIndex] = {
+      ...updatedActors[actorIndex],
+      position: newPosition,
+    }
+
+    const updatedProject = {
+      ...project,
+      actors: updatedActors,
+    }
+
+    // Add to undo stack
+    const command: EditorCommand = {
+      type: 'moveActor',
+      payload: {
+        actorId,
+        oldPosition,
+        newPosition,
+      },
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  setSelectedActor: (actorId) => set({
+    selectedActorId: actorId,
+    selectedContextId: null,
+    selectedContextIds: [],
+    selectedGroupId: null,
+    selectedRelationshipId: null,
+  }),
+
+  createActorConnection: (actorId, contextId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const newConnection: ActorConnection = {
+      id: `actor-conn-${Date.now()}`,
+      actorId,
+      contextId,
+    }
+
+    const command: EditorCommand = {
+      type: 'addActorConnection',
+      payload: {
+        actorConnection: newConnection,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      actorConnections: [...(project.actorConnections || []), newConnection],
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  deleteActorConnection: (connectionId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const connection = project.actorConnections?.find(ac => ac.id === connectionId)
+    if (!connection) return state
+
+    const command: EditorCommand = {
+      type: 'deleteActorConnection',
+      payload: {
+        actorConnection: connection,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      actorConnections: (project.actorConnections || []).filter(ac => ac.id !== connectionId),
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      selectedActorConnectionId: state.selectedActorConnectionId === connectionId ? null : state.selectedActorConnectionId,
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  updateActorConnection: (connectionId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const connectionIndex = project.actorConnections?.findIndex(ac => ac.id === connectionId) ?? -1
+    if (connectionIndex === -1) return state
+
+    const updatedConnections = [...(project.actorConnections || [])]
+    updatedConnections[connectionIndex] = {
+      ...updatedConnections[connectionIndex],
+      ...updates,
+    }
+
+    const updatedProject = {
+      ...project,
+      actorConnections: updatedConnections,
+    }
+
+    // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
   undo: () => set((state) => {
     if (state.undoStack.length === 0) return state
 
@@ -675,6 +992,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     let newRepos = project.repos
     let newGroups = project.groups
     let newRelationships = project.relationships
+    let newActors = project.actors || []
+    let newActorConnections = project.actorConnections || []
 
     if (command.type === 'moveContext' && command.payload.contextId && command.payload.oldPositions) {
       const contextIndex = newContexts.findIndex(c => c.id === command.payload.contextId)
@@ -737,6 +1056,23 @@ export const useEditorStore = create<EditorState>((set) => ({
       newRelationships = newRelationships.filter(r => r.id !== command.payload.relationship?.id)
     } else if (command.type === 'deleteRelationship' && command.payload.relationship) {
       newRelationships = [...newRelationships, command.payload.relationship]
+    } else if (command.type === 'addActor' && command.payload.actor) {
+      newActors = newActors.filter(a => a.id !== command.payload.actor?.id)
+    } else if (command.type === 'deleteActor' && command.payload.actor) {
+      newActors = [...newActors, command.payload.actor]
+    } else if (command.type === 'moveActor' && command.payload.actorId && command.payload.oldPosition !== undefined) {
+      const actorIndex = newActors.findIndex(a => a.id === command.payload.actorId)
+      if (actorIndex !== -1) {
+        newActors = [...newActors]
+        newActors[actorIndex] = {
+          ...newActors[actorIndex],
+          position: command.payload.oldPosition,
+        }
+      }
+    } else if (command.type === 'addActorConnection' && command.payload.actorConnection) {
+      newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
+    } else if (command.type === 'deleteActorConnection' && command.payload.actorConnection) {
+      newActorConnections = [...newActorConnections, command.payload.actorConnection]
     }
 
     const updatedProject = {
@@ -745,6 +1081,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       repos: newRepos,
       groups: newGroups,
       relationships: newRelationships,
+      actors: newActors,
+      actorConnections: newActorConnections,
     }
 
     // Autosave
@@ -776,6 +1114,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     let newRepos = project.repos
     let newGroups = project.groups
     let newRelationships = project.relationships
+    let newActors = project.actors || []
+    let newActorConnections = project.actorConnections || []
 
     if (command.type === 'moveContext' && command.payload.contextId && command.payload.newPositions) {
       const contextIndex = newContexts.findIndex(c => c.id === command.payload.contextId)
@@ -838,6 +1178,23 @@ export const useEditorStore = create<EditorState>((set) => ({
       newRelationships = [...newRelationships, command.payload.relationship]
     } else if (command.type === 'deleteRelationship' && command.payload.relationship) {
       newRelationships = newRelationships.filter(r => r.id !== command.payload.relationship?.id)
+    } else if (command.type === 'addActor' && command.payload.actor) {
+      newActors = [...newActors, command.payload.actor]
+    } else if (command.type === 'deleteActor' && command.payload.actor) {
+      newActors = newActors.filter(a => a.id !== command.payload.actor?.id)
+    } else if (command.type === 'moveActor' && command.payload.actorId && command.payload.newPosition !== undefined) {
+      const actorIndex = newActors.findIndex(a => a.id === command.payload.actorId)
+      if (actorIndex !== -1) {
+        newActors = [...newActors]
+        newActors[actorIndex] = {
+          ...newActors[actorIndex],
+          position: command.payload.newPosition,
+        }
+      }
+    } else if (command.type === 'addActorConnection' && command.payload.actorConnection) {
+      newActorConnections = [...newActorConnections, command.payload.actorConnection]
+    } else if (command.type === 'deleteActorConnection' && command.payload.actorConnection) {
+      newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
     }
 
     const updatedProject = {
@@ -846,6 +1203,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       repos: newRepos,
       groups: newGroups,
       relationships: newRelationships,
+      actors: newActors,
+      actorConnections: newActorConnections,
     }
 
     // Autosave
@@ -870,6 +1229,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   exportProject: () => {},
 
   importProject: (project) => set((state) => {
+    // Ensure backwards compatibility with projects that don't have actors/actorConnections
+    if (!project.actors) project.actors = []
+    if (!project.actorConnections) project.actorConnections = []
+
     // Autosave imported project
     autosaveProject(project.id, project)
 
@@ -880,6 +1243,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
       activeProjectId: project.id,
       selectedContextId: null,
+      selectedActorId: null,
+      selectedActorConnectionId: null,
     }
   }),
 }))

@@ -10,6 +10,8 @@ export interface Project {
   people: Person[]
   teams: Team[]
   groups: Group[]
+  actors: Actor[]
+  actorConnections: ActorConnection[]
 
   viewConfig: {
     flowStages: FlowStageMarker[]
@@ -27,9 +29,10 @@ export interface BoundedContext {
   boundaryNotes?: string
 
   positions: {
-    strategic: { x: number } // Strategic View horizontal (0..100)
-    flow: { x: number }      // Flow View horizontal (0..100)
-    shared: { y: number }    // vertical (0..100), shared across views
+    strategic: { x: number }        // Strategic View horizontal (0..100)
+    flow: { x: number }             // Flow View horizontal (0..100)
+    distillation: { x: number; y: number } // Distillation View 2D position (0..100)
+    shared: { y: number }           // vertical (0..100), shared across Flow/Strategic views
   }
 
   evolutionStage?: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'
@@ -108,4 +111,18 @@ export interface Group {
 export interface FlowStageMarker {
   label: string    // e.g. "Data Ingestion"
   position: number // 0..100 along Flow View X axis
+}
+
+export interface Actor {
+  id: string
+  name: string
+  description?: string
+  position: number // 0..100 along Strategic View X axis (horizontal only)
+}
+
+export interface ActorConnection {
+  id: string
+  actorId: string   // which actor
+  contextId: string // which bounded context
+  notes?: string
 }

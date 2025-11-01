@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
@@ -16,6 +16,7 @@ export function TopBar() {
   const redo = useEditorStore(s => s.redo)
   const fitToMap = useEditorStore(s => s.fitToMap)
   const addContext = useEditorStore(s => s.addContext)
+  const addActor = useEditorStore(s => s.addActor)
   const exportProject = useEditorStore(s => s.exportProject)
   const importProject = useEditorStore(s => s.importProject)
 
@@ -60,6 +61,12 @@ export function TopBar() {
     const name = prompt('Context name:')
     if (!name) return
     addContext(name)
+  }
+
+  const handleAddActor = () => {
+    const name = prompt('Actor name:')
+    if (!name) return
+    addActor(name)
   }
 
   return (
@@ -119,6 +126,16 @@ export function TopBar() {
           label="Add Context"
           tooltip="Add new bounded context"
         />
+
+        {/* Add Actor button - only visible in Strategic View */}
+        {viewMode === 'strategic' && (
+          <IconButton
+            onClick={handleAddActor}
+            icon={<User size={16} />}
+            label="Add Actor"
+            tooltip="Add new actor"
+          />
+        )}
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 

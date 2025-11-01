@@ -8,6 +8,7 @@ import ReactFlow, {
   NodeProps,
   EdgeProps,
   getBezierPath,
+  getStraightPath,
   Position,
   Handle,
   useViewport,
@@ -20,7 +21,8 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
-import type { BoundedContext, Relationship, Group } from '../model/types'
+import type { BoundedContext, Relationship, Group, Actor, ActorConnection } from '../model/types'
+import { User } from 'lucide-react'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -445,6 +447,157 @@ function GroupNode({ data }: NodeProps) {
   )
 }
 
+// Actor node component - displayed at the top of Strategic View
+function ActorNode({ data }: NodeProps) {
+  const actor = data.actor as Actor
+  const isSelected = data.isSelected as boolean
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  return (
+    <>
+      {/* Invisible handles for edge connections */}
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+
+      <div
+        style={{
+          width: 140,
+          height: 60,
+          backgroundColor: isSelected || isHovered ? '#eff6ff' : '#f8fafc',
+          border: isSelected ? '2px solid #3b82f6' : '2px solid #cbd5e1',
+          borderRadius: '12px',
+          padding: '10px',
+          boxShadow: isSelected
+            ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
+            : isHovered
+            ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
+            : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* User icon */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            backgroundColor: '#dbeafe',
+            borderRadius: '50%',
+            flexShrink: 0,
+          }}
+        >
+          <User size={18} color="#3b82f6" strokeWidth={2.5} />
+        </div>
+
+        {/* Actor name */}
+        <div
+          style={{
+            fontSize: '13px',
+            fontWeight: 600,
+            color: '#0f172a',
+            lineHeight: '1.3',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            flex: 1,
+          }}
+        >
+          {actor.name}
+        </div>
+      </div>
+    </>
+  )
+}
+
+// Actor connection edge component
+function ActorConnectionEdge({
+  id,
+  source,
+  target,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  data,
+}: EdgeProps) {
+  const [isHovered, setIsHovered] = React.useState(false)
+  const connection = data?.connection as ActorConnection | undefined
+
+  // Get node objects from React Flow to calculate dynamic positions
+  const { getNode } = useReactFlow()
+  const sourceNode = getNode(source)
+  const targetNode = getNode(target)
+
+  // Calculate dynamic edge positions if nodes are available with valid dimensions
+  let sx = sourceX
+  let sy = sourceY
+  let tx = targetX
+  let ty = targetY
+  let sourcePos = sourcePosition
+  let targetPos = targetPosition
+
+  if (sourceNode && targetNode &&
+      sourceNode.width && sourceNode.height &&
+      targetNode.width && targetNode.height) {
+    // Actor is source (top), context is target (below)
+    // Calculate connection from bottom center of actor to top center of context
+    sx = sourceNode.position.x + (sourceNode.width / 2)
+    sy = sourceNode.position.y + sourceNode.height
+    tx = targetNode.position.x + (targetNode.width / 2)
+    ty = targetNode.position.y
+    sourcePos = Position.Bottom
+    targetPos = Position.Top
+  }
+
+  const [edgePath] = getStraightPath({
+    sourceX: sx,
+    sourceY: sy,
+    targetX: tx,
+    targetY: ty,
+  })
+
+  return (
+    <>
+      <path
+        id={id}
+        className="react-flow__edge-path"
+        d={edgePath}
+        style={{
+          stroke: isHovered ? '#60a5fa' : '#94a3b8',
+          strokeWidth: isHovered ? 2 : 1.5,
+          strokeDasharray: '5,5',
+          fill: 'none',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        markerEnd="url(#actor-arrow)"
+      />
+      {/* Invisible wider path for easier hovering */}
+      <path
+        d={edgePath}
+        style={{
+          stroke: 'transparent',
+          strokeWidth: 20,
+          fill: 'none',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <title>Actor connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
+      </path>
+    </>
+  )
+}
+
 // Component to render canvas boundary
 function CanvasBoundary() {
   const { x, y, zoom } = useViewport()
@@ -666,10 +819,12 @@ function RelationshipEdge({
 const nodeTypes = {
   context: ContextNode,
   group: GroupNode,
+  actor: ActorNode,
 }
 
 const edgeTypes = {
   relationship: RelationshipEdge,
+  actorConnection: ActorConnectionEdge,
 }
 
 // Custom Controls that resets to fit view
@@ -695,9 +850,12 @@ function CanvasContent() {
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
+  const selectedActorId = useEditorStore(s => s.selectedActorId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
   const updateMultipleContextPositions = useEditorStore(s => s.updateMultipleContextPositions)
+  const updateActorPosition = useEditorStore(s => s.updateActorPosition)
+  const setSelectedActor = useEditorStore(s => s.setSelectedActor)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
 
   // Get React Flow instance for fitView
@@ -796,9 +954,37 @@ function CanvasContent() {
       }
     }).filter(Boolean) as Node[] || []
 
-    // Return groups first (rendered behind), then contexts
-    return [...groupNodes, ...contextNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, viewMode])
+    // Create actor nodes (only in Strategic view)
+    const actorNodes: Node[] = viewMode === 'strategic' && project.actors
+      ? project.actors.map((actor) => {
+          const x = (actor.position / 100) * 2000
+          const y = 100 // Fixed y position at top
+
+          return {
+            id: actor.id,
+            type: 'actor',
+            position: { x, y },
+            data: {
+              actor,
+              isSelected: actor.id === selectedActorId,
+            },
+            style: {
+              width: 140,
+              height: 60,
+              zIndex: 15, // Above contexts but below actor connections
+            },
+            width: 140,
+            height: 60,
+            draggable: true,
+            selectable: true,
+            connectable: false,
+          }
+        })
+      : []
+
+    // Return groups first (rendered behind), then contexts, then actors (on top)
+    return [...groupNodes, ...contextNodes, ...actorNodes]
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, viewMode])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)
@@ -814,11 +1000,11 @@ function CanvasContent() {
     })
   }, [baseNodes, setNodes, selectedContextIds, selectedGroupId])
 
-  // Convert Relationships to React Flow edges
+  // Convert Relationships and ActorConnections to React Flow edges
   const edges: Edge[] = useMemo(() => {
     if (!project) return []
 
-    return project.relationships.map((rel) => ({
+    const relationshipEdges = project.relationships.map((rel) => ({
       id: rel.id,
       source: rel.fromContextId,
       target: rel.toContextId,
@@ -827,7 +1013,22 @@ function CanvasContent() {
       animated: false,
       zIndex: 5, // Above groups (0) but below contexts (10)
     }))
-  }, [project])
+
+    // Add actor connection edges (only in Strategic view)
+    const actorConnectionEdges: Edge[] = viewMode === 'strategic' && project.actorConnections
+      ? project.actorConnections.map((conn) => ({
+          id: conn.id,
+          source: conn.actorId,
+          target: conn.contextId,
+          type: 'actorConnection',
+          data: { connection: conn },
+          animated: false,
+          zIndex: 12, // Above contexts (10) but below actors (15)
+        }))
+      : []
+
+    return [...relationshipEdges, ...actorConnectionEdges]
+  }, [project, viewMode])
 
   // Handle node click
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -837,8 +1038,15 @@ function CanvasContent() {
       useEditorStore.setState({
         selectedGroupId: groupId,
         selectedContextId: null,
-        selectedContextIds: []
+        selectedContextIds: [],
+        selectedActorId: null,
       })
+      return
+    }
+
+    // Handle actor node clicks
+    if (node.type === 'actor') {
+      useEditorStore.getState().setSelectedActor(node.id)
       return
     }
 
@@ -848,13 +1056,13 @@ function CanvasContent() {
       useEditorStore.getState().toggleContextSelection(node.id)
     } else {
       // Single select
-      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null })
+      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null })
     }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null })
   }, [])
 
   // Wrap onNodesChange to handle multi-select drag
@@ -965,6 +1173,17 @@ function CanvasContent() {
   const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
     if (!project) return
 
+    // Handle actor drag (horizontal only)
+    if (node.type === 'actor') {
+      const actor = project.actors?.find(a => a.id === node.id)
+      if (!actor) return
+
+      // Only update horizontal position, constrain to 0-100%
+      const newPosition = Math.max(0, Math.min(100, (node.position.x / 2000) * 100))
+      updateActorPosition(node.id, newPosition)
+      return
+    }
+
     // Get currently selected nodes from React Flow's internal state
     const selectedNodes = nodes.filter(n => n.selected && n.type === 'context')
     const reactFlowSelectedIds = selectedNodes.map(n => n.id)
@@ -1027,7 +1246,7 @@ function CanvasContent() {
         })
       }
     }
-  }, [viewMode, updateContextPosition, updateMultipleContextPositions, project, selectedContextIds, nodes])
+  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, project, selectedContextIds, nodes])
 
   // Handle keyboard shortcuts
   React.useEffect(() => {
@@ -1087,9 +1306,10 @@ function CanvasContent() {
         )}
         <YAxisLabels />
 
-        {/* Arrow marker definition */}
+        {/* Arrow marker definitions */}
         <svg style={{ position: 'absolute', top: 0, left: 0 }}>
           <defs>
+            {/* Marker for relationship edges */}
             <marker
               id="arrow"
               viewBox="0 0 10 10"
@@ -1102,6 +1322,21 @@ function CanvasContent() {
               <path
                 d="M 0 0 L 10 5 L 0 10 z"
                 fill="#cbd5e1"
+              />
+            </marker>
+            {/* Marker for actor connection edges */}
+            <marker
+              id="actor-arrow"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="5"
+              markerHeight="5"
+              orient="auto"
+            >
+              <path
+                d="M 0 0 L 10 5 L 0 10 z"
+                fill="#94a3b8"
               />
             </marker>
           </defs>
