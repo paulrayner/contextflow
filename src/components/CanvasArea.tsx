@@ -1315,6 +1315,15 @@ function CanvasContent() {
         || relationshipConnectedContextIds.has(context.id)
         || false
 
+      // Calculate opacity based on temporal visibility (Strategic View only)
+      let opacity = 1
+      if (viewMode === 'strategic' && project.temporal?.enabled && currentDate) {
+        const keyframes = project.temporal.keyframes || []
+        if (keyframes.length > 0) {
+          opacity = getContextOpacity(context.id, currentDate, keyframes)
+        }
+      }
+
       return {
         id: context.id,
         type: 'context',
@@ -1323,6 +1332,7 @@ function CanvasContent() {
           context,
           isSelected: context.id === selectedContextId || selectedContextIds.includes(context.id),
           isMemberOfSelectedGroup,
+          opacity,
         },
         style: {
           width: size.width,
@@ -1425,7 +1435,7 @@ function CanvasContent() {
 
     // Return groups first (with selected on top), then contexts, then actors
     return [...finalGroupNodes, ...contextNodes, ...actorNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, viewMode, showGroups])
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, viewMode, showGroups, currentDate])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)
@@ -1793,6 +1803,7 @@ function CanvasContent() {
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
+        edgesClickable
         elementsSelectable
         fitView
         fitViewOptions={{

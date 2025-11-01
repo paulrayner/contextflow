@@ -55,7 +55,7 @@ export function setFitViewCallback(callback: () => void) {
 }
 
 interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe'
   payload: {
     contextId?: string
     contextIds?: string[]
@@ -76,6 +76,11 @@ interface EditorCommand {
     newPosition?: number
     actorConnection?: ActorConnection
     actorConnectionId?: string
+    keyframe?: TemporalKeyframe
+    keyframes?: TemporalKeyframe[] // For commands that create multiple keyframes
+    keyframeId?: string
+    oldKeyframeData?: Partial<TemporalKeyframe>
+    newKeyframeData?: Partial<TemporalKeyframe>
   }
 }
 
@@ -109,6 +114,8 @@ interface EditorState {
   temporal: {
     currentDate: string | null // Current slider position ("2027" or "2027-Q2")
     activeKeyframeId: string | null // Currently locked keyframe for editing
+    savedShowGroups?: boolean // Saved group visibility when entering keyframe mode
+    savedShowRelationships?: boolean // Saved relationship visibility when entering keyframe mode
   }
 
   undoStack: EditorCommand[]
@@ -118,7 +125,7 @@ interface EditorState {
   toggleTemporalMode: () => void
   setCurrentDate: (date: string | null) => void
   setActiveKeyframe: (keyframeId: string | null) => void
-  addKeyframe: (date: string, label?: string) => void
+  addKeyframe: (date: string, label?: string) => string | null
   deleteKeyframe: (keyframeId: string) => void
   updateKeyframe: (keyframeId: string, updates: Partial<TemporalKeyframe>) => void
   updateKeyframeContextPosition: (keyframeId: string, contextId: string, x: number, y: number) => void
@@ -524,9 +531,26 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
+    // Remove deleted context from all keyframes
+    let updatedTemporal = project.temporal
+    if (project.temporal) {
+      const updatedKeyframes = project.temporal.keyframes.map(kf => ({
+        ...kf,
+        activeContextIds: kf.activeContextIds.filter(id => id !== contextId),
+        positions: Object.fromEntries(
+          Object.entries(kf.positions).filter(([id]) => id !== contextId)
+        ),
+      }))
+      updatedTemporal = {
+        ...project.temporal,
+        keyframes: updatedKeyframes,
+      }
+    }
+
     const updatedProject = {
       ...project,
       contexts: project.contexts.filter(c => c.id !== contextId),
+      temporal: updatedTemporal,
     }
 
     // Autosave
@@ -1221,6 +1245,53 @@ export const useEditorStore = create<EditorState>((set) => ({
       newActorConnections = [...newActorConnections, command.payload.actorConnection]
     }
 
+    // Handle temporal commands
+    let newTemporal = project.temporal
+    if (command.type === 'createKeyframe') {
+      // Undo keyframe creation by removing all created keyframes (may be multiple)
+      const keyframesToRemove = command.payload.keyframes || (command.payload.keyframe ? [command.payload.keyframe] : [])
+      const idsToRemove = new Set(keyframesToRemove.map(kf => kf.id))
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes: (newTemporal?.keyframes || []).filter(kf => !idsToRemove.has(kf.id)),
+      }
+    } else if (command.type === 'deleteKeyframe' && command.payload.keyframe) {
+      // Undo keyframe deletion by re-adding it
+      const keyframes = [...(newTemporal?.keyframes || []), command.payload.keyframe].sort((a, b) => a.date.localeCompare(b.date))
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes,
+      }
+    } else if (command.type === 'updateKeyframe' && command.payload.keyframeId && command.payload.oldKeyframeData) {
+      // Restore old keyframe data
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes: (newTemporal?.keyframes || []).map(kf =>
+          kf.id === command.payload.keyframeId ? { ...kf, ...command.payload.oldKeyframeData } : kf
+        ),
+      }
+    } else if (command.type === 'moveContextInKeyframe' && command.payload.keyframeId && command.payload.contextId && command.payload.oldPositions) {
+      // Restore old context position in keyframe
+      const oldX = command.payload.oldPositions.strategic.x
+      const oldY = command.payload.oldPositions.shared.y
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes: (newTemporal?.keyframes || []).map(kf =>
+          kf.id === command.payload.keyframeId ? {
+            ...kf,
+            positions: {
+              ...kf.positions,
+              [command.payload.contextId!]: { x: oldX, y: oldY },
+            },
+          } : kf
+        ),
+      }
+    }
+
     const updatedProject = {
       ...project,
       contexts: newContexts,
@@ -1229,6 +1300,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       relationships: newRelationships,
       actors: newActors,
       actorConnections: newActorConnections,
+      temporal: newTemporal,
     }
 
     // Autosave
@@ -1343,6 +1415,52 @@ export const useEditorStore = create<EditorState>((set) => ({
       newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
     }
 
+    // Handle temporal commands
+    let newTemporal = project.temporal
+    if (command.type === 'createKeyframe') {
+      // Redo keyframe creation by re-adding all keyframes (may be multiple)
+      const keyframesToAdd = command.payload.keyframes || (command.payload.keyframe ? [command.payload.keyframe] : [])
+      const keyframes = [...(newTemporal?.keyframes || []), ...keyframesToAdd].sort((a, b) => a.date.localeCompare(b.date))
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes,
+      }
+    } else if (command.type === 'deleteKeyframe' && command.payload.keyframe) {
+      // Redo keyframe deletion by removing it
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes: (newTemporal?.keyframes || []).filter(kf => kf.id !== command.payload.keyframe?.id),
+      }
+    } else if (command.type === 'updateKeyframe' && command.payload.keyframeId && command.payload.newKeyframeData) {
+      // Apply new keyframe data
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes: (newTemporal?.keyframes || []).map(kf =>
+          kf.id === command.payload.keyframeId ? { ...kf, ...command.payload.newKeyframeData } : kf
+        ),
+      }
+    } else if (command.type === 'moveContextInKeyframe' && command.payload.keyframeId && command.payload.contextId && command.payload.newPositions) {
+      // Apply new context position in keyframe
+      const newX = command.payload.newPositions.strategic.x
+      const newY = command.payload.newPositions.shared.y
+      newTemporal = {
+        ...newTemporal,
+        enabled: newTemporal?.enabled || false,
+        keyframes: (newTemporal?.keyframes || []).map(kf =>
+          kf.id === command.payload.keyframeId ? {
+            ...kf,
+            positions: {
+              ...kf.positions,
+              [command.payload.contextId!]: { x: newX, y: newY },
+            },
+          } : kf
+        ),
+      }
+    }
+
     const updatedProject = {
       ...project,
       contexts: newContexts,
@@ -1351,6 +1469,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       relationships: newRelationships,
       actors: newActors,
       actorConnections: newActorConnections,
+      temporal: newTemporal,
     }
 
     // Autosave
@@ -1449,19 +1568,70 @@ export const useEditorStore = create<EditorState>((set) => ({
     },
   })),
 
-  setActiveKeyframe: (keyframeId) => set((state) => ({
-    temporal: {
-      ...state.temporal,
-      activeKeyframeId: keyframeId,
-    },
-  })),
+  setActiveKeyframe: (keyframeId) => set((state) => {
+    // When entering keyframe mode (locking), save current visibility and hide both
+    // When exiting keyframe mode (unlocking), restore previous visibility
+    if (keyframeId && !state.temporal.activeKeyframeId) {
+      // Entering keyframe mode - save state and hide
+      return {
+        temporal: {
+          ...state.temporal,
+          activeKeyframeId: keyframeId,
+          savedShowGroups: state.showGroups,
+          savedShowRelationships: state.showRelationships,
+        },
+        showGroups: false,
+        showRelationships: false,
+      }
+    } else if (!keyframeId && state.temporal.activeKeyframeId) {
+      // Exiting keyframe mode - restore state
+      return {
+        temporal: {
+          ...state.temporal,
+          activeKeyframeId: keyframeId,
+        },
+        showGroups: state.temporal.savedShowGroups ?? state.showGroups,
+        showRelationships: state.temporal.savedShowRelationships ?? state.showRelationships,
+      }
+    } else {
+      // Just switching between keyframes or redundant call
+      return {
+        temporal: {
+          ...state.temporal,
+          activeKeyframeId: keyframeId,
+        },
+      }
+    }
+  }),
 
-  addKeyframe: (date, label) => set((state) => {
+  addKeyframe: (date, label) => {
+    const state = useEditorStore.getState()
     const projectId = state.activeProjectId
-    if (!projectId) return state
+    if (!projectId) return null
 
     const project = state.projects[projectId]
-    if (!project) return state
+    if (!project) return null
+
+    // Validate date format
+    const dateRegex = /^\d{4}(-Q[1-4])?$/
+    if (!dateRegex.test(date)) {
+      console.error('Invalid keyframe date format:', date)
+      return null
+    }
+
+    // Check for duplicate date
+    const existingKeyframes = project.temporal?.keyframes || []
+    if (existingKeyframes.some(kf => kf.date === date)) {
+      console.error('Duplicate keyframe date:', date)
+      return null
+    }
+
+    // Warn if keyframe is more than 10 years in the future
+    const currentYear = new Date().getFullYear()
+    const keyframeYear = parseInt(date.split('-')[0])
+    if (keyframeYear - currentYear > 10) {
+      console.warn(`Keyframe date ${date} is more than 10 years in the future`)
+    }
 
     // Capture current Strategic View positions for all contexts
     const positions: { [contextId: string]: { x: number; y: number } } = {}
@@ -1472,6 +1642,25 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     })
 
+    // If this is the first keyframe and it's in the future, auto-create a "Now" keyframe
+    const keyframesToAdd: TemporalKeyframe[] = []
+    const currentYearStr = currentYear.toString()
+    const isFirstKeyframe = existingKeyframes.length === 0
+    const isFutureKeyframe = keyframeYear > currentYear
+    const needsCurrentYearKeyframe = isFirstKeyframe && isFutureKeyframe && date !== currentYearStr
+
+    if (needsCurrentYearKeyframe) {
+      // Create implicit "Now" keyframe at current year with current positions
+      const nowKeyframe: TemporalKeyframe = {
+        id: `keyframe-${Date.now()}-now`,
+        date: currentYearStr,
+        label: 'Current',
+        positions: { ...positions }, // Same positions as we just captured
+        activeContextIds: project.contexts.map(c => c.id),
+      }
+      keyframesToAdd.push(nowKeyframe)
+    }
+
     const newKeyframe: TemporalKeyframe = {
       id: `keyframe-${Date.now()}`,
       date,
@@ -1479,9 +1668,9 @@ export const useEditorStore = create<EditorState>((set) => ({
       positions,
       activeContextIds: project.contexts.map(c => c.id),
     }
+    keyframesToAdd.push(newKeyframe)
 
-    const existingKeyframes = project.temporal?.keyframes || []
-    const updatedKeyframes = [...existingKeyframes, newKeyframe].sort((a, b) => {
+    const updatedKeyframes = [...existingKeyframes, ...keyframesToAdd].sort((a, b) => {
       // Sort by date (simple string comparison works for "YYYY" and "YYYY-QN" formats)
       return a.date.localeCompare(b.date)
     })
@@ -1494,16 +1683,27 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
+    const command: EditorCommand = {
+      type: 'createKeyframe',
+      payload: {
+        keyframes: keyframesToAdd, // Store all keyframes created (may include implicit "Now" keyframe)
+      },
+    }
+
     // Autosave
     autosaveProject(projectId, updatedProject)
 
-    return {
+    set({
       projects: {
         ...state.projects,
         [projectId]: updatedProject,
       },
-    }
-  }),
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    })
+
+    return newKeyframe.id
+  },
 
   deleteKeyframe: (keyframeId) => set((state) => {
     const projectId = state.activeProjectId
@@ -1511,6 +1711,16 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const project = state.projects[projectId]
     if (!project || !project.temporal) return state
+
+    const keyframeToDelete = project.temporal.keyframes.find(kf => kf.id === keyframeId)
+    if (!keyframeToDelete) return state
+
+    const command: EditorCommand = {
+      type: 'deleteKeyframe',
+      payload: {
+        keyframe: keyframeToDelete,
+      },
+    }
 
     const updatedProject = {
       ...project,
@@ -1528,6 +1738,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         ...state.projects,
         [projectId]: updatedProject,
       },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
     }
   }),
 
@@ -1537,6 +1749,18 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const project = state.projects[projectId]
     if (!project || !project.temporal) return state
+
+    const oldKeyframe = project.temporal.keyframes.find(kf => kf.id === keyframeId)
+    if (!oldKeyframe) return state
+
+    const command: EditorCommand = {
+      type: 'updateKeyframe',
+      payload: {
+        keyframeId,
+        oldKeyframeData: { ...oldKeyframe },
+        newKeyframeData: updates,
+      },
+    }
 
     const updatedKeyframes = project.temporal.keyframes.map(kf =>
       kf.id === keyframeId ? { ...kf, ...updates } : kf
@@ -1558,6 +1782,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         ...state.projects,
         [projectId]: updatedProject,
       },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
     }
   }),
 
@@ -1567,6 +1793,31 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const project = state.projects[projectId]
     if (!project || !project.temporal) return state
+
+    const keyframe = project.temporal.keyframes.find(kf => kf.id === keyframeId)
+    if (!keyframe) return state
+
+    const oldPosition = keyframe.positions[contextId]
+
+    const command: EditorCommand = {
+      type: 'moveContextInKeyframe',
+      payload: {
+        keyframeId,
+        contextId,
+        oldPositions: oldPosition ? {
+          flow: { x: 0 },
+          strategic: { x: oldPosition.x },
+          distillation: { x: 0, y: 0 },
+          shared: { y: oldPosition.y }
+        } : undefined,
+        newPositions: {
+          flow: { x: 0 },
+          strategic: { x },
+          distillation: { x: 0, y: 0 },
+          shared: { y }
+        },
+      },
+    }
 
     const updatedKeyframes = project.temporal.keyframes.map(kf => {
       if (kf.id === keyframeId) {
@@ -1597,6 +1848,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         ...state.projects,
         [projectId]: updatedProject,
       },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
     }
   }),
 }))

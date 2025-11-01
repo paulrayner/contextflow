@@ -7,10 +7,16 @@ import type { TemporalKeyframe, BoundedContext } from '../model/types'
  * @param date - Format: "2027" or "2027-Q2"
  * @returns Numeric representation (e.g., "2027" -> 2027.375, "2027-Q2" -> 2027.25)
  */
-export function dateToNumeric(date: string): number {
+export function dateToNumeric(date: string | null | undefined): number {
+  // Handle null/undefined dates gracefully (without logging - too noisy)
+  if (!date || typeof date !== 'string') {
+    return new Date().getFullYear() // Fallback to current year
+  }
+
   const match = date.match(/^(\d{4})(?:-Q([1-4]))?$/)
   if (!match) {
-    throw new Error(`Invalid date format: ${date}`)
+    // Invalid format, fallback silently
+    return new Date().getFullYear()
   }
 
   const year = parseInt(match[1], 10)
