@@ -1,8 +1,10 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 import { config } from '../config'
+import { interpolatePosition, classifyFromStrategicPosition } from '../lib/temporal'
+import { classifyFromStrategicPosition as getEvolutionStage } from '../model/store'
 
 export function InspectorPanel() {
   const projectId = useEditorStore(s => s.activeProjectId)
@@ -10,6 +12,7 @@ export function InspectorPanel() {
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
   const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContext = useEditorStore(s => s.updateContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
   const deleteGroup = useEditorStore(s => s.deleteGroup)
@@ -22,6 +25,10 @@ export function InspectorPanel() {
   const deleteActor = useEditorStore(s => s.deleteActor)
   const createActorConnection = useEditorStore(s => s.createActorConnection)
   const deleteActorConnection = useEditorStore(s => s.deleteActorConnection)
+
+  // Temporal state
+  const currentDate = useEditorStore(s => s.temporal.currentDate)
+  const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
 
   const [expandedTeamId, setExpandedTeamId] = React.useState<string | null>(null)
   const [expandedRepoId, setExpandedRepoId] = React.useState<string | null>(null)
@@ -313,6 +320,46 @@ export function InspectorPanel() {
           </div>
         </div>
       </Section>
+
+      {/* Temporal Position (only in Strategic View with temporal mode enabled) */}
+      {viewMode === 'strategic' && project.temporal?.enabled && currentDate && (
+        <Section label={<div className="flex items-center gap-1"><Clock size={14} /> Position at {currentDate}</div>}>
+          <div className="space-y-2">
+            {(() => {
+              const keyframes = project.temporal.keyframes || []
+              const activeKeyframe = activeKeyframeId
+                ? keyframes.find(kf => kf.id === activeKeyframeId)
+                : null
+
+              // Calculate interpolated position
+              const basePosition = {
+                x: context.positions.strategic.x,
+                y: context.positions.shared.y,
+              }
+              const position = interpolatePosition(context.id, currentDate, keyframes, basePosition)
+              const evolutionStage = getEvolutionStage(position.x)
+
+              return (
+                <>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+                    <div>Evolution: {position.x.toFixed(1)}% ({evolutionStage.replace('-', ' ')})</div>
+                    <div>Value Chain: {position.y.toFixed(1)}%</div>
+                  </div>
+                  {activeKeyframe ? (
+                    <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                      📍 Viewing keyframe: {activeKeyframe.label || activeKeyframe.date}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-amber-600 dark:text-amber-400">
+                      ⚡ Interpolated between keyframes
+                    </div>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        </Section>
+      )}
 
       {/* Boundary Integrity */}
       <Section label="Boundary Integrity">

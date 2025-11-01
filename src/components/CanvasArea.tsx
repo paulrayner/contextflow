@@ -23,7 +23,9 @@ import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, Actor, ActorConnection } from '../model/types'
 import { User } from 'lucide-react'
+import { calculateBezierEndpointAngle } from '../utils/bezierMath'
 import { TimeSlider } from './TimeSlider'
+import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -1035,23 +1037,23 @@ function RelationshipEdge({
     targetPos = edgeParams.targetPos
   }
 
-  const [edgePath, labelX, labelY] = getStraightPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX: sx,
     sourceY: sy,
+    sourcePosition: sourcePos,
     targetX: tx,
     targetY: ty,
+    targetPosition: targetPos,
   })
 
   // Non-directional patterns
   const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership'
 
-  // Select arrow marker based on state
-  const getMarkerEnd = () => {
-    if (isSymmetric) return undefined
-    if (isSelected) return 'url(#arrow-selected)'
-    if (isHovered) return 'url(#arrow-hover)'
-    return 'url(#arrow-default)'
-  }
+  // Calculate arrow angle from Bezier curve endpoint tangent
+  const arrowAngle = calculateBezierEndpointAngle(edgePath)
+
+  // Arrow color based on state
+  const arrowColor = isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1'
 
   return (
     <>
@@ -1065,8 +1067,20 @@ function RelationshipEdge({
           fill: 'none',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
-        markerEnd={getMarkerEnd()}
+        markerEnd="none"
       />
+      {/* Custom arrow at endpoint with correct angle */}
+      {!isSymmetric && (
+        <g transform={`translate(${tx}, ${ty}) rotate(${arrowAngle})`}>
+          <path
+            d="M -8 -4 L 0 0 L -8 4 Z"
+            fill={arrowColor}
+            style={{
+              transition: 'fill 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          />
+        </g>
+      )}
       {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
@@ -1166,6 +1180,10 @@ function CanvasContent() {
   const setSelectedActor = useEditorStore(s => s.setSelectedActor)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
 
+  // Temporal state
+  const currentDate = useEditorStore(s => s.temporal.currentDate)
+  const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
+
   // Get React Flow instance for fitView
   const { fitView } = useReactFlow()
 
@@ -1214,9 +1232,30 @@ function CanvasContent() {
         y = (1 - context.positions.distillation.y / 100) * 1000 // Invert Y for distillation (0 = bottom, 100 = top)
       } else {
         // Flow and Strategic views share Y axis
-        const xPos = viewMode === 'flow' ? context.positions.flow.x : context.positions.strategic.x
+        let xPos: number
+        let yPos: number
+
+        // Check if we should use temporal interpolation
+        const isTemporalMode = viewMode === 'strategic' && project.temporal?.enabled && currentDate
+        const keyframes = project.temporal?.keyframes || []
+
+        if (isTemporalMode && keyframes.length > 0) {
+          // Use interpolated positions for Strategic View in temporal mode
+          const basePosition = {
+            x: context.positions.strategic.x,
+            y: context.positions.shared.y,
+          }
+          const interpolated = interpolatePosition(context.id, currentDate!, keyframes, basePosition)
+          xPos = interpolated.x
+          yPos = interpolated.y
+        } else {
+          // Use base positions
+          xPos = viewMode === 'flow' ? context.positions.flow.x : context.positions.strategic.x
+          yPos = context.positions.shared.y
+        }
+
         x = (xPos / 100) * 2000
-        y = (context.positions.shared.y / 100) * 1000
+        y = (yPos / 100) * 1000
       }
 
       // Check if this context is highlighted (by group, actor, or relationship selection)

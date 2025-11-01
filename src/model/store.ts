@@ -105,12 +105,19 @@ interface EditorState {
   // UI preferences
   groupOpacity: number
 
+  // Temporal state
+  temporal: {
+    currentDate: string | null // Current slider position ("2027" or "2027-Q2")
+    activeKeyframeId: string | null // Currently locked keyframe for editing
+  }
+
   undoStack: EditorCommand[]
   redoStack: EditorCommand[]
 
   // Temporal actions
   toggleTemporalMode: () => void
   setCurrentDate: (date: string | null) => void
+  setActiveKeyframe: (keyframeId: string | null) => void
   addKeyframe: (date: string, label?: string) => void
   deleteKeyframe: (keyframeId: string) => void
   updateKeyframe: (keyframeId: string, updates: Partial<TemporalKeyframe>) => void
@@ -248,6 +255,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     const stored = localStorage.getItem('contextflow.groupOpacity')
     return stored !== null ? parseFloat(stored) : config.ui.groupOpacity
   })(),
+
+  // Temporal state (defaults to current year)
+  temporal: {
+    currentDate: new Date().getFullYear().toString(),
+    activeKeyframeId: null,
+  },
 
   undoStack: [],
   redoStack: [],
@@ -1428,10 +1441,18 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
-  setCurrentDate: (date) => set(() => ({
-    // This will be used by the TimeSlider component
-    // For Milestone 1, we just need to store this state
-    // Interpolation will be implemented in Milestone 2
+  setCurrentDate: (date) => set((state) => ({
+    temporal: {
+      ...state.temporal,
+      currentDate: date,
+    },
+  })),
+
+  setActiveKeyframe: (keyframeId) => set((state) => ({
+    temporal: {
+      ...state.temporal,
+      activeKeyframeId: keyframeId,
+    },
   })),
 
   addKeyframe: (date, label) => set((state) => {
