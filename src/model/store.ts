@@ -1609,18 +1609,14 @@ Promise.all([
   const projects: Record<string, Project> = {}
 
   if (savedSample) {
-    console.log('Loaded saved sample project from IndexedDB')
     projects[savedSample.id] = savedSample
   } else {
-    console.log('No saved sample project found, using default')
     projects[sampleProject.id] = sampleProject
   }
 
   if (savedCbioportal) {
-    console.log('Loaded saved cbioportal project from IndexedDB')
     projects[savedCbioportal.id] = savedCbioportal
   } else {
-    console.log('No saved cbioportal project found, using default')
     projects[cbioportal.id] = cbioportal
   }
 

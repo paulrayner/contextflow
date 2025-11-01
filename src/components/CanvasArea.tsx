@@ -112,11 +112,55 @@ function ContextNode({ data }: NodeProps) {
   const context = data.context as BoundedContext
   const isSelected = data.isSelected as boolean
   const isMemberOfSelectedGroup = data.isMemberOfSelectedGroup as boolean
+  const opacity = data.opacity as number | undefined
   const [isHovered, setIsHovered] = React.useState(false)
   const [isDragOver, setIsDragOver] = React.useState(false)
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
+  const projectId = useEditorStore(s => s.activeProjectId)
+  const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
+  const viewMode = useEditorStore(s => s.activeViewMode)
+  const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
+  const updateKeyframe = useEditorStore(s => s.updateKeyframe)
 
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
+
+  // Handle context menu
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only show context menu in Strategic View with an active keyframe
+    const isEditingKeyframe = viewMode === 'strategic' && project?.temporal?.enabled && activeKeyframeId
+    if (!isEditingKeyframe) return
+
+    setContextMenu({ x: e.clientX, y: e.clientY })
+  }
+
+  // Close context menu
+  React.useEffect(() => {
+    const handleClick = () => setContextMenu(null)
+    if (contextMenu) {
+      window.addEventListener('click', handleClick)
+      return () => window.removeEventListener('click', handleClick)
+    }
+  }, [contextMenu])
+
+  // Handle hide/show in keyframe
+  const handleToggleVisibility = () => {
+    if (!activeKeyframeId || !project?.temporal) return
+
+    const keyframe = project.temporal.keyframes.find(kf => kf.id === activeKeyframeId)
+    if (!keyframe) return
+
+    const isCurrentlyVisible = keyframe.activeContextIds.includes(context.id)
+    const newActiveContextIds = isCurrentlyVisible
+      ? keyframe.activeContextIds.filter(id => id !== context.id)
+      : [...keyframe.activeContextIds, context.id]
+
+    updateKeyframe(activeKeyframeId, { activeContextIds: newActiveContextIds })
+    setContextMenu(null)
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -201,6 +245,7 @@ function ContextNode({ data }: NodeProps) {
           flexDirection: 'column',
           position: 'relative',
           cursor: 'pointer',
+          opacity: opacity ?? 1,
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onMouseEnter={() => setIsHovered(true)}
@@ -208,6 +253,7 @@ function ContextNode({ data }: NodeProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onContextMenu={handleContextMenu}
       >
       {/* Legacy badge */}
       {context.isLegacy && (
@@ -279,6 +325,26 @@ function ContextNode({ data }: NodeProps) {
         </div>
       )}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && activeKeyframeId && project?.temporal && (
+        <div
+          className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md shadow-lg py-1 z-50"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={handleToggleVisibility}
+            className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700"
+          >
+            {(() => {
+              const keyframe = project.temporal.keyframes.find(kf => kf.id === activeKeyframeId)
+              const isVisible = keyframe?.activeContextIds.includes(context.id)
+              return isVisible ? 'Hide in this keyframe' : 'Show in this keyframe'
+            })()}
+          </button>
+        </div>
+      )}
     </>
   )
 }
@@ -1727,8 +1793,7 @@ function CanvasContent() {
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
-        edgesClickable={true}
-        elementsSelectable={true}
+        elementsSelectable
         fitView
         fitViewOptions={{
           padding: 0.15,

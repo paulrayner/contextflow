@@ -31,16 +31,10 @@ export function useTheme() {
 
     // Save to localStorage
     localStorage.setItem('contextflow.theme', theme)
-
-    console.log('Theme changed to:', theme) // Debug log
   }, [theme])
 
   const toggleTheme = () => {
-    setTheme(prev => {
-      const next = prev === 'light' ? 'dark' : 'light'
-      console.log('Toggling theme from', prev, 'to', next) // Debug log
-      return next
-    })
+    setTheme(prev => prev === 'light' ? 'dark' : 'light')
   }
 
   return { theme, toggleTheme }
