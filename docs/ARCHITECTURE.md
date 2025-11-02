@@ -349,3 +349,10 @@ Text edits in the InspectorPanel (notes, boundaryNotes, etc.) are *not* undoable
   - Groups can overlap
 
 These rules are what devs and AI must follow when rendering.
+
+---
+
+## References
+
+**Bounded Context model:**
+- [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) by DDD Crew — the foundation for ContextFlow's bounded context attributes and metadata fields
