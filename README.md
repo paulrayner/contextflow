@@ -136,8 +136,10 @@ ContextFlow builds on established practices in domain-driven design, team topolo
 - [Context Mapper](https://contextmapper.org/) — complementary DSL-based context mapping tool
 
 **Wardley Mapping:**
+- [On mapping and the evolution axis](https://blog.gardeviance.org/2014/03/on-mapping-and-evolution-axis.html) by Simon Wardley — foundational article explaining the evolution axis (Genesis → Custom-built → Product → Commodity)
 - [Learn Wardley Mapping](https://learnwardleymapping.com/) — interactive guide to strategic mapping
 - [Wardley Maps book](https://medium.com/wardleymaps) by Simon Wardley — original methodology and essays
+- [Core Domain Patterns](https://medium.com/nick-tune-tech-strategy-blog/core-domain-patterns-941f89446af5) by Nick Tune — practical framework for classifying domains as core, supporting, or generic
 
 **Team Topologies:**
 - [Team Topologies: Organizing Business and Technology Teams for Fast Flow](https://www.amazon.com/Team-Topologies-Organizing-Business-Technology/dp/1942788819) by Matthew Skelton & Manuel Pais
