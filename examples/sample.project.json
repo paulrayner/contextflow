@@ -1155,58 +1155,6 @@
       "contextId": "ctx.warehouse"
     }
   ],
-  "actorConnections": [
-    {
-      "id": "conn.shopper-storefront",
-      "actorId": "actor.shopper",
-      "contextId": "ctx.storefront"
-    },
-    {
-      "id": "conn.shopper-search",
-      "actorId": "actor.shopper",
-      "contextId": "ctx.search"
-    },
-    {
-      "id": "conn.shopper-cart",
-      "actorId": "actor.shopper",
-      "contextId": "ctx.cart"
-    },
-    {
-      "id": "conn.shopper-checkout",
-      "actorId": "actor.shopper",
-      "contextId": "ctx.checkout"
-    },
-    {
-      "id": "conn.manager-catalog",
-      "actorId": "actor.store-manager",
-      "contextId": "ctx.catalog"
-    },
-    {
-      "id": "conn.manager-inventory",
-      "actorId": "actor.store-manager",
-      "contextId": "ctx.inventory"
-    },
-    {
-      "id": "conn.manager-orders",
-      "actorId": "actor.store-manager",
-      "contextId": "ctx.orders"
-    },
-    {
-      "id": "conn.warehouse-inventory",
-      "actorId": "actor.warehouse-staff",
-      "contextId": "ctx.inventory"
-    },
-    {
-      "id": "conn.warehouse-warehouse",
-      "actorId": "actor.warehouse-staff",
-      "contextId": "ctx.warehouse"
-    },
-    {
-      "id": "conn.warehouse-shipping",
-      "actorId": "actor.warehouse-staff",
-      "contextId": "ctx.shipping"
-    }
-  ],
   "viewConfig": {
     "flowStages": [
       { "label": "Discovery", "position": 10 },

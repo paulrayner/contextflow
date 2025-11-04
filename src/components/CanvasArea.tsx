@@ -1822,7 +1822,7 @@ function CanvasContent() {
           .filter(need => need.visibility !== false)
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
-            const y = 250 // Fixed y position in middle layer (20% higher)
+            const y = 200 // Fixed y position in middle layer (30% higher)
 
             return {
               id: userNeed.id,
