@@ -1024,6 +1024,137 @@
       "position": 75
     }
   ],
+  "userNeeds": [
+    {
+      "id": "need.discover-products",
+      "name": "Discover Products",
+      "description": "Find relevant products through search and browsing",
+      "position": 30,
+      "visibility": true
+    },
+    {
+      "id": "need.checkout-fast",
+      "name": "Fast Checkout",
+      "description": "Complete purchase quickly and securely",
+      "position": 45,
+      "visibility": true
+    },
+    {
+      "id": "need.track-order",
+      "name": "Track Orders",
+      "description": "Monitor order status and delivery progress",
+      "position": 55,
+      "visibility": true
+    },
+    {
+      "id": "need.manage-inventory",
+      "name": "Manage Inventory",
+      "description": "Track stock levels and fulfill orders",
+      "position": 42,
+      "visibility": true
+    },
+    {
+      "id": "need.ship-efficiently",
+      "name": "Ship Efficiently",
+      "description": "Process shipments and generate labels",
+      "position": 70,
+      "visibility": true
+    }
+  ],
+  "actorNeedConnections": [
+    {
+      "id": "conn.shopper-discover",
+      "actorId": "actor.shopper",
+      "userNeedId": "need.discover-products"
+    },
+    {
+      "id": "conn.shopper-checkout",
+      "actorId": "actor.shopper",
+      "userNeedId": "need.checkout-fast"
+    },
+    {
+      "id": "conn.shopper-track",
+      "actorId": "actor.shopper",
+      "userNeedId": "need.track-order"
+    },
+    {
+      "id": "conn.manager-inventory",
+      "actorId": "actor.store-manager",
+      "userNeedId": "need.manage-inventory"
+    },
+    {
+      "id": "conn.warehouse-ship",
+      "actorId": "actor.warehouse-staff",
+      "userNeedId": "need.ship-efficiently"
+    }
+  ],
+  "needContextConnections": [
+    {
+      "id": "conn.discover-storefront",
+      "userNeedId": "need.discover-products",
+      "contextId": "ctx.storefront"
+    },
+    {
+      "id": "conn.discover-search",
+      "userNeedId": "need.discover-products",
+      "contextId": "ctx.search"
+    },
+    {
+      "id": "conn.discover-catalog",
+      "userNeedId": "need.discover-products",
+      "contextId": "ctx.catalog"
+    },
+    {
+      "id": "conn.checkout-cart",
+      "userNeedId": "need.checkout-fast",
+      "contextId": "ctx.cart"
+    },
+    {
+      "id": "conn.checkout-checkout",
+      "userNeedId": "need.checkout-fast",
+      "contextId": "ctx.checkout"
+    },
+    {
+      "id": "conn.checkout-payment",
+      "userNeedId": "need.checkout-fast",
+      "contextId": "ctx.payment"
+    },
+    {
+      "id": "conn.track-orders",
+      "userNeedId": "need.track-order",
+      "contextId": "ctx.orders"
+    },
+    {
+      "id": "conn.track-shipping",
+      "userNeedId": "need.track-order",
+      "contextId": "ctx.shipping"
+    },
+    {
+      "id": "conn.track-notifications",
+      "userNeedId": "need.track-order",
+      "contextId": "ctx.notifications"
+    },
+    {
+      "id": "conn.inventory-inventory",
+      "userNeedId": "need.manage-inventory",
+      "contextId": "ctx.inventory"
+    },
+    {
+      "id": "conn.inventory-catalog",
+      "userNeedId": "need.manage-inventory",
+      "contextId": "ctx.catalog"
+    },
+    {
+      "id": "conn.ship-shipping",
+      "userNeedId": "need.ship-efficiently",
+      "contextId": "ctx.shipping"
+    },
+    {
+      "id": "conn.ship-warehouse",
+      "userNeedId": "need.ship-efficiently",
+      "contextId": "ctx.warehouse"
+    }
+  ],
   "actorConnections": [
     {
       "id": "conn.shopper-storefront",

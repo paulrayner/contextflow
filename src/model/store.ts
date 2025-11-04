@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Project, BoundedContext, Actor, ActorConnection, TemporalKeyframe } from './types'
+import type { Project, BoundedContext, Actor, UserNeed, ActorNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
 import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
 import { saveProject, loadProject } from './persistence'
@@ -55,7 +55,7 @@ export function setFitViewCallback(callback: () => void) {
 }
 
 interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addToGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addToGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'addUserNeed' | 'deleteUserNeed' | 'moveUserNeed' | 'addActorNeedConnection' | 'deleteActorNeedConnection' | 'addNeedContextConnection' | 'deleteNeedContextConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
   payload: {
     contextId?: string
     contextIds?: string[]
@@ -74,8 +74,14 @@ interface EditorCommand {
     actorId?: string
     oldPosition?: number
     newPosition?: number
-    actorConnection?: ActorConnection
+    actorConnection?: any
     actorConnectionId?: string
+    userNeed?: UserNeed
+    userNeedId?: string
+    actorNeedConnection?: ActorNeedConnection
+    actorNeedConnectionId?: string
+    needContextConnection?: NeedContextConnection
+    needContextConnectionId?: string
     keyframe?: TemporalKeyframe
     keyframes?: TemporalKeyframe[] // For commands that create multiple keyframes
     keyframeId?: string
@@ -100,7 +106,7 @@ interface EditorState {
   selectedRelationshipId: string | null
   selectedGroupId: string | null
   selectedActorId: string | null
-  selectedActorConnectionId: string | null
+  selectedUserNeedId: string | null
   selectedContextIds: string[] // for multi-select
 
   canvasView: {
@@ -166,7 +172,18 @@ interface EditorState {
   setSelectedActor: (actorId: string | null) => void
   createActorConnection: (actorId: string, contextId: string) => void
   deleteActorConnection: (connectionId: string) => void
-  updateActorConnection: (connectionId: string, updates: Partial<ActorConnection>) => void
+  updateActorConnection: (connectionId: string, updates: Partial<any>) => void
+  addUserNeed: (name: string) => string | null
+  deleteUserNeed: (userNeedId: string) => void
+  updateUserNeed: (userNeedId: string, updates: Partial<UserNeed>) => void
+  updateUserNeedPosition: (userNeedId: string, newPosition: number) => void
+  setSelectedUserNeed: (userNeedId: string | null) => void
+  createActorNeedConnection: (actorId: string, userNeedId: string) => string | null
+  deleteActorNeedConnection: (connectionId: string) => void
+  updateActorNeedConnection: (connectionId: string, updates: Partial<ActorNeedConnection>) => void
+  createNeedContextConnection: (userNeedId: string, contextId: string) => string | null
+  deleteNeedContextConnection: (connectionId: string) => void
+  updateNeedContextConnection: (connectionId: string, updates: Partial<NeedContextConnection>) => void
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
   setGroupOpacity: (opacity: number) => void
@@ -186,11 +203,15 @@ interface EditorState {
 const sampleProject = demoProject as Project
 const cbioportal = cbioportalProject as Project
 
-// Ensure projects have actors and actorConnections arrays (for backwards compatibility)
+// Ensure projects have actors and connection arrays (for backwards compatibility)
 if (!sampleProject.actors) sampleProject.actors = []
-if (!sampleProject.actorConnections) sampleProject.actorConnections = []
+if (!sampleProject.userNeeds) sampleProject.userNeeds = []
+if (!sampleProject.actorNeedConnections) sampleProject.actorNeedConnections = []
+if (!sampleProject.needContextConnections) sampleProject.needContextConnections = []
 if (!cbioportal.actors) cbioportal.actors = []
-if (!cbioportal.actorConnections) cbioportal.actorConnections = []
+if (!cbioportal.userNeeds) cbioportal.userNeeds = []
+if (!cbioportal.actorNeedConnections) cbioportal.actorNeedConnections = []
+if (!cbioportal.needContextConnections) cbioportal.needContextConnections = []
 
 // Migrate contexts to include distillation position and evolution stage if missing
 sampleProject.contexts = sampleProject.contexts.map(context => {
@@ -254,7 +275,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedRelationshipId: null,
   selectedGroupId: null,
   selectedActorId: null,
-  selectedActorConnectionId: null,
+  selectedUserNeedId: null,
   selectedContextIds: [],
 
   canvasView: {
@@ -477,7 +498,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedContextId: null,
       selectedGroupId: null,
       selectedActorId: null,
-      selectedActorConnectionId: null,
+      selectedUserNeedId: null,
       selectedContextIds: [],
       undoStack: [],
       redoStack: [],
@@ -1050,6 +1071,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextIds: [],
     selectedGroupId: null,
     selectedActorId: null,
+    selectedUserNeedId: null,
   }),
 
   addActor: (name) => set((state) => {
@@ -1218,6 +1240,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextIds: [],
     selectedGroupId: null,
     selectedRelationshipId: null,
+    selectedUserNeedId: null,
   }),
 
   createActorConnection: (actorId, contextId) => set((state) => {
@@ -1316,6 +1339,358 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  addUserNeed: (name) => {
+    const state = useEditorStore.getState()
+    const projectId = state.activeProjectId
+    if (!projectId) return null
+
+    const project = state.projects[projectId]
+    if (!project) return null
+
+    const newUserNeed: UserNeed = {
+      id: `need-${Date.now()}`,
+      name,
+      position: 50,
+      visibility: true,
+    }
+
+    const updatedProject = {
+      ...project,
+      userNeeds: [...(project.userNeeds || []), newUserNeed],
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    useEditorStore.setState({
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      selectedUserNeedId: newUserNeed.id,
+    })
+
+    return newUserNeed.id
+  },
+
+  deleteUserNeed: (userNeedId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const updatedProject = {
+      ...project,
+      userNeeds: (project.userNeeds || []).filter(n => n.id !== userNeedId),
+      actorNeedConnections: (project.actorNeedConnections || []).filter(c => c.userNeedId !== userNeedId),
+      needContextConnections: (project.needContextConnections || []).filter(c => c.userNeedId !== userNeedId),
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      selectedUserNeedId: state.selectedUserNeedId === userNeedId ? null : state.selectedUserNeedId,
+    }
+  }),
+
+  updateUserNeed: (userNeedId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const needIndex = project.userNeeds?.findIndex(n => n.id === userNeedId) ?? -1
+    if (needIndex === -1) return state
+
+    const updatedNeeds = [...(project.userNeeds || [])]
+    updatedNeeds[needIndex] = {
+      ...updatedNeeds[needIndex],
+      ...updates,
+    }
+
+    const updatedProject = {
+      ...project,
+      userNeeds: updatedNeeds,
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  updateUserNeedPosition: (userNeedId, newPosition) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const needIndex = project.userNeeds?.findIndex(n => n.id === userNeedId) ?? -1
+    if (needIndex === -1) return state
+
+    const updatedNeeds = [...(project.userNeeds || [])]
+    const oldPosition = updatedNeeds[needIndex].position
+
+    updatedNeeds[needIndex] = {
+      ...updatedNeeds[needIndex],
+      position: newPosition,
+    }
+
+    const updatedProject = {
+      ...project,
+      userNeeds: updatedNeeds,
+    }
+
+    const command: EditorCommand = {
+      type: 'moveUserNeed',
+      payload: {
+        userNeedId,
+        oldPosition,
+        newPosition,
+      },
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  setSelectedUserNeed: (userNeedId) => set({
+    selectedUserNeedId: userNeedId,
+    selectedContextId: null,
+    selectedContextIds: [],
+    selectedGroupId: null,
+    selectedRelationshipId: null,
+    selectedActorId: null,
+  }),
+
+  createActorNeedConnection: (actorId, userNeedId) => {
+    const state = useEditorStore.getState()
+    const projectId = state.activeProjectId
+    if (!projectId) return null
+
+    const project = state.projects[projectId]
+    if (!project) return null
+
+    const newConnection: ActorNeedConnection = {
+      id: `actor-need-conn-${Date.now()}`,
+      actorId,
+      userNeedId,
+    }
+
+    const command: EditorCommand = {
+      type: 'addActorNeedConnection',
+      payload: {
+        actorNeedConnection: newConnection,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      actorNeedConnections: [...(project.actorNeedConnections || []), newConnection],
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    useEditorStore.setState({
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    })
+
+    return newConnection.id
+  },
+
+  deleteActorNeedConnection: (connectionId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const connection = project.actorNeedConnections?.find(c => c.id === connectionId)
+    if (!connection) return state
+
+    const command: EditorCommand = {
+      type: 'deleteActorNeedConnection',
+      payload: {
+        actorNeedConnection: connection,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      actorNeedConnections: (project.actorNeedConnections || []).filter(c => c.id !== connectionId),
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  updateActorNeedConnection: (connectionId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const connectionIndex = project.actorNeedConnections?.findIndex(c => c.id === connectionId) ?? -1
+    if (connectionIndex === -1) return state
+
+    const updatedConnections = [...(project.actorNeedConnections || [])]
+    updatedConnections[connectionIndex] = {
+      ...updatedConnections[connectionIndex],
+      ...updates,
+    }
+
+    const updatedProject = {
+      ...project,
+      actorNeedConnections: updatedConnections,
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+    }
+  }),
+
+  createNeedContextConnection: (userNeedId, contextId) => {
+    const state = useEditorStore.getState()
+    const projectId = state.activeProjectId
+    if (!projectId) return null
+
+    const project = state.projects[projectId]
+    if (!project) return null
+
+    const newConnection: NeedContextConnection = {
+      id: `need-context-conn-${Date.now()}`,
+      userNeedId,
+      contextId,
+    }
+
+    const command: EditorCommand = {
+      type: 'addNeedContextConnection',
+      payload: {
+        needContextConnection: newConnection,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      needContextConnections: [...(project.needContextConnections || []), newConnection],
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    useEditorStore.setState({
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    })
+
+    return newConnection.id
+  },
+
+  deleteNeedContextConnection: (connectionId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const connection = project.needContextConnections?.find(c => c.id === connectionId)
+    if (!connection) return state
+
+    const command: EditorCommand = {
+      type: 'deleteNeedContextConnection',
+      payload: {
+        needContextConnection: connection,
+      },
+    }
+
+    const updatedProject = {
+      ...project,
+      needContextConnections: (project.needContextConnections || []).filter(c => c.id !== connectionId),
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  updateNeedContextConnection: (connectionId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const connectionIndex = project.needContextConnections?.findIndex(c => c.id === connectionId) ?? -1
+    if (connectionIndex === -1) return state
+
+    const updatedConnections = [...(project.needContextConnections || [])]
+    updatedConnections[connectionIndex] = {
+      ...updatedConnections[connectionIndex],
+      ...updates,
+    }
+
+    const updatedProject = {
+      ...project,
+      needContextConnections: updatedConnections,
+    }
+
     autosaveProject(projectId, updatedProject)
 
     return {
@@ -1511,7 +1886,9 @@ export const useEditorStore = create<EditorState>((set) => ({
     let newGroups = project.groups
     let newRelationships = project.relationships
     let newActors = project.actors || []
-    let newActorConnections = project.actorConnections || []
+    let newUserNeeds = project.userNeeds || []
+    let newActorNeedConnections = project.actorNeedConnections || []
+    let newNeedContextConnections = project.needContextConnections || []
 
     if (command.type === 'moveContext' && command.payload.contextId && command.payload.oldPositions) {
       const contextIndex = newContexts.findIndex(c => c.id === command.payload.contextId)
@@ -1607,6 +1984,27 @@ export const useEditorStore = create<EditorState>((set) => ({
       newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
     } else if (command.type === 'deleteActorConnection' && command.payload.actorConnection) {
       newActorConnections = [...newActorConnections, command.payload.actorConnection]
+    } else if (command.type === 'addUserNeed' && command.payload.userNeed) {
+      newUserNeeds = newUserNeeds.filter(n => n.id !== command.payload.userNeed?.id)
+    } else if (command.type === 'deleteUserNeed' && command.payload.userNeed) {
+      newUserNeeds = [...newUserNeeds, command.payload.userNeed]
+    } else if (command.type === 'moveUserNeed' && command.payload.userNeedId && command.payload.oldPosition !== undefined) {
+      const needIndex = newUserNeeds.findIndex(n => n.id === command.payload.userNeedId)
+      if (needIndex !== -1) {
+        newUserNeeds = [...newUserNeeds]
+        newUserNeeds[needIndex] = {
+          ...newUserNeeds[needIndex],
+          position: command.payload.oldPosition,
+        }
+      }
+    } else if (command.type === 'addActorNeedConnection' && command.payload.actorNeedConnection) {
+      newActorNeedConnections = newActorNeedConnections.filter(c => c.id !== command.payload.actorNeedConnection?.id)
+    } else if (command.type === 'deleteActorNeedConnection' && command.payload.actorNeedConnection) {
+      newActorNeedConnections = [...newActorNeedConnections, command.payload.actorNeedConnection]
+    } else if (command.type === 'addNeedContextConnection' && command.payload.needContextConnection) {
+      newNeedContextConnections = newNeedContextConnections.filter(c => c.id !== command.payload.needContextConnection?.id)
+    } else if (command.type === 'deleteNeedContextConnection' && command.payload.needContextConnection) {
+      newNeedContextConnections = [...newNeedContextConnections, command.payload.needContextConnection]
     }
 
     // Handle flow stage commands
@@ -1675,7 +2073,9 @@ export const useEditorStore = create<EditorState>((set) => ({
       groups: newGroups,
       relationships: newRelationships,
       actors: newActors,
-      actorConnections: newActorConnections,
+      userNeeds: newUserNeeds,
+      actorNeedConnections: newActorNeedConnections,
+      needContextConnections: newNeedContextConnections,
       viewConfig: {
         ...project.viewConfig,
         flowStages: newFlowStages,
@@ -1713,7 +2113,9 @@ export const useEditorStore = create<EditorState>((set) => ({
     let newGroups = project.groups
     let newRelationships = project.relationships
     let newActors = project.actors || []
-    let newActorConnections = project.actorConnections || []
+    let newUserNeeds = project.userNeeds || []
+    let newActorNeedConnections = project.actorNeedConnections || []
+    let newNeedContextConnections = project.needContextConnections || []
 
     if (command.type === 'moveContext' && command.payload.contextId && command.payload.newPositions) {
       const contextIndex = newContexts.findIndex(c => c.id === command.payload.contextId)
@@ -1809,6 +2211,27 @@ export const useEditorStore = create<EditorState>((set) => ({
       newActorConnections = [...newActorConnections, command.payload.actorConnection]
     } else if (command.type === 'deleteActorConnection' && command.payload.actorConnection) {
       newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
+    } else if (command.type === 'addUserNeed' && command.payload.userNeed) {
+      newUserNeeds = [...newUserNeeds, command.payload.userNeed]
+    } else if (command.type === 'deleteUserNeed' && command.payload.userNeed) {
+      newUserNeeds = newUserNeeds.filter(n => n.id !== command.payload.userNeed?.id)
+    } else if (command.type === 'moveUserNeed' && command.payload.userNeedId && command.payload.newPosition !== undefined) {
+      const needIndex = newUserNeeds.findIndex(n => n.id === command.payload.userNeedId)
+      if (needIndex !== -1) {
+        newUserNeeds = [...newUserNeeds]
+        newUserNeeds[needIndex] = {
+          ...newUserNeeds[needIndex],
+          position: command.payload.newPosition,
+        }
+      }
+    } else if (command.type === 'addActorNeedConnection' && command.payload.actorNeedConnection) {
+      newActorNeedConnections = [...newActorNeedConnections, command.payload.actorNeedConnection]
+    } else if (command.type === 'deleteActorNeedConnection' && command.payload.actorNeedConnection) {
+      newActorNeedConnections = newActorNeedConnections.filter(c => c.id !== command.payload.actorNeedConnection?.id)
+    } else if (command.type === 'addNeedContextConnection' && command.payload.needContextConnection) {
+      newNeedContextConnections = [...newNeedContextConnections, command.payload.needContextConnection]
+    } else if (command.type === 'deleteNeedContextConnection' && command.payload.needContextConnection) {
+      newNeedContextConnections = newNeedContextConnections.filter(c => c.id !== command.payload.needContextConnection?.id)
     }
 
     // Handle flow stage commands (redo)
@@ -1875,7 +2298,9 @@ export const useEditorStore = create<EditorState>((set) => ({
       groups: newGroups,
       relationships: newRelationships,
       actors: newActors,
-      actorConnections: newActorConnections,
+      userNeeds: newUserNeeds,
+      actorNeedConnections: newActorNeedConnections,
+      needContextConnections: newNeedContextConnections,
       viewConfig: {
         ...project.viewConfig,
         flowStages: newFlowStages,
@@ -1939,7 +2364,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       activeProjectId: project.id,
       selectedContextId: null,
       selectedActorId: null,
-      selectedActorConnectionId: null,
+      selectedUserNeedId: null,
     }
   }),
 
@@ -1954,7 +2379,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedRelationshipId: null,
     selectedGroupId: null,
     selectedActorId: null,
-    selectedActorConnectionId: null,
+    selectedUserNeedId: null,
     selectedContextIds: [],
     undoStack: [],
     redoStack: [],

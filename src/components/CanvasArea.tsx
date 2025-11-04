@@ -21,8 +21,8 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
-import type { BoundedContext, Relationship, Group, Actor, ActorConnection } from '../model/types'
-import { User } from 'lucide-react'
+import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedConnection, NeedContextConnection } from '../model/types'
+import { User, Target } from 'lucide-react'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 
@@ -783,6 +783,76 @@ function ActorNode({ data }: NodeProps) {
   )
 }
 
+// UserNeed node component - displayed in middle layer of Strategic View
+function UserNeedNode({ data }: NodeProps) {
+  const userNeed = data.userNeed as UserNeed
+  const isSelected = data.isSelected as boolean
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  return (
+    <>
+      {/* Handles for edge connections */}
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+
+      <div
+        style={{
+          width: 140,
+          height: 60,
+          backgroundColor: isSelected || isHovered ? '#f0fdf4' : '#f8fafc',
+          border: isSelected ? '2px solid #10b981' : '2px solid #cbd5e1',
+          borderRadius: '12px',
+          padding: '10px',
+          boxShadow: isSelected
+            ? '0 0 0 3px rgba(16, 185, 129, 0.3), 0 4px 12px -2px rgba(16, 185, 129, 0.25)'
+            : isHovered
+            ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
+            : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: '8px',
+          cursor: 'pointer',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Target icon */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            backgroundColor: '#d1fae5',
+            borderRadius: '50%',
+            flexShrink: 0,
+          }}
+        >
+          <Target size={18} color="#10b981" strokeWidth={2.5} />
+        </div>
+
+        {/* UserNeed name */}
+        <div
+          style={{
+            fontSize: '13px',
+            fontWeight: 600,
+            color: '#0f172a',
+            lineHeight: '1.3',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            flex: 1,
+          }}
+        >
+          {userNeed.name}
+        </div>
+      </div>
+    </>
+  )
+}
+
 // Actor connection edge component
 function ActorConnectionEdge({
   id,
@@ -864,6 +934,168 @@ function ActorConnectionEdge({
         onMouseLeave={() => setIsHovered(false)}
       >
         <title>Actor connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
+      </path>
+    </>
+  )
+}
+
+// Actor-Need connection edge component
+function ActorNeedConnectionEdge({
+  id,
+  source,
+  target,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  data,
+}: EdgeProps) {
+  const [isHovered, setIsHovered] = React.useState(false)
+  const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
+  const connection = data?.connection as ActorNeedConnection | undefined
+
+  const isHighlighted = source === selectedActorId || target === selectedUserNeedId
+
+  const { getNode } = useReactFlow()
+  const sourceNode = getNode(source)
+  const targetNode = getNode(target)
+
+  let sx = sourceX
+  let sy = sourceY
+  let tx = targetX
+  let ty = targetY
+  let sourcePos = sourcePosition
+  let targetPos = targetPosition
+
+  if (sourceNode && targetNode &&
+      sourceNode.width && sourceNode.height &&
+      targetNode.width && targetNode.height) {
+    sx = sourceNode.position.x + (sourceNode.width / 2)
+    sy = sourceNode.position.y + sourceNode.height
+    tx = targetNode.position.x + (targetNode.width / 2)
+    ty = targetNode.position.y
+    sourcePos = Position.Bottom
+    targetPos = Position.Top
+  }
+
+  const [edgePath] = getStraightPath({
+    sourceX: sx,
+    sourceY: sy,
+    targetX: tx,
+    targetY: ty,
+  })
+
+  return (
+    <>
+      <path
+        id={id}
+        className="react-flow__edge-path"
+        d={edgePath}
+        style={{
+          stroke: isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
+          strokeWidth: isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
+          strokeDasharray: '5,5',
+          fill: 'none',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        markerEnd="url(#actor-arrow)"
+      />
+      <path
+        d={edgePath}
+        style={{
+          stroke: 'transparent',
+          strokeWidth: 20,
+          fill: 'none',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <title>Actor-Need connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
+      </path>
+    </>
+  )
+}
+
+// Need-Context connection edge component
+function NeedContextConnectionEdge({
+  id,
+  source,
+  target,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  data,
+}: EdgeProps) {
+  const [isHovered, setIsHovered] = React.useState(false)
+  const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
+  const selectedContextId = useEditorStore(s => s.selectedContextId)
+  const connection = data?.connection as NeedContextConnection | undefined
+
+  const isHighlighted = source === selectedUserNeedId || target === selectedContextId
+
+  const { getNode } = useReactFlow()
+  const sourceNode = getNode(source)
+  const targetNode = getNode(target)
+
+  let sx = sourceX
+  let sy = sourceY
+  let tx = targetX
+  let ty = targetY
+  let sourcePos = sourcePosition
+  let targetPos = targetPosition
+
+  if (sourceNode && targetNode &&
+      sourceNode.width && sourceNode.height &&
+      targetNode.width && targetNode.height) {
+    sx = sourceNode.position.x + (sourceNode.width / 2)
+    sy = sourceNode.position.y + sourceNode.height
+    tx = targetNode.position.x + (targetNode.width / 2)
+    ty = targetNode.position.y
+    sourcePos = Position.Bottom
+    targetPos = Position.Top
+  }
+
+  const [edgePath] = getStraightPath({
+    sourceX: sx,
+    sourceY: sy,
+    targetX: tx,
+    targetY: ty,
+  })
+
+  return (
+    <>
+      <path
+        id={id}
+        className="react-flow__edge-path"
+        d={edgePath}
+        style={{
+          stroke: isHighlighted ? '#10b981' : isHovered ? '#34d399' : '#94a3b8',
+          strokeWidth: isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
+          strokeDasharray: '5,5',
+          fill: 'none',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        markerEnd="url(#need-arrow)"
+      />
+      <path
+        d={edgePath}
+        style={{
+          stroke: 'transparent',
+          strokeWidth: 20,
+          fill: 'none',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <title>Need-Context connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
       </path>
     </>
   )
@@ -1336,11 +1568,14 @@ const nodeTypes = {
   context: ContextNode,
   group: GroupNode,
   actor: ActorNode,
+  userNeed: UserNeedNode,
 }
 
 const edgeTypes = {
   relationship: RelationshipEdge,
   actorConnection: ActorConnectionEdge,
+  actorNeedConnection: ActorNeedConnectionEdge,
+  needContextConnection: NeedContextConnectionEdge,
 }
 
 // Custom Controls that resets to fit view
@@ -1374,6 +1609,7 @@ function CanvasContent() {
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
   const updateMultipleContextPositions = useEditorStore(s => s.updateMultipleContextPositions)
   const updateActorPosition = useEditorStore(s => s.updateActorPosition)
+  const updateUserNeedPosition = useEditorStore(s => s.updateUserNeedPosition)
   const setSelectedActor = useEditorStore(s => s.setSelectedActor)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
 
@@ -1580,8 +1816,38 @@ function CanvasContent() {
         })
       : []
 
-    // Return groups first (with selected on top), then contexts, then actors
-    return [...finalGroupNodes, ...contextNodes, ...actorNodes]
+    // Create userNeed nodes (only in Strategic view)
+    const userNeedNodes: Node[] = viewMode === 'strategic' && project.userNeeds
+      ? project.userNeeds
+          .filter(need => need.visibility !== false)
+          .map((userNeed) => {
+            const x = (userNeed.position / 100) * 2000
+            const y = 400 // Fixed y position in middle layer
+
+            return {
+              id: userNeed.id,
+              type: 'userNeed',
+              position: { x, y },
+              data: {
+                userNeed,
+                isSelected: userNeed.id === useEditorStore.getState().selectedUserNeedId,
+              },
+              style: {
+                width: 140,
+                height: 60,
+                zIndex: 14, // Between actors (15) and contexts (10)
+              },
+              width: 140,
+              height: 60,
+              draggable: true,
+              selectable: true,
+              connectable: false,
+            }
+          })
+      : []
+
+    // Return groups first (with selected on top), then contexts, then user needs, then actors
+    return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...actorNodes]
   }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, viewMode, showGroups, currentDate])
 
   // Use React Flow's internal nodes state for smooth updates
@@ -1628,7 +1894,33 @@ function CanvasContent() {
         }))
       : []
 
-    return [...relationshipEdges, ...actorConnectionEdges]
+    // Add actor-need connection edges (only in Strategic view)
+    const actorNeedConnectionEdges: Edge[] = viewMode === 'strategic' && project.actorNeedConnections
+      ? project.actorNeedConnections.map((conn) => ({
+          id: conn.id,
+          source: conn.actorId,
+          target: conn.userNeedId,
+          type: 'actorNeedConnection',
+          data: { connection: conn },
+          animated: false,
+          zIndex: 12,
+        }))
+      : []
+
+    // Add need-context connection edges (only in Strategic view)
+    const needContextConnectionEdges: Edge[] = viewMode === 'strategic' && project.needContextConnections
+      ? project.needContextConnections.map((conn) => ({
+          id: conn.id,
+          source: conn.userNeedId,
+          target: conn.contextId,
+          type: 'needContextConnection',
+          data: { connection: conn },
+          animated: false,
+          zIndex: 11,
+        }))
+      : []
+
+    return [...relationshipEdges, ...actorConnectionEdges, ...actorNeedConnectionEdges, ...needContextConnectionEdges]
   }, [project, viewMode, showRelationships, selectedActorId, selectedRelationshipId])
 
   // Handle edge click
@@ -1641,6 +1933,7 @@ function CanvasContent() {
         selectedContextIds: [],
         selectedGroupId: null,
         selectedActorId: null,
+        selectedUserNeedId: null,
       })
     }
   }, [])
@@ -1655,6 +1948,7 @@ function CanvasContent() {
         selectedContextId: null,
         selectedContextIds: [],
         selectedActorId: null,
+        selectedUserNeedId: null,
         selectedRelationshipId: null,
       })
       return
@@ -1666,19 +1960,25 @@ function CanvasContent() {
       return
     }
 
+    // Handle userNeed node clicks
+    if (node.type === 'userNeed') {
+      useEditorStore.getState().setSelectedUserNeed(node.id)
+      return
+    }
+
     // Handle context node clicks
     if (event.shiftKey || event.metaKey || event.ctrlKey) {
       // Multi-select mode (Shift or Cmd/Ctrl)
       useEditorStore.getState().toggleContextSelection(node.id)
     } else {
       // Single select
-      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedRelationshipId: null })
+      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null })
     }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedRelationshipId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null })
   }, [])
 
   // Wrap onNodesChange to handle multi-select drag
@@ -1809,6 +2109,17 @@ function CanvasContent() {
       return
     }
 
+    // Handle userNeed drag (horizontal only)
+    if (node.type === 'userNeed') {
+      const userNeed = project.userNeeds?.find(n => n.id === node.id)
+      if (!userNeed) return
+
+      // Only update horizontal position, constrain to 0-100%
+      const newPosition = Math.max(0, Math.min(100, (node.position.x / 2000) * 100))
+      updateUserNeedPosition(node.id, newPosition)
+      return
+    }
+
     // Check if we're in temporal mode with an active keyframe (Strategic View only)
     const isEditingKeyframe = viewMode === 'strategic' && project.temporal?.enabled && activeKeyframeId
 
@@ -1912,7 +2223,7 @@ function CanvasContent() {
         }
       }
     }
-  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId])
+  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, updateUserNeedPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId])
 
   // Handle keyboard shortcuts
   React.useEffect(() => {
@@ -2043,6 +2354,21 @@ function CanvasContent() {
               <path
                 d="M 0 0 L 10 5 L 0 10 z"
                 fill="#94a3b8"
+              />
+            </marker>
+            {/* Marker for need-context connection edges */}
+            <marker
+              id="need-arrow"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="5"
+              markerHeight="5"
+              orient="auto"
+            >
+              <path
+                d="M 0 0 L 10 5 L 0 10 z"
+                fill="#10b981"
               />
             </marker>
           </defs>
