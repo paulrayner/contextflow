@@ -70,10 +70,12 @@ The following features were implemented beyond the original 3-milestone plan:
 - Business Differentiation vs Model Complexity axes
 - Strategic classification derived from quadrant position
 
-**Actors (Wardley Map Users)**
+**Actors and User Needs (Wardley Map Users and Value Chain)**
 - Actor nodes at top of Strategic View
-- Actor-to-context connections
-- Actor management in InspectorPanel
+- User need nodes in middle layer
+- Complete value chain: Actor → User Need → Context
+- Connection management and 2-hop highlighting
+- Actor and UserNeed management in InspectorPanel
 
 **UI/UX Enhancements**
 - Dynamic edge routing for shortest path connections
@@ -323,10 +325,14 @@ At the end of Milestone 4:
 
 ---
 
-## Milestone 5: Wardley Map User Needs & Value Chain
+## ✅ Milestone 5: Wardley Map User Needs & Value Chain (Completed Nov 3, 2025)
 
 ### Goal
 Improve Strategic View's fidelity to canonical Wardley mapping by adding the user needs layer and complete value chain visualization.
+
+### Status: ✅ COMPLETE
+
+All deliverables have been implemented and tested.
 
 ### Deliverables
 
