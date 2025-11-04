@@ -82,6 +82,37 @@ Fields:
   - `contextIds` (members)
 - Deleting a group does not delete the contexts
 
+### Actors (Wardley map users)
+- Represents users of the map itself in Strategic View (e.g. "Clinical Researchers", "Data Scientists")
+- Positioned at top of Strategic View, above user needs
+- Horizontal position only (along evolution axis)
+- Fields:
+  - `name`
+  - `description`
+  - `position` (0-100 along evolution axis)
+- Connect to User Needs via ActorNeedConnection
+
+### User Needs (problem space)
+- Represents user/customer needs in Strategic View (canonical Wardley position)
+- Sits between Actors (top) and Contexts (bottom) in the value chain
+- Distinguishes problem space (needs) from solution space (contexts)
+- Positioned horizontally along evolution axis, fixed vertical position below actors
+- Fields:
+  - `name` (e.g. "Secure patient data access", "Real-time mutation analysis")
+  - `description`
+  - `visibility` (boolean, can be hidden without deleting)
+- Connections:
+  - Receives connections from Actors (who has this need)
+  - Sends connections to Contexts (which components fulfill this need)
+- Connection chain: Actor → User Need → Context
+
+### Connection Highlighting Behavior
+When selecting elements in Strategic View:
+- **Actor selected**: Highlight connected user needs + contexts those needs depend on (2-hop chain)
+- **User Need selected**: Highlight connected actors (upstream) + connected contexts (downstream)
+- **Context selected**: Highlight connected user needs + actors connected to those needs (2-hop chain)
+- **Relationship edge selected**: Highlight only the two connected contexts (existing DDD relationship behavior)
+
 ---
 
 ## Two views of the same world

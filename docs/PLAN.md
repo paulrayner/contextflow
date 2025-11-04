@@ -326,42 +326,63 @@ At the end of Milestone 4:
 ## Milestone 5: Wardley Map User Needs & Value Chain
 
 ### Goal
-Improve Strategic View's fidelity to canonical Wardley mapping by adding the user needs layer and value chain visualization.
+Improve Strategic View's fidelity to canonical Wardley mapping by adding the user needs layer and complete value chain visualization.
 
 ### Deliverables
 
-**User Needs at Top of Map:**
-- Add user needs at top of Strategic View (canonical Wardley position)
-- Distinguish problem space (user needs) from solution space (contexts/components)
-- Position user needs above the evolution axis as anchor points
+**Three-Layer Value Chain:**
+- Implement complete Wardley map structure with three vertical layers in Strategic View:
+  1. **Top**: Actors (map users/personas - e.g., "Clinical Researchers", "Data Scientists")
+  2. **Middle**: User Needs (problem space - e.g., "Secure patient data access", "Real-time mutation analysis")
+  3. **Bottom**: Contexts (solution space - existing bounded contexts)
+- Connection chain: Actor → User Need → Context
+- Distinguish problem space (needs) from solution space (components)
 
 **User Needs as First-Class Entities:**
+- Add `UserNeed` interface to data model:
+  - `id`, `name`, `description`
+  - `position` (0-100 along evolution axis, horizontal only)
+  - `visibility` (boolean, can be hidden without deleting)
+- Add to Project: `userNeeds: UserNeed[]`
 - Support adding/editing/deleting user needs with undo/redo
-- Store user needs separately from actors (different semantics: user needs vs. map users)
-- User need properties:
-  - `name` (e.g., "Secure patient data access")
-  - `description` (optional)
-  - Visibility flag (shown/hidden)
+- Store separately from actors (different semantics: user needs vs. map users)
 - InspectorPanel support for editing user needs
 
-**Value Chain Visualization:**
-- Add visual anchor lines showing value chain from user needs down to components
-- Connect user needs to the contexts/components they depend on
-- Support creating/deleting need-to-context connections
+**Connection Types:**
+- Refactor current ActorConnection to be Actor→Context into two connection types:
+  1. `ActorNeedConnection`: Actor → User Need (who has this need)
+  2. `NeedContextConnection`: User Need → Context (which components fulfill this need)
+- Add to Project: `actorNeedConnections`, `needContextConnections`
+- Support creating/deleting connections with undo/redo
 - Visual styling:
-  - Dotted or dashed lines from needs to contexts
-  - Different color/style from DDD relationship edges
-  - Shows dependency flow from problem space to solution space
+  - Actor→Need: Dotted lines from actors to needs
+  - Need→Context: Dashed lines from needs to contexts (value chain)
+  - Different color/style from DDD relationship edges (which remain between contexts only)
 
-**Value Chain Positioning:**
-- User needs positioned only horizontally (along evolution axis)
-- Vertical position fixed at top of Strategic View canvas
-- Drag to adjust horizontal position (evolution stage)
-- Visual Y-axis label clarification: "User Needs" at top, "Value Delivery" below
+**Connection Highlighting (2-hop traversal):**
+- **Actor selected**: Highlight connected user needs + contexts those needs connect to (2-hop chain)
+- **User Need selected**: Highlight connected actors (upstream) + connected contexts (downstream)
+- **Context selected**: Highlight connected user needs + actors connected to those needs (2-hop chain)
+- **DDD Relationship edge selected**: Highlight only the two connected contexts (existing behavior)
+
+**Vertical Positioning & Layout:**
+- Actors: Fixed at top of Strategic View (Y ~5-10%)
+- User Needs: Fixed middle layer (Y ~30-35%)
+- Contexts: Existing shared.y positioning (bottom area, Y 50-100%)
+- All positioned horizontally along evolution axis (0-100)
+- Drag to adjust horizontal position only (evolution stage)
+- Update Y-axis labels: "Map Users" (top) → "User Needs" (middle) → "Value Delivery" (bottom)
+
+**Migration Strategy:**
+- Existing ActorConnection (Actor→Context) data needs migration:
+  - Option 1: Preserve as direct Actor→Context connections (bypass needs layer)
+  - Option 2: Prompt user to convert to Actor→Need→Context chain
+  - Decision required before implementation
 
 ### Result
 At the end of Milestone 5:
 - Strategic View accurately represents canonical Wardley mapping structure
+- Three-layer value chain: Actors → User Needs → Contexts
 - Clear distinction between problem space (user needs) and solution space (components)
-- Value chain visualization shows how contexts serve user needs
-- Full Wardley Map compliance: user needs → components → evolution → dependency flow
+- 2-hop connection highlighting shows complete dependency chains
+- Full Wardley Map compliance: users → needs → components → evolution → dependency flow
