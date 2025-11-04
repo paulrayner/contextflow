@@ -462,6 +462,46 @@ These show groups as smooth, blob-like shapes that naturally wrap around compone
 - **Curve smoothing**: Balance between organic appearance and computational cost
 - **View-specific shapes**: Flow and Strategic views will have different blob shapes since contexts have different X positions in each view
 
+### Work in Progress Notes
+
+**Current Status (Nov 4, 2025):**
+- Comprehensive test suite implemented (35 tests) in `src/lib/blobShape.test.ts`
+- Core blob generation algorithm implemented in `src/lib/blobShape.ts`
+- Using d3-polygon (convex hull) + d3-shape (Catmull-Rom smoothing, alpha=0.5)
+- Visual parameters: 60px padding, 24 edge samples, 12 corner samples per context
+- Tests passing: 18/35 ✅
+- **Blocking issue**: Catmull-Rom overshoot problem
+
+**Catmull-Rom Overshoot Issue:**
+The current translation approach has a fundamental flaw:
+1. Generate smoothed path from hull vertices
+2. Find min bounds of smoothed path
+3. Translate hull points by those bounds
+4. Re-smooth the translated hull
+5. **Problem**: Re-smoothing allows curves to overshoot again
+
+**Evidence:**
+- Test failing: "should fully encapsulate real Fulfillment & Shipping group contexts"
+- Warehouse Management System context top-right corner extends outside blob boundary
+- Path bounds exceed expected: 1091×423.1px vs expected 1090×420px
+- Specific failure: point [0.0, 150.0] not inside blob polygon
+
+**Root Cause:**
+Translation is calculated from the first smoothed path's bounds, but when we translate the hull points and re-smooth, the Catmull-Rom algorithm can produce different overshoot amounts. The curve extends beyond the convex hull vertices even after accounting for the initial overshoot.
+
+**Solution Approaches to Evaluate:**
+1. **Path string transformation**: Generate smoothed path once, then transform the SVG path string coordinates directly (no re-smoothing)
+2. **SVG viewport approach**: Use SVG viewBox to handle coordinate mapping instead of translating the path
+3. **Post-smoothing padding**: Calculate actual smoothed path bounds, then add additional padding to hull before final smoothing
+4. **Bezier to polygon conversion**: Sample the Bezier curves densely, compute their actual bounds, use those for containment testing
+
+**Next Steps:**
+- Choose and implement one of the solution approaches above
+- Verify with failing test "should fully encapsulate real Fulfillment & Shipping group contexts"
+- Ensure all 35 tests pass
+- Remove debug logging from CanvasArea.tsx
+- Visual verification in running app
+
 ### Result
 At the end of Milestone 6:
 - Groups render with smooth, organic boundaries matching professional Wardley Map aesthetics
