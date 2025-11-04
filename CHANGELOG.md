@@ -17,6 +17,12 @@ All notable changes to ContextFlow will be documented in this file.
 - Add existing contexts to groups individually or in batch from InspectorPanel
 - "Add All Available" button for bulk group membership operations
 - Group membership changes fully undoable (including batch operations as single undo)
+- Edit group labels and notes directly in InspectorPanel (autosaves, not undoable)
+- Streamlined InspectorPanel layout: actors and teams moved near top, groups and repos repositioned for better visual hierarchy
+- Removed redundant section headings and decorative elements for cleaner information display
+- Standardized text input styling with shared constants for consistency
+- Moved "Use CodeCohesion API" toggle to global Settings dialog (from per-context setting)
+- Aligned Code and Boundary dropdowns vertically with narrower widths
 - Validation ensures unique Flow Stage labels and positions
 - Comprehensive test suite with 27 passing tests across all M4 features
 - Complete SPEC.md compliance achieved for all interactive editing operations
