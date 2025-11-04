@@ -2,26 +2,12 @@
 
 ## High Priority
 
-**Missing SPEC.md Requirements:**
-- [ ] Add ability to edit Flow View stage markers (SPEC.md says "editable stage markers" but current implementation is read-only)
-  - Add UI to rename stage labels
-  - Add UI to adjust stage positions
-  - Add UI to add/delete stages
-  - Store in [src/model/store.ts](src/model/store.ts) with undo/redo support
-- [ ] Add ability to edit relationships after creation (currently can only delete, not edit pattern/communicationMode/description)
-  - Implement `updateRelationship` action in [src/model/store.ts](src/model/store.ts)
-  - Add edit UI when relationship is selected in [src/components/InspectorPanel.tsx](src/components/InspectorPanel.tsx)
-  - Support undo/redo for relationship edits
-- [ ] Add ability to add existing contexts to a group (currently can only remove, or create group from multi-select)
-  - Implement `addContextToGroup` action in [src/model/store.ts](src/model/store.ts)
-  - Add "Add to Group" dropdown in [src/components/InspectorPanel.tsx](src/components/InspectorPanel.tsx) when context is selected
-  - Support undo/redo for adding to group
+Currently no high priority tasks.
 
 ## Backlog
 
 **Strategic View Enhancements:**
-- [ ] Add user needs and problem/solution space distinction to Wardley map in strategic view
-- [ ] Improve Wardley map compliance (currently missing some canonical Wardley elements)
+- [ ] Organic blob-based group rendering (see Milestone 6 in [docs/PLAN.md](docs/PLAN.md))
 
 **Team Flow:**
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
@@ -41,10 +27,23 @@
 - [x] Milestone 1: Flow View core (v0.1.0)
 - [x] Milestone 2: Editing + Strategic View (v0.2.0)
 - [x] Milestone 3: Repos, Teams, Groups (v0.3.0)
+- [x] Milestone 4: SPEC Compliance & Full Editability (v0.5.0)
+  - [x] Editable Flow View stage markers (rename, reposition, add, delete)
+  - [x] Relationship editing after creation (pattern, communication mode, description)
+  - [x] Add existing contexts to groups with undo/redo
+- [x] Milestone 5: Wardley Map User Needs & Value Chain (v0.6.0)
+  - [x] Three-layer value chain structure: Actors → User Needs → Contexts
+  - [x] UserNeed entities with management UI and connections
+  - [x] 2-hop connection highlighting across value chain
 - [x] Temporal Evolution (v0.4.0)
+  - [x] Time-based visualization with keyframes
+  - [x] Timeline slider with playback animation
+  - [x] Context position interpolation and fade effects
 - [x] Distillation View
 - [x] Actors in Strategic View
 - [x] CodeCohesion API Integration
 - [x] Multi-project support
 - [x] Dynamic edge routing
 - [x] Filter toggles for groups/relationships
+- [x] Highlight connected contexts when selecting relationships or actors
+- [x] Collapsible repo info with live statistics
