@@ -55,7 +55,7 @@ export function setFitViewCallback(callback: () => void) {
 }
 
 interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
   payload: {
     contextId?: string
     contextIds?: string[]
@@ -81,6 +81,10 @@ interface EditorCommand {
     keyframeId?: string
     oldKeyframeData?: Partial<TemporalKeyframe>
     newKeyframeData?: Partial<TemporalKeyframe>
+    flowStageIndex?: number
+    flowStage?: { label: string; position: number }
+    oldFlowStage?: { label: string; position: number }
+    newFlowStage?: { label: string; position: number }
   }
 }
 
@@ -159,11 +163,15 @@ interface EditorState {
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
   setGroupOpacity: (opacity: number) => void
+  updateFlowStage: (index: number, updates: Partial<{ label: string; position: number }>) => void
+  addFlowStage: (label: string, position: number) => void
+  deleteFlowStage: (index: number) => void
   undo: () => void
   redo: () => void
   fitToMap: () => void
   exportProject: () => void
   importProject: (project: Project) => void
+  reset: () => void
 }
 
 // Basic initialization with both demo and cbioportal projects in memory
@@ -1146,6 +1154,157 @@ export const useEditorStore = create<EditorState>((set) => ({
     set({ groupOpacity: opacity })
   },
 
+  updateFlowStage: (index, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const stages = project.viewConfig.flowStages
+    if (index < 0 || index >= stages.length) return state
+
+    const oldStage = stages[index]
+    const newLabel = updates.label !== undefined ? updates.label : oldStage.label
+    const newPosition = updates.position !== undefined ? updates.position : oldStage.position
+
+    if (newLabel !== oldStage.label) {
+      const isDuplicate = stages.some((s, i) => i !== index && s.label === newLabel)
+      if (isDuplicate) {
+        throw new Error('Stage label must be unique')
+      }
+    }
+
+    if (newPosition !== oldStage.position) {
+      const isDuplicate = stages.some((s, i) => i !== index && s.position === newPosition)
+      if (isDuplicate) {
+        throw new Error('Stage position must be unique')
+      }
+    }
+
+    const newStage = { label: newLabel, position: newPosition }
+    const updatedStages = [...stages]
+    updatedStages[index] = newStage
+
+    const updatedProject = {
+      ...project,
+      viewConfig: {
+        ...project.viewConfig,
+        flowStages: updatedStages,
+      },
+    }
+
+    const command: EditorCommand = {
+      type: 'updateFlowStage',
+      payload: {
+        flowStageIndex: index,
+        oldFlowStage: oldStage,
+        newFlowStage: newStage,
+      },
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  addFlowStage: (label, position) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const stages = project.viewConfig.flowStages
+
+    const labelExists = stages.some(s => s.label === label)
+    if (labelExists) {
+      throw new Error('Stage label must be unique')
+    }
+
+    const positionExists = stages.some(s => s.position === position)
+    if (positionExists) {
+      throw new Error('Stage position must be unique')
+    }
+
+    const newStage = { label, position }
+    const updatedStages = [...stages, newStage]
+
+    const updatedProject = {
+      ...project,
+      viewConfig: {
+        ...project.viewConfig,
+        flowStages: updatedStages,
+      },
+    }
+
+    const command: EditorCommand = {
+      type: 'addFlowStage',
+      payload: {
+        flowStage: newStage,
+      },
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  deleteFlowStage: (index) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const stages = project.viewConfig.flowStages
+    if (index < 0 || index >= stages.length) return state
+
+    const deletedStage = stages[index]
+    const updatedStages = stages.filter((_, i) => i !== index)
+
+    const updatedProject = {
+      ...project,
+      viewConfig: {
+        ...project.viewConfig,
+        flowStages: updatedStages,
+      },
+    }
+
+    const command: EditorCommand = {
+      type: 'deleteFlowStage',
+      payload: {
+        flowStageIndex: index,
+        flowStage: deletedStage,
+      },
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
   undo: () => set((state) => {
     if (state.undoStack.length === 0) return state
 
@@ -1245,6 +1404,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       newActorConnections = [...newActorConnections, command.payload.actorConnection]
     }
 
+    // Handle flow stage commands
+    let newFlowStages = project.viewConfig.flowStages
+    if (command.type === 'updateFlowStage' && command.payload.flowStageIndex !== undefined && command.payload.oldFlowStage) {
+      newFlowStages = [...newFlowStages]
+      newFlowStages[command.payload.flowStageIndex] = command.payload.oldFlowStage
+    } else if (command.type === 'addFlowStage' && command.payload.flowStage) {
+      newFlowStages = newFlowStages.filter(s => s.label !== command.payload.flowStage?.label && s.position !== command.payload.flowStage?.position)
+    } else if (command.type === 'deleteFlowStage' && command.payload.flowStageIndex !== undefined && command.payload.flowStage) {
+      newFlowStages = [...newFlowStages]
+      newFlowStages.splice(command.payload.flowStageIndex, 0, command.payload.flowStage)
+    }
+
     // Handle temporal commands
     let newTemporal = project.temporal
     if (command.type === 'createKeyframe') {
@@ -1300,6 +1471,10 @@ export const useEditorStore = create<EditorState>((set) => ({
       relationships: newRelationships,
       actors: newActors,
       actorConnections: newActorConnections,
+      viewConfig: {
+        ...project.viewConfig,
+        flowStages: newFlowStages,
+      },
       temporal: newTemporal,
     }
 
@@ -1415,6 +1590,17 @@ export const useEditorStore = create<EditorState>((set) => ({
       newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
     }
 
+    // Handle flow stage commands (redo)
+    let newFlowStages = project.viewConfig.flowStages
+    if (command.type === 'updateFlowStage' && command.payload.flowStageIndex !== undefined && command.payload.newFlowStage) {
+      newFlowStages = [...newFlowStages]
+      newFlowStages[command.payload.flowStageIndex] = command.payload.newFlowStage
+    } else if (command.type === 'addFlowStage' && command.payload.flowStage) {
+      newFlowStages = [...newFlowStages, command.payload.flowStage]
+    } else if (command.type === 'deleteFlowStage' && command.payload.flowStageIndex !== undefined) {
+      newFlowStages = newFlowStages.filter((_, i) => i !== command.payload.flowStageIndex)
+    }
+
     // Handle temporal commands
     let newTemporal = project.temporal
     if (command.type === 'createKeyframe') {
@@ -1469,6 +1655,10 @@ export const useEditorStore = create<EditorState>((set) => ({
       relationships: newRelationships,
       actors: newActors,
       actorConnections: newActorConnections,
+      viewConfig: {
+        ...project.viewConfig,
+        flowStages: newFlowStages,
+      },
       temporal: newTemporal,
     }
 
@@ -1530,6 +1720,23 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedActorId: null,
       selectedActorConnectionId: null,
     }
+  }),
+
+  reset: () => set({
+    activeProjectId: sampleProject.id,
+    projects: {
+      [sampleProject.id]: sampleProject,
+      [cbioportal.id]: cbioportal,
+    },
+    activeViewMode: 'flow',
+    selectedContextId: null,
+    selectedRelationshipId: null,
+    selectedGroupId: null,
+    selectedActorId: null,
+    selectedActorConnectionId: null,
+    selectedContextIds: [],
+    undoStack: [],
+    redoStack: [],
   }),
 
   // Temporal actions
