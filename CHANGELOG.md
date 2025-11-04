@@ -4,6 +4,22 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.6.0] - 2025-11-03
+
+- Three-layer Wardley Map structure in Strategic View: Actors → User Needs → Contexts
+- UserNeed entities with name, description, position along evolution axis, and visibility toggle
+- Actor→Need connections showing which actors have which needs
+- Need→Context connections showing which contexts fulfill which needs
+- Complete value chain visualization with 2-hop connection highlighting
+- UserNeed management in InspectorPanel with navigation to connected actors and contexts
+- Horizontal drag positioning for UserNeeds along evolution axis (vertical fixed at middle layer)
+- Green-themed UserNeed nodes with Target icon distinct from blue Actor nodes
+- Delete UserNeed cascades to remove all connected Actor→Need and Need→Context edges
+- Full undo/redo support for UserNeeds and all connection operations
+- Optimized vertical spacing: Actors at y=50, UserNeeds at y=200, Contexts at y=700+
+- 18 new tests covering UserNeed CRUD and connection management (all passing)
+- Sample project demonstrates complete e-commerce value chains across 5 user needs
+
 ## [0.5.0] - 2025-11-03
 
 - Interactive Flow Stage editing: click labels to rename, drag to reposition along X-axis
