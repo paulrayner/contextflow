@@ -52,6 +52,11 @@ Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-cor
 - Visual overlays only; deleting a group does not delete member contexts
 - Can overlap (multiple groups covering same canvas area)
 
+**InspectorPanel visibility:**
+- When adding a new selectable entity type (e.g., relationship, flow stage), you MUST update `App.tsx` to include it in the conditional render
+- Update BOTH `hasRightSidebar` calculation AND the conditional render `{(selectedContextId || selectedGroupId || ...) && <InspectorPanel />}`
+- Common bug: Store updates correctly but InspectorPanel doesn't appear because App.tsx doesn't check the new selection state
+
 ### Current Milestone
 
 **Milestone 1**: Flow View core (see [docs/Milestone1_Prompt.md](docs/Milestone1_Prompt.md))

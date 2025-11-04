@@ -1951,7 +1951,6 @@ function CanvasContent() {
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
-        edgesClickable
         elementsSelectable
         fitView
         fitViewOptions={{
