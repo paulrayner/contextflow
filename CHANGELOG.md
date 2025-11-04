@@ -6,13 +6,20 @@ All notable changes to ContextFlow will be documented in this file.
 
 ## [0.5.0] - 2025-11-03
 
-- Flow Stage markers now editable with position updates (undoable)
-- Relationship editing for pattern, communication mode, and description
-- Relationship pattern changes are undoable (text edits autosave)
-- Selectable relationship edges on canvas
-- Add existing contexts to groups individually or in batch
-- Group membership changes fully undoable
-- Comprehensive test suite with 27 passing tests across all features
+- Interactive Flow Stage editing: click labels to rename, drag to reposition along X-axis
+- Add new Flow Stages via TopBar button (visible in Flow View only)
+- Delete Flow Stages via right-click context menu (with confirmation, prevents deleting last stage)
+- Flow Stage changes are undoable (label and position edits, add/delete operations)
+- Click relationship edges on canvas to select and edit in InspectorPanel
+- Edit relationship DDD pattern via dropdown (8 canonical patterns, undoable changes)
+- Edit relationship communication mode and description (autosaves on blur, not undoable)
+- Delete relationships from InspectorPanel with confirmation
+- Add existing contexts to groups individually or in batch from InspectorPanel
+- "Add All Available" button for bulk group membership operations
+- Group membership changes fully undoable (including batch operations as single undo)
+- Validation ensures unique Flow Stage labels and positions
+- Comprehensive test suite with 27 passing tests across all M4 features
+- Complete SPEC.md compliance achieved for all interactive editing operations
 
 ## [0.4.0] - 2025-11-01
 

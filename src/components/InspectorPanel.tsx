@@ -6,20 +6,43 @@ import { config } from '../config'
 import { interpolatePosition, classifyFromStrategicPosition } from '../lib/temporal'
 import { classifyFromStrategicPosition as getEvolutionStage } from '../model/store'
 
+const DDD_PATTERNS = [
+  { value: 'customer-supplier', label: 'Customer-Supplier', description: 'Downstream depends on upstream' },
+  { value: 'conformist', label: 'Conformist', description: 'Downstream conforms to upstream model' },
+  { value: 'anti-corruption-layer', label: 'Anti-Corruption Layer', description: 'Downstream uses translation layer' },
+  { value: 'open-host-service', label: 'Open Host Service', description: 'Upstream provides public API' },
+  { value: 'published-language', label: 'Published Language', description: 'Shared, well-documented format' },
+  { value: 'shared-kernel', label: 'Shared Kernel', description: 'Shared code/model (symmetric)' },
+  { value: 'partnership', label: 'Partnership', description: 'Mutual dependency (symmetric)' },
+  { value: 'separate-ways', label: 'Separate Ways', description: 'No integration' },
+]
+
+// Shared input styles for consistency across all inspector panels
+const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
+
+const INPUT_TEXT_CLASS = "w-full text-xs px-3 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+
+const TEXTAREA_CLASS = "w-full text-xs text-slate-700 dark:text-slate-300 leading-normal bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none resize-none"
+
 export function InspectorPanel() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
   const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContext = useEditorStore(s => s.updateContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
+  const updateGroup = useEditorStore(s => s.updateGroup)
   const deleteGroup = useEditorStore(s => s.deleteGroup)
   const removeContextFromGroup = useEditorStore(s => s.removeContextFromGroup)
+  const addContextToGroup = useEditorStore(s => s.addContextToGroup)
+  const addContextsToGroup = useEditorStore(s => s.addContextsToGroup)
   const unassignRepo = useEditorStore(s => s.unassignRepo)
   const addRelationship = useEditorStore(s => s.addRelationship)
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
+  const updateRelationship = useEditorStore(s => s.updateRelationship)
   const updateActor = useEditorStore(s => s.updateActor)
   const setViewMode = useEditorStore(s => s.setViewMode)
   const deleteActor = useEditorStore(s => s.deleteActor)
@@ -65,35 +88,36 @@ export function InspectorPanel() {
     }
 
     const memberContexts = project.contexts.filter(c => group.contextIds.includes(c.id))
+    const availableContexts = project.contexts.filter(c => !group.contextIds.includes(c.id))
+
+    const handleAddAllContexts = () => {
+      if (availableContexts.length > 0) {
+        addContextsToGroup(group.id, availableContexts.map(c => c.id))
+      }
+    }
 
     return (
       <div className="space-y-5">
         {/* Label */}
-        <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
-          {group.label}
+        <div>
+          <input
+            type="text"
+            value={group.label}
+            onChange={(e) => updateGroup(group.id, { label: e.target.value })}
+            className={INPUT_TITLE_CLASS}
+          />
         </div>
 
-        {/* Color */}
-        {group.color && (
-          <Section label="Color">
-            <div className="flex items-center gap-2">
-              <div
-                style={{ backgroundColor: group.color }}
-                className="w-8 h-8 rounded border border-slate-200 dark:border-neutral-600"
-              />
-              <span className="text-xs text-slate-600 dark:text-slate-400">{group.color}</span>
-            </div>
-          </Section>
-        )}
-
         {/* Notes */}
-        {group.notes && (
-          <Section label="Notes">
-            <div className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-              {group.notes}
-            </div>
-          </Section>
-        )}
+        <Section label="Notes">
+          <textarea
+            value={group.notes || ''}
+            onChange={(e) => updateGroup(group.id, { notes: e.target.value })}
+            placeholder="Describe this group..."
+            rows={2}
+            className={TEXTAREA_CLASS}
+          />
+        </Section>
 
         {/* Member Contexts */}
         <Section label={`Member Contexts (${memberContexts.length})`}>
@@ -120,6 +144,33 @@ export function InspectorPanel() {
             ))}
           </div>
         </Section>
+
+        {/* Add Contexts to Group */}
+        {availableContexts.length > 0 && (
+          <Section label={`Add Contexts (${availableContexts.length} available)`}>
+            <div className="space-y-2">
+              <div className="space-y-1">
+                {availableContexts.map(context => (
+                  <button
+                    key={context.id}
+                    onClick={() => addContextToGroup(group.id, context.id)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-300 text-xs transition-colors text-left"
+                  >
+                    <Plus size={12} className="flex-shrink-0" />
+                    {context.name}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={handleAddAllContexts}
+                className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors border border-blue-200 dark:border-blue-800"
+              >
+                <Plus size={12} />
+                Add All Available
+              </button>
+            </div>
+          </Section>
+        )}
 
         {/* Delete Group - at bottom to avoid confusion with close button */}
         <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
@@ -171,7 +222,7 @@ export function InspectorPanel() {
             type="text"
             value={actor.name}
             onChange={(e) => handleUpdate({ name: e.target.value })}
-            className="w-full font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 -ml-2 outline-none"
+            className={INPUT_TITLE_CLASS}
           />
         </div>
 
@@ -181,8 +232,8 @@ export function InspectorPanel() {
             value={actor.description || ''}
             onChange={(e) => handleUpdate({ description: e.target.value })}
             placeholder="Describe this actor/user type..."
-            rows={3}
-            className="w-full text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-600 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500 dark:focus:border-blue-400 resize-none"
+            rows={2}
+            className={TEXTAREA_CLASS}
           />
         </Section>
 
@@ -232,6 +283,124 @@ export function InspectorPanel() {
     )
   }
 
+  // Show relationship details if relationship is selected
+  if (selectedRelationshipId) {
+    const relationship = project.relationships.find(r => r.id === selectedRelationshipId)
+    if (!relationship) {
+      return (
+        <div className="text-neutral-500 dark:text-neutral-400">
+          Relationship not found.
+        </div>
+      )
+    }
+
+    const fromContext = project.contexts.find(c => c.id === relationship.fromContextId)
+    const toContext = project.contexts.find(c => c.id === relationship.toContextId)
+
+    const handleDeleteRelationship = () => {
+      if (window.confirm(`Delete relationship from "${fromContext?.name}" to "${toContext?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
+        deleteRelationship(relationship.id)
+      }
+    }
+
+    const handlePatternChange = (newPattern: string) => {
+      updateRelationship(relationship.id, { pattern: newPattern as any })
+    }
+
+    const handleCommunicationModeChange = (e: React.FocusEvent<HTMLInputElement>) => {
+      const newValue = e.target.value.trim()
+      if (newValue !== relationship.communicationMode) {
+        updateRelationship(relationship.id, { communicationMode: newValue || undefined })
+      }
+    }
+
+    const handleDescriptionChange = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value.trim()
+      if (newValue !== relationship.description) {
+        updateRelationship(relationship.id, { description: newValue || undefined })
+      }
+    }
+
+    return (
+      <div className="space-y-5">
+        {/* Relationship Title */}
+        <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+          Relationship
+        </div>
+
+        {/* From/To Contexts */}
+        <Section label="Direction">
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => useEditorStore.setState({ selectedContextId: fromContext?.id, selectedRelationshipId: null })}
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {fromContext?.name || 'Unknown'}
+            </button>
+            <ArrowRight size={14} className="text-slate-400" />
+            <button
+              onClick={() => useEditorStore.setState({ selectedContextId: toContext?.id, selectedRelationshipId: null })}
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {toContext?.name || 'Unknown'}
+            </button>
+          </div>
+        </Section>
+
+        {/* Pattern (undoable) */}
+        <Section label="DDD Pattern">
+          <select
+            value={relationship.pattern}
+            onChange={(e) => handlePatternChange(e.target.value)}
+            className="w-full text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+          >
+            {DDD_PATTERNS.map(p => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+          <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
+            {DDD_PATTERNS.find(p => p.value === relationship.pattern)?.description}
+          </div>
+        </Section>
+
+        {/* Communication Mode (autosaves) */}
+        <Section label="Communication Mode">
+          <input
+            type="text"
+            defaultValue={relationship.communicationMode || ''}
+            onBlur={handleCommunicationModeChange}
+            placeholder="e.g., REST API, gRPC, Event Bus..."
+            className={INPUT_TEXT_CLASS}
+          />
+        </Section>
+
+        {/* Description (autosaves) */}
+        <Section label="Description">
+          <textarea
+            defaultValue={relationship.description || ''}
+            onBlur={handleDescriptionChange}
+            placeholder="Additional details about this relationship..."
+            rows={3}
+            className={TEXTAREA_CLASS}
+          />
+        </Section>
+
+        {/* Delete Relationship */}
+        <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
+          <button
+            onClick={handleDeleteRelationship}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+          >
+            <Trash2 size={14} />
+            Delete Relationship
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Show context details if context is selected
   if (!selectedContextId) {
     return null
@@ -274,52 +443,164 @@ export function InspectorPanel() {
           type="text"
           value={context.name}
           onChange={(e) => handleUpdate({ name: e.target.value })}
-          className="w-full font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 -ml-2 outline-none"
+          className={INPUT_TITLE_CLASS}
         />
       </div>
 
-      {/* Purpose */}
-      <Section label="Purpose">
-        <textarea
-          value={context.purpose || ''}
-          onChange={(e) => handleUpdate({ purpose: e.target.value })}
-          placeholder="What does this context do for the business?"
-          rows={3}
-          className="w-full text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1.5 outline-none resize-none"
-        />
-      </Section>
+      {/* Actors - between name and purpose, no heading */}
+      {(() => {
+        const actorConns = (project.actorConnections || []).filter(ac => ac.contextId === context.id)
+        const actorsForContext = actorConns.map(conn => {
+          const actor = project.actors?.find(a => a.id === conn.actorId)
+          return { connection: conn, actor }
+        }).filter(item => item.actor)
 
-      {/* Domain Classification (position-based) */}
-      <Section label="Domain Classification">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${
-                context.strategicClassification === 'core'
-                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
-                  : context.strategicClassification === 'supporting'
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              {context.strategicClassification === 'core' && '⚡ Core'}
-              {context.strategicClassification === 'supporting' && '🔧 Supporting'}
-              {context.strategicClassification === 'generic' && '📦 Generic'}
-              {!context.strategicClassification && 'Not classified'}
-            </span>
-            <button
-              onClick={() => setViewMode('distillation')}
-              className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
-            >
-              Update
-            </button>
+        return actorsForContext.length > 0 ? (
+          <div className="space-y-1">
+            {actorsForContext.map(({ connection, actor }) => (
+              <div
+                key={connection.id}
+                className="flex items-center gap-2 group/actor"
+              >
+                <button
+                  onClick={() => useEditorStore.setState({ selectedActorId: actor!.id, selectedContextId: null })}
+                  className="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-xs flex items-center gap-2 text-slate-600 dark:text-slate-400"
+                >
+                  <Users size={12} className="text-blue-500 flex-shrink-0" />
+                  {actor!.name}
+                </button>
+                <button
+                  onClick={() => deleteActorConnection(connection.id)}
+                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/actor:opacity-100"
+                  title="Remove actor connection"
+                >
+                  <Trash2 size={11} />
+                </button>
+              </div>
+            ))}
           </div>
-          <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-            <div>Complexity: {context.positions.distillation?.x?.toFixed(0) ?? 50}/100</div>
-            <div>Differentiation: {context.positions.distillation?.y?.toFixed(0) ?? 50}/100</div>
-          </div>
+        ) : null
+      })()}
+
+      {/* Purpose - no section header */}
+      <textarea
+        value={context.purpose || ''}
+        onChange={(e) => handleUpdate({ purpose: e.target.value })}
+        placeholder="What does this context do for the business?"
+        rows={2}
+        className={TEXTAREA_CLASS}
+      />
+
+      {/* Teams - under purpose, no heading */}
+      {teams.length > 0 && (
+        <div className="space-y-1">
+          {teams.map(team => (
+            <div key={team.id} className="text-xs text-slate-600 dark:text-slate-400">
+              {team.name}
+              {team.topologyType && (
+                <span className="text-slate-500 dark:text-slate-500 ml-1">
+                  ({team.topologyType})
+                </span>
+              )}
+            </div>
+          ))}
         </div>
-      </Section>
+      )}
+
+      {/* Attributes - toggleable pills */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => handleUpdate({ isLegacy: !context.isLegacy })}
+          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+            context.isLegacy
+              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+          }`}
+        >
+          {context.isLegacy ? '🕰️ Legacy' : 'Legacy'}
+        </button>
+        <button
+          onClick={() => handleUpdate({ isExternal: !context.isExternal })}
+          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+            context.isExternal
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+          }`}
+        >
+          {context.isExternal ? '🔗 External' : 'External'}
+        </button>
+      </div>
+
+      {/* Member of Groups - under pills, no heading */}
+      {memberOfGroups.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {memberOfGroups.map(group => (
+            <div
+              key={group.id}
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded border transition-all group/chip"
+              style={{
+                backgroundColor: group.color ? `${group.color}15` : '#3b82f615',
+                borderColor: group.color || '#3b82f6',
+              }}
+            >
+              <button
+                onClick={() => useEditorStore.setState({ selectedGroupId: group.id, selectedContextId: null })}
+                className="text-xs font-medium hover:underline"
+                style={{ color: group.color || '#3b82f6' }}
+              >
+                {group.label}
+              </button>
+              <button
+                onClick={() => removeContextFromGroup(group.id, context.id)}
+                className="opacity-0 group-hover/chip:opacity-100 transition-opacity hover:bg-white/50 dark:hover:bg-black/20 rounded p-0.5"
+                title="Remove from group"
+              >
+                <X size={10} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Domain Classification - position-based, no section header */}
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${
+            context.strategicClassification === 'core'
+              ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+              : context.strategicClassification === 'supporting'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+          }`}
+        >
+          {context.strategicClassification === 'core' && '⚡ Core'}
+          {context.strategicClassification === 'supporting' && '🔧 Supporting'}
+          {context.strategicClassification === 'generic' && '📦 Generic'}
+          {!context.strategicClassification && 'Not classified'}
+        </span>
+        <button
+          onClick={() => setViewMode('distillation')}
+          className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+        >
+          Update
+        </button>
+      </div>
+
+      {/* Evolution Stage - position-based, no section header */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
+          {context.evolutionStage === 'genesis' && '🌱 Genesis'}
+          {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
+          {context.evolutionStage === 'product/rental' && '📦 Product'}
+          {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
+        </span>
+        <button
+          onClick={() => setViewMode('strategic')}
+          className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+        >
+          Update
+        </button>
+      </div>
 
       {/* Temporal Position (only in Strategic View with temporal mode enabled) */}
       {viewMode === 'strategic' && project.temporal?.enabled && currentDate && (
@@ -361,33 +642,34 @@ export function InspectorPanel() {
         </Section>
       )}
 
-      {/* Boundary Integrity */}
-      <Section label="Boundary Integrity">
-        <select
-          value={context.boundaryIntegrity || ''}
-          onChange={(e) => handleUpdate({ boundaryIntegrity: e.target.value as any })}
-          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
-        >
-          <option value="">Not set</option>
-          <option value="strong">Strong</option>
-          <option value="moderate">Moderate</option>
-          <option value="weak">Weak</option>
-        </select>
-        <textarea
-          value={context.boundaryNotes || ''}
-          onChange={(e) => handleUpdate({ boundaryNotes: e.target.value })}
-          placeholder="Why is the boundary strong or weak?"
-          rows={2}
-          className="w-full mt-2 text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1.5 outline-none resize-none"
-        />
-      </Section>
+      {/* Assigned Repos - no heading */}
+      {assignedRepos.length > 0 && (
+        <div className="space-y-2">
+          {assignedRepos.map(repo => {
+            return (
+              <RepoCard
+                key={repo.id}
+                repo={repo}
+                project={project}
+                useAPI={useCodeCohesionAPI}
+                expandedTeamId={expandedTeamId}
+                expandedRepoId={expandedRepoId}
+                onToggleTeam={setExpandedTeamId}
+                onToggleRepo={setExpandedRepoId}
+                onUnassign={unassignRepo}
+              />
+            )
+          })}
+        </div>
+      )}
 
-      {/* Code Size */}
-      <Section label="Code Size">
+      {/* Code */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Code</span>
         <select
           value={context.codeSize?.bucket || ''}
           onChange={(e) => handleUpdate({ codeSize: { ...context.codeSize, bucket: e.target.value as any } })}
-          className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+          className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
         >
           <option value="">Not set</option>
           <option value="tiny">Tiny</option>
@@ -396,49 +678,31 @@ export function InspectorPanel() {
           <option value="large">Large</option>
           <option value="huge">Huge</option>
         </select>
-      </Section>
+      </div>
 
-      {/* Evolution Stage (position-based) */}
-      <Section label="Evolution Stage">
-        <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
-            {context.evolutionStage === 'genesis' && '🌱 Genesis'}
-            {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
-            {context.evolutionStage === 'product/rental' && '📦 Product'}
-            {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
-          </span>
-          <button
-            onClick={() => setViewMode('strategic')}
-            className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+      {/* Boundary */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Boundary</span>
+          <select
+            value={context.boundaryIntegrity || ''}
+            onChange={(e) => handleUpdate({ boundaryIntegrity: e.target.value as any })}
+            className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
           >
-            Update
-          </button>
+            <option value="">Not set</option>
+            <option value="strong">Strong</option>
+            <option value="moderate">Moderate</option>
+            <option value="weak">Weak</option>
+          </select>
         </div>
-      </Section>
-
-      {/* Flags */}
-      <Section label="Attributes">
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={context.isLegacy || false}
-              onChange={(e) => handleUpdate({ isLegacy: e.target.checked })}
-              className="rounded border-slate-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
-            />
-            <span className="text-xs text-slate-700 dark:text-slate-300">Legacy system</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={context.isExternal || false}
-              onChange={(e) => handleUpdate({ isExternal: e.target.checked })}
-              className="rounded border-slate-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
-            />
-            <span className="text-xs text-slate-700 dark:text-slate-300">External context</span>
-          </label>
-        </div>
-      </Section>
+        <textarea
+          value={context.boundaryNotes || ''}
+          onChange={(e) => handleUpdate({ boundaryNotes: e.target.value })}
+          placeholder="Why is the boundary strong or weak?"
+          rows={2}
+          className={TEXTAREA_CLASS}
+        />
+      </div>
 
       {/* Notes */}
       <Section label="Notes">
@@ -446,134 +710,10 @@ export function InspectorPanel() {
           value={context.notes || ''}
           onChange={(e) => handleUpdate({ notes: e.target.value })}
           placeholder="Assumptions, politics, bottlenecks, risks..."
-          rows={4}
-          className="w-full text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1.5 outline-none resize-none"
+          rows={3}
+          className={TEXTAREA_CLASS}
         />
       </Section>
-
-      {/* Teams */}
-      {teams.length > 0 && (
-        <Section label="Teams">
-          <div className="space-y-1">
-            {teams.map(team => (
-              <div key={team.id} className="text-neutral-700 dark:text-neutral-300">
-                {team.name}
-                {team.topologyType && (
-                  <span className="text-neutral-500 dark:text-neutral-400 text-xs ml-2">
-                    ({team.topologyType})
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Assigned Repos */}
-      {assignedRepos.length > 0 && (
-        <Section label="Assigned Repositories">
-          {/* API Toggle */}
-          <div className="mb-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={useCodeCohesionAPI}
-                onChange={(e) => handleToggleAPI(e.target.checked)}
-                className="rounded border-slate-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500 focus:ring-2"
-              />
-              <span className="text-xs text-slate-700 dark:text-slate-300">Use CodeCohesion API</span>
-            </label>
-          </div>
-
-          <div className="space-y-2">
-            {assignedRepos.map(repo => {
-              return (
-                <RepoCard
-                  key={repo.id}
-                  repo={repo}
-                  project={project}
-                  useAPI={useCodeCohesionAPI}
-                  expandedTeamId={expandedTeamId}
-                  expandedRepoId={expandedRepoId}
-                  onToggleTeam={setExpandedTeamId}
-                  onToggleRepo={setExpandedRepoId}
-                  onUnassign={unassignRepo}
-                />
-              )
-            })}
-          </div>
-        </Section>
-      )}
-
-      {/* Member of Groups */}
-      {memberOfGroups.length > 0 && (
-        <Section label="Member of Groups">
-          <div className="flex flex-wrap gap-2">
-            {memberOfGroups.map(group => (
-              <div
-                key={group.id}
-                className="inline-flex items-center gap-1.5 px-2 py-1 rounded border transition-all group/chip"
-                style={{
-                  backgroundColor: group.color ? `${group.color}15` : '#3b82f615',
-                  borderColor: group.color || '#3b82f6',
-                }}
-              >
-                <button
-                  onClick={() => useEditorStore.setState({ selectedGroupId: group.id, selectedContextId: null })}
-                  className="text-xs font-medium hover:underline"
-                  style={{ color: group.color || '#3b82f6' }}
-                >
-                  {group.label}
-                </button>
-                <button
-                  onClick={() => removeContextFromGroup(group.id, context.id)}
-                  className="p-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/chip:opacity-100"
-                  title="Remove from group"
-                >
-                  <X size={10} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Actors */}
-      {(() => {
-        const actorConns = (project.actorConnections || []).filter(ac => ac.contextId === context.id)
-        const actorsForContext = actorConns.map(conn => {
-          const actor = project.actors?.find(a => a.id === conn.actorId)
-          return { connection: conn, actor }
-        }).filter(item => item.actor)
-
-        return actorsForContext.length > 0 ? (
-          <Section label="Actors">
-            <div className="space-y-1.5">
-              {actorsForContext.map(({ connection, actor }) => (
-                <div
-                  key={connection.id}
-                  className="flex items-center gap-2 group/actor"
-                >
-                  <button
-                    onClick={() => useEditorStore.setState({ selectedActorId: actor!.id, selectedContextId: null })}
-                    className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-2"
-                  >
-                    <Users size={12} className="text-blue-500 flex-shrink-0" />
-                    {actor!.name}
-                  </button>
-                  <button
-                    onClick={() => deleteActorConnection(connection.id)}
-                    className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/actor:opacity-100"
-                    title="Remove actor connection"
-                  >
-                    <Trash2 size={11} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </Section>
-        ) : null
-      })()}
 
       {/* Relationships */}
       {(() => {
@@ -760,21 +900,8 @@ function RepoCard({
 
   return (
     <div>
-      {/* Collapsed: Team chips + Repo chip */}
+      {/* Collapsed: Repo chip only (no team chips - teams shown above purpose) */}
       <div className="flex flex-wrap gap-1 items-center group">
-        {/* Team chips */}
-        {repoTeams.map((team: any) => (
-          <button
-            key={team.id}
-            onClick={() => onToggleTeam(expandedTeamId === team.id ? null : team.id)}
-            className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded text-[10px] font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
-            title={team.topologyType ? `${team.name} (${team.topologyType})` : team.name}
-          >
-            <Users size={10} className="inline mr-0.5" />
-            {team.name}
-          </button>
-        ))}
-
         {/* Repo chip */}
         <button
           onClick={() => onToggleRepo(isExpanded ? null : repo.id)}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings, Box } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
@@ -18,6 +18,7 @@ export function TopBar() {
   const fitToMap = useEditorStore(s => s.fitToMap)
   const addContext = useEditorStore(s => s.addContext)
   const addActor = useEditorStore(s => s.addActor)
+  const addFlowStage = useEditorStore(s => s.addFlowStage)
   const exportProject = useEditorStore(s => s.exportProject)
   const importProject = useEditorStore(s => s.importProject)
   const showGroups = useEditorStore(s => s.showGroups)
@@ -31,6 +32,10 @@ export function TopBar() {
 
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
+  const [useCodeCohesionAPI, setUseCodeCohesionAPI] = useState(() => {
+    const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
+    return stored === 'true'
+  })
 
   // Close settings popover when clicking outside
   useEffect(() => {
@@ -90,6 +95,26 @@ export function TopBar() {
     const name = prompt('Actor name:')
     if (!name) return
     addActor(name)
+  }
+
+  const handleAddStage = () => {
+    const label = prompt('Stage label:')
+    if (!label) return
+
+    const positionStr = prompt('Position (0-100):', '50')
+    if (!positionStr) return
+
+    const position = parseFloat(positionStr)
+    if (isNaN(position) || position < 0 || position > 100) {
+      alert('Position must be a number between 0 and 100')
+      return
+    }
+
+    try {
+      addFlowStage(label.trim(), position)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to add stage')
+    }
   }
 
   return (
@@ -159,6 +184,16 @@ export function TopBar() {
           label="Add Context"
           tooltip="Add new bounded context"
         />
+
+        {/* Add Stage button - only visible in Flow View */}
+        {viewMode === 'flow' && (
+          <IconButton
+            onClick={handleAddStage}
+            icon={<Hash size={16} />}
+            label="Add Stage"
+            tooltip="Add new flow stage"
+          />
+        )}
 
         {/* Add Actor button - only visible in Strategic View */}
         {viewMode === 'strategic' && (
@@ -299,6 +334,33 @@ export function TopBar() {
                       Available in Flow & Strategic views
                     </p>
                   </div>
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-neutral-700" />
+
+                {/* Integrations Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Integrations</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-600 dark:text-slate-400">Use CodeCohesion API</span>
+                    <button
+                      onClick={() => {
+                        const newValue = !useCodeCohesionAPI
+                        setUseCodeCohesionAPI(newValue)
+                        localStorage.setItem('contextflow.useCodeCohesionAPI', String(newValue))
+                      }}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                      style={{ backgroundColor: useCodeCohesionAPI ? '#3b82f6' : '#cbd5e1' }}
+                    >
+                      <span
+                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                        style={{ transform: useCodeCohesionAPI ? 'translateX(18px)' : 'translateX(2px)' }}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+                    Enable live repository stats and contributors
+                  </p>
                 </div>
 
                 <div className="border-t border-slate-200 dark:border-neutral-700" />

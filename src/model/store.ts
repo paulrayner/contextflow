@@ -150,6 +150,7 @@ interface EditorState {
   assignRepoToContext: (repoId: string, contextId: string) => void
   unassignRepo: (repoId: string) => void
   createGroup: (label: string, color?: string, notes?: string) => void
+  updateGroup: (groupId: string, updates: Partial<{ label: string; notes: string }>) => void
   deleteGroup: (groupId: string) => void
   removeContextFromGroup: (groupId: string, contextId: string) => void
   addContextToGroup: (groupId: string, contextId: string) => void
@@ -711,6 +712,40 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedContextIds: [], // clear multi-select after creating group
       undoStack: [...state.undoStack, command],
       redoStack: [],
+    }
+  }),
+
+  updateGroup: (groupId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const groupIndex = project.groups.findIndex(g => g.id === groupId)
+    if (groupIndex === -1) return state
+
+    const updatedGroup = {
+      ...project.groups[groupIndex],
+      ...updates,
+    }
+
+    const updatedGroups = [...project.groups]
+    updatedGroups[groupIndex] = updatedGroup
+
+    const updatedProject = {
+      ...project,
+      groups: updatedGroups,
+    }
+
+    // Autosave (text edits are not undoable per SPEC pattern)
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
     }
   }),
 

@@ -353,10 +353,13 @@ function ContextNode({ data }: NodeProps) {
 function StageLabels({ stages }: { stages: Array<{ label: string; position: number }> }) {
   const { x, y, zoom } = useViewport()
   const updateFlowStage = useEditorStore(s => s.updateFlowStage)
+  const deleteFlowStage = useEditorStore(s => s.deleteFlowStage)
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
   const [editValue, setEditValue] = React.useState('')
   const [draggingIndex, setDraggingIndex] = React.useState<number | null>(null)
   const [dragStartX, setDragStartX] = React.useState(0)
+  const [contextMenuIndex, setContextMenuIndex] = React.useState<number | null>(null)
+  const [contextMenuPos, setContextMenuPos] = React.useState({ x: 0, y: 0 })
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   React.useEffect(() => {
@@ -388,6 +391,33 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
     setDragStartX(e.clientX)
     e.preventDefault()
   }
+
+  const handleContextMenu = (e: React.MouseEvent, index: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenuIndex(index)
+    setContextMenuPos({ x: e.clientX, y: e.clientY })
+  }
+
+  const handleDeleteStage = (index: number) => {
+    if (stages.length <= 1) {
+      alert('Cannot delete the last stage')
+      return
+    }
+    if (window.confirm(`Delete stage "${stages[index].label}"? This can be undone with Cmd/Ctrl+Z.`)) {
+      deleteFlowStage(index)
+    }
+    setContextMenuIndex(null)
+  }
+
+  // Close context menu on click outside
+  React.useEffect(() => {
+    if (contextMenuIndex === null) return
+
+    const handleClick = () => setContextMenuIndex(null)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [contextMenuIndex])
 
   React.useEffect(() => {
     if (draggingIndex === null) return
@@ -458,6 +488,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
             }}
             onMouseDown={(e) => handleMouseDown(e, index)}
             onClick={() => !isDragging && handleStartEdit(index, stage.label)}
+            onContextMenu={(e) => handleContextMenu(e, index)}
           >
             {isEditing ? (
               <input
@@ -488,6 +519,27 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
           </div>
         )
       })}
+
+      {/* Context Menu */}
+      {contextMenuIndex !== null && (
+        <div
+          style={{
+            position: 'fixed',
+            left: contextMenuPos.x,
+            top: contextMenuPos.y,
+            zIndex: 1000,
+            pointerEvents: 'auto',
+          }}
+          className="bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-xl py-1 min-w-[160px]"
+        >
+          <button
+            onClick={() => handleDeleteStage(contextMenuIndex)}
+            className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            Delete Stage
+          </button>
+        </div>
+      )}
     </div>
   )
 }
