@@ -55,7 +55,7 @@ export function setFitViewCallback(callback: () => void) {
 }
 
 interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addToGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
   payload: {
     contextId?: string
     contextIds?: string[]
@@ -152,6 +152,8 @@ interface EditorState {
   createGroup: (label: string, color?: string, notes?: string) => void
   deleteGroup: (groupId: string) => void
   removeContextFromGroup: (groupId: string, contextId: string) => void
+  addContextToGroup: (groupId: string, contextId: string) => void
+  addContextsToGroup: (groupId: string, contextIds: string[]) => void
   addRelationship: (fromContextId: string, toContextId: string, pattern: string, description?: string) => void
   deleteRelationship: (relationshipId: string) => void
   updateRelationship: (relationshipId: string, updates: Partial<{ pattern: string; communicationMode: string; description: string }>) => void
@@ -780,6 +782,91 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     // Autosave
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  addContextToGroup: (groupId, contextId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const group = project.groups.find(g => g.id === groupId)
+    if (!group) return state
+
+    if (group.contextIds.includes(contextId)) return state
+
+    const command: EditorCommand = {
+      type: 'addToGroup',
+      payload: {
+        groupId,
+        contextId,
+      },
+    }
+
+    const updatedGroup = {
+      ...group,
+      contextIds: [...group.contextIds, contextId],
+    }
+
+    const updatedProject = {
+      ...project,
+      groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
+    }
+
+    autosaveProject(projectId, updatedProject)
+
+    return {
+      projects: {
+        ...state.projects,
+        [projectId]: updatedProject,
+      },
+      undoStack: [...state.undoStack, command],
+      redoStack: [],
+    }
+  }),
+
+  addContextsToGroup: (groupId, contextIds) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const group = project.groups.find(g => g.id === groupId)
+    if (!group) return state
+
+    const newContextIds = contextIds.filter(id => !group.contextIds.includes(id))
+    if (newContextIds.length === 0) return state
+
+    const command: EditorCommand = {
+      type: 'addToGroup',
+      payload: {
+        groupId,
+        contextIds: newContextIds,
+      },
+    }
+
+    const updatedGroup = {
+      ...group,
+      contextIds: [...group.contextIds, ...newContextIds],
+    }
+
+    const updatedProject = {
+      ...project,
+      groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
+    }
+
     autosaveProject(projectId, updatedProject)
 
     return {
@@ -1448,6 +1535,16 @@ export const useEditorStore = create<EditorState>((set) => ({
           contextIds: [...newGroups[groupIndex].contextIds, command.payload.contextId],
         }
       }
+    } else if (command.type === 'addToGroup' && command.payload.groupId) {
+      const groupIndex = newGroups.findIndex(g => g.id === command.payload.groupId)
+      if (groupIndex !== -1) {
+        newGroups = [...newGroups]
+        const contextsToRemove = command.payload.contextIds || [command.payload.contextId]
+        newGroups[groupIndex] = {
+          ...newGroups[groupIndex],
+          contextIds: newGroups[groupIndex].contextIds.filter(id => !contextsToRemove.includes(id)),
+        }
+      }
     } else if (command.type === 'addRelationship' && command.payload.relationship) {
       newRelationships = newRelationships.filter(r => r.id !== command.payload.relationship?.id)
     } else if (command.type === 'deleteRelationship' && command.payload.relationship) {
@@ -1638,6 +1735,16 @@ export const useEditorStore = create<EditorState>((set) => ({
         newGroups[groupIndex] = {
           ...newGroups[groupIndex],
           contextIds: newGroups[groupIndex].contextIds.filter(id => id !== command.payload.contextId),
+        }
+      }
+    } else if (command.type === 'addToGroup' && command.payload.groupId) {
+      const groupIndex = newGroups.findIndex(g => g.id === command.payload.groupId)
+      if (groupIndex !== -1) {
+        newGroups = [...newGroups]
+        const contextsToAdd = command.payload.contextIds || [command.payload.contextId]
+        newGroups[groupIndex] = {
+          ...newGroups[groupIndex],
+          contextIds: [...newGroups[groupIndex].contextIds, ...contextsToAdd],
         }
       }
     } else if (command.type === 'addRelationship' && command.payload.relationship) {
