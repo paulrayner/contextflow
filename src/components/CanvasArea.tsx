@@ -1792,7 +1792,7 @@ function CanvasContent() {
     const actorNodes: Node[] = viewMode === 'strategic' && project.actors
       ? project.actors.map((actor) => {
           const x = (actor.position / 100) * 2000
-          const y = 100 // Fixed y position at top
+          const y = 50 // Fixed y position at top (closer to boundary)
 
           return {
             id: actor.id,
@@ -1822,7 +1822,7 @@ function CanvasContent() {
           .filter(need => need.visibility !== false)
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
-            const y = 400 // Fixed y position in middle layer
+            const y = 250 // Fixed y position in middle layer (20% higher)
 
             return {
               id: userNeed.id,
