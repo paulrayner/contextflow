@@ -365,7 +365,6 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
   React.useEffect(() => {
     if (editingIndex !== null && inputRef.current) {
       inputRef.current.focus()
-      inputRef.current.select()
     }
   }, [editingIndex])
 
@@ -504,7 +503,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
                     setEditingIndex(null)
                   }
                 }}
-                className="bg-white dark:bg-neutral-800 border border-blue-500 dark:border-blue-400 rounded px-2 py-1 outline-none"
+                className="bg-transparent text-slate-700 dark:text-slate-200 border-2 border-blue-500 dark:border-blue-400 rounded px-2 py-1 outline-none selection:bg-blue-200 selection:text-slate-900 dark:selection:bg-blue-600 dark:selection:text-white"
                 style={{
                   fontSize: `${22.5 * zoom}px`,
                   fontWeight: 600,
