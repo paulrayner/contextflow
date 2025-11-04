@@ -352,6 +352,71 @@ function ContextNode({ data }: NodeProps) {
 // Component to render stage labels that pan/zoom with canvas
 function StageLabels({ stages }: { stages: Array<{ label: string; position: number }> }) {
   const { x, y, zoom } = useViewport()
+  const updateFlowStage = useEditorStore(s => s.updateFlowStage)
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
+  const [editValue, setEditValue] = React.useState('')
+  const [draggingIndex, setDraggingIndex] = React.useState<number | null>(null)
+  const [dragStartX, setDragStartX] = React.useState(0)
+  const inputRef = React.useRef<HTMLInputElement>(null)
+
+  React.useEffect(() => {
+    if (editingIndex !== null && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [editingIndex])
+
+  const handleStartEdit = (index: number, currentLabel: string) => {
+    setEditingIndex(index)
+    setEditValue(currentLabel)
+  }
+
+  const handleSaveEdit = (index: number) => {
+    if (editValue.trim() && editValue !== stages[index].label) {
+      try {
+        updateFlowStage(index, { label: editValue.trim() })
+      } catch (err) {
+        alert((err as Error).message)
+      }
+    }
+    setEditingIndex(null)
+  }
+
+  const handleMouseDown = (e: React.MouseEvent, index: number) => {
+    if (editingIndex !== null) return
+    setDraggingIndex(index)
+    setDragStartX(e.clientX)
+    e.preventDefault()
+  }
+
+  React.useEffect(() => {
+    if (draggingIndex === null) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = (e.clientX - dragStartX) / zoom
+      const currentPosition = stages[draggingIndex].position
+      const newPosition = Math.max(0, Math.min(100, currentPosition + (deltaX / 2000) * 100))
+
+      try {
+        updateFlowStage(draggingIndex, { position: Math.round(newPosition * 10) / 10 })
+      } catch (err) {
+        // Position conflict, ignore
+      }
+      setDragStartX(e.clientX)
+    }
+
+    const handleMouseUp = () => {
+      setDraggingIndex(null)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [draggingIndex, dragStartX, stages, updateFlowStage, zoom])
 
   return (
     <div
@@ -365,18 +430,20 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
         zIndex: 5,
       }}
     >
-      {stages.map((stage) => {
+      {stages.map((stage, index) => {
         const xPos = (stage.position / 100) * 2000
         const yPos = 40
 
-        // Apply the same transform that React Flow applies to nodes
         const transformedX = xPos * zoom + x
         const transformedY = yPos * zoom + y
+
+        const isEditing = editingIndex === index
+        const isDragging = draggingIndex === index
 
         return (
           <div
             key={stage.label}
-            className="text-slate-700 dark:text-slate-200"
+            className={`text-slate-700 dark:text-slate-200 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{
               position: 'absolute',
               left: transformedX,
@@ -386,9 +453,38 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
               fontSize: `${22.5 * zoom}px`,
               fontWeight: 600,
               letterSpacing: '-0.01em',
+              pointerEvents: 'auto',
+              userSelect: 'none',
             }}
+            onMouseDown={(e) => handleMouseDown(e, index)}
+            onClick={() => !isDragging && handleStartEdit(index, stage.label)}
           >
-            {stage.label}
+            {isEditing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={() => handleSaveEdit(index)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveEdit(index)
+                  } else if (e.key === 'Escape') {
+                    setEditingIndex(null)
+                  }
+                }}
+                className="bg-white dark:bg-neutral-800 border border-blue-500 dark:border-blue-400 rounded px-2 py-1 outline-none"
+                style={{
+                  fontSize: `${22.5 * zoom}px`,
+                  fontWeight: 600,
+                  letterSpacing: '-0.01em',
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              />
+            ) : (
+              stage.label
+            )}
           </div>
         )
       })}
