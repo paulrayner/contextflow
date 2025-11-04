@@ -73,14 +73,22 @@ Fields:
 
 ### Groups (capability clusters)
 - User-defined clusters of multiple bounded contexts
-- Rendered as a translucent, padded hull (convex polygon enclosing all member contexts) around those contexts
-- Overlap allowed (multiple hulls can cover the same canvas area)
+- Rendered as organic, blob-like shapes with smooth curves wrapping naturally around member contexts
+  - Algorithm: convex hull of padded context positions + Catmull-Rom curve smoothing
+  - Visual style: translucent fill, minimal/subtle stroke, flowing organic boundaries
+  - Matches aesthetic of canonical Wardley Maps (see `docs/strategic/LWM.png`, `docs/strategic/microsoft-fabric-wardley-map-full.png`)
+- Blob shape dynamically recomputes when:
+  - Member contexts are moved (drag)
+  - View switches between Flow and Strategic (different X positions)
+  - Contexts are added/removed from group
+- Overlap allowed (multiple blobs can cover the same canvas area)
 - Fields:
   - `label` (e.g. `"Data Platform / Ingestion"`)
   - `notes`
   - `color` (pastel/translucent tint)
   - `contextIds` (members)
 - Deleting a group does not delete the contexts
+- Opacity control: adjustable slider in TopBar affects all groups uniformly
 
 ### Actors (Wardley map users)
 - Represents users of the map itself in Strategic View (e.g. "Clinical Researchers", "Data Scientists")

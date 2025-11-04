@@ -392,3 +392,80 @@ At the end of Milestone 5:
 - Clear distinction between problem space (user needs) and solution space (components)
 - 2-hop connection highlighting shows complete dependency chains
 - Full Wardley Map compliance: users → needs → components → evolution → dependency flow
+
+---
+
+## Milestone 6: Organic Blob-Based Group Rendering
+
+### Goal
+Replace rectangular group hulls with organic, blob-like shapes that flow naturally around member contexts, matching the aesthetic of canonical Wardley Maps.
+
+### Current State
+Groups currently render as rectangles with rounded corners (12px border-radius) using simple bounding box calculation. This produces rigid, geometric shapes that don't match the organic, flowing aesthetic seen in professional Wardley Maps.
+
+### Design Inspiration
+See reference Wardley Maps:
+- `docs/strategic/LWM.png`
+- `docs/strategic/microsoft-fabric-wardley-map-full.png`
+
+These show groups as smooth, blob-like shapes that naturally wrap around components with organic curves rather than sharp corners.
+
+### Deliverables
+
+**Convex Hull + Curve Smoothing Algorithm:**
+- Replace bounding box calculation with convex hull algorithm
+- Add padding around each member context before hull calculation (creates breathing room)
+- Apply Catmull-Rom or Bezier curve smoothing to hull vertices for organic edges
+- Libraries to evaluate:
+  - `d3-polygon` for convex hull computation
+  - `d3-shape` for curve interpolation (curveCardinal or curveCatmullRom)
+  - Alternative: `hull.js` or `@turf/turf` for geospatial operations
+
+**SVG Path Rendering:**
+- Generate SVG path from smoothed hull points
+- Render as custom overlay in React Flow (below contexts, z-index: 0)
+- Maintain existing visual properties:
+  - Semi-transparent fill color (controlled by `groupOpacity` slider)
+  - Minimal or no stroke (or very subtle dashed stroke)
+  - Selection highlighting (thicker stroke when group selected)
+  - Dark mode support
+
+**Dynamic Updates:**
+- Recompute blob shape when member contexts move
+- Smooth animations when shape changes during drag operations
+- Handle view switching: separate blob calculations for Flow View (flow.x) and Strategic View (strategic.x)
+- Update blob when contexts are added/removed from group
+
+**Edge Cases:**
+- Single context in group: render padded circle/ellipse around context
+- Two contexts: render elongated blob between them
+- Linear arrangements: ensure adequate padding on all sides
+- Very large groups: optimize performance for 10+ member contexts
+
+**Maintain Existing Functionality:**
+- Group selection by clicking blob area
+- Overlapping blobs (multiple groups covering same canvas area)
+- Group opacity control (existing slider in TopBar)
+- Group color customization
+- InspectorPanel editing (label, color, notes, membership)
+- Undo/redo for group operations
+- Hide/show groups toggle
+
+**Implementation Location:**
+- Update `GroupNode` component in `src/components/CanvasArea.tsx` (lines 639-721)
+- Extract blob calculation logic into separate utility function (e.g., `src/lib/blobShape.ts`)
+- Update group node creation logic (lines 1734-1778) to use organic shape dimensions
+
+### Technical Considerations
+- **Performance**: Convex hull is O(n log n) but acceptable for typical group sizes (2-20 contexts)
+- **Padding strategy**: Add ~40-60px padding around each context node based on its size
+- **Curve smoothing**: Balance between organic appearance and computational cost
+- **View-specific shapes**: Flow and Strategic views will have different blob shapes since contexts have different X positions in each view
+
+### Result
+At the end of Milestone 6:
+- Groups render with smooth, organic boundaries matching professional Wardley Map aesthetics
+- Blob shapes dynamically adapt to member context positions and movements
+- All existing group functionality preserved (selection, editing, overlap, opacity)
+- Visual consistency with canonical Wardley Map style
+- Enhanced professional appearance for strategic presentations

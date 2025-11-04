@@ -35,6 +35,8 @@
   "dependencies": {
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "d3-polygon": "^3.0.1",
+    "d3-shape": "^3.2.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.460.0",
     "react": "^18.2.0",
@@ -45,6 +47,8 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
+    "@types/d3-polygon": "^3.0.2",
+    "@types/d3-shape": "^3.1.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.0",

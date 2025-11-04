@@ -240,10 +240,14 @@ export interface TemporalKeyframe {
   - arrowhead points to upstream (`toContextId`)
   - symmetric styling for `shared-kernel` / `partnership`
   - light obstacle avoidance so lines don't run straight through other nodes
-- Renders groups
-  - compute a convex hull (or padded bounding polygon) around all member contexts
-  - draw a translucent blob with the group's label
-  - allow overlapping hulls (multiple groups can cover the same canvas area)
+- Renders groups as organic blobs
+  - compute padded points around each member context (adds breathing room)
+  - calculate convex hull of all padded points (finds outer boundary)
+  - apply Catmull-Rom curve smoothing to hull vertices (creates organic edges)
+  - generate SVG path and render as translucent blob with group label
+  - algorithm: d3-polygon (hull) + d3-shape (curve interpolation)
+  - allow overlapping blobs (multiple groups can cover the same canvas area)
+  - blob shape recomputes dynamically when contexts move or view switches
 - Renders axes
   - Flow View:
     - X axis = `project.viewConfig.flowStages`
@@ -383,9 +387,14 @@ Text edits in the InspectorPanel (notes, boundaryNotes, etc.) are *not* undoable
 - External:
   - Small “External” badge and/or dotted ring
   - Cannot assign repos to this node
-- Group hulls:
-  - Translucent pastel blobs with label text
-  - Groups can overlap
+- Group blobs:
+  - Organic, smooth shapes wrapping around member contexts
+  - Generated via convex hull + Catmull-Rom curve smoothing
+  - Translucent fill with adjustable opacity (slider in TopBar)
+  - Minimal or subtle dashed stroke for boundary definition
+  - Label text positioned in blob center or near top-left
+  - Groups can overlap (multiple blobs covering same canvas area)
+  - Dynamic reshaping when contexts move, view switches, or membership changes
 
 These rules are what devs and AI must follow when rendering.
 

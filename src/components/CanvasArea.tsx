@@ -25,6 +25,7 @@ import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedCon
 import { User, Target } from 'lucide-react'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
+import { generateBlobPath } from '../lib/blobShape'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -641,16 +642,13 @@ function GroupNode({ data }: NodeProps) {
   const isSelected = data.isSelected as boolean
   const [isHovered, setIsHovered] = React.useState(false)
   const groupOpacity = useEditorStore(s => s.groupOpacity)
+  const blobPath = data.blobPath as string
+  const blobBounds = data.blobBounds as { width: number; height: number }
 
-  // Detect dark mode
   const isDarkMode = document.documentElement.classList.contains('dark')
 
   const groupColor = group.color || '#3b82f6'
 
-  // Check if color is already in rgba format
-  const isRgba = groupColor.startsWith('rgba(')
-
-  // Extract RGB values from either hex or rgba format
   const getRgbValues = (color: string): [number, number, number] => {
     if (color.startsWith('rgba(') || color.startsWith('rgb(')) {
       const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
@@ -658,7 +656,6 @@ function GroupNode({ data }: NodeProps) {
         return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])]
       }
     }
-    // Hex format
     const r = parseInt(color.slice(1, 3), 16)
     const g = parseInt(color.slice(3, 5), 16)
     const b = parseInt(color.slice(5, 7), 16)
@@ -667,7 +664,6 @@ function GroupNode({ data }: NodeProps) {
 
   const [r, g, b] = getRgbValues(groupColor)
 
-  // Apply consistent opacity to all groups
   const backgroundColor = `rgba(${r}, ${g}, ${b}, ${groupOpacity})`
   const borderColor = `rgb(${r}, ${g}, ${b})`
 
@@ -677,11 +673,6 @@ function GroupNode({ data }: NodeProps) {
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: backgroundColor,
-        borderRadius: '12px',
-        border: isSelected ? `2px solid ${borderColor}` : `2px dashed ${borderColor}`,
-        boxShadow: isDarkMode ? 'none' : `0 2px 10px rgba(${r}, ${g}, ${b}, 0.3)`,
-        transition: 'all 0.2s',
         position: 'relative',
         cursor: 'pointer',
         outline: 'none',
@@ -689,7 +680,28 @@ function GroupNode({ data }: NodeProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Group label */}
+      <svg
+        width={blobBounds.width}
+        height={blobBounds.height}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          overflow: 'visible',
+        }}
+      >
+        <path
+          d={blobPath}
+          fill={backgroundColor}
+          stroke={borderColor}
+          strokeWidth={isSelected ? 2 : 1}
+          strokeDasharray={isSelected ? 'none' : '5,5'}
+          style={{
+            filter: isDarkMode ? 'none' : `drop-shadow(0 2px 10px rgba(${r}, ${g}, ${b}, 0.3))`,
+            transition: 'all 0.2s',
+          }}
+        />
+      </svg>
       <div
         style={{
           position: 'absolute',
@@ -1735,10 +1747,8 @@ function CanvasContent() {
       const contexts = project.contexts.filter(c => group.contextIds.includes(c.id))
       if (contexts.length === 0) return null
 
-      // Calculate bounding box for all contexts in group
       let xPositions, yPositions
       if (viewMode === 'distillation') {
-        // Not used since groups are hidden in distillation view
         xPositions = []
         yPositions = []
       } else {
@@ -1746,22 +1756,86 @@ function CanvasContent() {
         yPositions = contexts.map(c => c.positions.shared.y * 10)
       }
 
-      const minX = Math.min(...xPositions) - 30
-      const maxX = Math.max(...xPositions) + 200
-      const minY = Math.min(...yPositions) - 30
-      const maxY = Math.max(...yPositions) + 150
+      const BLOB_PADDING = 60
 
+      const contextsWithSizes = contexts.map((c, idx) => {
+        const size = NODE_SIZES[c.size || 'medium']
+        return {
+          x: xPositions[idx],
+          y: yPositions[idx],
+          width: size.width,
+          height: size.height
+        }
+      })
+
+      const minX = Math.min(...contextsWithSizes.map(c => c.x - c.width / 2))
+      const maxX = Math.max(...contextsWithSizes.map(c => c.x + c.width / 2))
+      const minY = Math.min(...contextsWithSizes.map(c => c.y - c.height / 2))
+      const maxY = Math.max(...contextsWithSizes.map(c => c.y + c.height / 2))
+
+      const contextPoints = contextsWithSizes.map(c => ({
+        x: c.x - minX,
+        y: c.y - minY,
+        width: c.width,
+        height: c.height
+      }))
+
+      const blobPath = generateBlobPath(contextPoints, BLOB_PADDING)
+
+      // Parse the blob path to find its actual bounds
+      const pathCoords = blobPath.match(/-?[\d.]+/g)?.map(parseFloat) || []
+      const pathXCoords = pathCoords.filter((_, i) => i % 2 === 0)
+      const pathYCoords = pathCoords.filter((_, i) => i % 2 === 1)
+      const blobMinX = Math.min(...pathXCoords)
+      const blobMaxX = Math.max(...pathXCoords)
+      const blobMinY = Math.min(...pathYCoords)
+      const blobMaxY = Math.max(...pathYCoords)
+
+      const width = maxX - minX + 2 * BLOB_PADDING
+      const height = maxY - minY + 2 * BLOB_PADDING
+
+      // Debug logging for Fulfillment & Shipping group
+      if (group.label === 'Fulfillment & Shipping') {
+        console.group('🔍 Fulfillment & Shipping Blob Debug')
+        console.log('Original contexts (absolute coords):')
+        contexts.forEach((c, i) => {
+          const x = viewMode === 'flow' ? c.positions.flow.x * 20 : c.positions.strategic.x * 20
+          const y = c.positions.shared.y * 10
+          const size = NODE_SIZES[c.size || 'medium']
+          console.log(`  ${c.name}: x=${x}, y=${y}, w=${size.width}, h=${size.height}`)
+        })
+        console.log('\nBounding box:')
+        console.log(`  minX=${minX}, maxX=${maxX}, minY=${minY}, maxY=${maxY}`)
+        console.log('\nTranslated contextPoints (relative to minX, minY):')
+        contextPoints.forEach((p, i) => {
+          console.log(`  Context ${i}: x=${p.x.toFixed(1)}, y=${p.y.toFixed(1)}, w=${p.width}, h=${p.height}`)
+          console.log(`    Edges: left=${(p.x - p.width/2).toFixed(1)}, right=${(p.x + p.width/2).toFixed(1)}, top=${(p.y - p.height/2).toFixed(1)}, bottom=${(p.y + p.height/2).toFixed(1)}`)
+        })
+        console.log('\nBlob path actual bounds:')
+        console.log(`  path minX=${blobMinX.toFixed(1)}, maxX=${blobMaxX.toFixed(1)}`)
+        console.log(`  path minY=${blobMinY.toFixed(1)}, maxY=${blobMaxY.toFixed(1)}`)
+        console.log('\nBlob positioning:')
+        console.log(`  position: (${minX - BLOB_PADDING}, ${minY - BLOB_PADDING})`)
+        console.log(`  dimensions: ${width} × ${height}`)
+        console.log(`  padding: ${BLOB_PADDING}`)
+        console.groupEnd()
+      }
+
+      // Since blob path is now translated to start at (0,0), position blob container
+      // at the context bounding box edges (blob extends padding beyond contexts internally)
       return {
         id: `group-${group.id}`,
         type: 'group',
-        position: { x: minX, y: minY },
+        position: { x: blobMinX + minX, y: blobMinY + minY },
         data: {
           group,
           isSelected: group.id === selectedGroupId,
+          blobPath,
+          blobBounds: { width, height },
         },
         style: {
-          width: maxX - minX,
-          height: maxY - minY,
+          width,
+          height,
           zIndex: 0,
           background: 'transparent',
           border: 'none',
@@ -1769,8 +1843,8 @@ function CanvasContent() {
           padding: 0,
         },
         className: 'group-node',
-        width: maxX - minX,
-        height: maxY - minY,
+        width,
+        height,
         draggable: false,
         selectable: true,
         connectable: false,
