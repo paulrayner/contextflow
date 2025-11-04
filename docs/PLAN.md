@@ -262,10 +262,10 @@ That is the MVP we ship as open source.
 
 ---
 
-## Milestone 4: SPEC Compliance & Wardley Map Refinement
+## ✅ Milestone 4: SPEC Compliance & Full Editability (Completed Nov 4, 2025)
 
 ### Goal
-Complete the missing SPEC.md requirements and improve Strategic View's fidelity to canonical Wardley mapping practices.
+Complete the missing SPEC.md requirements for full editing control over flow stages, relationships, and group membership.
 
 ### Deliverables
 
