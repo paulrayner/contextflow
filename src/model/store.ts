@@ -55,7 +55,7 @@ export function setFitViewCallback(callback: () => void) {
 }
 
 interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
   payload: {
     contextId?: string
     contextIds?: string[]
@@ -85,6 +85,8 @@ interface EditorCommand {
     flowStage?: { label: string; position: number }
     oldFlowStage?: { label: string; position: number }
     newFlowStage?: { label: string; position: number }
+    oldRelationship?: any
+    newRelationship?: any
   }
 }
 
@@ -152,6 +154,8 @@ interface EditorState {
   removeContextFromGroup: (groupId: string, contextId: string) => void
   addRelationship: (fromContextId: string, toContextId: string, pattern: string, description?: string) => void
   deleteRelationship: (relationshipId: string) => void
+  updateRelationship: (relationshipId: string, updates: Partial<{ pattern: string; communicationMode: string; description: string }>) => void
+  setSelectedRelationship: (relationshipId: string | null) => void
   addActor: (name: string) => void
   deleteActor: (actorId: string) => void
   updateActor: (actorId: string, updates: Partial<Actor>) => void
@@ -863,6 +867,69 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
+  updateRelationship: (relationshipId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return state
+
+    const project = state.projects[projectId]
+    if (!project) return state
+
+    const relationshipIndex = project.relationships.findIndex(r => r.id === relationshipId)
+    if (relationshipIndex === -1) return state
+
+    const oldRelationship = project.relationships[relationshipIndex]
+    const newRelationship = { ...oldRelationship, ...updates }
+
+    const updatedRelationships = [...project.relationships]
+    updatedRelationships[relationshipIndex] = newRelationship
+
+    const updatedProject = {
+      ...project,
+      relationships: updatedRelationships,
+    }
+
+    const patternChanged = updates.pattern !== undefined && updates.pattern !== oldRelationship.pattern
+
+    if (patternChanged) {
+      const command: EditorCommand = {
+        type: 'updateRelationship',
+        payload: {
+          relationshipId,
+          oldRelationship,
+          newRelationship,
+        },
+      }
+
+      autosaveProject(projectId, updatedProject)
+
+      return {
+        projects: {
+          ...state.projects,
+          [projectId]: updatedProject,
+        },
+        undoStack: [...state.undoStack, command],
+        redoStack: [],
+      }
+    } else {
+      autosaveProject(projectId, updatedProject)
+
+      return {
+        projects: {
+          ...state.projects,
+          [projectId]: updatedProject,
+        },
+      }
+    }
+  }),
+
+  setSelectedRelationship: (relationshipId) => set({
+    selectedRelationshipId: relationshipId,
+    selectedContextId: null,
+    selectedContextIds: [],
+    selectedGroupId: null,
+    selectedActorId: null,
+  }),
+
   addActor: (name) => set((state) => {
     const projectId = state.activeProjectId
     if (!projectId) return state
@@ -1385,6 +1452,12 @@ export const useEditorStore = create<EditorState>((set) => ({
       newRelationships = newRelationships.filter(r => r.id !== command.payload.relationship?.id)
     } else if (command.type === 'deleteRelationship' && command.payload.relationship) {
       newRelationships = [...newRelationships, command.payload.relationship]
+    } else if (command.type === 'updateRelationship' && command.payload.relationshipId && command.payload.oldRelationship) {
+      const relIndex = newRelationships.findIndex(r => r.id === command.payload.relationshipId)
+      if (relIndex !== -1) {
+        newRelationships = [...newRelationships]
+        newRelationships[relIndex] = command.payload.oldRelationship
+      }
     } else if (command.type === 'addActor' && command.payload.actor) {
       newActors = newActors.filter(a => a.id !== command.payload.actor?.id)
     } else if (command.type === 'deleteActor' && command.payload.actor) {
@@ -1571,6 +1644,12 @@ export const useEditorStore = create<EditorState>((set) => ({
       newRelationships = [...newRelationships, command.payload.relationship]
     } else if (command.type === 'deleteRelationship' && command.payload.relationship) {
       newRelationships = newRelationships.filter(r => r.id !== command.payload.relationship?.id)
+    } else if (command.type === 'updateRelationship' && command.payload.relationshipId && command.payload.newRelationship) {
+      const relIndex = newRelationships.findIndex(r => r.id === command.payload.relationshipId)
+      if (relIndex !== -1) {
+        newRelationships = [...newRelationships]
+        newRelationships[relIndex] = command.payload.newRelationship
+      }
     } else if (command.type === 'addActor' && command.payload.actor) {
       newActors = [...newActors, command.payload.actor]
     } else if (command.type === 'deleteActor' && command.payload.actor) {
