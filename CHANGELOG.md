@@ -4,6 +4,16 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.5.0] - 2025-11-03
+
+- Flow Stage markers now editable with position updates (undoable)
+- Relationship editing for pattern, communication mode, and description
+- Relationship pattern changes are undoable (text edits autosave)
+- Selectable relationship edges on canvas
+- Add existing contexts to groups individually or in batch
+- Group membership changes fully undoable
+- Comprehensive test suite with 27 passing tests across all features
+
 ## [0.4.0] - 2025-11-01
 
 - Temporal evolution mode for Strategic View showing context positions over time
