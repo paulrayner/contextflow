@@ -16,6 +16,80 @@ We will use `examples/sample.project.json` as our demo fixture. That file encode
 
 ---
 
+## Completed Milestones
+
+The following milestones have been fully implemented and shipped:
+
+### ✅ Milestone 1: Flow View core (v0.1.0 - Oct 30, 2025)
+- All deliverables completed
+- Flow View canvas with dual-axis visualization
+- Visual bounded context nodes with strategic classification colors
+- DDD relationship edges with pattern labels
+- Inspector panel with read-only context details
+- Verified: `185e9ed feat: complete Milestone 1 - Flow View foundation`
+
+### ✅ Milestone 2: Editing + Strategic View (v0.2.0 - Oct 30, 2025)
+- All deliverables completed
+- Strategic View with Wardley evolution bands
+- Animated view transitions using Framer Motion
+- Full context editing in Inspector Panel
+- Context creation and deletion
+- Node dragging with position updates
+- Undo/Redo for structural actions
+- IndexedDB persistence
+- Project import/export
+- Dark mode toggle
+- Verified: `c08d016 feat: complete Milestone 2 - editing and Strategic View`
+
+### ✅ Milestone 3: Repos, Teams, Groups (v0.3.0 - Nov 1, 2025)
+- All deliverables completed
+- RepoSidebar with drag-drop assignment
+- Multi-select and group drag
+- RelationshipCreateDialog with all DDD patterns
+- Groups rendered as translucent hulls
+- Team management with topology types
+- Undo/redo for repos, relationships, groups
+- CodeCohesion API integration for live repo stats
+- Multi-project support
+- Verified: `c258de8 feat: implement Milestone 3 - Repos, Teams, and Groups`
+
+### Beyond MVP Features (v0.4.0+)
+
+The following features were implemented beyond the original 3-milestone plan:
+
+**Temporal Evolution (v0.4.0)**
+- Time-based visualization in Strategic View
+- Keyframe creation and management at specific dates
+- Timeline slider with playback animation
+- Position interpolation between keyframes
+- Context fade in/out for appearing/disappearing contexts
+- See: `docs/strategic/PLAN.md` for detailed spec
+
+**Distillation View**
+- Nick Tune's Core Domain Chart visualization
+- Business Differentiation vs Model Complexity axes
+- Strategic classification derived from quadrant position
+
+**Actors (Wardley Map Users)**
+- Actor nodes at top of Strategic View
+- Actor-to-context connections
+- Actor management in InspectorPanel
+
+**UI/UX Enhancements**
+- Dynamic edge routing for shortest path connections
+- Filter toggles for groups and relationships visibility
+- Adjustable group opacity
+- Highlight connected contexts when selecting relationships
+- Collapsible repo info with expandable stats
+
+---
+
+## Original Milestone Specifications
+
+(Preserved for historical reference)
+
+---
+
 ## Milestone 1: Flow View core
 
 ### Goal
@@ -185,3 +259,109 @@ At the end of Milestone 3 you can:
 - Tell a story about strategic dependency, delivery flow, ownership, and boundary health in one tool
 
 That is the MVP we ship as open source.
+
+---
+
+## Milestone 4: SPEC Compliance & Wardley Map Refinement
+
+### Goal
+Complete the missing SPEC.md requirements and improve Strategic View's fidelity to canonical Wardley mapping practices.
+
+### Deliverables
+
+**Editable Flow Stage Markers:**
+- Add UI to edit Flow View stage markers (currently read-only)
+- Allow users to:
+  - Click stage label to edit text inline (autosave on blur, one undo action per edit)
+  - Drag stage label left/right to reposition along Flow View X-axis (horizontal only)
+  - Add new stages with "Add Stage" button in TopBar (only visible in Flow View)
+    - Creates stage at next available position (evenly distributed between existing stages)
+    - User can then drag to desired position and click to rename
+  - Delete stages via right-click context menu on stage label (with confirmation)
+- Validation rules:
+  - Stage positions must be unique (no two stages at same X position)
+  - Stage labels must be unique
+  - No constraints on proximity between stages
+- Implement store actions:
+  - `updateFlowStage(index, updates)` to modify label/position
+  - `addFlowStage(label, position)` to create new stage
+  - `deleteFlowStage(index)` to remove stage
+- Add undo/redo support for stage repositioning and add/delete (text edits autosave, not undoable)
+- Persist changes to `project.viewConfig.flowStages`
+
+**Relationship Editing:**
+- Add ability to edit relationships after creation (currently can only delete)
+- Make relationship edges clickable on canvas to select them:
+  - Click edge → selects relationship (distinguished from hover highlight)
+  - Shows selection state visually (e.g., thicker line, different color)
+  - Opens relationship in InspectorPanel
+- When relationship is selected in InspectorPanel, show editable fields:
+  - Pattern (dropdown with all 8 DDD patterns)
+  - Communication Mode (text input)
+  - Description (textarea)
+- Implement `updateRelationship(relationshipId, updates)` action in store
+- Text edits autosave on blur (not undoable, follows existing pattern)
+- Pattern changes are undoable actions
+- Real-time edge label updates when pattern changes
+
+**Group Membership Management:**
+- Add ability to add existing contexts to a group (can currently only remove or create from multi-select)
+- Two methods for adding contexts to groups:
+  1. Multi-select contexts on canvas → "Add to Group" in floating action panel → select target group
+  2. Select group → InspectorPanel shows "Add Contexts" with multi-select or individual add
+- Implement `addContextToGroup(groupId, contextId)` action in store
+- Support batch add: `addContextsToGroup(groupId, contextIds[])`
+- Add undo/redo support for adding contexts to groups (batch add is single undo action)
+- Group hull automatically expands to encompass new members
+
+### Result
+At the end of Milestone 4:
+- All SPEC.md behavioral requirements are fully implemented
+- Users have full editorial control over stage markers, relationships, and group membership
+- Complete undo/redo coverage for all editing operations
+- Tool achieves full compliance with the behavioral contract defined in SPEC.md
+
+---
+
+## Milestone 5: Wardley Map User Needs & Value Chain
+
+### Goal
+Improve Strategic View's fidelity to canonical Wardley mapping by adding the user needs layer and value chain visualization.
+
+### Deliverables
+
+**User Needs at Top of Map:**
+- Add user needs at top of Strategic View (canonical Wardley position)
+- Distinguish problem space (user needs) from solution space (contexts/components)
+- Position user needs above the evolution axis as anchor points
+
+**User Needs as First-Class Entities:**
+- Support adding/editing/deleting user needs with undo/redo
+- Store user needs separately from actors (different semantics: user needs vs. map users)
+- User need properties:
+  - `name` (e.g., "Secure patient data access")
+  - `description` (optional)
+  - Visibility flag (shown/hidden)
+- InspectorPanel support for editing user needs
+
+**Value Chain Visualization:**
+- Add visual anchor lines showing value chain from user needs down to components
+- Connect user needs to the contexts/components they depend on
+- Support creating/deleting need-to-context connections
+- Visual styling:
+  - Dotted or dashed lines from needs to contexts
+  - Different color/style from DDD relationship edges
+  - Shows dependency flow from problem space to solution space
+
+**Value Chain Positioning:**
+- User needs positioned only horizontally (along evolution axis)
+- Vertical position fixed at top of Strategic View canvas
+- Drag to adjust horizontal position (evolution stage)
+- Visual Y-axis label clarification: "User Needs" at top, "Value Delivery" below
+
+### Result
+At the end of Milestone 5:
+- Strategic View accurately represents canonical Wardley mapping structure
+- Clear distinction between problem space (user needs) and solution space (components)
+- Value chain visualization shows how contexts serve user needs
+- Full Wardley Map compliance: user needs → components → evolution → dependency flow
