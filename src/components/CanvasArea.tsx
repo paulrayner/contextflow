@@ -1159,11 +1159,20 @@ function CanvasBoundary() {
 // Component to render Y-axis labels that pan/zoom with canvas
 function YAxisLabels() {
   const { x, y, zoom } = useViewport()
+  const viewMode = useEditorStore(s => s.activeViewMode)
 
-  const labels = [
-    { text: 'User-Facing / Value Delivery', yPos: 325 },
-    { text: 'Enabling / Platform', yPos: 1000 }
-  ]
+  // Different labels for Strategic View (Wardley Map three-layer structure)
+  // vs Flow View (strategic classification)
+  const labels = viewMode === 'strategic'
+    ? [
+        { text: 'Map Users', yPos: 50 },
+        { text: 'User Needs', yPos: 200 },
+        { text: 'Value Delivery', yPos: 700 }
+      ]
+    : [
+        { text: 'User-Facing / Value Delivery', yPos: 325 },
+        { text: 'Enabling / Platform', yPos: 1000 }
+      ]
 
   return (
     <div
