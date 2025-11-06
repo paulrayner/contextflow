@@ -2,9 +2,6 @@
 
 ## In Progress
 
-- [ ] Set up sample empty practice project in production demo
-- [ ] Rename Flow view to Stream view
-
 **Strategic View Enhancements:**
 - [ ] Organic blob-based group rendering (see Milestone 6 in [docs/PLAN.md](docs/PLAN.md))
 
@@ -24,6 +21,8 @@
 - [ ] Add example projects library (beyond ACME and cBioPortal)
 
 ## Done
+- [x] Set up sample empty practice project in production demo
+- [x] Rename Flow view to Value Stream view
 - [x] Milestone 1: Flow View core (v0.1.0)
 - [x] Milestone 2: Editing + Strategic View (v0.2.0)
 - [x] Milestone 3: Repos, Teams, Groups (v0.3.0)
