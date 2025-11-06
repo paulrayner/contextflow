@@ -6,6 +6,8 @@ All notable changes to ContextFlow will be documented in this file.
 
 ## [0.6.1] - 2025-11-05
 
+- "Add User Need" button in TopBar for Strategic View to create new user needs
+- Strategic View button reordering to match workflow: Add Actor → Add User Need → Add Context
 - Empty Project template for practicing context mapping in production demo
 - Value Stream view label replacing Flow view for clearer terminology
 - cBioPortal demo map enhanced with complete user needs value chain (7 user needs connecting 3 actors to contexts)
