@@ -472,48 +472,152 @@
       "position": 70
     }
   ],
-  "actorConnections": [
+  "userNeeds": [
     {
-      "id": "conn.researcher-portal",
-      "actorId": "actor.clinical-researcher",
-      "contextId": "ctx.portalExperience",
-      "notes": "Primary interface for exploring studies and cohorts"
+      "id": "need.explore-cohorts",
+      "name": "Explore patient cohorts across studies",
+      "description": "Search and filter cancer studies, view mutation frequencies, and identify research cohorts",
+      "position": 15
     },
     {
-      "id": "conn.researcher-query",
-      "actorId": "actor.clinical-researcher",
-      "contextId": "ctx.queryEngine",
-      "notes": "Runs survival analysis and cohort queries"
+      "id": "need.analyze-survival",
+      "name": "Analyze survival outcomes",
+      "description": "Run survival analysis on patient cohorts to identify prognostic factors",
+      "position": 25
     },
     {
-      "id": "conn.researcher-session",
-      "actorId": "actor.clinical-researcher",
-      "contextId": "ctx.sessionService",
-      "notes": "Saves virtual studies and custom patient groups"
+      "id": "need.save-research",
+      "name": "Save and share research findings",
+      "description": "Persist virtual studies and patient groups for collaboration and future analysis",
+      "position": 35
     },
     {
-      "id": "conn.oncologist-portal",
+      "id": "need.lookup-patient",
+      "name": "Look up patient genomic profile",
+      "description": "View specific patient's mutations and genomic alterations for treatment planning",
+      "position": 40
+    },
+    {
+      "id": "need.find-treatments",
+      "name": "Find treatment options",
+      "description": "Identify actionable mutations and relevant therapies based on genomic profile",
+      "position": 50
+    },
+    {
+      "id": "need.automate-analysis",
+      "name": "Automate data analysis",
+      "description": "Integrate cBioPortal data into computational pipelines and custom analysis workflows",
+      "position": 65
+    },
+    {
+      "id": "need.export-data",
+      "name": "Export cohort data",
+      "description": "Retrieve structured clinical and genomic data for downstream analysis",
+      "position": 75
+    }
+  ],
+  "actorNeedConnections": [
+    {
+      "id": "aconn.researcher-explore",
+      "actorId": "actor.clinical-researcher",
+      "userNeedId": "need.explore-cohorts"
+    },
+    {
+      "id": "aconn.researcher-survival",
+      "actorId": "actor.clinical-researcher",
+      "userNeedId": "need.analyze-survival"
+    },
+    {
+      "id": "aconn.researcher-save",
+      "actorId": "actor.clinical-researcher",
+      "userNeedId": "need.save-research"
+    },
+    {
+      "id": "aconn.oncologist-lookup",
       "actorId": "actor.treating-oncologist",
-      "contextId": "ctx.portalExperience",
-      "notes": "Views patient genomic profiles and treatment options"
+      "userNeedId": "need.lookup-patient"
     },
     {
-      "id": "conn.oncologist-query",
+      "id": "aconn.oncologist-treatments",
       "actorId": "actor.treating-oncologist",
-      "contextId": "ctx.queryEngine",
-      "notes": "Queries mutation data for specific patients"
+      "userNeedId": "need.find-treatments"
     },
     {
-      "id": "conn.bioinformatician-api",
+      "id": "aconn.bioinformatician-automate",
       "actorId": "actor.bioinformatician",
-      "contextId": "ctx.publicApi",
-      "notes": "Programmatic access for data integration pipelines"
+      "userNeedId": "need.automate-analysis"
     },
     {
-      "id": "conn.bioinformatician-query",
+      "id": "aconn.bioinformatician-export",
       "actorId": "actor.bioinformatician",
-      "contextId": "ctx.queryEngine",
-      "notes": "Accesses cohort data for computational analysis"
+      "userNeedId": "need.export-data"
+    }
+  ],
+  "needContextConnections": [
+    {
+      "id": "nconn.explore-portal",
+      "userNeedId": "need.explore-cohorts",
+      "contextId": "ctx.portalExperience"
+    },
+    {
+      "id": "nconn.explore-query",
+      "userNeedId": "need.explore-cohorts",
+      "contextId": "ctx.queryEngine"
+    },
+    {
+      "id": "nconn.survival-query",
+      "userNeedId": "need.analyze-survival",
+      "contextId": "ctx.queryEngine"
+    },
+    {
+      "id": "nconn.survival-portal",
+      "userNeedId": "need.analyze-survival",
+      "contextId": "ctx.portalExperience"
+    },
+    {
+      "id": "nconn.save-session",
+      "userNeedId": "need.save-research",
+      "contextId": "ctx.sessionService"
+    },
+    {
+      "id": "nconn.save-portal",
+      "userNeedId": "need.save-research",
+      "contextId": "ctx.portalExperience"
+    },
+    {
+      "id": "nconn.lookup-portal",
+      "userNeedId": "need.lookup-patient",
+      "contextId": "ctx.portalExperience"
+    },
+    {
+      "id": "nconn.lookup-query",
+      "userNeedId": "need.lookup-patient",
+      "contextId": "ctx.queryEngine"
+    },
+    {
+      "id": "nconn.treatments-portal",
+      "userNeedId": "need.find-treatments",
+      "contextId": "ctx.portalExperience"
+    },
+    {
+      "id": "nconn.treatments-query",
+      "userNeedId": "need.find-treatments",
+      "contextId": "ctx.queryEngine"
+    },
+    {
+      "id": "nconn.automate-api",
+      "userNeedId": "need.automate-analysis",
+      "contextId": "ctx.publicApi"
+    },
+    {
+      "id": "nconn.export-api",
+      "userNeedId": "need.export-data",
+      "contextId": "ctx.publicApi"
+    },
+    {
+      "id": "nconn.export-query",
+      "userNeedId": "need.export-data",
+      "contextId": "ctx.queryEngine"
     }
   ]
 }
