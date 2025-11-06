@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Project, BoundedContext, Actor, UserNeed, ActorNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
 import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
+import emptyProject from '../../examples/empty.project.json'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
 
@@ -198,10 +199,11 @@ interface EditorState {
   reset: () => void
 }
 
-// Basic initialization with both demo and cbioportal projects in memory
-// Both projects will be saved to IndexedDB on first load
+// Basic initialization with demo, cbioportal, and empty projects in memory
+// All projects will be saved to IndexedDB on first load
 const sampleProject = demoProject as Project
 const cbioportal = cbioportalProject as Project
+const empty = emptyProject as Project
 
 // Ensure projects have actors and connection arrays (for backwards compatibility)
 if (!sampleProject.actors) sampleProject.actors = []
@@ -212,6 +214,10 @@ if (!cbioportal.actors) cbioportal.actors = []
 if (!cbioportal.userNeeds) cbioportal.userNeeds = []
 if (!cbioportal.actorNeedConnections) cbioportal.actorNeedConnections = []
 if (!cbioportal.needContextConnections) cbioportal.needContextConnections = []
+if (!empty.actors) empty.actors = []
+if (!empty.userNeeds) empty.userNeeds = []
+if (!empty.actorNeedConnections) empty.actorNeedConnections = []
+if (!empty.needContextConnections) empty.needContextConnections = []
 
 // Migrate contexts to include distillation position and evolution stage if missing
 sampleProject.contexts = sampleProject.contexts.map(context => {
@@ -250,12 +256,15 @@ cbioportal.contexts = cbioportal.contexts.map(context => {
   return context
 })
 
-// Save both projects to IndexedDB asynchronously
+// Save all projects to IndexedDB asynchronously
 saveProject(sampleProject).catch((err) => {
   console.error('Failed to save sample project:', err)
 })
 saveProject(cbioportal).catch((err) => {
   console.error('Failed to save cbioportal project:', err)
+})
+saveProject(empty).catch((err) => {
+  console.error('Failed to save empty project:', err)
 })
 
 // Get last active project from localStorage, or default to sample
@@ -267,6 +276,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   projects: {
     [sampleProject.id]: sampleProject,
     [cbioportal.id]: cbioportal,
+    [empty.id]: empty,
   },
 
   activeViewMode: 'flow',

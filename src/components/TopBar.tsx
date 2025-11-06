@@ -140,11 +140,17 @@ export function TopBar() {
             onChange={(e) => setActiveProject(e.target.value)}
             className="text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none cursor-pointer"
           >
-            {Object.values(projects).map(p => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
+            {Object.values(projects)
+              .sort((a, b) => {
+                // Order: Empty Project, ACME, cBioPortal
+                const order = { 'empty-project': 0, 'acme-ecommerce': 1, 'cbioportal': 2 }
+                return (order[a.id as keyof typeof order] ?? 999) - (order[b.id as keyof typeof order] ?? 999)
+              })
+              .map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
           </select>
         </>
       )}
@@ -159,7 +165,7 @@ export function TopBar() {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           }`}
         >
-          Flow
+          Value Stream
         </button>
         <button
           onClick={() => setViewMode('distillation')}
@@ -210,7 +216,7 @@ export function TopBar() {
           tooltip="Add new bounded context"
         />
 
-        {/* Add Stage button - only visible in Flow View */}
+        {/* Add Stage button - only visible in Value Stream View */}
         {viewMode === 'flow' && (
           <IconButton
             onClick={handleAddStage}
