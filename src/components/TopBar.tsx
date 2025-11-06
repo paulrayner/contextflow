@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash } from 'lucide-react'
+import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
@@ -18,6 +18,7 @@ export function TopBar() {
   const fitToMap = useEditorStore(s => s.fitToMap)
   const addContext = useEditorStore(s => s.addContext)
   const addActor = useEditorStore(s => s.addActor)
+  const addUserNeed = useEditorStore(s => s.addUserNeed)
   const addFlowStage = useEditorStore(s => s.addFlowStage)
   const exportProject = useEditorStore(s => s.exportProject)
   const importProject = useEditorStore(s => s.importProject)
@@ -95,6 +96,12 @@ export function TopBar() {
     const name = prompt('Actor name:')
     if (!name) return
     addActor(name)
+  }
+
+  const handleAddUserNeed = () => {
+    const name = prompt('User need name:')
+    if (!name) return
+    addUserNeed(name)
   }
 
   const handleAddStage = () => {
@@ -178,6 +185,24 @@ export function TopBar() {
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
+        {/* Strategic View: Actor → User Need → Context (workflow order) */}
+        {viewMode === 'strategic' && (
+          <>
+            <IconButton
+              onClick={handleAddActor}
+              icon={<User size={16} />}
+              label="Add Actor"
+              tooltip="Add new actor"
+            />
+            <IconButton
+              onClick={handleAddUserNeed}
+              icon={<Target size={16} />}
+              label="Add User Need"
+              tooltip="Add new user need"
+            />
+          </>
+        )}
+
         <IconButton
           onClick={handleAddContext}
           icon={<Box size={16} />}
@@ -192,16 +217,6 @@ export function TopBar() {
             icon={<Hash size={16} />}
             label="Add Stage"
             tooltip="Add new flow stage"
-          />
-        )}
-
-        {/* Add Actor button - only visible in Strategic View */}
-        {viewMode === 'strategic' && (
-          <IconButton
-            onClick={handleAddActor}
-            icon={<User size={16} />}
-            label="Add Actor"
-            tooltip="Add new actor"
           />
         )}
 
