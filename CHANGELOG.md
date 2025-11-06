@@ -4,6 +4,13 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.6.1] - 2025-11-05
+
+- Empty Project template for practicing context mapping in production demo
+- Value Stream view label replacing Flow view for clearer terminology
+- cBioPortal demo map enhanced with complete user needs value chain (7 user needs connecting 3 actors to contexts)
+- Architectural rule enforcement: all actor-to-context connections must flow through user needs
+
 ## [0.6.0] - 2025-11-03
 
 - Three-layer Wardley Map structure in Strategic View: Actors → User Needs → Contexts
