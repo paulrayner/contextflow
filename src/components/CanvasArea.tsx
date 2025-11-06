@@ -231,6 +231,8 @@ function ContextNode({ data }: NodeProps) {
       {/* Invisible handles for edge connections */}
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
+      {/* Top handle for receiving connections from User Needs in Strategic View */}
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} id="top" />
 
       <div
         style={{
