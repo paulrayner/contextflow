@@ -2720,8 +2720,9 @@ export const useEditorStore = create<EditorState>((set) => ({
 // Load saved projects from IndexedDB on startup
 Promise.all([
   loadProject(sampleProject.id),
-  loadProject(cbioportal.id)
-]).then(([savedSample, savedCbioportal]) => {
+  loadProject(cbioportal.id),
+  loadProject(empty.id)
+]).then(([savedSample, savedCbioportal, savedEmpty]) => {
   const projects: Record<string, Project> = {}
 
   if (savedSample) {
@@ -2734,6 +2735,12 @@ Promise.all([
     projects[savedCbioportal.id] = savedCbioportal
   } else {
     projects[cbioportal.id] = cbioportal
+  }
+
+  if (savedEmpty) {
+    projects[savedEmpty.id] = savedEmpty
+  } else {
+    projects[empty.id] = empty
   }
 
   useEditorStore.setState({ projects })
