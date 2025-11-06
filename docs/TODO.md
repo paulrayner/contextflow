@@ -1,17 +1,17 @@
 # TODO
 
-## High Priority
+## In Progress
 
-Currently no high priority tasks.
-
-## Backlog
+- [ ] Set up sample empty practice project in production demo
+- [ ] Rename Flow view to Stream view
 
 **Strategic View Enhancements:**
 - [ ] Organic blob-based group rendering (see Milestone 6 in [docs/PLAN.md](docs/PLAN.md))
 
+## Backlog
+
 **Team Flow:**
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
-- [ ] Note: Flow view is currently more value stream than actual team flow
 
 **Team Topologies:**
 - [ ] Enhance Team Topologies implementation with more substance (currently mostly conceptual)

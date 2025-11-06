@@ -783,6 +783,8 @@ describe('generateBlobPath - encapsulation tests', () => {
 // ============================================================================
 
 describe('generateBlobPath - visual quality tests', () => {
+  const TOLERANCE = 2 // 2px tolerance for curve smoothing
+
   it('should generate sufficient hull vertices for smooth curves (>= 40 vertices for 5 contexts)', () => {
     // Real Fulfillment & Shipping group from screenshot
     const contexts = [

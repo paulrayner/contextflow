@@ -26,6 +26,7 @@ import { User, Target } from 'lucide-react'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
+import { calculateBoundingBox, translateContextsToRelative, calculateBlobPosition } from '../lib/blobPositioning'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -1759,7 +1760,7 @@ function CanvasContent() {
       const BLOB_PADDING = 60
 
       const contextsWithSizes = contexts.map((c, idx) => {
-        const size = NODE_SIZES[c.size || 'medium']
+        const size = NODE_SIZES[c.codeSize?.bucket || 'medium']
         return {
           x: xPositions[idx],
           y: yPositions[idx],
@@ -1768,74 +1769,27 @@ function CanvasContent() {
         }
       })
 
-      const minX = Math.min(...contextsWithSizes.map(c => c.x - c.width / 2))
-      const maxX = Math.max(...contextsWithSizes.map(c => c.x + c.width / 2))
-      const minY = Math.min(...contextsWithSizes.map(c => c.y - c.height / 2))
-      const maxY = Math.max(...contextsWithSizes.map(c => c.y + c.height / 2))
+      const boundingBox = calculateBoundingBox(contextsWithSizes)
+      const relativeContexts = translateContextsToRelative(contextsWithSizes, boundingBox)
+      const blobMetadata = generateBlobPath(relativeContexts, BLOB_PADDING, true)
+      const blobPosition = calculateBlobPosition(contextsWithSizes, blobMetadata, boundingBox)
 
-      const contextPoints = contextsWithSizes.map(c => ({
-        x: c.x - minX,
-        y: c.y - minY,
-        width: c.width,
-        height: c.height
-      }))
-
-      const blobPath = generateBlobPath(contextPoints, BLOB_PADDING)
-
-      // Parse the blob path to find its actual bounds
-      const pathCoords = blobPath.match(/-?[\d.]+/g)?.map(parseFloat) || []
-      const pathXCoords = pathCoords.filter((_, i) => i % 2 === 0)
-      const pathYCoords = pathCoords.filter((_, i) => i % 2 === 1)
-      const blobMinX = Math.min(...pathXCoords)
-      const blobMaxX = Math.max(...pathXCoords)
-      const blobMinY = Math.min(...pathYCoords)
-      const blobMaxY = Math.max(...pathYCoords)
-
-      const width = maxX - minX + 2 * BLOB_PADDING
-      const height = maxY - minY + 2 * BLOB_PADDING
-
-      // Debug logging for Fulfillment & Shipping group
-      if (group.label === 'Fulfillment & Shipping') {
-        console.group('🔍 Fulfillment & Shipping Blob Debug')
-        console.log('Original contexts (absolute coords):')
-        contexts.forEach((c, i) => {
-          const x = viewMode === 'flow' ? c.positions.flow.x * 20 : c.positions.strategic.x * 20
-          const y = c.positions.shared.y * 10
-          const size = NODE_SIZES[c.size || 'medium']
-          console.log(`  ${c.name}: x=${x}, y=${y}, w=${size.width}, h=${size.height}`)
-        })
-        console.log('\nBounding box:')
-        console.log(`  minX=${minX}, maxX=${maxX}, minY=${minY}, maxY=${maxY}`)
-        console.log('\nTranslated contextPoints (relative to minX, minY):')
-        contextPoints.forEach((p, i) => {
-          console.log(`  Context ${i}: x=${p.x.toFixed(1)}, y=${p.y.toFixed(1)}, w=${p.width}, h=${p.height}`)
-          console.log(`    Edges: left=${(p.x - p.width/2).toFixed(1)}, right=${(p.x + p.width/2).toFixed(1)}, top=${(p.y - p.height/2).toFixed(1)}, bottom=${(p.y + p.height/2).toFixed(1)}`)
-        })
-        console.log('\nBlob path actual bounds:')
-        console.log(`  path minX=${blobMinX.toFixed(1)}, maxX=${blobMaxX.toFixed(1)}`)
-        console.log(`  path minY=${blobMinY.toFixed(1)}, maxY=${blobMaxY.toFixed(1)}`)
-        console.log('\nBlob positioning:')
-        console.log(`  position: (${minX - BLOB_PADDING}, ${minY - BLOB_PADDING})`)
-        console.log(`  dimensions: ${width} × ${height}`)
-        console.log(`  padding: ${BLOB_PADDING}`)
-        console.groupEnd()
-      }
-
-      // Since blob path is now translated to start at (0,0), position blob container
-      // at the context bounding box edges (blob extends padding beyond contexts internally)
       return {
         id: `group-${group.id}`,
         type: 'group',
-        position: { x: blobMinX + minX, y: blobMinY + minY },
+        position: {
+          x: blobPosition.containerX,
+          y: blobPosition.containerY
+        },
         data: {
           group,
           isSelected: group.id === selectedGroupId,
-          blobPath,
-          blobBounds: { width, height },
+          blobPath: blobPosition.blobPath,
+          blobBounds: { width: blobPosition.containerWidth, height: blobPosition.containerHeight },
         },
         style: {
-          width,
-          height,
+          width: blobPosition.containerWidth,
+          height: blobPosition.containerHeight,
           zIndex: 0,
           background: 'transparent',
           border: 'none',
@@ -1843,8 +1797,8 @@ function CanvasContent() {
           padding: 0,
         },
         className: 'group-node',
-        width,
-        height,
+        width: blobPosition.containerWidth,
+        height: blobPosition.containerHeight,
         draggable: false,
         selectable: true,
         connectable: false,

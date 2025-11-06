@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "class-variance-authority": "^0.7.0",
+    "clipper-lib": "^6.4.2",
     "clsx": "^2.1.0",
     "d3-polygon": "^3.0.1",
     "d3-shape": "^3.2.0",
