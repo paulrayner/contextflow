@@ -2009,6 +2009,30 @@ function CanvasContent() {
     useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null })
   }, [])
 
+  // Handle edge connection (Actor → User Need → Context)
+  const onConnect = useCallback((connection: any) => {
+    const { source, target } = connection
+    const sourceNode = nodes.find(n => n.id === source)
+    const targetNode = nodes.find(n => n.id === target)
+
+    if (!sourceNode || !targetNode) return
+
+    // Actor → User Need
+    if (sourceNode.type === 'actor' && targetNode.type === 'userNeed') {
+      useEditorStore.getState().createActorNeedConnection(source, target)
+      return
+    }
+
+    // User Need → Context
+    if (sourceNode.type === 'userNeed' && targetNode.type === 'context') {
+      useEditorStore.getState().createNeedContextConnection(source, target)
+      return
+    }
+
+    // Invalid connection - show message
+    console.log('Invalid connection:', sourceNode.type, '→', targetNode.type)
+  }, [nodes])
+
   // Wrap onNodesChange to handle multi-select drag
   const onNodesChange = useCallback((changes: any[]) => {
     // Get currently selected nodes from React Flow's internal state
@@ -2283,6 +2307,7 @@ function CanvasContent() {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
+        onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={onNodeClick}
