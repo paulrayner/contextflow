@@ -3,7 +3,7 @@
 
 export const config = {
   ui: {
-    groupOpacity: 0.6, // User-configurable via slider (0.0 - 1.0)
+    groupOpacity: 0.1, // User-configurable via slider (0.0 - 1.0)
   },
   integrations: {
     codecohesion: {
