@@ -8,10 +8,18 @@ All notable changes to ContextFlow will be documented in this file.
 
 - "Add User Need" button in TopBar for Strategic View to create new user needs
 - Strategic View button reordering to match workflow: Add Actor → Add User Need → Add Context
+- Drag edges to create connections: Actor → User Need and User Need → Context
+- Context nodes have top handles to receive connections from User Needs
+- Actor inspector shows connected User Needs (not contexts) with navigation and delete options
 - Empty Project template for practicing context mapping in production demo
+- Empty Project persistence fix ensuring it appears in dropdown after page reload
 - Value Stream view label replacing Flow view for clearer terminology
 - cBioPortal demo map enhanced with complete user needs value chain (7 user needs connecting 3 actors to contexts)
 - Architectural rule enforcement: all actor-to-context connections must flow through user needs
+- Organic blob-based group rendering using Catmull-Rom smoothing (Milestone 6, WIP)
+- Clipper-lib integration for precise polygon offsetting with 1.85x compensation
+- Default group opacity reduced to 10% for cleaner visual appearance
+- Elan Extended Warranty reference project demonstrating DDD strategic patterns and domain distillation for teaching workshops
 
 ## [0.6.0] - 2025-11-03
 

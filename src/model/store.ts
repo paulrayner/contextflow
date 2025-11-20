@@ -3,6 +3,7 @@ import type { Project, BoundedContext, Actor, UserNeed, ActorNeedConnection, Nee
 import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
 import emptyProject from '../../examples/empty.project.json'
+import elanWarrantyProject from '../../examples/elan-warranty.project.json'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
 
@@ -199,85 +200,79 @@ interface EditorState {
   reset: () => void
 }
 
-// Basic initialization with demo, cbioportal, and empty projects in memory
-// All projects will be saved to IndexedDB on first load
-const sampleProject = demoProject as Project
-const cbioportal = cbioportalProject as Project
-const empty = emptyProject as Project
+// ============================================================================
+// BUILT-IN PROJECTS
+// ============================================================================
+// To add a new built-in project:
+// 1. Import the JSON file at the top: import newProject from '../../examples/new.project.json'
+// 2. Add it to this array: BUILT_IN_PROJECTS.push(newProject as Project)
+//
+// The project will automatically be:
+// - Initialized with backwards-compatible fields
+// - Migrated for distillation/evolution if needed
+// - Saved to IndexedDB
+// - Loaded from IndexedDB on startup
+// - Available in the project dropdown
+// ============================================================================
+const BUILT_IN_PROJECTS = [
+  demoProject as Project,
+  cbioportalProject as Project,
+  emptyProject as Project,
+  elanWarrantyProject as Project,
+]
 
-// Ensure projects have actors and connection arrays (for backwards compatibility)
-if (!sampleProject.actors) sampleProject.actors = []
-if (!sampleProject.userNeeds) sampleProject.userNeeds = []
-if (!sampleProject.actorNeedConnections) sampleProject.actorNeedConnections = []
-if (!sampleProject.needContextConnections) sampleProject.needContextConnections = []
-if (!cbioportal.actors) cbioportal.actors = []
-if (!cbioportal.userNeeds) cbioportal.userNeeds = []
-if (!cbioportal.actorNeedConnections) cbioportal.actorNeedConnections = []
-if (!cbioportal.needContextConnections) cbioportal.needContextConnections = []
-if (!empty.actors) empty.actors = []
-if (!empty.userNeeds) empty.userNeeds = []
-if (!empty.actorNeedConnections) empty.actorNeedConnections = []
-if (!empty.needContextConnections) empty.needContextConnections = []
+// For backwards compatibility, create named references
+const [sampleProject, cbioportal, empty, elanWarranty] = BUILT_IN_PROJECTS
 
-// Migrate contexts to include distillation position and evolution stage if missing
-sampleProject.contexts = sampleProject.contexts.map(context => {
-  const needsDistillation = !context.positions.distillation
-  const needsEvolution = !context.evolutionStage
-
-  if (needsDistillation || needsEvolution) {
-    return {
-      ...context,
-      positions: {
-        ...context.positions,
-        distillation: context.positions.distillation || { x: 50, y: 50 },
-      },
-      strategicClassification: context.strategicClassification || 'supporting',
-      evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
-    }
-  }
-  return context
+// Ensure all projects have required arrays (for backwards compatibility)
+BUILT_IN_PROJECTS.forEach(project => {
+  if (!project.actors) project.actors = []
+  if (!project.userNeeds) project.userNeeds = []
+  if (!project.actorNeedConnections) project.actorNeedConnections = []
+  if (!project.needContextConnections) project.needContextConnections = []
 })
 
-cbioportal.contexts = cbioportal.contexts.map(context => {
-  const needsDistillation = !context.positions.distillation
-  const needsEvolution = !context.evolutionStage
+// Migrate contexts to include distillation position and evolution stage if missing
+BUILT_IN_PROJECTS.forEach(project => {
+  project.contexts = project.contexts.map(context => {
+    const needsDistillation = !context.positions.distillation
+    const needsEvolution = !context.evolutionStage
 
-  if (needsDistillation || needsEvolution) {
-    return {
-      ...context,
-      positions: {
-        ...context.positions,
-        distillation: context.positions.distillation || { x: 50, y: 50 },
-      },
-      strategicClassification: context.strategicClassification || 'supporting',
-      evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
+    if (needsDistillation || needsEvolution) {
+      return {
+        ...context,
+        positions: {
+          ...context.positions,
+          distillation: context.positions.distillation || { x: 50, y: 50 },
+        },
+        strategicClassification: context.strategicClassification || 'supporting',
+        evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
+      }
     }
-  }
-  return context
+    return context
+  })
 })
 
 // Save all projects to IndexedDB asynchronously
-saveProject(sampleProject).catch((err) => {
-  console.error('Failed to save sample project:', err)
-})
-saveProject(cbioportal).catch((err) => {
-  console.error('Failed to save cbioportal project:', err)
-})
-saveProject(empty).catch((err) => {
-  console.error('Failed to save empty project:', err)
+BUILT_IN_PROJECTS.forEach(project => {
+  saveProject(project).catch((err) => {
+    console.error(`Failed to save ${project.name}:`, err)
+  })
 })
 
 // Get last active project from localStorage, or default to sample
 const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
 const initialActiveProjectId = storedProjectId || sampleProject.id
 
+// Build initial projects map from array
+const initialProjects = BUILT_IN_PROJECTS.reduce((acc, project) => {
+  acc[project.id] = project
+  return acc
+}, {} as Record<string, Project>)
+
 export const useEditorStore = create<EditorState>((set) => ({
   activeProjectId: initialActiveProjectId,
-  projects: {
-    [sampleProject.id]: sampleProject,
-    [cbioportal.id]: cbioportal,
-    [empty.id]: empty,
-  },
+  projects: initialProjects,
 
   activeViewMode: 'flow',
 
@@ -2718,30 +2713,20 @@ export const useEditorStore = create<EditorState>((set) => ({
 }))
 
 // Load saved projects from IndexedDB on startup
-Promise.all([
-  loadProject(sampleProject.id),
-  loadProject(cbioportal.id),
-  loadProject(empty.id)
-]).then(([savedSample, savedCbioportal, savedEmpty]) => {
+Promise.all(
+  BUILT_IN_PROJECTS.map(project => loadProject(project.id))
+).then((savedProjects) => {
   const projects: Record<string, Project> = {}
 
-  if (savedSample) {
-    projects[savedSample.id] = savedSample
-  } else {
-    projects[sampleProject.id] = sampleProject
-  }
-
-  if (savedCbioportal) {
-    projects[savedCbioportal.id] = savedCbioportal
-  } else {
-    projects[cbioportal.id] = cbioportal
-  }
-
-  if (savedEmpty) {
-    projects[savedEmpty.id] = savedEmpty
-  } else {
-    projects[empty.id] = empty
-  }
+  // For each built-in project, use saved version if available, otherwise use the default
+  BUILT_IN_PROJECTS.forEach((defaultProject, index) => {
+    const savedProject = savedProjects[index]
+    if (savedProject) {
+      projects[savedProject.id] = savedProject
+    } else {
+      projects[defaultProject.id] = defaultProject
+    }
+  })
 
   useEditorStore.setState({ projects })
 }).catch(err => {

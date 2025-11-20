@@ -34,6 +34,12 @@ Fields:
 
 ### Relationships between bounded contexts
 - Direction is always meaningful and points to the upstream context (the one with more power / defines the model)
+  - **Upstream** = owns the integration contract/schema; if they change their API/model, downstream must adapt
+  - **Downstream** = must adapt to upstream changes; uses ACL to protect itself or conforms to upstream model
+  - Examples:
+    - Legacy system providing data → Core domain with ACL: Arrow points TO legacy (legacy is upstream, owns the schema)
+    - Core domain publishing OHS API → External consumer: Arrow points TO core (core is upstream authority)
+    - Analytics context → Multiple source contexts: Arrow points TO sources (sources are upstream, analytics conforms)
 - `pattern` from a fixed vocabulary:
   - `customer-supplier`
   - `conformist`

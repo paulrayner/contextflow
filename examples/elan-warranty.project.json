@@ -1,0 +1,322 @@
+{
+  "id": "elan-warranty",
+  "name": "Elan Extended Warranty",
+  "contexts": [
+    {
+      "id": "ctx.lead-mgmt",
+      "name": "Lead Management",
+      "purpose": "Track potential customers approaching manufacturer warranty expiration and execute marketing campaigns to convert leads into extended warranty customers.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Well-defined boundary with clear separation from Contract Administration. Owns lead lifecycle and marketing campaign execution.",
+      "positions": {
+        "flow": { "x": 15 },
+        "strategic": { "x": 45 },
+        "distillation": { "x": 50, "y": 35 },
+        "shared": { "y": 25 }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": { "bucket": "medium" },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Completely separate department and pipeline from POS-originated warranties. Maintains Leads database with manufacturer warranty expiration tracking. Sends pre-expiration marketing mailings."
+    },
+    {
+      "id": "ctx.contract-admin",
+      "name": "Contract Administration",
+      "purpose": "Manage extended warranty contract lifecycle from creation through termination, including validation, covered product management, and customer data.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Heavily protected by multiple ACLs: Product Management translation (Product → Covered Product), Lead conversion (Lead → Customer + Contract), and Client Transaction Processing module with one ACL per retail partner.",
+      "positions": {
+        "flow": { "x": 35 },
+        "strategic": { "x": 55 },
+        "distillation": { "x": 80, "y": 75 },
+        "shared": { "y": 45 }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": { "bucket": "huge" },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Core domain with complex validation rules for contract effective/expiration dates and coverage eligibility. Contains Client Transaction Processing module for POS integrations. Domain model: Contract aggregate, Customer entity, Covered Product value object (Brand-Make-Model-SKU only)."
+    },
+    {
+      "id": "ctx.product-mgmt",
+      "name": "Product Management (BBOM)",
+      "purpose": "Manage catalog of products eligible for warranty coverage, including brands, makes, models, and technical specifications.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "weak",
+      "boundaryNotes": "Big ball of mud legacy system with tangled dependencies and no clear API contracts. Overly complex product entity structure that requires translation downstream.",
+      "positions": {
+        "flow": { "x": 25 },
+        "strategic": { "x": 25 },
+        "distillation": { "x": 15, "y": 60 },
+        "shared": { "y": 75 }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": { "bucket": "huge" },
+      "isLegacy": true,
+      "isExternal": false,
+      "notes": "BBOM = Big Ball of Mud. Legacy system upstream of Contract Administration. Product entity is complex with full technical specs, but downstream contexts only need Brand-Make-Model-SKU. Candidate for modernization or replacement with commercial product catalog solution."
+    },
+    {
+      "id": "ctx.claims-mgmt",
+      "name": "Claims Management",
+      "purpose": "Handle warranty claim lifecycle, track repair attempts, calculate limit of liability, authorize reimbursements, and determine optimal fulfillment approach.",
+      "strategicClassification": "core",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Complex claim state machine (open → closed → reopened) with sophisticated business rules for limit of liability calculation. Shared kernel with Service Dispatch for repair cost tracking. Publishes OHS API for CRM integration.",
+      "positions": {
+        "flow": { "x": 55 },
+        "strategic": { "x": 65 },
+        "distillation": { "x": 85, "y": 80 },
+        "shared": { "y": 20 }
+      },
+      "evolutionStage": "custom-built",
+      "codeSize": { "bucket": "large" },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Only customer-facing context (via CSR role). This is where business risk and money is won or lost. Complex state transitions and authorization rules. Tight collaboration with Service Dispatch on repair orchestration and cost tracking. Multiple repair attempts per claim allowed."
+    },
+    {
+      "id": "ctx.service-dispatch",
+      "name": "Service Dispatch",
+      "purpose": "Coordinate repair work orders, manage purchase orders to servicer network, track repair costs and parts, and match technician expertise to repair needs.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "moderate",
+      "boundaryNotes": "Shares domain concepts with Claims Management (shared kernel) including repair cost tracking. Protected from Servicer Management System API changes via ACL.",
+      "positions": {
+        "flow": { "x": 70 },
+        "strategic": { "x": 60 },
+        "distillation": { "x": 55, "y": 40 },
+        "shared": { "y": 50 }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": { "bucket": "medium" },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Orchestrates repair fulfillment. Creates repair POs sent to Servicer Management System. Tracks technician assignments and specialization matching (e.g., dishwasher brand experts). Multiple POs can exist per claim for repeated repair attempts."
+    },
+    {
+      "id": "ctx.finance",
+      "name": "Finance & Reimbursement",
+      "purpose": "Process reimbursement payments and issue store credits for market replacement value when repairs exceed limit of liability.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "Standard accounting system with clear separation from Claims domain. Receives reimbursement authorizations via ACL from Claims Management.",
+      "positions": {
+        "flow": { "x": 75 },
+        "strategic": { "x": 75 },
+        "distillation": { "x": 20, "y": 25 },
+        "shared": { "y": 80 }
+      },
+      "evolutionStage": "commodity/utility",
+      "codeSize": { "bucket": "medium" },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "Generic back-office function. No competitive differentiation. Standard payment processing and store credit issuance. Could be replaced with commercial accounting package."
+    },
+    {
+      "id": "ctx.reporting",
+      "name": "Reporting",
+      "purpose": "Provide business intelligence, analytics dashboards, and operational reports for managers, analysts, and CSRs.",
+      "strategicClassification": "supporting",
+      "boundaryIntegrity": "weak",
+      "boundaryNotes": "Conformist with all upstream domains (Contract Admin, Claims, Service Dispatch). Accepts their domain models without translation for read-only analytics.",
+      "positions": {
+        "flow": { "x": 90 },
+        "strategic": { "x": 50 },
+        "distillation": { "x": 45, "y": 30 },
+        "shared": { "y": 30 }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": { "bucket": "medium" },
+      "isLegacy": false,
+      "isExternal": false,
+      "notes": "User-facing for internal users (managers, analysts, CSRs). Generates dashboards showing claim patterns, repair costs, contract performance, limit of liability trends. Conformist pattern keeps development cost low but creates coupling to upstream model changes."
+    },
+    {
+      "id": "ctx.retail-pos",
+      "name": "Retail POS Systems",
+      "purpose": "Point of sale systems at retail partners (Best Buy, Home Depot, etc.) where customers purchase extended warranties at time of product purchase.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "External systems sending proprietary transaction formats. Each retailer has different format requiring separate ACL in Contract Administration's Client Transaction Processing module.",
+      "positions": {
+        "flow": { "x": 10 },
+        "strategic": { "x": 40 },
+        "distillation": { "x": 25, "y": 35 },
+        "shared": { "y": 20 }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": { "bucket": "small" },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Multiple 3rd party integrations (one per retail partner). Sends warranty info including customer details, covered product details, purchase date. These are existing customers (already purchased), not leads. Separate acquisition channel from Lead Management."
+    },
+    {
+      "id": "ctx.crm",
+      "name": "CRM System",
+      "purpose": "Track customer contact history, interactions, and communication logs used by CSRs during claim processing.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "External 3rd party system consuming Claims Management's published OHS API. Claims is upstream authority defining the integration contract.",
+      "positions": {
+        "flow": { "x": 65 },
+        "strategic": { "x": 70 },
+        "distillation": { "x": 30, "y": 45 },
+        "shared": { "y": 25 }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": { "bucket": "small" },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Used by CSRs to log customer interactions. Consumes customer and product information from Claims Management via OHS API. Claims Management publishes stable integration API that CRM conforms to."
+    },
+    {
+      "id": "ctx.servicer-system",
+      "name": "Servicer Management System",
+      "purpose": "Third-party network coordinating repair technician dispatch, scheduling, and field service execution.",
+      "strategicClassification": "generic",
+      "boundaryIntegrity": "strong",
+      "boundaryNotes": "External system with public API. Service Dispatch integrates via ACL to protect internal domain from external API changes.",
+      "positions": {
+        "flow": { "x": 80 },
+        "strategic": { "x": 65 },
+        "distillation": { "x": 30, "y": 45 },
+        "shared": { "y": 55 }
+      },
+      "evolutionStage": "product/rental",
+      "codeSize": { "bucket": "small" },
+      "isLegacy": false,
+      "isExternal": true,
+      "notes": "Receives repair POs from Service Dispatch. Coordinates technician assignments and scheduling. Returns parts/labor cost data. Service Dispatch uses ACL to translate internal repair PO model to external servicer API format."
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel.product-contract",
+      "fromContextId": "ctx.contract-admin",
+      "toContextId": "ctx.product-mgmt",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "REST API with internal translation layer",
+      "description": "Contract Admin uses ACL to translate Product entity (complex, detailed) into Covered Product value object (Brand-Make-Model-SKU only). Protects core Contract domain from BBOM complexity."
+    },
+    {
+      "id": "rel.pos-contract",
+      "fromContextId": "ctx.contract-admin",
+      "toContextId": "ctx.retail-pos",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "Client Transaction Processing module with multiple ACLs (one per retailer)",
+      "description": "Each retail partner sends proprietary transaction format. Contract Admin's Client Transaction Processing module validates and translates to internal Contract domain model. Multiple ACLs protect from external format volatility."
+    },
+    {
+      "id": "rel.lead-contract",
+      "fromContextId": "ctx.contract-admin",
+      "toContextId": "ctx.lead-mgmt",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "Internal API with translation layer",
+      "description": "Contract Admin uses ACL to translate lead prospect data into Contract domain model (Customer entity + Contract aggregate). Different data structures and business rules for lead conversion vs POS purchases."
+    },
+    {
+      "id": "rel.contract-claims",
+      "fromContextId": "ctx.contract-admin",
+      "toContextId": "ctx.claims-mgmt",
+      "pattern": "partnership",
+      "communicationMode": "Shared database access and domain events",
+      "description": "Tight collaboration between core contexts. Claims validate against contract terms, effective dates, coverage rules. High coordination on domain model changes. Shared responsibility for contract fulfillment lifecycle."
+    },
+    {
+      "id": "rel.claims-dispatch",
+      "fromContextId": "ctx.claims-mgmt",
+      "toContextId": "ctx.service-dispatch",
+      "pattern": "shared-kernel",
+      "communicationMode": "Shared domain model and database",
+      "description": "Shared domain concepts including repair cost tracking and limit of liability calculation. High coordination cost - teams must synchronize on shared model changes. Close collaboration needed for repair orchestration."
+    },
+    {
+      "id": "rel.claims-finance",
+      "fromContextId": "ctx.claims-mgmt",
+      "toContextId": "ctx.finance",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "Message queue with translation layer",
+      "description": "Claims uses ACL to translate reimbursement authorizations into Finance-specific payment format. Protects core Claims domain from Finance API changes. Finance owns the integration schema and Claims must adapt via ACL."
+    },
+    {
+      "id": "rel.claims-crm",
+      "fromContextId": "ctx.crm",
+      "toContextId": "ctx.claims-mgmt",
+      "pattern": "open-host-service",
+      "communicationMode": "Published REST API defined by Claims Management",
+      "description": "Claims Management publishes well-defined integration API for customer and product information. CRM consumes this OHS API. Claims is upstream authority defining the contract. Stable integration point for external consumers."
+    },
+    {
+      "id": "rel.dispatch-servicer",
+      "fromContextId": "ctx.service-dispatch",
+      "toContextId": "ctx.servicer-system",
+      "pattern": "anti-corruption-layer",
+      "communicationMode": "REST API with internal translation layer",
+      "description": "Service Dispatch uses ACL to translate internal repair PO model to external servicer API format. Protects internal repair coordination domain from 3rd party API changes and service network volatility."
+    },
+    {
+      "id": "rel.contract-reporting",
+      "fromContextId": "ctx.reporting",
+      "toContextId": "ctx.contract-admin",
+      "pattern": "conformist",
+      "communicationMode": "Read-only database views and ETL",
+      "description": "Reporting conforms to Contract Administration's domain model without translation. Accepts contract data structure as-is for analytics. Lower development cost but higher coupling to upstream changes."
+    },
+    {
+      "id": "rel.claims-reporting",
+      "fromContextId": "ctx.reporting",
+      "toContextId": "ctx.claims-mgmt",
+      "pattern": "conformist",
+      "communicationMode": "Read-only database views and ETL",
+      "description": "Reporting conforms to Claims Management's domain model without translation. Accepts claim state, repair attempt, and cost data as-is for dashboards and analytics."
+    },
+    {
+      "id": "rel.dispatch-reporting",
+      "fromContextId": "ctx.reporting",
+      "toContextId": "ctx.service-dispatch",
+      "pattern": "conformist",
+      "communicationMode": "Read-only database views and ETL",
+      "description": "Reporting conforms to Service Dispatch's repair PO and technician assignment model. Accepts repair cost and parts data as-is for operational reports and analytics."
+    }
+  ],
+  "repos": [],
+  "people": [],
+  "teams": [],
+  "groups": [],
+  "actors": [],
+  "userNeeds": [],
+  "actorNeedConnections": [],
+  "needContextConnections": [],
+  "viewConfig": {
+    "flowStages": [
+      {
+        "label": "Acquisition",
+        "position": 15
+      },
+      {
+        "label": "Contract Admin",
+        "position": 35
+      },
+      {
+        "label": "Claims Benefit Management",
+        "position": 55
+      },
+      {
+        "label": "Fulfillment",
+        "position": 75
+      },
+      {
+        "label": "Analysis",
+        "position": 90
+      }
+    ]
+  },
+  "temporal": {
+    "enabled": false,
+    "keyframes": []
+  }
+}

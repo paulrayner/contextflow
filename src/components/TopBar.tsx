@@ -142,8 +142,8 @@ export function TopBar() {
           >
             {Object.values(projects)
               .sort((a, b) => {
-                // Order: Empty Project, ACME, cBioPortal
-                const order = { 'empty-project': 0, 'acme-ecommerce': 1, 'cbioportal': 2 }
+                // Order: Empty Project, Elan Warranty, ACME, cBioPortal
+                const order = { 'empty-project': 0, 'elan-warranty': 1, 'acme-ecommerce': 2, 'cbioportal': 3 }
                 return (order[a.id as keyof typeof order] ?? 999) - (order[b.id as keyof typeof order] ?? 999)
               })
               .map(p => (
