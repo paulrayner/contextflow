@@ -2,10 +2,12 @@
 
 ## In Progress
 
-- [ ] Work through process to test UX for everything implemented so far. Review for refactoring opportunities
+- [ ] Add analytics (using Simple Analytics)
 
 ## Backlog
 
+- [ ] Work through process to test UX for everything implemented so far. Review for refactoring opportunities
+- [ ] Refactor store.ts following extract-and-prove pattern (see STORE_REFACTORING_PLAN.md)
 - [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view
 - [ ] Add onboarding/tutorial for first-time users
 - [ ] Accessibility checks
