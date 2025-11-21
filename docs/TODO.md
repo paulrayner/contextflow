@@ -2,25 +2,28 @@
 
 ## In Progress
 
-**Strategic View Enhancements:**
-- [ ] Organic blob-based group rendering (see Milestone 6 in [docs/PLAN.md](docs/PLAN.md))
+- [ ] Work through process to test UX for everything implemented so far. Review for refactoring opportunities
 
 ## Backlog
 
-**Team Flow:**
-- [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
+- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view
+- [ ] Add onboarding/tutorial for first-time users
+- [ ] Accessibility checks
+- [ ] Responsive design
+- [ ] Add search/filter for contexts, repos, teams
+- [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
+- [ ] Add about page? link to repo?
 
 **Team Topologies:**
 - [ ] Enhance Team Topologies implementation with more substance (currently mostly conceptual)
 - [ ] Add visual team topology rendering on canvas (e.g., interaction modes between teams)
 
-**Quality of Life:**
-- [ ] Add search/filter for contexts, repos, teams
-- [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
-- [ ] Add onboarding/tutorial for first-time users
-- [ ] Add example projects library (beyond ACME and cBioPortal)
+**Team Flow:**
+- [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Migrate to VirtualGenius organization and deploy to contextflow.virtualgenius.com
+- [x] Organic blob-based group rendering (Milestone 6)
 - [x] Set up sample empty practice project in production demo
 - [x] Rename Flow view to Value Stream view
 - [x] Milestone 1: Flow View core (v0.1.0)
