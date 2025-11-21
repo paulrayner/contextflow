@@ -7,12 +7,12 @@
   "author": "Paul Rayner",
   "repository": {
     "type": "git",
-    "url": "https://github.com/paulrayner/contextflow.git"
+    "url": "https://github.com/virtualgenius/contextflow.git"
   },
   "bugs": {
-    "url": "https://github.com/paulrayner/contextflow/issues"
+    "url": "https://github.com/virtualgenius/contextflow/issues"
   },
-  "homepage": "https://paulrayner.github.io/contextflow/",
+  "homepage": "https://contextflow.virtualgenius.com",
   "keywords": [
     "ddd",
     "domain-driven-design",

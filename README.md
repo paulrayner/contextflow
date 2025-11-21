@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 
-**[🚀 Live Demo](https://thepaulrayner.com/contextflow/)** | Explore the ACME E-Commerce example!
+**[🚀 Live Demo](https://contextflow.virtualgenius.com)** | Explore the ACME E-Commerce example!
 
 **Map reality, not aspiration.**
 

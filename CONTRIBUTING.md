@@ -6,6 +6,7 @@ Thank you for your interest in contributing to ContextFlow!
 
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/your-username/contextflow.git`
+   (Original repository: `https://github.com/virtualgenius/contextflow.git`)
 3. Install dependencies: `npm install`
 4. Start the dev server: `npm run dev`
 
