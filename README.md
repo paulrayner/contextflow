@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![GitHub](https://img.shields.io/badge/GitHub-virtualgenius%2Fcontextflow-blue?logo=github)](https://github.com/virtualgenius/contextflow)
 
 **[🚀 Live Demo](https://contextflow.virtualgenius.com)** | Explore the ACME E-Commerce example!
 
