@@ -6,6 +6,7 @@ import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { Users, X } from 'lucide-react'
+import { trackEvent } from './utils/analytics'
 
 function App() {
   const projectId = useEditorStore(s => s.activeProjectId)
@@ -20,6 +21,26 @@ function App() {
   const createGroup = useEditorStore(s => s.createGroup)
 
   const [showGroupDialog, setShowGroupDialog] = React.useState(false)
+
+  // Track project lifecycle (project_closed event)
+  React.useEffect(() => {
+    const sessionStart = Date.now()
+
+    const handleBeforeUnload = () => {
+      if (project) {
+        const sessionDuration = Math.floor((Date.now() - sessionStart) / 1000)
+        trackEvent('project_closed', project, {
+          session_duration_seconds: sessionDuration
+        })
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [project])
 
   const unassignedRepos = React.useMemo(() => {
     return project?.repos?.filter(r => !r.contextId) || []

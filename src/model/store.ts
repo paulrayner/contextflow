@@ -6,6 +6,7 @@ import emptyProject from '../../examples/empty.project.json'
 import elanWarrantyProject from '../../examples/elan-warranty.project.json'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
+import { trackEvent } from '../utils/analytics'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
@@ -493,10 +494,38 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedRelationshipId: null,
   }),
 
-  setViewMode: (mode) => set({ activeViewMode: mode }),
+  setViewMode: (mode) => set((state) => {
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+
+    trackEvent('view_switched', project, {
+      from_view: state.activeViewMode,
+      to_view: mode
+    })
+
+    return { activeViewMode: mode }
+  }),
 
   setActiveProject: (projectId) => set((state) => {
     if (!state.projects[projectId]) return state
+
+    const project = state.projects[projectId]
+
+    // Determine project origin
+    let origin: 'sample' | 'empty' | 'imported' | 'continued' = 'continued'
+    if (projectId === 'acme-ecommerce' || projectId === 'cbioportal' || projectId === 'elan-warranty') {
+      origin = 'sample'
+    } else if (projectId === 'empty-project') {
+      origin = 'empty'
+    } else if (state.activeProjectId === null) {
+      // First time loading this project
+      origin = 'imported'
+    }
+
+    trackEvent('project_opened', project, {
+      project_origin: origin
+    })
+
     localStorage.setItem('contextflow.activeProjectId', projectId)
     return {
       activeProjectId: projectId,
