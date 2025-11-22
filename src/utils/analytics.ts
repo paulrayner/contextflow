@@ -177,3 +177,52 @@ export function extractUrlPlatform(url: string | undefined): 'github' | 'gitlab'
   if (lower.includes('bitbucket.org')) return 'bitbucket'
   return 'other'
 }
+
+// FTUE (First Time User Experience) milestone tracking
+// These milestones fire only once per browser session using sessionStorage
+
+const SESSION_STORAGE_KEY_PREFIX = 'contextflow.ftue.'
+const SESSION_START_KEY = 'contextflow.session_start'
+
+export function getSessionStartTime(): number {
+  const stored = sessionStorage.getItem(SESSION_START_KEY)
+  if (stored) {
+    return parseInt(stored, 10)
+  }
+  const now = Date.now()
+  sessionStorage.setItem(SESSION_START_KEY, now.toString())
+  return now
+}
+
+export function trackFTUEMilestone(
+  milestoneName: 'first_context_added' | 'first_relationship_added' | 'first_group_created' | 'second_view_discovered',
+  project: Project | null,
+  metadata?: Record<string, any>
+): void {
+  const sessionKey = `${SESSION_STORAGE_KEY_PREFIX}${milestoneName}`
+
+  // Only track once per session
+  if (sessionStorage.getItem(sessionKey)) {
+    return
+  }
+
+  const sessionStart = getSessionStartTime()
+  const timeSinceLoad = Math.floor((Date.now() - sessionStart) / 1000) // seconds
+
+  const eventMetadata = {
+    time_since_load_seconds: timeSinceLoad,
+    ...metadata
+  }
+
+  trackEvent(milestoneName, project, eventMetadata)
+
+  // Mark as tracked for this session
+  sessionStorage.setItem(sessionKey, 'true')
+}
+
+export function hasCompletedFTUEMilestone(
+  milestoneName: 'first_context_added' | 'first_relationship_added' | 'first_group_created' | 'second_view_discovered'
+): boolean {
+  const sessionKey = `${SESSION_STORAGE_KEY_PREFIX}${milestoneName}`
+  return sessionStorage.getItem(sessionKey) === 'true'
+}

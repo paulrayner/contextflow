@@ -6,7 +6,7 @@ import emptyProject from '../../examples/empty.project.json'
 import elanWarrantyProject from '../../examples/elan-warranty.project.json'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
-import { trackEvent, trackPropertyChange, trackTextFieldEdit } from '../utils/analytics'
+import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../utils/analytics'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
@@ -561,6 +561,15 @@ export const useEditorStore = create<EditorState>((set) => ({
       to_view: mode
     })
 
+    // Track FTUE milestone: second view discovered
+    // Check if user has switched views (different from starting view)
+    if (mode !== 'flow') { // flow is the default starting view
+      const viewsUsed = ['flow', mode] // User started in flow, now viewing another
+      trackFTUEMilestone('second_view_discovered', project, {
+        views_used: viewsUsed
+      })
+    }
+
     return { activeViewMode: mode }
   }),
 
@@ -639,6 +648,9 @@ export const useEditorStore = create<EditorState>((set) => ({
         is_external: newContext.isExternal || false
       }
     })
+
+    // Track FTUE milestone: first context added
+    trackFTUEMilestone('first_context_added', updatedProject)
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -849,6 +861,9 @@ export const useEditorStore = create<EditorState>((set) => ({
         initial_member_count: newGroup.contextIds.length
       }
     })
+
+    // Track FTUE milestone: first group created
+    trackFTUEMilestone('first_group_created', updatedProject)
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -1130,6 +1145,9 @@ export const useEditorStore = create<EditorState>((set) => ({
         to_context_id: toContextId
       }
     })
+
+    // Track FTUE milestone: first relationship added
+    trackFTUEMilestone('first_relationship_added', updatedProject)
 
     // Autosave
     autosaveProject(projectId, updatedProject)
