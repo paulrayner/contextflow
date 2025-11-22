@@ -319,7 +319,7 @@ describe('temporalActions', () => {
       const { newKeyframeId } = addKeyframeAction(state, 'invalid-date', 'Bad Date')
 
       expect(newKeyframeId).toBeNull()
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid keyframe date format:', 'invalid-date')
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid keyframe date format: invalid-date')
     })
 
     it('should reject duplicate dates', () => {
