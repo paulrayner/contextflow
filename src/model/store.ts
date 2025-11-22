@@ -27,6 +27,25 @@ import {
   deleteRelationshipAction,
   updateRelationshipAction
 } from './actions/relationshipActions'
+import {
+  addActorAction,
+  deleteActorAction,
+  updateActorAction,
+  updateActorPositionAction,
+  createActorConnectionAction,
+  deleteActorConnectionAction,
+  updateActorConnectionAction,
+  addUserNeedAction,
+  deleteUserNeedAction,
+  updateUserNeedAction,
+  updateUserNeedPositionAction,
+  createActorNeedConnectionAction,
+  deleteActorNeedConnectionAction,
+  updateActorNeedConnectionAction,
+  createNeedContextConnectionAction,
+  deleteNeedContextConnectionAction,
+  updateNeedContextConnectionAction
+} from './actions/actorActions'
 
 export type { ViewMode, EditorCommand, EditorState }
 
@@ -438,181 +457,51 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addActor: (name) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const newActor: Actor = {
-      id: `actor-${Date.now()}`,
-      name,
-      position: 50,
-    }
-
-    const command: EditorCommand = {
-      type: 'addActor',
-      payload: {
-        actor: newActor,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      actors: [...(project.actors || []), newActor],
-    }
-
-    // Track analytics
-    trackEvent('actor_added', updatedProject, {
-      entity_type: 'actor',
-      entity_id: newActor.id
-    })
+    const result = addActorAction(state, name)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedActorId: newActor.id,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   deleteActor: (actorId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const actor = project.actors?.find(a => a.id === actorId)
-    if (!actor) return state
-
-    const command: EditorCommand = {
-      type: 'deleteActor',
-      payload: {
-        actor,
-      },
-    }
-
-    // Also delete any actor connections for this actor
-    const updatedActorConnections = (project.actorConnections || []).filter(
-      ac => ac.actorId !== actorId
-    )
-
-    const updatedProject = {
-      ...project,
-      actors: project.actors.filter(a => a.id !== actorId),
-      actorConnections: updatedActorConnections,
-    }
-
-    // Track analytics
-    const connectionCount = (project.actorConnections || []).filter(
-      ac => ac.actorId === actorId
-    ).length
-    trackEvent('actor_deleted', project, {
-      entity_type: 'actor',
-      entity_id: actorId,
-      metadata: {
-        connection_count: connectionCount
-      }
-    })
+    const result = deleteActorAction(state, actorId)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedActorId: state.selectedActorId === actorId ? null : state.selectedActorId,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   updateActor: (actorId, updates) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const actorIndex = project.actors?.findIndex(a => a.id === actorId) ?? -1
-    if (actorIndex === -1) return state
-
-    const updatedActors = [...(project.actors || [])]
-    updatedActors[actorIndex] = {
-      ...updatedActors[actorIndex],
-      ...updates,
-    }
-
-    const updatedProject = {
-      ...project,
-      actors: updatedActors,
-    }
+    const result = updateActorAction(state, actorId, updates)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   updateActorPosition: (actorId, newPosition) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const actorIndex = project.actors?.findIndex(a => a.id === actorId) ?? -1
-    if (actorIndex === -1) return state
-
-    const actor = project.actors[actorIndex]
-    const oldPosition = actor.position
-
-    const updatedActors = [...(project.actors || [])]
-    updatedActors[actorIndex] = {
-      ...updatedActors[actorIndex],
-      position: newPosition,
-    }
-
-    const updatedProject = {
-      ...project,
-      actors: updatedActors,
-    }
-
-    // Add to undo stack
-    const command: EditorCommand = {
-      type: 'moveActor',
-      payload: {
-        actorId,
-        oldPosition,
-        newPosition,
-      },
-    }
+    const result = updateActorPositionAction(state, actorId, newPosition)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   setSelectedActor: (actorId) => set({
@@ -625,260 +514,90 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   createActorConnection: (actorId, contextId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const newConnection: ActorConnection = {
-      id: `actor-conn-${Date.now()}`,
-      actorId,
-      contextId,
-    }
-
-    const command: EditorCommand = {
-      type: 'addActorConnection',
-      payload: {
-        actorConnection: newConnection,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      actorConnections: [...(project.actorConnections || []), newConnection],
-    }
+    const result = createActorConnectionAction(state, actorId, contextId)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   deleteActorConnection: (connectionId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const connection = project.actorConnections?.find(ac => ac.id === connectionId)
-    if (!connection) return state
-
-    const command: EditorCommand = {
-      type: 'deleteActorConnection',
-      payload: {
-        actorConnection: connection,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      actorConnections: (project.actorConnections || []).filter(ac => ac.id !== connectionId),
-    }
+    const result = deleteActorConnectionAction(state, connectionId)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedActorConnectionId: state.selectedActorConnectionId === connectionId ? null : state.selectedActorConnectionId,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   updateActorConnection: (connectionId, updates) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const connectionIndex = project.actorConnections?.findIndex(ac => ac.id === connectionId) ?? -1
-    if (connectionIndex === -1) return state
-
-    const updatedConnections = [...(project.actorConnections || [])]
-    updatedConnections[connectionIndex] = {
-      ...updatedConnections[connectionIndex],
-      ...updates,
-    }
-
-    const updatedProject = {
-      ...project,
-      actorConnections: updatedConnections,
-    }
+    const result = updateActorConnectionAction(state, connectionId, updates)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   addUserNeed: (name) => {
     const state = useEditorStore.getState()
+    const { newState, newUserNeedId } = addUserNeedAction(state, name)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return null
-
-    const project = state.projects[projectId]
-    if (!project) return null
-
-    const newUserNeed: UserNeed = {
-      id: `need-${Date.now()}`,
-      name,
-      position: 50,
-      visibility: true,
+    if (projectId && newState.projects) {
+      autosaveProject(projectId, newState.projects[projectId])
     }
 
-    const updatedProject = {
-      ...project,
-      userNeeds: [...(project.userNeeds || []), newUserNeed],
-    }
+    useEditorStore.setState(newState)
 
-    // Track analytics
-    trackEvent('user_need_added', updatedProject, {
-      entity_type: 'user_need',
-      entity_id: newUserNeed.id
-    })
-
-    autosaveProject(projectId, updatedProject)
-
-    useEditorStore.setState({
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedUserNeedId: newUserNeed.id,
-    })
-
-    return newUserNeed.id
+    return newUserNeedId
   },
 
   deleteUserNeed: (userNeedId) => set((state) => {
+    const result = deleteUserNeedAction(state, userNeedId)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const updatedProject = {
-      ...project,
-      userNeeds: (project.userNeeds || []).filter(n => n.id !== userNeedId),
-      actorNeedConnections: (project.actorNeedConnections || []).filter(c => c.userNeedId !== userNeedId),
-      needContextConnections: (project.needContextConnections || []).filter(c => c.userNeedId !== userNeedId),
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    // Track analytics
-    const actorConnectionCount = (project.actorNeedConnections || []).filter(c => c.userNeedId === userNeedId).length
-    const contextConnectionCount = (project.needContextConnections || []).filter(c => c.userNeedId === userNeedId).length
-    trackEvent('user_need_deleted', project, {
-      entity_type: 'user_need',
-      entity_id: userNeedId,
-      metadata: {
-        actor_connection_count: actorConnectionCount,
-        context_connection_count: contextConnectionCount
-      }
-    })
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedUserNeedId: state.selectedUserNeedId === userNeedId ? null : state.selectedUserNeedId,
-    }
+    return result
   }),
 
   updateUserNeed: (userNeedId, updates) => set((state) => {
+    const result = updateUserNeedAction(state, userNeedId, updates)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const needIndex = project.userNeeds?.findIndex(n => n.id === userNeedId) ?? -1
-    if (needIndex === -1) return state
-
-    const updatedNeeds = [...(project.userNeeds || [])]
-    updatedNeeds[needIndex] = {
-      ...updatedNeeds[needIndex],
-      ...updates,
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedProject = {
-      ...project,
-      userNeeds: updatedNeeds,
-    }
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-    }
+    return result
   }),
 
   updateUserNeedPosition: (userNeedId, newPosition) => set((state) => {
+    const result = updateUserNeedPositionAction(state, userNeedId, newPosition)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const needIndex = project.userNeeds?.findIndex(n => n.id === userNeedId) ?? -1
-    if (needIndex === -1) return state
-
-    const updatedNeeds = [...(project.userNeeds || [])]
-    const oldPosition = updatedNeeds[needIndex].position
-
-    updatedNeeds[needIndex] = {
-      ...updatedNeeds[needIndex],
-      position: newPosition,
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedProject = {
-      ...project,
-      userNeeds: updatedNeeds,
-    }
-
-    const command: EditorCommand = {
-      type: 'moveUserNeed',
-      payload: {
-        userNeedId,
-        oldPosition,
-        newPosition,
-      },
-    }
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+    return result
   }),
 
   setSelectedUserNeed: (userNeedId) => set({
@@ -892,232 +611,80 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   createActorNeedConnection: (actorId, userNeedId) => {
     const state = useEditorStore.getState()
+    const { newState, newConnectionId } = createActorNeedConnectionAction(state, actorId, userNeedId)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return null
-
-    const project = state.projects[projectId]
-    if (!project) return null
-
-    const newConnection: ActorNeedConnection = {
-      id: `actor-need-conn-${Date.now()}`,
-      actorId,
-      userNeedId,
+    if (projectId && newState.projects) {
+      autosaveProject(projectId, newState.projects[projectId])
     }
 
-    const command: EditorCommand = {
-      type: 'addActorNeedConnection',
-      payload: {
-        actorNeedConnection: newConnection,
-      },
-    }
+    useEditorStore.setState(newState)
 
-    const updatedProject = {
-      ...project,
-      actorNeedConnections: [...(project.actorNeedConnections || []), newConnection],
-    }
-
-    // Track analytics
-    trackEvent('actor_need_connection_created', updatedProject, {
-      entity_type: 'actor_need_connection',
-      entity_id: newConnection.id,
-      metadata: {
-        actor_id: actorId,
-        user_need_id: userNeedId
-      }
-    })
-
-    autosaveProject(projectId, updatedProject)
-
-    useEditorStore.setState({
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    })
-
-    return newConnection.id
+    return newConnectionId
   },
 
   deleteActorNeedConnection: (connectionId) => set((state) => {
+    const result = deleteActorNeedConnectionAction(state, connectionId)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const connection = project.actorNeedConnections?.find(c => c.id === connectionId)
-    if (!connection) return state
-
-    const command: EditorCommand = {
-      type: 'deleteActorNeedConnection',
-      payload: {
-        actorNeedConnection: connection,
-      },
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedProject = {
-      ...project,
-      actorNeedConnections: (project.actorNeedConnections || []).filter(c => c.id !== connectionId),
-    }
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+    return result
   }),
 
   updateActorNeedConnection: (connectionId, updates) => set((state) => {
+    const result = updateActorNeedConnectionAction(state, connectionId, updates)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const connectionIndex = project.actorNeedConnections?.findIndex(c => c.id === connectionId) ?? -1
-    if (connectionIndex === -1) return state
-
-    const updatedConnections = [...(project.actorNeedConnections || [])]
-    updatedConnections[connectionIndex] = {
-      ...updatedConnections[connectionIndex],
-      ...updates,
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedProject = {
-      ...project,
-      actorNeedConnections: updatedConnections,
-    }
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-    }
+    return result
   }),
 
   createNeedContextConnection: (userNeedId, contextId) => {
     const state = useEditorStore.getState()
+    const { newState, newConnectionId } = createNeedContextConnectionAction(state, userNeedId, contextId)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return null
-
-    const project = state.projects[projectId]
-    if (!project) return null
-
-    const newConnection: NeedContextConnection = {
-      id: `need-context-conn-${Date.now()}`,
-      userNeedId,
-      contextId,
+    if (projectId && newState.projects) {
+      autosaveProject(projectId, newState.projects[projectId])
     }
 
-    const command: EditorCommand = {
-      type: 'addNeedContextConnection',
-      payload: {
-        needContextConnection: newConnection,
-      },
-    }
+    useEditorStore.setState(newState)
 
-    const updatedProject = {
-      ...project,
-      needContextConnections: [...(project.needContextConnections || []), newConnection],
-    }
-
-    // Track analytics
-    trackEvent('need_context_connection_created', updatedProject, {
-      entity_type: 'need_context_connection',
-      entity_id: newConnection.id,
-      metadata: {
-        user_need_id: userNeedId,
-        context_id: contextId
-      }
-    })
-
-    autosaveProject(projectId, updatedProject)
-
-    useEditorStore.setState({
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    })
-
-    return newConnection.id
+    return newConnectionId
   },
 
   deleteNeedContextConnection: (connectionId) => set((state) => {
+    const result = deleteNeedContextConnectionAction(state, connectionId)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const connection = project.needContextConnections?.find(c => c.id === connectionId)
-    if (!connection) return state
-
-    const command: EditorCommand = {
-      type: 'deleteNeedContextConnection',
-      payload: {
-        needContextConnection: connection,
-      },
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedProject = {
-      ...project,
-      needContextConnections: (project.needContextConnections || []).filter(c => c.id !== connectionId),
-    }
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+    return result
   }),
 
   updateNeedContextConnection: (connectionId, updates) => set((state) => {
+    const result = updateNeedContextConnectionAction(state, connectionId, updates)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const connectionIndex = project.needContextConnections?.findIndex(c => c.id === connectionId) ?? -1
-    if (connectionIndex === -1) return state
-
-    const updatedConnections = [...(project.needContextConnections || [])]
-    updatedConnections[connectionIndex] = {
-      ...updatedConnections[connectionIndex],
-      ...updates,
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedProject = {
-      ...project,
-      needContextConnections: updatedConnections,
-    }
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-    }
+    return result
   }),
 
   toggleShowGroups: () => set((state) => {
