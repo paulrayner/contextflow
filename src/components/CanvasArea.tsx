@@ -27,6 +27,7 @@ import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
 import { calculateBoundingBox, translateContextsToRelative, calculateBlobPosition } from '../lib/blobPositioning'
+import { DISTILLATION_GENERIC_MAX_X, DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y } from '../model/classification'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -1231,21 +1232,15 @@ function DistillationRegions() {
   // X-axis = Business Differentiation (0=Low, 100=High)
   // Y-axis = Model Complexity (0=Low, 100=High)
   const regions = [
-    // GENERIC: Left column (low business differentiation, any complexity)
-    { name: 'GENERIC', xStart: 0, xEnd: 33, yStart: 0, yEnd: 100, color: 'rgba(153, 153, 153, 0.30)', textColor: '#fff', labelX: 16.5, labelY: 50 },
-
-    // SUPPORTING: Middle column + bottom-right
-    { name: 'SUPPORTING', xStart: 33, xEnd: 100, yStart: 0, yEnd: 50, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: 66.5, labelY: 25 },
-    { name: 'SUPPORTING', xStart: 33, xEnd: 67, yStart: 50, yEnd: 100, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: 50, labelY: 75 },
-
-    // CORE: Top-right (high differentiation, high complexity)
-    { name: 'CORE', xStart: 67, xEnd: 100, yStart: 50, yEnd: 100, color: 'rgba(93, 186, 164, 0.35)', textColor: '#fff', labelX: 83.5, labelY: 75 },
+    { name: 'GENERIC', xStart: 0, xEnd: DISTILLATION_GENERIC_MAX_X, yStart: 0, yEnd: 100, color: 'rgba(153, 153, 153, 0.30)', textColor: '#fff', labelX: DISTILLATION_GENERIC_MAX_X / 2, labelY: 50 },
+    { name: 'SUPPORTING', xStart: DISTILLATION_GENERIC_MAX_X, xEnd: 100, yStart: 0, yEnd: DISTILLATION_CORE_MIN_Y, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: (DISTILLATION_GENERIC_MAX_X + 100) / 2, labelY: DISTILLATION_CORE_MIN_Y / 2 },
+    { name: 'SUPPORTING', xStart: DISTILLATION_GENERIC_MAX_X, xEnd: DISTILLATION_CORE_MIN_X, yStart: DISTILLATION_CORE_MIN_Y, yEnd: 100, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: (DISTILLATION_GENERIC_MAX_X + DISTILLATION_CORE_MIN_X) / 2, labelY: (DISTILLATION_CORE_MIN_Y + 100) / 2 },
+    { name: 'CORE', xStart: DISTILLATION_CORE_MIN_X, xEnd: 100, yStart: DISTILLATION_CORE_MIN_Y, yEnd: 100, color: 'rgba(93, 186, 164, 0.35)', textColor: '#fff', labelX: (DISTILLATION_CORE_MIN_X + 100) / 2, labelY: (DISTILLATION_CORE_MIN_Y + 100) / 2 },
   ]
 
-  // Grid lines at key thresholds - only between different domain categories
   const gridLines = [
-    { type: 'vertical' as const, position: 33, label: '' }, // Differentiation: Generic/Supporting boundary
-    { type: 'vertical' as const, position: 67, label: '' }, // Differentiation: Supporting/Core boundary
+    { type: 'vertical' as const, position: DISTILLATION_GENERIC_MAX_X, label: '' },
+    { type: 'vertical' as const, position: DISTILLATION_CORE_MIN_X, label: '' },
   ]
 
   // Axis labels - matching Nick Tune's layout

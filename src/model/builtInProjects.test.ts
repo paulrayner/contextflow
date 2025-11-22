@@ -101,21 +101,6 @@ describe('builtInProjects', () => {
     it('should classify evolutionStage based on strategic position x when missing', () => {
       Object.values(initialProjects).forEach(project => {
         project.contexts.forEach(context => {
-          const x = context.positions.strategic.x
-          let expectedStage: string
-
-          if (x < 25) {
-            expectedStage = 'genesis'
-          } else if (x < 50) {
-            expectedStage = 'custom-built'
-          } else if (x < 75) {
-            expectedStage = 'product/rental'
-          } else {
-            expectedStage = 'commodity/utility'
-          }
-
-          // Note: This test verifies the migration happened, but the actual value
-          // may have been set manually in the JSON, so we just check it's valid
           expect(['genesis', 'custom-built', 'product/rental', 'commodity/utility']).toContain(context.evolutionStage)
         })
       })

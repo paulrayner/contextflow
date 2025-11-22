@@ -3,6 +3,11 @@ import {
   migrateProject,
 } from './persistence'
 import type { Project } from './types'
+import {
+  STRATEGIC_GENESIS_MAX_X,
+  STRATEGIC_CUSTOM_BUILT_MAX_X,
+  STRATEGIC_PRODUCT_RENTAL_MAX_X
+} from './classification'
 
 vi.mock('./classification', () => ({
   classifyFromStrategicPosition: (x: number) => {
@@ -10,7 +15,10 @@ vi.mock('./classification', () => ({
     if (x < 50) return 'custom-built'
     if (x < 75) return 'product'
     return 'commodity'
-  }
+  },
+  STRATEGIC_GENESIS_MAX_X: 25,
+  STRATEGIC_CUSTOM_BUILT_MAX_X: 50,
+  STRATEGIC_PRODUCT_RENTAL_MAX_X: 75
 }))
 
 describe('migrateProject', () => {

@@ -5,10 +5,9 @@
 
 ## Backlog
 
-- [ ] Make strategic classification boundaries not magic numbers everywhere
 - [ ] Break down addKeyframeAction into pure functions (likely already have unit tests in temporalActions.test.ts)
 - [ ] Check if temporalActions.test.ts mockProject and mockState are duplicated elsewhere
-- [ ] Work through process to test UX for everything implemented so far. Review for refactoring opportunities
+- [ ] Work through process to test UX for everything implemented so far.
 - [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view
 - [ ] Add onboarding/tutorial for first-time users
 - [ ] Accessibility checks
@@ -25,6 +24,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Make strategic classification boundaries not magic numbers everywhere
 - [x] Export function from builtInProjects that indicates a project is builtin/sample that can be used from store.ts to replace "origin = 'sample'" logic
 - [x] Refactoring should clean up redundant comments (e.g. // autosave <- like this, and this -> // Track analytics, and this -> // Track property changes)
 - [x] Refactor store.ts following extract-and-prove pattern (see STORE_REFACTORING_PLAN.md)

@@ -8,6 +8,8 @@ import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { Users, X } from 'lucide-react'
 import { trackEvent } from './utils/analytics'
 
+const MILLISECONDS_PER_SECOND = 1000
+
 function App() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
@@ -28,7 +30,7 @@ function App() {
 
     const handleBeforeUnload = () => {
       if (project) {
-        const sessionDuration = Math.floor((Date.now() - sessionStart) / 1000)
+        const sessionDuration = Math.floor((Date.now() - sessionStart) / MILLISECONDS_PER_SECOND)
         trackEvent('project_closed', project, {
           session_duration_seconds: sessionDuration
         })

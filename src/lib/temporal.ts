@@ -123,27 +123,27 @@ export function findNearestKeyframe(
   return nearest
 }
 
+const TEMPORAL_SNAP_THRESHOLD_BASE = 0.05
+const TEMPORAL_SNAP_MULTIPLIER = 5
+
 /**
  * Check if target date is close enough to snap to a keyframe
  * @param targetDate - Current slider date
  * @param keyframe - Keyframe to check
- * @param threshold - Snap threshold as a percentage (0.05 = 5%)
+ * @param threshold - Snap threshold as a percentage (default 0.05 = 5%)
  * @returns true if should snap
  */
 export function shouldSnapToKeyframe(
   targetDate: string,
   keyframe: TemporalKeyframe,
-  threshold: number = 0.05
+  threshold: number = TEMPORAL_SNAP_THRESHOLD_BASE
 ): boolean {
   const targetNumeric = dateToNumeric(targetDate)
   const keyframeNumeric = dateToNumeric(keyframe.date)
 
-  // Calculate distance as a fraction of the total timeline
-  // We need the full range to determine what 5% means
   const distance = Math.abs(targetNumeric - keyframeNumeric)
 
-  // For simplicity, use a fixed threshold of 0.25 years (about 3 months)
-  return distance < threshold * 5 // 0.05 * 5 = 0.25 years
+  return distance < threshold * TEMPORAL_SNAP_MULTIPLIER
 }
 
 /**

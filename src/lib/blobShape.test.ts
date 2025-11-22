@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { generateBlobPath, Point } from './blobShape'
 
+const CURVE_SMOOTHING_TOLERANCE_PX = 2
+const LARGE_PADDING_TOLERANCE_PX = 25
+const SHARP_CORNER_THRESHOLD_DEGREES = 30
+
 // ============================================================================
 // Test Helper Functions
 // ============================================================================
@@ -220,7 +224,6 @@ function verifyPathSmoothness(polygon: [number, number][]): {
   let minAngle = 180
   let maxAngle = 0
   let sharpCorners = 0
-  const sharpThreshold = 30 // Angles ABOVE this are considered "sharp" turns (0° = straight)
 
   for (let i = 0; i < polygon.length; i++) {
     const p1 = polygon[i]
@@ -235,7 +238,7 @@ function verifyPathSmoothness(polygon: [number, number][]): {
     minAngle = Math.min(minAngle, angle)
     maxAngle = Math.max(maxAngle, angle)
 
-    if (angle > sharpThreshold) {
+    if (angle > SHARP_CORNER_THRESHOLD_DEGREES) {
       sharpCorners++
     }
   }
@@ -394,7 +397,6 @@ describe('generateBlobPath', () => {
 // ============================================================================
 
 describe('generateBlobPath - encapsulation tests', () => {
-  const TOLERANCE = 2 // 2px tolerance for curve smoothing
 
   it('should encapsulate two horizontally aligned contexts with full padding', () => {
     const contexts = [
@@ -424,7 +426,7 @@ describe('generateBlobPath - encapsulation tests', () => {
         const distance = minDistanceToPolygonEdge(point, polygon)
         expect(distance,
           `Context ${i} perimeter point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should have ${padding}px clearance, got ${distance.toFixed(1)}px`
-        ).toBeGreaterThanOrEqual(padding - TOLERANCE)
+        ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -455,7 +457,7 @@ describe('generateBlobPath - encapsulation tests', () => {
         const distance = minDistanceToPolygonEdge(point, polygon)
         expect(distance,
           `Context ${i} perimeter point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should have ${padding}px clearance, got ${distance.toFixed(1)}px`
-        ).toBeGreaterThanOrEqual(padding - TOLERANCE)
+        ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -480,7 +482,7 @@ describe('generateBlobPath - encapsulation tests', () => {
         const distance = minDistanceToPolygonEdge(point, polygon)
         expect(distance,
           `Context ${i} should have ${padding}px clearance, got ${distance.toFixed(1)}px`
-        ).toBeGreaterThanOrEqual(padding - TOLERANCE)
+        ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -502,7 +504,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -525,7 +527,7 @@ describe('generateBlobPath - encapsulation tests', () => {
           `Context ${i} (size ${contexts[i].width}x${contexts[i].height}) point should be inside`
         ).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -546,7 +548,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -567,7 +569,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -588,7 +590,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -617,7 +619,7 @@ describe('generateBlobPath - encapsulation tests', () => {
           `Context ${i} at angle ${((i / 6) * 360).toFixed(0)}° should be inside`
         ).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -638,7 +640,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -659,7 +661,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -679,7 +681,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -693,9 +695,6 @@ describe('generateBlobPath - encapsulation tests', () => {
     const path = generateBlobPath(contexts, padding)
     const polygon = parseSvgPath(path)
 
-    // Large padding requires larger tolerance due to curve smoothing
-    // Catmull-Rom curves cut corners more with larger radii
-    const largePaddingTolerance = 25
 
     const perimeterPoints = getContextPerimeterPoints(contexts[0], 20)
     for (const point of perimeterPoints) {
@@ -703,7 +702,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       const distance = minDistanceToPolygonEdge(point, polygon)
       expect(distance,
         `Point should have ~${padding}px clearance, got ${distance.toFixed(1)}px`
-      ).toBeGreaterThanOrEqual(padding - largePaddingTolerance)
+      ).toBeGreaterThanOrEqual(padding - LARGE_PADDING_TOLERANCE_PX)
     }
   })
 
@@ -723,7 +722,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -745,7 +744,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
         expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - TOLERANCE)
+          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -772,7 +771,7 @@ describe('generateBlobPath - encapsulation tests', () => {
         const distance = minDistanceToPolygonEdge(point, polygon)
         expect(distance,
           `Large context ${i} point should have ${padding}px clearance, got ${distance.toFixed(1)}px`
-        ).toBeGreaterThanOrEqual(padding - TOLERANCE)
+        ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -783,7 +782,6 @@ describe('generateBlobPath - encapsulation tests', () => {
 // ============================================================================
 
 describe('generateBlobPath - visual quality tests', () => {
-  const TOLERANCE = 2 // 2px tolerance for curve smoothing
 
   it('should generate sufficient hull vertices for smooth curves (>= 40 vertices for 5 contexts)', () => {
     // Real Fulfillment & Shipping group from screenshot
@@ -1012,7 +1010,7 @@ describe('generateBlobPath - visual quality tests', () => {
         const distance = minDistanceToPolygonEdge(point, polygon)
         expect(distance,
           `Context ${i} point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should have ${padding}px clearance, got ${distance.toFixed(1)}px`
-        ).toBeGreaterThanOrEqual(padding - TOLERANCE)
+        ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
     }
   })
@@ -1036,15 +1034,13 @@ describe('generateBlobPath - smoothness tests', () => {
 
     const smoothness = verifyPathSmoothness(polygon)
 
-    // No sharp corners (all turn angles should be < 30°)
     expect(smoothness.sharpCorners,
-      `Found ${smoothness.sharpCorners} sharp corners (angles > 30°), expected 0. Max angle: ${smoothness.maxAngle.toFixed(1)}°`
+      `Found ${smoothness.sharpCorners} sharp corners (angles > ${SHARP_CORNER_THRESHOLD_DEGREES}°), expected 0. Max angle: ${smoothness.maxAngle.toFixed(1)}°`
     ).toBe(0)
 
-    // Maximum turn angle should be smooth (< 30°)
     expect(smoothness.maxAngle,
-      `Max turn angle ${smoothness.maxAngle.toFixed(1)}° should be < 30°`
-    ).toBeLessThan(30)
+      `Max turn angle ${smoothness.maxAngle.toFixed(1)}° should be < ${SHARP_CORNER_THRESHOLD_DEGREES}°`
+    ).toBeLessThan(SHARP_CORNER_THRESHOLD_DEGREES)
 
     // Angle changes should be gradual (max delta < 20°)
     expect(smoothness.maxAngleDelta,
@@ -1065,7 +1061,7 @@ describe('generateBlobPath - smoothness tests', () => {
     const smoothness = verifyPathSmoothness(polygon)
 
     expect(smoothness.sharpCorners).toBe(0)
-    expect(smoothness.maxAngle).toBeLessThan(30)
+    expect(smoothness.maxAngle).toBeLessThan(SHARP_CORNER_THRESHOLD_DEGREES)
     expect(smoothness.maxAngleDelta).toBeLessThan(20)
   })
 
@@ -1089,7 +1085,7 @@ describe('generateBlobPath - smoothness tests', () => {
     const smoothness = verifyPathSmoothness(polygon)
 
     expect(smoothness.sharpCorners).toBe(0)
-    expect(smoothness.maxAngle).toBeLessThan(30)
+    expect(smoothness.maxAngle).toBeLessThan(SHARP_CORNER_THRESHOLD_DEGREES)
     expect(smoothness.maxAngleDelta).toBeLessThan(20)
   })
 
@@ -1115,11 +1111,11 @@ describe('generateBlobPath - smoothness tests', () => {
     // Most of the boundary should be smooth (< 30°)
     // Only allow a few sharp turns at the ends
     expect(smoothness.sharpCorners,
-      `Found ${smoothness.sharpCorners} corners with angles > 30°, most should be smooth`
-    ).toBeLessThan(20) // Allow the end caps to have some curvature
+      `Found ${smoothness.sharpCorners} corners with angles > ${SHARP_CORNER_THRESHOLD_DEGREES}°, most should be smooth`
+    ).toBeLessThan(20)
   })
 
-  it('should have no sharp turns (all angles < 30°) for any arrangement', () => {
+  it(`should have no sharp turns (all angles < ${SHARP_CORNER_THRESHOLD_DEGREES}°) for any arrangement`, () => {
     // Test multiple different arrangements
     const testCases = [
       // Two contexts
@@ -1149,11 +1145,11 @@ describe('generateBlobPath - smoothness tests', () => {
       const smoothness = verifyPathSmoothness(polygon)
 
       expect(smoothness.sharpCorners,
-        `Test case ${caseIdx + 1}: Found ${smoothness.sharpCorners} sharp corners (angles > 30°), expected 0. Max: ${smoothness.maxAngle.toFixed(1)}°`
+        `Test case ${caseIdx + 1}: Found ${smoothness.sharpCorners} sharp corners (angles > ${SHARP_CORNER_THRESHOLD_DEGREES}°), expected 0. Max: ${smoothness.maxAngle.toFixed(1)}°`
       ).toBe(0)
       expect(smoothness.maxAngle,
-        `Test case ${caseIdx + 1}: Max angle ${smoothness.maxAngle.toFixed(1)}° should be < 30°`
-      ).toBeLessThan(30)
+        `Test case ${caseIdx + 1}: Max angle ${smoothness.maxAngle.toFixed(1)}° should be < ${SHARP_CORNER_THRESHOLD_DEGREES}°`
+      ).toBeLessThan(SHARP_CORNER_THRESHOLD_DEGREES)
     }
   })
 })

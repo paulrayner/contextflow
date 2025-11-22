@@ -1,5 +1,7 @@
 import type { Project } from '../model/types'
 
+const MILLISECONDS_PER_SECOND = 1000
+
 declare global {
   interface Window {
     sa_event?: (eventName: string, metadata?: Record<string, any>) => void
@@ -207,7 +209,7 @@ export function trackFTUEMilestone(
   }
 
   const sessionStart = getSessionStartTime()
-  const timeSinceLoad = Math.floor((Date.now() - sessionStart) / 1000) // seconds
+  const timeSinceLoad = Math.floor((Date.now() - sessionStart) / MILLISECONDS_PER_SECOND)
 
   const eventMetadata = {
     time_since_load_seconds: timeSinceLoad,

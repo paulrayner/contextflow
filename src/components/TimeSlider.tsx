@@ -4,6 +4,9 @@ import type { TemporalKeyframe } from '../model/types'
 import { dateToNumeric, findNearestKeyframe, shouldSnapToKeyframe } from '../lib/temporal'
 import { Copy, Trash2, X, Calendar, Play, Pause } from 'lucide-react'
 
+const PLAYBACK_UPDATE_INTERVAL_MS = 200
+const PLAYBACK_INCREMENT_QUARTERS = 0.25
+
 export function TimeSlider() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
@@ -226,15 +229,12 @@ export function TimeSlider() {
     }
 
     // Animate from current position to last keyframe
-    const interval = 200 // Update every 200ms (5 times per second)
     let currentPlaybackNumeric = startNumeric
 
     playbackIntervalRef.current = window.setInterval(() => {
       const end = endNumeric
 
-      // Calculate increment (advance by 1 quarter at a time)
-      const increment = 0.25 // 1 quarter = 0.25 years
-      currentPlaybackNumeric += increment
+      currentPlaybackNumeric += PLAYBACK_INCREMENT_QUARTERS
 
       if (currentPlaybackNumeric >= end) {
         // Reached the end
@@ -253,7 +253,7 @@ export function TimeSlider() {
       const quarter = Math.min(4, Math.floor(fraction * 4) + 1)
       const newDate = `${year}-Q${quarter}`
       setCurrentDate(newDate)
-    }, interval)
+    }, PLAYBACK_UPDATE_INTERVAL_MS)
 
     return () => {
       if (playbackIntervalRef.current) {
