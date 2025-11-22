@@ -53,15 +53,10 @@ import {
   updateKeyframeAction,
   updateKeyframeContextPositionAction
 } from './actions/temporalActions'
-import {
-  autosaveIfNeeded,
-  determineProjectOrigin,
-  calculateKeyframeTransition,
-  migrateProject,
-  validateStageLabel,
-  validateStagePosition,
-  createSelectionState,
-} from './storeHelpers'
+import { autosaveIfNeeded, migrateProject } from './persistence'
+import { determineProjectOrigin } from './builtInProjects'
+import { calculateKeyframeTransition } from './keyframes'
+import { validateStageLabel, validateStagePosition, createSelectionState } from './validation'
 
 export type { ViewMode, EditorCommand, EditorState }
 

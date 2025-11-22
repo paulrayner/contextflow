@@ -1,5 +1,6 @@
 // IndexedDB persistence for ContextFlow projects
 import type { Project } from './types'
+import { classifyFromStrategicPosition } from './classification'
 
 const DB_NAME = 'contextflow'
 const DB_VERSION = 1
@@ -73,4 +74,40 @@ export async function deleteProject(projectId: string): Promise<void> {
     request.onsuccess = () => resolve()
     request.onerror = () => reject(request.error)
   })
+}
+
+export function autosaveIfNeeded(
+  projectId: string | null,
+  projects: Record<string, Project> | undefined
+): void {
+  if (projectId && projects) {
+    saveProject(projects[projectId]).catch((err) => {
+      console.error('Failed to autosave project:', err)
+    })
+  }
+}
+
+export function migrateProject(project: Project): Project {
+  if (!project.actors) project.actors = []
+  if (!project.actorConnections) project.actorConnections = []
+
+  project.contexts = project.contexts.map(context => {
+    const needsDistillation = !context.positions.distillation
+    const needsEvolution = !context.evolutionStage
+
+    if (needsDistillation || needsEvolution) {
+      return {
+        ...context,
+        positions: {
+          ...context.positions,
+          distillation: context.positions.distillation || { x: 50, y: 50 },
+        },
+        strategicClassification: context.strategicClassification || 'supporting',
+        evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
+      }
+    }
+    return context
+  })
+
+  return project
 }

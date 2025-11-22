@@ -81,3 +81,19 @@ export const initialProjects = BUILT_IN_PROJECTS.reduce((acc, project) => {
   acc[project.id] = project
   return acc
 }, {} as Record<string, Project>)
+
+type ProjectOrigin = 'sample' | 'empty' | 'imported' | 'continued'
+
+export function determineProjectOrigin(
+  projectId: string,
+  isFirstLoad: boolean
+): ProjectOrigin {
+  if (projectId === 'acme-ecommerce' || projectId === 'cbioportal' || projectId === 'elan-warranty') {
+    return 'sample'
+  } else if (projectId === 'empty-project') {
+    return 'empty'
+  } else if (isFirstLoad) {
+    return 'imported'
+  }
+  return 'continued'
+}

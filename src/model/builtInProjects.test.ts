@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { initialProjects, initialActiveProjectId } from './builtInProjects'
+import { initialProjects, initialActiveProjectId, determineProjectOrigin } from './builtInProjects'
 
 describe('builtInProjects', () => {
   describe('initialProjects', () => {
@@ -190,6 +190,32 @@ describe('builtInProjects', () => {
           expect(context.positions.distillation.y).toBeTypeOf('number')
         })
       })
+    })
+  })
+
+  describe('determineProjectOrigin', () => {
+    it('returns "sample" for acme-ecommerce', () => {
+      expect(determineProjectOrigin('acme-ecommerce', false)).toBe('sample')
+    })
+
+    it('returns "sample" for cbioportal', () => {
+      expect(determineProjectOrigin('cbioportal', false)).toBe('sample')
+    })
+
+    it('returns "sample" for elan-warranty', () => {
+      expect(determineProjectOrigin('elan-warranty', false)).toBe('sample')
+    })
+
+    it('returns "empty" for empty-project', () => {
+      expect(determineProjectOrigin('empty-project', false)).toBe('empty')
+    })
+
+    it('returns "imported" for first load of custom project', () => {
+      expect(determineProjectOrigin('custom-project', true)).toBe('imported')
+    })
+
+    it('returns "continued" for subsequent load of custom project', () => {
+      expect(determineProjectOrigin('custom-project', false)).toBe('continued')
     })
   })
 })
