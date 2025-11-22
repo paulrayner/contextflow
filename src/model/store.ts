@@ -1332,6 +1332,12 @@ export const useEditorStore = create<EditorState>((set) => ({
       actors: [...(project.actors || []), newActor],
     }
 
+    // Track analytics
+    trackEvent('actor_added', updatedProject, {
+      entity_type: 'actor',
+      entity_id: newActor.id
+    })
+
     // Autosave
     autosaveProject(projectId, updatedProject)
 
@@ -1373,6 +1379,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       actors: project.actors.filter(a => a.id !== actorId),
       actorConnections: updatedActorConnections,
     }
+
+    // Track analytics
+    const connectionCount = (project.actorConnections || []).filter(
+      ac => ac.actorId === actorId
+    ).length
+    trackEvent('actor_deleted', project, {
+      entity_type: 'actor',
+      entity_id: actorId,
+      metadata: {
+        connection_count: connectionCount
+      }
+    })
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -1602,6 +1620,12 @@ export const useEditorStore = create<EditorState>((set) => ({
       userNeeds: [...(project.userNeeds || []), newUserNeed],
     }
 
+    // Track analytics
+    trackEvent('user_need_added', updatedProject, {
+      entity_type: 'user_need',
+      entity_id: newUserNeed.id
+    })
+
     autosaveProject(projectId, updatedProject)
 
     useEditorStore.setState({
@@ -1628,6 +1652,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       actorNeedConnections: (project.actorNeedConnections || []).filter(c => c.userNeedId !== userNeedId),
       needContextConnections: (project.needContextConnections || []).filter(c => c.userNeedId !== userNeedId),
     }
+
+    // Track analytics
+    const actorConnectionCount = (project.actorNeedConnections || []).filter(c => c.userNeedId === userNeedId).length
+    const contextConnectionCount = (project.needContextConnections || []).filter(c => c.userNeedId === userNeedId).length
+    trackEvent('user_need_deleted', project, {
+      entity_type: 'user_need',
+      entity_id: userNeedId,
+      metadata: {
+        actor_connection_count: actorConnectionCount,
+        context_connection_count: contextConnectionCount
+      }
+    })
 
     autosaveProject(projectId, updatedProject)
 
@@ -1750,6 +1786,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       actorNeedConnections: [...(project.actorNeedConnections || []), newConnection],
     }
 
+    // Track analytics
+    trackEvent('actor_need_connection_created', updatedProject, {
+      entity_type: 'actor_need_connection',
+      entity_id: newConnection.id,
+      metadata: {
+        actor_id: actorId,
+        user_need_id: userNeedId
+      }
+    })
+
     autosaveProject(projectId, updatedProject)
 
     useEditorStore.setState({
@@ -1854,6 +1900,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...project,
       needContextConnections: [...(project.needContextConnections || []), newConnection],
     }
+
+    // Track analytics
+    trackEvent('need_context_connection_created', updatedProject, {
+      entity_type: 'need_context_connection',
+      entity_id: newConnection.id,
+      metadata: {
+        user_need_id: userNeedId,
+        context_id: contextId
+      }
+    })
 
     autosaveProject(projectId, updatedProject)
 
@@ -2000,6 +2056,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
+    // Track analytics - track position changes (moves)
+    if (newPosition !== oldStage.position) {
+      trackEvent('flow_stage_moved', updatedProject, {
+        entity_type: 'flow_stage',
+        metadata: {
+          label: newStage.label,
+          old_position: oldStage.position,
+          new_position: newPosition
+        }
+      })
+    }
+
     autosaveProject(projectId, updatedProject)
 
     return {
@@ -2049,6 +2117,15 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
+    // Track analytics
+    trackEvent('flow_stage_created', updatedProject, {
+      entity_type: 'flow_stage',
+      metadata: {
+        label: newStage.label,
+        position: newStage.position
+      }
+    })
+
     autosaveProject(projectId, updatedProject)
 
     return {
@@ -2089,6 +2166,15 @@ export const useEditorStore = create<EditorState>((set) => ({
         flowStage: deletedStage,
       },
     }
+
+    // Track analytics
+    trackEvent('flow_stage_deleted', project, {
+      entity_type: 'flow_stage',
+      metadata: {
+        label: deletedStage.label,
+        position: deletedStage.position
+      }
+    })
 
     autosaveProject(projectId, updatedProject)
 
@@ -2798,6 +2884,17 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
+    // Track analytics
+    trackEvent('keyframe_created', updatedProject, {
+      entity_type: 'keyframe',
+      entity_id: newKeyframe.id,
+      metadata: {
+        date: newKeyframe.date,
+        context_count: Object.keys(newKeyframe.positions).length,
+        auto_created_now_keyframe: keyframesToAdd.length > 1
+      }
+    })
+
     // Autosave
     autosaveProject(projectId, updatedProject)
 
@@ -2837,6 +2934,15 @@ export const useEditorStore = create<EditorState>((set) => ({
         keyframes: project.temporal.keyframes.filter(kf => kf.id !== keyframeId),
       },
     }
+
+    // Track analytics
+    trackEvent('keyframe_deleted', project, {
+      entity_type: 'keyframe',
+      entity_id: keyframeId,
+      metadata: {
+        date: keyframeToDelete.date
+      }
+    })
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -2947,6 +3053,16 @@ export const useEditorStore = create<EditorState>((set) => ({
         keyframes: updatedKeyframes,
       },
     }
+
+    // Track analytics
+    trackEvent('keyframe_context_position_changed', updatedProject, {
+      entity_type: 'keyframe',
+      entity_id: keyframeId,
+      metadata: {
+        context_id: contextId,
+        keyframe_id: keyframeId
+      }
+    })
 
     // Autosave
     autosaveProject(projectId, updatedProject)
