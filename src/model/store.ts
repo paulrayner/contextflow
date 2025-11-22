@@ -53,17 +53,18 @@ import {
   updateKeyframeAction,
   updateKeyframeContextPositionAction
 } from './actions/temporalActions'
+import {
+  autosaveIfNeeded,
+  determineProjectOrigin,
+  calculateKeyframeTransition,
+  migrateProject,
+  validateStageLabel,
+  validateStagePosition,
+  createSelectionState,
+} from './storeHelpers'
 
 export type { ViewMode, EditorCommand, EditorState }
 
-// Helper to auto-save project after state changes
-function autosaveProject(projectId: string, project: Project) {
-  saveProject(project).catch((err) => {
-    console.error('Failed to autosave project:', err)
-  })
-}
-
-// Global callback for fitToMap - will be set by CanvasArea component
 let globalFitViewCallback: (() => void) | null = null
 
 export function setFitViewCallback(callback: () => void) {
@@ -114,56 +115,32 @@ export const useEditorStore = create<EditorState>((set) => ({
   undoStack: [],
   redoStack: [],
 
-  // Actions
   updateContext: (contextId, updates) => set((state) => {
     const result = updateContextAction(state, contextId, updates)
-
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateContextPosition: (contextId, newPositions) => set((state) => {
     const result = updateContextPositionAction(state, contextId, newPositions)
-
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateMultipleContextPositions: (positionsMap) => set((state) => {
     const result = updateMultipleContextPositionsAction(state, positionsMap)
-
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   setSelectedContext: (contextId) => set({
-    selectedContextId: contextId,
-    selectedContextIds: [], // clear multi-select when single-selecting
-    selectedGroupId: null, // clear group selection
-    selectedRelationshipId: null, // clear relationship selection
+    ...createSelectionState(contextId, 'context'),
   }),
 
   toggleContextSelection: (contextId) => set((state) => {
     const isSelected = state.selectedContextIds.includes(contextId)
     return {
-      selectedContextId: null, // clear single selection
-      selectedGroupId: null, // clear group selection
-      selectedRelationshipId: null, // clear relationship selection
+      ...createSelectionState(null, 'context'),
       selectedContextIds: isSelected
         ? state.selectedContextIds.filter(id => id !== contextId)
         : [...state.selectedContextIds, contextId],
@@ -171,10 +148,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   clearContextSelection: () => set({
-    selectedContextIds: [],
-    selectedContextId: null,
-    selectedGroupId: null,
-    selectedRelationshipId: null,
+    ...createSelectionState(null, 'context'),
   }),
 
   setViewMode: (mode) => set((state) => {
@@ -202,17 +176,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     if (!state.projects[projectId]) return state
 
     const project = state.projects[projectId]
-
-    // Determine project origin
-    let origin: 'sample' | 'empty' | 'imported' | 'continued' = 'continued'
-    if (projectId === 'acme-ecommerce' || projectId === 'cbioportal' || projectId === 'elan-warranty') {
-      origin = 'sample'
-    } else if (projectId === 'empty-project') {
-      origin = 'empty'
-    } else if (state.activeProjectId === null) {
-      // First time loading this project
-      origin = 'imported'
-    }
+    const origin = determineProjectOrigin(projectId, state.activeProjectId === null)
 
     trackEvent('project_opened', project, {
       project_origin: origin
@@ -233,25 +197,13 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   addContext: (name) => set((state) => {
     const result = addContextAction(state, name)
-
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   deleteContext: (contextId) => set((state) => {
     const result = deleteContextAction(state, contextId)
-
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
@@ -288,8 +240,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       repos: updatedRepos,
     }
 
-    // Autosave
-    autosaveProject(projectId, updatedProject)
+    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
     return {
       projects: {
@@ -333,8 +284,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       repos: updatedRepos,
     }
 
-    // Autosave
-    autosaveProject(projectId, updatedProject)
+    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
     return {
       projects: {
@@ -349,108 +299,62 @@ export const useEditorStore = create<EditorState>((set) => ({
   createGroup: (label, color, notes) => set((state) => {
     const result = createGroupAction(state, label, color, notes)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateGroup: (groupId, updates) => set((state) => {
     const result = updateGroupAction(state, groupId, updates)
-
-    // Autosave (text edits are not undoable per SPEC pattern)
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   deleteGroup: (groupId) => set((state) => {
     const result = deleteGroupAction(state, groupId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   removeContextFromGroup: (groupId, contextId) => set((state) => {
     const result = removeContextFromGroupAction(state, groupId, contextId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   addContextToGroup: (groupId, contextId) => set((state) => {
     const result = addContextToGroupAction(state, groupId, contextId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   addContextsToGroup: (groupId, contextIds) => set((state) => {
     const result = addContextsToGroupAction(state, groupId, contextIds)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   addRelationship: (fromContextId, toContextId, pattern, description) => set((state) => {
     const result = addRelationshipAction(state, fromContextId, toContextId, pattern, description)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   deleteRelationship: (relationshipId) => set((state) => {
     const result = deleteRelationshipAction(state, relationshipId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateRelationship: (relationshipId, updates) => set((state) => {
     const result = updateRelationshipAction(state, relationshipId, updates)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
@@ -466,48 +370,28 @@ export const useEditorStore = create<EditorState>((set) => ({
   addActor: (name) => set((state) => {
     const result = addActorAction(state, name)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   deleteActor: (actorId) => set((state) => {
     const result = deleteActorAction(state, actorId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateActor: (actorId, updates) => set((state) => {
     const result = updateActorAction(state, actorId, updates)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateActorPosition: (actorId, newPosition) => set((state) => {
     const result = updateActorPositionAction(state, actorId, newPosition)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
@@ -523,87 +407,50 @@ export const useEditorStore = create<EditorState>((set) => ({
   createActorConnection: (actorId, contextId) => set((state) => {
     const result = createActorConnectionAction(state, actorId, contextId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   deleteActorConnection: (connectionId) => set((state) => {
     const result = deleteActorConnectionAction(state, connectionId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateActorConnection: (connectionId, updates) => set((state) => {
     const result = updateActorConnectionAction(state, connectionId, updates)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   addUserNeed: (name) => {
     const state = useEditorStore.getState()
     const { newState, newUserNeedId } = addUserNeedAction(state, name)
-
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && newState.projects) {
-      autosaveProject(projectId, newState.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, newState.projects)
     useEditorStore.setState(newState)
-
     return newUserNeedId
   },
 
   deleteUserNeed: (userNeedId) => set((state) => {
     const result = deleteUserNeedAction(state, userNeedId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateUserNeed: (userNeedId, updates) => set((state) => {
     const result = updateUserNeedAction(state, userNeedId, updates)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateUserNeedPosition: (userNeedId, newPosition) => set((state) => {
     const result = updateUserNeedPositionAction(state, userNeedId, newPosition)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
@@ -620,38 +467,22 @@ export const useEditorStore = create<EditorState>((set) => ({
     const state = useEditorStore.getState()
     const { newState, newConnectionId } = createActorNeedConnectionAction(state, actorId, userNeedId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && newState.projects) {
-      autosaveProject(projectId, newState.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, newState.projects)
     useEditorStore.setState(newState)
-
     return newConnectionId
   },
 
   deleteActorNeedConnection: (connectionId) => set((state) => {
     const result = deleteActorNeedConnectionAction(state, connectionId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateActorNeedConnection: (connectionId, updates) => set((state) => {
     const result = updateActorNeedConnectionAction(state, connectionId, updates)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
@@ -659,38 +490,22 @@ export const useEditorStore = create<EditorState>((set) => ({
     const state = useEditorStore.getState()
     const { newState, newConnectionId } = createNeedContextConnectionAction(state, userNeedId, contextId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && newState.projects) {
-      autosaveProject(projectId, newState.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, newState.projects)
     useEditorStore.setState(newState)
-
     return newConnectionId
   },
 
   deleteNeedContextConnection: (connectionId) => set((state) => {
     const result = deleteNeedContextConnectionAction(state, connectionId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateNeedContextConnection: (connectionId, updates) => set((state) => {
     const result = updateNeedContextConnectionAction(state, connectionId, updates)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
@@ -726,17 +541,11 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newPosition = updates.position !== undefined ? updates.position : oldStage.position
 
     if (newLabel !== oldStage.label) {
-      const isDuplicate = stages.some((s, i) => i !== index && s.label === newLabel)
-      if (isDuplicate) {
-        throw new Error('Stage label must be unique')
-      }
+      validateStageLabel(stages, newLabel, index)
     }
 
     if (newPosition !== oldStage.position) {
-      const isDuplicate = stages.some((s, i) => i !== index && s.position === newPosition)
-      if (isDuplicate) {
-        throw new Error('Stage position must be unique')
-      }
+      validateStagePosition(stages, newPosition, index)
     }
 
     const newStage = { label: newLabel, position: newPosition }
@@ -772,7 +581,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       })
     }
 
-    autosaveProject(projectId, updatedProject)
+    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
     return {
       projects: {
@@ -793,15 +602,8 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const stages = project.viewConfig.flowStages
 
-    const labelExists = stages.some(s => s.label === label)
-    if (labelExists) {
-      throw new Error('Stage label must be unique')
-    }
-
-    const positionExists = stages.some(s => s.position === position)
-    if (positionExists) {
-      throw new Error('Stage position must be unique')
-    }
+    validateStageLabel(stages, label)
+    validateStagePosition(stages, position)
 
     const newStage = { label, position }
     const updatedStages = [...stages, newStage]
@@ -821,7 +623,6 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
-    // Track analytics
     trackEvent('flow_stage_created', updatedProject, {
       entity_type: 'flow_stage',
       metadata: {
@@ -830,7 +631,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     })
 
-    autosaveProject(projectId, updatedProject)
+    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
     return {
       projects: {
@@ -871,7 +672,6 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
     }
 
-    // Track analytics
     trackEvent('flow_stage_deleted', project, {
       entity_type: 'flow_stage',
       metadata: {
@@ -880,7 +680,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     })
 
-    autosaveProject(projectId, updatedProject)
+    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
     return {
       projects: {
@@ -912,7 +712,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const updatedProject = applyUndo(project, command)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
+    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
     return {
       projects: {
@@ -944,7 +744,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const updatedProject = applyRedo(project, command)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
+    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
     return {
       projects: {
@@ -965,50 +765,26 @@ export const useEditorStore = create<EditorState>((set) => ({
   exportProject: () => {},
 
   importProject: (project) => set((state) => {
-    // Ensure backwards compatibility with projects that don't have actors/actorConnections
-    if (!project.actors) project.actors = []
-    if (!project.actorConnections) project.actorConnections = []
-
-    // Migrate contexts to include distillation position and evolution stage if missing
-    project.contexts = project.contexts.map(context => {
-      const needsDistillation = !context.positions.distillation
-      const needsEvolution = !context.evolutionStage
-
-      if (needsDistillation || needsEvolution) {
-        return {
-          ...context,
-          positions: {
-            ...context.positions,
-            distillation: context.positions.distillation || { x: 50, y: 50 },
-          },
-          strategicClassification: context.strategicClassification || 'supporting',
-          evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
-        }
-      }
-      return context
-    })
-
-    // Track analytics
-    const fileSize = JSON.stringify(project).length / 1024 // KB
-    trackEvent('project_imported', project, {
+    const migratedProject = migrateProject(project)
+    const fileSize = JSON.stringify(migratedProject).length / 1024
+    trackEvent('project_imported', migratedProject, {
       file_size_kb: Math.round(fileSize),
-      context_count: project.contexts.length,
-      relationship_count: project.relationships.length,
-      group_count: project.groups.length,
-      keyframe_count: project.temporal?.keyframes.length || 0,
-      actor_count: project.actors.length,
-      need_count: project.userNeeds.length
+      context_count: migratedProject.contexts.length,
+      relationship_count: migratedProject.relationships.length,
+      group_count: migratedProject.groups.length,
+      keyframe_count: migratedProject.temporal?.keyframes.length || 0,
+      actor_count: migratedProject.actors.length,
+      need_count: migratedProject.userNeeds.length
     })
 
-    // Autosave imported project
-    autosaveProject(project.id, project)
+    autosaveIfNeeded(migratedProject.id, { [migratedProject.id]: migratedProject })
 
     return {
       projects: {
         ...state.projects,
-        [project.id]: project,
+        [migratedProject.id]: migratedProject,
       },
-      activeProjectId: project.id,
+      activeProjectId: migratedProject.id,
       selectedContextId: null,
       selectedActorId: null,
       selectedUserNeedId: null,
@@ -1036,12 +812,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   toggleTemporalMode: () => set((state) => {
     const result = toggleTemporalModeAction(state)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
@@ -1053,38 +824,22 @@ export const useEditorStore = create<EditorState>((set) => ({
   })),
 
   setActiveKeyframe: (keyframeId) => set((state) => {
-    // When entering keyframe mode (locking), save current visibility and hide both
-    // When exiting keyframe mode (unlocking), restore previous visibility
-    if (keyframeId && !state.temporal.activeKeyframeId) {
-      // Entering keyframe mode - save state and hide
-      return {
-        temporal: {
-          ...state.temporal,
-          activeKeyframeId: keyframeId,
-          savedShowGroups: state.showGroups,
-          savedShowRelationships: state.showRelationships,
-        },
-        showGroups: false,
-        showRelationships: false,
-      }
-    } else if (!keyframeId && state.temporal.activeKeyframeId) {
-      // Exiting keyframe mode - restore state
-      return {
-        temporal: {
-          ...state.temporal,
-          activeKeyframeId: keyframeId,
-        },
-        showGroups: state.temporal.savedShowGroups ?? state.showGroups,
-        showRelationships: state.temporal.savedShowRelationships ?? state.showRelationships,
-      }
-    } else {
-      // Just switching between keyframes or redundant call
-      return {
-        temporal: {
-          ...state.temporal,
-          activeKeyframeId: keyframeId,
-        },
-      }
+    const transition = calculateKeyframeTransition(
+      keyframeId,
+      state.temporal.activeKeyframeId,
+      state.showGroups,
+      state.showRelationships,
+      state.temporal.savedShowGroups,
+      state.temporal.savedShowRelationships
+    )
+
+    return {
+      temporal: {
+        ...state.temporal,
+        ...transition,
+      },
+      ...(transition.showGroups !== undefined && { showGroups: transition.showGroups }),
+      ...(transition.showRelationships !== undefined && { showRelationships: transition.showRelationships }),
     }
   }),
 
@@ -1092,50 +847,29 @@ export const useEditorStore = create<EditorState>((set) => ({
     const state = useEditorStore.getState()
     const { newState, newKeyframeId } = addKeyframeAction(state, date, label)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && newState.projects) {
-      autosaveProject(projectId, newState.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, newState.projects)
     useEditorStore.setState(newState)
-
     return newKeyframeId
   },
 
   deleteKeyframe: (keyframeId) => set((state) => {
     const result = deleteKeyframeAction(state, keyframeId)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateKeyframe: (keyframeId, updates) => set((state) => {
     const result = updateKeyframeAction(state, keyframeId, updates)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateKeyframeContextPosition: (keyframeId, contextId, x, y) => set((state) => {
     const result = updateKeyframeContextPositionAction(state, keyframeId, contextId, x, y)
 
-    // Autosave
-    const projectId = state.activeProjectId
-    if (projectId && result.projects) {
-      autosaveProject(projectId, result.projects[projectId])
-    }
-
+    autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 }))
