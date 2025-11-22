@@ -9,7 +9,7 @@
 
 **Map reality, not aspiration.**
 
-ContextFlow is a visual DDD context mapper for analyzing bounded contexts, their relationships, and code ownership across two synchronized views: **Value Stream** (flow of work) and **Strategic** (Wardley evolution with actors, user needs, and contexts).
+ContextFlow is a visual DDD context mapper for analyzing bounded contexts, their relationships, and code ownership across three complementary views guiding you through strategic domain analysis: **Value Stream** (context mapping), **Distillation** (domain classification), and **Strategic** (Wardley mapping).
 
 ![ContextFlow Screenshot](docs/context-flow-3.png)
 
@@ -25,19 +25,24 @@ ContextFlow helps teams map and edit their system architecture as it actually ex
 - **Capability groups** as organic blob-shaped visual clusters using Catmull-Rom smoothing
 - **Temporal evolution** showing how your architecture changes over time with keyframes and timeline playback
 
-The key differentiator: **two views of the same system**.
+The key differentiator: **three models of your sociotechnical system**.
 
 ### Value Stream View
-Shows how value and data move left-to-right through your system (stages are configurable per project: e.g., "Discovery → Selection → Purchase → Fulfillment → Post-Sale" for e-commerce, or "Ingest → Normalize → Analyze → Publish" for data pipelines)
+**Context mapping**: Shows how value and data move left-to-right through your system. Map bounded contexts and visualize how work flows between them. Stages are configurable per project (e.g., "Discovery → Selection → Purchase → Fulfillment → Post-Sale" for e-commerce, or "Ingest → Normalize → Analyze → Publish" for data pipelines).
 
 ![Value Stream View](docs/context-flow-1.png)
 
+### Distillation View
+**Domain classification**: Classify bounded contexts using Nick Tune's Core Domain Chart. Position contexts by Business Differentiation (Y-axis) and Model Complexity (X-axis) to identify your core domains vs supporting/generic capabilities. This helps prioritize strategic investment and identify what should be core vs commodity.
+
+![Distillation View](docs/context-flow-4.png)
+
 ### Strategic View
-Shows the complete Wardley Map value chain: **Actors** (users of the map) → **User Needs** (problems to solve) → **Contexts** (solution components), all positioned along the evolution axis (Genesis → Custom-built → Product/Rental → Commodity/Utility)
+**Wardley mapping**: Shows the complete Wardley Map value chain with **Actors** (users of the map) → **User Needs** (problems to solve) → **Contexts** (solution components), all positioned along the evolution axis (Genesis → Custom-built → Product/Rental → Commodity/Utility). Analyze strategic positioning and dependencies.
 
 ![Strategic View](docs/context-flow-2.png)
 
-Switch between views live. Same contexts, same relationships — different conversations.
+Switch between views live. Same contexts, same relationships, same teams — different analytical models of your system.
 
 ## Why ContextFlow?
 
@@ -49,13 +54,17 @@ Most architecture diagrams show the system you wish you had. ContextFlow helps y
 - Which teams own which repos, and where ownership is unclear
 - Boundary integrity — because not all context boundaries are created equal
 
-### Two views of the same system
+### Three models of your sociotechnical system
 
-**Value Stream View** resonates with delivery teams and product owners: "Here's how work moves across our pipeline."
+Each view is a different analytical model of the same bounded contexts, relationships, teams, and repos:
 
-**Strategic View** resonates with leadership and architects: "Here's what's core vs commodity, where we're exposed, and what we should buy vs build." It shows the full Wardley Map structure with actors, user needs, and contexts.
+**Value Stream View** (context mapping) — Start here. Map contexts and how work flows through your system. Resonates with delivery teams and product owners: "Here's how value moves through our pipeline."
 
-Both views use the same underlying model. That's the unlock.
+**Distillation View** (domain classification) — Classify your contexts. Use Nick Tune's Core Domain Chart to identify core vs supporting vs generic domains. Prioritize strategic investment: "What should we excel at vs what should we commoditize?"
+
+**Strategic View** (Wardley mapping) — Complete the strategic picture. Position contexts on the evolution axis with actors and user needs. Resonates with leadership and architects: "Here's what's core vs commodity, where we're exposed, and what we should buy vs build."
+
+All three views analyze the same system — different lenses, different strategic insights.
 
 ### Built for practitioners
 
@@ -73,13 +82,14 @@ Both views use the same underlying model. That's the unlock.
 - Visual canvas with pan/zoom and fit-to-map
 - Bounded context nodes with strategic classification, boundary integrity, size, legacy/external badges
 - DDD relationship patterns rendered as directed edges with pattern-specific styling
-- **Value Stream View** with editable flow stages (rename, reposition, add/delete via TopBar)
-- **Strategic View** with three-layer Wardley Map structure:
+- **Value Stream View** for context mapping with editable flow stages (rename, reposition, add/delete via TopBar)
+- **Distillation View** with Nick Tune's Core Domain Chart for domain classification (Business Differentiation vs Model Complexity)
+- **Strategic View** for Wardley mapping with three-layer value chain structure:
   - Actors (users of the map) with connections to User Needs
   - User Needs (problem space) connecting Actors to Contexts
   - Contexts (solution components) positioned on evolution axis
   - 2-hop connection highlighting showing complete value chains
-- Live view switching with animated horizontal transitions
+- Live view switching with animated transitions between all three models
 - **Temporal evolution mode** with timeline slider, keyframes, and playback animation to visualize architecture changes over time
 - Full editing capabilities:
   - Drag nodes to reposition (updates per-view coordinates)
@@ -121,10 +131,11 @@ The app includes multiple example projects:
 - **Empty Project** — Practice template for your own context mapping
 
 **Try it out:**
-- Toggle between Value Stream and Strategic views
-- Click a context to inspect and edit details
-- In Strategic View, add actors and user needs to build complete value chains
+- Start in Value Stream View to map contexts and visualize flow
+- Switch to Distillation View to classify contexts using the Core Domain Chart
+- Move to Strategic View to add actors, user needs, and complete Wardley mapping
 - Use the timeline slider to create keyframes and visualize temporal evolution
+- Click a context to inspect and edit details
 - Drag repos from the left sidebar onto contexts
 - Multi-select contexts (Shift+click) and drag as a group
 - Create relationships by dragging from one context to another
