@@ -125,10 +125,12 @@ npm run dev
 This starts the Vite dev server and opens the app in your browser.
 
 The app includes multiple example projects:
-- **ACME E-Commerce** — 20 contexts with external services (Stripe, shipping carriers, fraud detection) and realistic DDD relationship patterns
-- **cBioPortal** — Complete genomics platform with user needs value chain demonstrating actors → needs → contexts flow
-- **Elan Extended Warranty** — DDD strategic patterns reference for teaching workshops
+- **ACME E-Commerce** — 20 contexts with external services (Stripe, shipping carriers, fraud detection) and realistic DDD relationship patterns (fictional data for demonstration)
+- **cBioPortal** — Complete genomics platform with user needs value chain demonstrating actors → needs → contexts flow (adapted from public repository and documentation; does not reflect actual project realities)
+- **Elan Extended Warranty** — DDD strategic patterns reference for teaching workshops (fictional data for demonstration)
 - **Empty Project** — Practice template for your own context mapping
+
+**Note:** All sample project data is invented for demonstration purposes, except cBioPortal which is adapted from the [public repository](https://github.com/cBioPortal/cbioportal) and documentation but does not represent the actual project structure or strategic decisions.
 
 **Try it out:**
 - Start in Value Stream View to map contexts and visualize flow
