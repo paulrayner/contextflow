@@ -4,7 +4,7 @@ import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock } fr
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 import { config } from '../config'
 import { interpolatePosition, classifyFromStrategicPosition } from '../lib/temporal'
-import { classifyFromStrategicPosition as getEvolutionStage } from '../model/store'
+import { classifyFromStrategicPosition as getEvolutionStage } from '../model/classification'
 
 const DDD_PATTERNS = [
   { value: 'customer-supplier', label: 'Customer-Supplier', description: 'Downstream depends on upstream' },

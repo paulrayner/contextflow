@@ -6,6 +6,7 @@
 
 ## Backlog
 
+- [ ] Make strategic classification boundaries not magic numbers everywhere
 - [ ] Work through process to test UX for everything implemented so far. Review for refactoring opportunities
 - [ ] Refactor store.ts following extract-and-prove pattern (see STORE_REFACTORING_PLAN.md)
 - [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view
