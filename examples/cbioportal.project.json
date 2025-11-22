@@ -18,6 +18,10 @@
         },
         "shared": {
           "y": 90
+        },
+        "distillation": {
+          "x": 75,
+          "y": 80
         }
       },
       "evolutionStage": "custom-built",
@@ -44,6 +48,10 @@
         },
         "shared": {
           "y": 75
+        },
+        "distillation": {
+          "x": 55,
+          "y": 65
         }
       },
       "evolutionStage": "product/rental",
@@ -70,6 +78,10 @@
         },
         "shared": {
           "y": 80
+        },
+        "distillation": {
+          "x": 80,
+          "y": 70
         }
       },
       "evolutionStage": "custom-built",
@@ -96,6 +108,10 @@
         },
         "shared": {
           "y": 60
+        },
+        "distillation": {
+          "x": 50,
+          "y": 55
         }
       },
       "evolutionStage": "custom-built",
@@ -122,6 +138,10 @@
         },
         "shared": {
           "y": 40
+        },
+        "distillation": {
+          "x": 45,
+          "y": 30
         }
       },
       "evolutionStage": "custom-built",
@@ -148,6 +168,10 @@
         },
         "shared": {
           "y": 30
+        },
+        "distillation": {
+          "x": 40,
+          "y": 20
         }
       },
       "evolutionStage": "product/rental",
@@ -174,6 +198,10 @@
         },
         "shared": {
           "y": 35
+        },
+        "distillation": {
+          "x": 20,
+          "y": 30
         }
       },
       "evolutionStage": "commodity/utility",
@@ -200,6 +228,10 @@
         },
         "shared": {
           "y": 25
+        },
+        "distillation": {
+          "x": 15,
+          "y": 20
         }
       },
       "evolutionStage": "commodity/utility",
@@ -226,6 +258,10 @@
         },
         "shared": {
           "y": 85
+        },
+        "distillation": {
+          "x": 60,
+          "y": 75
         }
       },
       "evolutionStage": "product/rental",
