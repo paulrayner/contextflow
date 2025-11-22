@@ -100,3 +100,80 @@ export function trackEvent(
     console.warn('Analytics error:', error)
   }
 }
+
+// Helper for tracking property changes
+export function trackPropertyChange(
+  eventName: string,
+  project: Project | null,
+  entityType: string,
+  entityId: string,
+  propertyName: string,
+  oldValue: any,
+  newValue: any,
+  sourceView?: string,
+  interactionType?: string
+): void {
+  const metadata: Record<string, any> = {
+    entity_type: entityType,
+    entity_id: entityId,
+    property_changed: propertyName,
+    old_value: oldValue,
+    new_value: newValue
+  }
+
+  if (sourceView) {
+    metadata.source_view = sourceView
+  }
+
+  if (interactionType) {
+    metadata.interaction_type = interactionType
+  }
+
+  trackEvent(eventName, project, metadata)
+}
+
+// Helper for tracking text field edits (character count only, no PII)
+export function trackTextFieldEdit(
+  project: Project | null,
+  entityType: string,
+  fieldName: string,
+  oldText: string | undefined,
+  newText: string | undefined,
+  source: 'inspector' | 'overlay'
+): void {
+  const oldCharCount = oldText?.length || 0
+  const newCharCount = newText?.length || 0
+
+  if (oldCharCount === newCharCount) return // No actual change
+
+  let editType: 'added_text' | 'deleted_text' | 'replaced_text' | 'cleared'
+  if (newCharCount === 0) {
+    editType = 'cleared'
+  } else if (oldCharCount === 0) {
+    editType = 'added_text'
+  } else if (newCharCount < oldCharCount) {
+    editType = 'deleted_text'
+  } else {
+    editType = 'replaced_text'
+  }
+
+  trackEvent('text_field_edited', project, {
+    entity_type: entityType,
+    field_name: fieldName,
+    old_char_count: oldCharCount,
+    new_char_count: newCharCount,
+    edit_type: editType,
+    source
+  })
+}
+
+// Helper to extract URL platform type (for repo URLs)
+export function extractUrlPlatform(url: string | undefined): 'github' | 'gitlab' | 'bitbucket' | 'other' | null {
+  if (!url) return null
+
+  const lower = url.toLowerCase()
+  if (lower.includes('github.com')) return 'github'
+  if (lower.includes('gitlab.com')) return 'gitlab'
+  if (lower.includes('bitbucket.org')) return 'bitbucket'
+  return 'other'
+}

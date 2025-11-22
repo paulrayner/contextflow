@@ -6,7 +6,7 @@ import emptyProject from '../../examples/empty.project.json'
 import elanWarrantyProject from '../../examples/elan-warranty.project.json'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
-import { trackEvent } from '../utils/analytics'
+import { trackEvent, trackPropertyChange, trackTextFieldEdit } from '../utils/analytics'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
@@ -332,6 +332,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const contextIndex = project.contexts.findIndex(c => c.id === contextId)
     if (contextIndex === -1) return state
 
+    const oldContext = project.contexts[contextIndex]
     const updatedContexts = [...project.contexts]
     updatedContexts[contextIndex] = {
       ...updatedContexts[contextIndex],
@@ -342,6 +343,57 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...project,
       contexts: updatedContexts,
     }
+
+    // Track property changes
+    const trackedProperties = [
+      'name', 'purpose', 'strategicClassification', 'evolutionStage',
+      'boundaryIntegrity', 'boundaryNotes', 'isExternal', 'isLegacy',
+      'notes'
+    ] as const
+
+    trackedProperties.forEach(prop => {
+      if (prop in updates && oldContext[prop] !== updates[prop]) {
+        if (prop === 'purpose' || prop === 'boundaryNotes' || prop === 'notes') {
+          // Text fields - track character count only (no PII)
+          trackTextFieldEdit(
+            updatedProject,
+            'context',
+            prop,
+            oldContext[prop],
+            updates[prop],
+            'inspector'
+          )
+        } else if (prop === 'codeSize') {
+          // Special handling for code size bucket
+          const oldBucket = (oldContext.codeSize as any)?.bucket
+          const newBucket = (updates.codeSize as any)?.bucket
+          if (oldBucket !== newBucket) {
+            trackPropertyChange(
+              'context_property_changed',
+              updatedProject,
+              'context',
+              contextId,
+              'codeSize.bucket',
+              oldBucket,
+              newBucket,
+              state.activeViewMode
+            )
+          }
+        } else {
+          // Standard property changes
+          trackPropertyChange(
+            'context_property_changed',
+            updatedProject,
+            'context',
+            contextId,
+            prop,
+            oldContext[prop],
+            updates[prop],
+            state.activeViewMode
+          )
+        }
+      }
+    })
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -562,6 +614,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         shared: { y: 50 },
       },
       strategicClassification: 'supporting', // Default to supporting (middle of distillation map)
+      evolutionStage: 'custom-built', // Default evolution stage
     }
 
     const command: EditorCommand = {
@@ -575,6 +628,17 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...project,
       contexts: [...project.contexts, newContext],
     }
+
+    // Track analytics
+    trackEvent('context_added', updatedProject, {
+      entity_type: 'context',
+      entity_id: newContext.id,
+      source_view: state.activeViewMode,
+      metadata: {
+        context_type: newContext.strategicClassification,
+        is_external: newContext.isExternal || false
+      }
+    })
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -599,6 +663,12 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const contextToDelete = project.contexts.find(c => c.id === contextId)
     if (!contextToDelete) return state
+
+    // Calculate metadata before deletion
+    const relationshipCount = project.relationships.filter(
+      r => r.fromContextId === contextId || r.toContextId === contextId
+    ).length
+    const groupCount = project.groups.filter(g => g.contextIds.includes(contextId)).length
 
     const command: EditorCommand = {
       type: 'deleteContext',
@@ -628,6 +698,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       contexts: project.contexts.filter(c => c.id !== contextId),
       temporal: updatedTemporal,
     }
+
+    // Track analytics
+    trackEvent('context_deleted', project, {
+      entity_type: 'context',
+      entity_id: contextId,
+      metadata: {
+        relationship_count: relationshipCount,
+        group_count: groupCount
+      }
+    })
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -761,6 +841,15 @@ export const useEditorStore = create<EditorState>((set) => ({
       groups: [...project.groups, newGroup],
     }
 
+    // Track analytics
+    trackEvent('group_created', updatedProject, {
+      entity_type: 'group',
+      entity_id: newGroup.id,
+      metadata: {
+        initial_member_count: newGroup.contextIds.length
+      }
+    })
+
     // Autosave
     autosaveProject(projectId, updatedProject)
 
@@ -831,6 +920,15 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...project,
       groups: project.groups.filter(g => g.id !== groupId),
     }
+
+    // Track analytics
+    trackEvent('group_deleted', project, {
+      entity_type: 'group',
+      entity_id: groupId,
+      metadata: {
+        member_count: groupToDelete.contextIds.length
+      }
+    })
 
     // Autosave
     autosaveProject(projectId, updatedProject)
@@ -1002,6 +1100,17 @@ export const useEditorStore = create<EditorState>((set) => ({
       relationships: [...project.relationships, newRelationship],
     }
 
+    // Track analytics
+    trackEvent('relationship_added', updatedProject, {
+      entity_type: 'relationship',
+      entity_id: newRelationship.id,
+      metadata: {
+        pattern,
+        from_context_id: fromContextId,
+        to_context_id: toContextId
+      }
+    })
+
     // Autosave
     autosaveProject(projectId, updatedProject)
 
@@ -1037,6 +1146,17 @@ export const useEditorStore = create<EditorState>((set) => ({
       relationships: project.relationships.filter(r => r.id !== relationshipId),
     }
 
+    // Track analytics
+    trackEvent('relationship_deleted', project, {
+      entity_type: 'relationship',
+      entity_id: relationshipId,
+      metadata: {
+        pattern: relationship.pattern,
+        from_context_id: relationship.fromContextId,
+        to_context_id: relationship.toContextId
+      }
+    })
+
     // Autosave
     autosaveProject(projectId, updatedProject)
 
@@ -1069,6 +1189,41 @@ export const useEditorStore = create<EditorState>((set) => ({
     const updatedProject = {
       ...project,
       relationships: updatedRelationships,
+    }
+
+    // Track property changes
+    if (updates.pattern && updates.pattern !== oldRelationship.pattern) {
+      trackPropertyChange(
+        'relationship_pattern_changed',
+        updatedProject,
+        'relationship',
+        relationshipId,
+        'pattern',
+        oldRelationship.pattern,
+        updates.pattern
+      )
+    }
+
+    if (updates.communicationMode !== undefined && updates.communicationMode !== oldRelationship.communicationMode) {
+      trackTextFieldEdit(
+        updatedProject,
+        'relationship',
+        'communicationMode',
+        oldRelationship.communicationMode,
+        updates.communicationMode,
+        'inspector'
+      )
+    }
+
+    if (updates.description !== undefined && updates.description !== oldRelationship.description) {
+      trackTextFieldEdit(
+        updatedProject,
+        'relationship',
+        'description',
+        oldRelationship.description,
+        updates.description,
+        'inspector'
+      )
     }
 
     const patternChanged = updates.pattern !== undefined && updates.pattern !== oldRelationship.pattern
