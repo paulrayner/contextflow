@@ -22,6 +22,11 @@ import {
   addContextToGroupAction,
   addContextsToGroupAction
 } from './actions/groupActions'
+import {
+  addRelationshipAction,
+  deleteRelationshipAction,
+  updateRelationshipAction
+} from './actions/relationshipActions'
 
 export type { ViewMode, EditorCommand, EditorState }
 
@@ -388,193 +393,39 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addRelationship: (fromContextId, toContextId, pattern, description) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const newRelationship = {
-      id: `rel-${Date.now()}`,
-      fromContextId,
-      toContextId,
-      pattern,
-      description,
-    }
-
-    const command: EditorCommand = {
-      type: 'addRelationship',
-      payload: {
-        relationship: newRelationship,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      relationships: [...project.relationships, newRelationship],
-    }
-
-    // Track analytics
-    trackEvent('relationship_added', updatedProject, {
-      entity_type: 'relationship',
-      entity_id: newRelationship.id,
-      metadata: {
-        pattern,
-        from_context_id: fromContextId,
-        to_context_id: toContextId
-      }
-    })
-
-    // Track FTUE milestone: first relationship added
-    trackFTUEMilestone('first_relationship_added', updatedProject)
+    const result = addRelationshipAction(state, fromContextId, toContextId, pattern, description)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   deleteRelationship: (relationshipId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const relationship = project.relationships.find(r => r.id === relationshipId)
-    if (!relationship) return state
-
-    const command: EditorCommand = {
-      type: 'deleteRelationship',
-      payload: {
-        relationship,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      relationships: project.relationships.filter(r => r.id !== relationshipId),
-    }
-
-    // Track analytics
-    trackEvent('relationship_deleted', project, {
-      entity_type: 'relationship',
-      entity_id: relationshipId,
-      metadata: {
-        pattern: relationship.pattern,
-        from_context_id: relationship.fromContextId,
-        to_context_id: relationship.toContextId
-      }
-    })
+    const result = deleteRelationshipAction(state, relationshipId)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   updateRelationship: (relationshipId, updates) => set((state) => {
+    const result = updateRelationshipAction(state, relationshipId, updates)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const relationshipIndex = project.relationships.findIndex(r => r.id === relationshipId)
-    if (relationshipIndex === -1) return state
-
-    const oldRelationship = project.relationships[relationshipIndex]
-    const newRelationship = { ...oldRelationship, ...updates }
-
-    const updatedRelationships = [...project.relationships]
-    updatedRelationships[relationshipIndex] = newRelationship
-
-    const updatedProject = {
-      ...project,
-      relationships: updatedRelationships,
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    // Track property changes
-    if (updates.pattern && updates.pattern !== oldRelationship.pattern) {
-      trackPropertyChange(
-        'relationship_pattern_changed',
-        updatedProject,
-        'relationship',
-        relationshipId,
-        'pattern',
-        oldRelationship.pattern,
-        updates.pattern
-      )
-    }
-
-    if (updates.communicationMode !== undefined && updates.communicationMode !== oldRelationship.communicationMode) {
-      trackTextFieldEdit(
-        updatedProject,
-        'relationship',
-        'communicationMode',
-        oldRelationship.communicationMode,
-        updates.communicationMode,
-        'inspector'
-      )
-    }
-
-    if (updates.description !== undefined && updates.description !== oldRelationship.description) {
-      trackTextFieldEdit(
-        updatedProject,
-        'relationship',
-        'description',
-        oldRelationship.description,
-        updates.description,
-        'inspector'
-      )
-    }
-
-    const patternChanged = updates.pattern !== undefined && updates.pattern !== oldRelationship.pattern
-
-    if (patternChanged) {
-      const command: EditorCommand = {
-        type: 'updateRelationship',
-        payload: {
-          relationshipId,
-          oldRelationship,
-          newRelationship,
-        },
-      }
-
-      autosaveProject(projectId, updatedProject)
-
-      return {
-        projects: {
-          ...state.projects,
-          [projectId]: updatedProject,
-        },
-        undoStack: [...state.undoStack, command],
-        redoStack: [],
-      }
-    } else {
-      autosaveProject(projectId, updatedProject)
-
-      return {
-        projects: {
-          ...state.projects,
-          [projectId]: updatedProject,
-        },
-      }
-    }
+    return result
   }),
 
   setSelectedRelationship: (relationshipId) => set({
