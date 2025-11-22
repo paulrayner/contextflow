@@ -975,6 +975,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
     }
 
+    // Track analytics
+    trackEvent('context_removed_from_group', updatedProject, {
+      entity_type: 'group',
+      entity_id: groupId,
+      metadata: {
+        group_id: groupId,
+        remaining_member_count: updatedGroup.contextIds.length
+      }
+    })
+
     // Autosave
     autosaveProject(projectId, updatedProject)
 
@@ -1017,6 +1027,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...project,
       groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
     }
+
+    // Track analytics
+    trackEvent('context_added_to_group', updatedProject, {
+      entity_type: 'group',
+      entity_id: groupId,
+      metadata: {
+        group_id: groupId,
+        method: 'inspector' // This is called from inspector; drag events would be tracked separately
+      }
+    })
 
     autosaveProject(projectId, updatedProject)
 
