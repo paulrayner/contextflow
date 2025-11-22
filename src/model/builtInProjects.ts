@@ -20,7 +20,7 @@ import { classifyFromStrategicPosition } from './classification'
 // - Loaded from IndexedDB on startup
 // - Available in the project dropdown
 // ============================================================================
-const BUILT_IN_PROJECTS = [
+export const BUILT_IN_PROJECTS = [
   demoProject as Project,
   cbioportalProject as Project,
   emptyProject as Project,
@@ -28,7 +28,7 @@ const BUILT_IN_PROJECTS = [
 ]
 
 // For backwards compatibility, create named references
-const [sampleProject, cbioportal, empty, elanWarranty] = BUILT_IN_PROJECTS
+export const [sampleProject, cbioportal, empty, elanWarranty] = BUILT_IN_PROJECTS
 
 // Ensure all projects have required arrays (for backwards compatibility)
 BUILT_IN_PROJECTS.forEach(project => {
