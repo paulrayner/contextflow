@@ -14,6 +14,14 @@ import {
   addContextAction,
   deleteContextAction
 } from './actions/contextActions'
+import {
+  createGroupAction,
+  updateGroupAction,
+  deleteGroupAction,
+  removeContextFromGroupAction,
+  addContextToGroupAction,
+  addContextsToGroupAction
+} from './actions/groupActions'
 
 export type { ViewMode, EditorCommand, EditorState }
 
@@ -308,285 +316,75 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   createGroup: (label, color, notes) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const newGroup = {
-      id: `group-${Date.now()}`,
-      label,
-      color: color || '#3b82f6',
-      contextIds: state.selectedContextIds,
-      notes,
-    }
-
-    const command: EditorCommand = {
-      type: 'addGroup',
-      payload: {
-        group: newGroup,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      groups: [...project.groups, newGroup],
-    }
-
-    // Track analytics
-    trackEvent('group_created', updatedProject, {
-      entity_type: 'group',
-      entity_id: newGroup.id,
-      metadata: {
-        initial_member_count: newGroup.contextIds.length
-      }
-    })
-
-    // Track FTUE milestone: first group created
-    trackFTUEMilestone('first_group_created', updatedProject)
+    const result = createGroupAction(state, label, color, notes)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedGroupId: newGroup.id,
-      selectedContextIds: [], // clear multi-select after creating group
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   updateGroup: (groupId, updates) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const groupIndex = project.groups.findIndex(g => g.id === groupId)
-    if (groupIndex === -1) return state
-
-    const updatedGroup = {
-      ...project.groups[groupIndex],
-      ...updates,
-    }
-
-    const updatedGroups = [...project.groups]
-    updatedGroups[groupIndex] = updatedGroup
-
-    const updatedProject = {
-      ...project,
-      groups: updatedGroups,
-    }
+    const result = updateGroupAction(state, groupId, updates)
 
     // Autosave (text edits are not undoable per SPEC pattern)
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   deleteGroup: (groupId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const groupToDelete = project.groups.find(g => g.id === groupId)
-    if (!groupToDelete) return state
-
-    const command: EditorCommand = {
-      type: 'deleteGroup',
-      payload: {
-        group: groupToDelete,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      groups: project.groups.filter(g => g.id !== groupId),
-    }
-
-    // Track analytics
-    trackEvent('group_deleted', project, {
-      entity_type: 'group',
-      entity_id: groupId,
-      metadata: {
-        member_count: groupToDelete.contextIds.length
-      }
-    })
+    const result = deleteGroupAction(state, groupId)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedGroupId: state.selectedGroupId === groupId ? null : state.selectedGroupId,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   removeContextFromGroup: (groupId, contextId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const group = project.groups.find(g => g.id === groupId)
-    if (!group) return state
-
-    // Don't do anything if context isn't in the group
-    if (!group.contextIds.includes(contextId)) return state
-
-    const command: EditorCommand = {
-      type: 'removeFromGroup',
-      payload: {
-        groupId,
-        contextId,
-      },
-    }
-
-    const updatedGroup = {
-      ...group,
-      contextIds: group.contextIds.filter(id => id !== contextId),
-    }
-
-    const updatedProject = {
-      ...project,
-      groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
-    }
-
-    // Track analytics
-    trackEvent('context_removed_from_group', updatedProject, {
-      entity_type: 'group',
-      entity_id: groupId,
-      metadata: {
-        group_id: groupId,
-        remaining_member_count: updatedGroup.contextIds.length
-      }
-    })
+    const result = removeContextFromGroupAction(state, groupId, contextId)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   addContextToGroup: (groupId, contextId) => set((state) => {
+    const result = addContextToGroupAction(state, groupId, contextId)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const group = project.groups.find(g => g.id === groupId)
-    if (!group) return state
-
-    if (group.contextIds.includes(contextId)) return state
-
-    const command: EditorCommand = {
-      type: 'addToGroup',
-      payload: {
-        groupId,
-        contextId,
-      },
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedGroup = {
-      ...group,
-      contextIds: [...group.contextIds, contextId],
-    }
-
-    const updatedProject = {
-      ...project,
-      groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
-    }
-
-    // Track analytics
-    trackEvent('context_added_to_group', updatedProject, {
-      entity_type: 'group',
-      entity_id: groupId,
-      metadata: {
-        group_id: groupId,
-        method: 'inspector' // This is called from inspector; drag events would be tracked separately
-      }
-    })
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+    return result
   }),
 
   addContextsToGroup: (groupId, contextIds) => set((state) => {
+    const result = addContextsToGroupAction(state, groupId, contextIds)
+
+    // Autosave
     const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const group = project.groups.find(g => g.id === groupId)
-    if (!group) return state
-
-    const newContextIds = contextIds.filter(id => !group.contextIds.includes(id))
-    if (newContextIds.length === 0) return state
-
-    const command: EditorCommand = {
-      type: 'addToGroup',
-      payload: {
-        groupId,
-        contextIds: newContextIds,
-      },
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
 
-    const updatedGroup = {
-      ...group,
-      contextIds: [...group.contextIds, ...newContextIds],
-    }
-
-    const updatedProject = {
-      ...project,
-      groups: project.groups.map(g => g.id === groupId ? updatedGroup : g),
-    }
-
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+    return result
   }),
 
   addRelationship: (fromContextId, toContextId, pattern, description) => set((state) => {
