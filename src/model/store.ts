@@ -7,6 +7,13 @@ import { classifyFromDistillationPosition, classifyFromStrategicPosition } from 
 import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
 import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal } from './builtInProjects'
 import { applyUndo, applyRedo } from './undoRedo'
+import {
+  updateContextAction,
+  updateContextPositionAction,
+  updateMultipleContextPositionsAction,
+  addContextAction,
+  deleteContextAction
+} from './actions/contextActions'
 
 export type { ViewMode, EditorCommand, EditorState }
 
@@ -70,207 +77,39 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   // Actions
   updateContext: (contextId, updates) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const contextIndex = project.contexts.findIndex(c => c.id === contextId)
-    if (contextIndex === -1) return state
-
-    const oldContext = project.contexts[contextIndex]
-    const updatedContexts = [...project.contexts]
-    updatedContexts[contextIndex] = {
-      ...updatedContexts[contextIndex],
-      ...updates,
-    }
-
-    const updatedProject = {
-      ...project,
-      contexts: updatedContexts,
-    }
-
-    // Track property changes
-    const trackedProperties = [
-      'name', 'purpose', 'strategicClassification', 'evolutionStage',
-      'boundaryIntegrity', 'boundaryNotes', 'isExternal', 'isLegacy',
-      'notes'
-    ] as const
-
-    trackedProperties.forEach(prop => {
-      if (prop in updates && oldContext[prop] !== updates[prop]) {
-        if (prop === 'purpose' || prop === 'boundaryNotes' || prop === 'notes') {
-          // Text fields - track character count only (no PII)
-          trackTextFieldEdit(
-            updatedProject,
-            'context',
-            prop,
-            oldContext[prop],
-            updates[prop],
-            'inspector'
-          )
-        } else if (prop === 'codeSize') {
-          // Special handling for code size bucket
-          const oldBucket = (oldContext.codeSize as any)?.bucket
-          const newBucket = (updates.codeSize as any)?.bucket
-          if (oldBucket !== newBucket) {
-            trackPropertyChange(
-              'context_property_changed',
-              updatedProject,
-              'context',
-              contextId,
-              'codeSize.bucket',
-              oldBucket,
-              newBucket,
-              state.activeViewMode
-            )
-          }
-        } else {
-          // Standard property changes
-          trackPropertyChange(
-            'context_property_changed',
-            updatedProject,
-            'context',
-            contextId,
-            prop,
-            oldContext[prop],
-            updates[prop],
-            state.activeViewMode
-          )
-        }
-      }
-    })
+    const result = updateContextAction(state, contextId, updates)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   updateContextPosition: (contextId, newPositions) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const contextIndex = project.contexts.findIndex(c => c.id === contextId)
-    if (contextIndex === -1) return state
-
-    const oldContext = project.contexts[contextIndex]
-    const oldPositions = oldContext.positions
-
-    // Auto-classify based on distillation position
-    const newClassification = classifyFromDistillationPosition(
-      newPositions.distillation.x,
-      newPositions.distillation.y
-    )
-
-    // Auto-classify evolution based on strategic position
-    const newEvolution = classifyFromStrategicPosition(newPositions.strategic.x)
-
-    const updatedContexts = [...project.contexts]
-    updatedContexts[contextIndex] = {
-      ...updatedContexts[contextIndex],
-      positions: newPositions,
-      strategicClassification: newClassification,
-      evolutionStage: newEvolution,
-    }
-
-    const updatedProject = {
-      ...project,
-      contexts: updatedContexts,
-    }
-
-    // Add to undo stack
-    const command: EditorCommand = {
-      type: 'moveContext',
-      payload: {
-        contextId,
-        oldPositions,
-        newPositions,
-      },
-    }
+    const result = updateContextPositionAction(state, contextId, newPositions)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [], // Clear redo stack on new action
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   updateMultipleContextPositions: (positionsMap) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    // Build map of old positions for undo
-    const oldPositionsMap: Record<string, { old: BoundedContext['positions'], new: BoundedContext['positions'] }> = {}
-
-    // Update all contexts
-    const updatedContexts = project.contexts.map(context => {
-      const newPositions = positionsMap[context.id]
-      if (newPositions) {
-        oldPositionsMap[context.id] = {
-          old: context.positions,
-          new: newPositions
-        }
-
-        // Auto-classify based on new positions
-        const newClassification = classifyFromDistillationPosition(
-          newPositions.distillation.x,
-          newPositions.distillation.y
-        )
-        const newEvolution = classifyFromStrategicPosition(newPositions.strategic.x)
-
-        return {
-          ...context,
-          positions: newPositions,
-          strategicClassification: newClassification,
-          evolutionStage: newEvolution,
-        }
-      }
-      return context
-    })
-
-    const updatedProject = {
-      ...project,
-      contexts: updatedContexts,
-    }
-
-    // Add to undo stack
-    const command: EditorCommand = {
-      type: 'moveContextGroup',
-      payload: {
-        positionsMap: oldPositionsMap,
-      },
-    }
+    const result = updateMultipleContextPositionsAction(state, positionsMap)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [], // Clear redo stack on new action
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   setSelectedContext: (contextId) => set({
@@ -354,132 +193,27 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addContext: (name) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const newContext: BoundedContext = {
-      id: `context-${Date.now()}`,
-      name,
-      positions: {
-        flow: { x: 50 },
-        strategic: { x: 50 },
-        distillation: { x: 50, y: 50 },
-        shared: { y: 50 },
-      },
-      strategicClassification: 'supporting', // Default to supporting (middle of distillation map)
-      evolutionStage: 'custom-built', // Default evolution stage
-    }
-
-    const command: EditorCommand = {
-      type: 'addContext',
-      payload: {
-        context: newContext,
-      },
-    }
-
-    const updatedProject = {
-      ...project,
-      contexts: [...project.contexts, newContext],
-    }
-
-    // Track analytics
-    trackEvent('context_added', updatedProject, {
-      entity_type: 'context',
-      entity_id: newContext.id,
-      source_view: state.activeViewMode,
-      metadata: {
-        context_type: newContext.strategicClassification,
-        is_external: newContext.isExternal || false
-      }
-    })
-
-    // Track FTUE milestone: first context added
-    trackFTUEMilestone('first_context_added', updatedProject)
+    const result = addContextAction(state, name)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedContextId: newContext.id,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   deleteContext: (contextId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const contextToDelete = project.contexts.find(c => c.id === contextId)
-    if (!contextToDelete) return state
-
-    // Calculate metadata before deletion
-    const relationshipCount = project.relationships.filter(
-      r => r.fromContextId === contextId || r.toContextId === contextId
-    ).length
-    const groupCount = project.groups.filter(g => g.contextIds.includes(contextId)).length
-
-    const command: EditorCommand = {
-      type: 'deleteContext',
-      payload: {
-        context: contextToDelete,
-      },
-    }
-
-    // Remove deleted context from all keyframes
-    let updatedTemporal = project.temporal
-    if (project.temporal) {
-      const updatedKeyframes = project.temporal.keyframes.map(kf => ({
-        ...kf,
-        activeContextIds: kf.activeContextIds.filter(id => id !== contextId),
-        positions: Object.fromEntries(
-          Object.entries(kf.positions).filter(([id]) => id !== contextId)
-        ),
-      }))
-      updatedTemporal = {
-        ...project.temporal,
-        keyframes: updatedKeyframes,
-      }
-    }
-
-    const updatedProject = {
-      ...project,
-      contexts: project.contexts.filter(c => c.id !== contextId),
-      temporal: updatedTemporal,
-    }
-
-    // Track analytics
-    trackEvent('context_deleted', project, {
-      entity_type: 'context',
-      entity_id: contextId,
-      metadata: {
-        relationship_count: relationshipCount,
-        group_count: groupCount
-      }
-    })
+    const result = deleteContextAction(state, contextId)
 
     // Autosave
-    autosaveProject(projectId, updatedProject)
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      selectedContextId: state.selectedContextId === contextId ? null : state.selectedContextId,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
+    const projectId = state.activeProjectId
+    if (projectId && result.projects) {
+      autosaveProject(projectId, result.projects[projectId])
     }
+
+    return result
   }),
 
   assignRepoToContext: (repoId, contextId) => set((state) => {
