@@ -7,8 +7,8 @@ import {
   addContextToGroupAction,
   addContextsToGroupAction
 } from './groupActions'
+import { createMockState, createMockContext, createMockGroup } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
-import type { Project, BoundedContext, Group } from '../types'
 
 // Mock analytics
 vi.mock('../../utils/analytics', () => ({
@@ -20,135 +20,32 @@ vi.mock('../../utils/analytics', () => ({
 
 describe('groupActions', () => {
   let mockState: EditorState
-  let mockProject: Project
-  let mockContext: BoundedContext
-  let mockGroup: Group
 
   beforeEach(() => {
-    mockContext = {
+    const mockContext = createMockContext({
       id: 'context-1',
       name: 'Test Context',
-      positions: {
-        flow: { x: 50 },
-        strategic: { x: 50 },
-        distillation: { x: 50, y: 50 },
-        shared: { y: 50 },
-      },
-      strategicClassification: 'supporting',
       evolutionStage: 'custom-built',
-    }
+    })
 
-    mockGroup = {
+    const mockGroup = createMockGroup({
       id: 'group-1',
       label: 'Test Group',
       color: '#3b82f6',
       contextIds: ['context-1'],
-    }
+    })
 
-    mockProject = {
+    mockState = createMockState({
       id: 'project-1',
-      name: 'Test Project',
       contexts: [mockContext],
-      relationships: [],
-      repos: [],
       groups: [mockGroup],
-      actors: [],
-      userNeeds: [],
-      actorConnections: [],
-      actorNeedConnections: [],
-      needContextConnections: [],
-      viewConfig: {
-        flowStages: [],
-      },
-    }
-
-    mockState = {
-      activeProjectId: 'project-1',
-      projects: {
-        'project-1': mockProject,
-      },
-      activeViewMode: 'flow',
-      selectedContextId: null,
-      selectedRelationshipId: null,
-      selectedGroupId: null,
-      selectedActorId: null,
-      selectedUserNeedId: null,
-      selectedContextIds: [],
-      canvasView: {
-        flow: { zoom: 1, panX: 0, panY: 0 },
-        strategic: { zoom: 1, panX: 0, panY: 0 },
-        distillation: { zoom: 1, panX: 0, panY: 0 },
-      },
-      showGroups: true,
-      showRelationships: true,
-      groupOpacity: 0.2,
-      temporal: {
-        currentDate: '2025',
-        activeKeyframeId: null,
-      },
-      undoStack: [],
-      redoStack: [],
-      updateContext: vi.fn(),
-      updateContextPosition: vi.fn(),
-      updateMultipleContextPositions: vi.fn(),
-      setSelectedContext: vi.fn(),
-      toggleContextSelection: vi.fn(),
-      clearContextSelection: vi.fn(),
-      setViewMode: vi.fn(),
-      setActiveProject: vi.fn(),
-      addContext: vi.fn(),
-      deleteContext: vi.fn(),
-      assignRepoToContext: vi.fn(),
-      unassignRepo: vi.fn(),
-      createGroup: vi.fn(),
-      updateGroup: vi.fn(),
-      deleteGroup: vi.fn(),
-      removeContextFromGroup: vi.fn(),
-      addContextToGroup: vi.fn(),
-      addContextsToGroup: vi.fn(),
-      addRelationship: vi.fn(),
-      deleteRelationship: vi.fn(),
-      updateRelationship: vi.fn(),
-      setSelectedRelationship: vi.fn(),
-      addActor: vi.fn(),
-      deleteActor: vi.fn(),
-      updateActor: vi.fn(),
-      updateActorPosition: vi.fn(),
-      setSelectedActor: vi.fn(),
-      createActorConnection: vi.fn(),
-      deleteActorConnection: vi.fn(),
-      updateActorConnection: vi.fn(),
-      addUserNeed: vi.fn(),
-      deleteUserNeed: vi.fn(),
-      updateUserNeed: vi.fn(),
-      updateUserNeedPosition: vi.fn(),
-      setSelectedUserNeed: vi.fn(),
-      createActorNeedConnection: vi.fn(),
-      deleteActorNeedConnection: vi.fn(),
-      updateActorNeedConnection: vi.fn(),
-      createNeedContextConnection: vi.fn(),
-      deleteNeedContextConnection: vi.fn(),
-      updateNeedContextConnection: vi.fn(),
-      toggleShowGroups: vi.fn(),
-      toggleShowRelationships: vi.fn(),
-      setGroupOpacity: vi.fn(),
-      updateFlowStage: vi.fn(),
-      addFlowStage: vi.fn(),
-      deleteFlowStage: vi.fn(),
-      undo: vi.fn(),
-      redo: vi.fn(),
-      fitToMap: vi.fn(),
-      exportProject: vi.fn(),
-      importProject: vi.fn(),
-      reset: vi.fn(),
-      toggleTemporalMode: vi.fn(),
-      setCurrentDate: vi.fn(),
-      setActiveKeyframe: vi.fn(),
-      addKeyframe: vi.fn(),
-      deleteKeyframe: vi.fn(),
-      updateKeyframe: vi.fn(),
-      updateKeyframeContextPosition: vi.fn(),
-      setSelectedGroup: vi.fn(),
+    })
+    mockState.activeProjectId = 'project-1'
+    mockState.projects = {
+      'project-1': {
+        ...mockState.projects['test-project'],
+        id: 'project-1'
+      }
     }
   })
 
@@ -200,7 +97,7 @@ describe('groupActions', () => {
     })
 
     it('should clear redo stack', () => {
-      mockState.redoStack = [{ type: 'addGroup', payload: { group: mockGroup } }]
+      mockState.redoStack = [{ type: 'addGroup', payload: { group: createMockGroup() } }]
       const result = createGroupAction(mockState, 'New Group', undefined, undefined)
 
       expect(result.redoStack).toHaveLength(0)
@@ -291,7 +188,7 @@ describe('groupActions', () => {
     })
 
     it('should clear redo stack', () => {
-      mockState.redoStack = [{ type: 'addGroup', payload: { group: mockGroup } }]
+      mockState.redoStack = [{ type: 'addGroup', payload: { group: createMockGroup() } }]
 
       const result = deleteGroupAction(mockState, 'group-1')
 
@@ -334,7 +231,7 @@ describe('groupActions', () => {
     })
 
     it('should clear redo stack', () => {
-      mockState.redoStack = [{ type: 'addGroup', payload: { group: mockGroup } }]
+      mockState.redoStack = [{ type: 'addGroup', payload: { group: createMockGroup() } }]
 
       const result = removeContextFromGroupAction(mockState, 'group-1', 'context-1')
 
@@ -384,7 +281,7 @@ describe('groupActions', () => {
     })
 
     it('should clear redo stack', () => {
-      mockState.redoStack = [{ type: 'addGroup', payload: { group: mockGroup } }]
+      mockState.redoStack = [{ type: 'addGroup', payload: { group: createMockGroup() } }]
 
       const result = addContextToGroupAction(mockState, 'group-1', 'context-1')
 
@@ -442,7 +339,7 @@ describe('groupActions', () => {
     })
 
     it('should clear redo stack', () => {
-      mockState.redoStack = [{ type: 'addGroup', payload: { group: mockGroup } }]
+      mockState.redoStack = [{ type: 'addGroup', payload: { group: createMockGroup() } }]
 
       const result = addContextsToGroupAction(mockState, 'group-1', ['context-1'])
 

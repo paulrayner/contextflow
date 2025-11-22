@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from 'vitest'
-import type { EditorState } from '../storeTypes'
 import {
   addActorAction,
   deleteActorAction,
@@ -19,121 +18,12 @@ import {
   deleteNeedContextConnectionAction,
   updateNeedContextConnectionAction,
 } from './actorActions'
-import type { Project } from '../types'
+import { createMockState } from './__testFixtures__/mockState'
 
 // Mock analytics
 vi.mock('../../utils/analytics', () => ({
   trackEvent: vi.fn(),
 }))
-
-const mockProject: Project = {
-  id: 'test-project',
-  name: 'Test Project',
-  description: '',
-  contexts: [],
-  relationships: [],
-  groups: [],
-  repos: [],
-  actors: [],
-  userNeeds: [],
-  actorConnections: [],
-  actorNeedConnections: [],
-  needContextConnections: [],
-  viewConfig: {
-    flowStages: [],
-  },
-}
-
-const createMockState = (projectOverrides?: Partial<Project>): EditorState => ({
-  activeProjectId: 'test-project',
-  projects: {
-    'test-project': {
-      ...mockProject,
-      ...projectOverrides,
-    },
-  },
-  activeViewMode: 'flow',
-  selectedContextId: null,
-  selectedRelationshipId: null,
-  selectedGroupId: null,
-  selectedActorId: null,
-  selectedUserNeedId: null,
-  selectedContextIds: [],
-  canvasView: {
-    flow: { zoom: 1, panX: 0, panY: 0 },
-    strategic: { zoom: 1, panX: 0, panY: 0 },
-    distillation: { zoom: 1, panX: 0, panY: 0 },
-  },
-  showGroups: true,
-  showRelationships: true,
-  groupOpacity: 0.6,
-  temporal: {
-    currentDate: '2024',
-    activeKeyframeId: null,
-  },
-  undoStack: [],
-  redoStack: [],
-  updateContext: vi.fn(),
-  updateContextPosition: vi.fn(),
-  updateMultipleContextPositions: vi.fn(),
-  setSelectedContext: vi.fn(),
-  toggleContextSelection: vi.fn(),
-  clearContextSelection: vi.fn(),
-  setViewMode: vi.fn(),
-  setActiveProject: vi.fn(),
-  addContext: vi.fn(),
-  deleteContext: vi.fn(),
-  assignRepoToContext: vi.fn(),
-  unassignRepo: vi.fn(),
-  createGroup: vi.fn(),
-  updateGroup: vi.fn(),
-  deleteGroup: vi.fn(),
-  removeContextFromGroup: vi.fn(),
-  addContextToGroup: vi.fn(),
-  addContextsToGroup: vi.fn(),
-  addRelationship: vi.fn(),
-  deleteRelationship: vi.fn(),
-  updateRelationship: vi.fn(),
-  setSelectedRelationship: vi.fn(),
-  addActor: vi.fn(),
-  deleteActor: vi.fn(),
-  updateActor: vi.fn(),
-  updateActorPosition: vi.fn(),
-  setSelectedActor: vi.fn(),
-  createActorConnection: vi.fn(),
-  deleteActorConnection: vi.fn(),
-  updateActorConnection: vi.fn(),
-  addUserNeed: vi.fn(),
-  deleteUserNeed: vi.fn(),
-  updateUserNeed: vi.fn(),
-  updateUserNeedPosition: vi.fn(),
-  setSelectedUserNeed: vi.fn(),
-  createActorNeedConnection: vi.fn(),
-  deleteActorNeedConnection: vi.fn(),
-  updateActorNeedConnection: vi.fn(),
-  createNeedContextConnection: vi.fn(),
-  deleteNeedContextConnection: vi.fn(),
-  updateNeedContextConnection: vi.fn(),
-  toggleShowGroups: vi.fn(),
-  toggleShowRelationships: vi.fn(),
-  setGroupOpacity: vi.fn(),
-  updateFlowStage: vi.fn(),
-  addFlowStage: vi.fn(),
-  deleteFlowStage: vi.fn(),
-  undo: vi.fn(),
-  redo: vi.fn(),
-  fitToMap: vi.fn(),
-  exportProject: vi.fn(),
-  importProject: vi.fn(),
-  reset: vi.fn(),
-  toggleTemporalMode: vi.fn(),
-  setCurrentDate: vi.fn(),
-  setActiveKeyframe: vi.fn(),
-  addKeyframe: vi.fn(),
-  deleteKeyframe: vi.fn(),
-  updateKeyframe: vi.fn(),
-  updateKeyframeContextPosition: vi.fn(),
-})
 
 describe('actorActions', () => {
   describe('addActorAction', () => {

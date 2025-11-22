@@ -4,8 +4,8 @@ import {
   deleteRelationshipAction,
   updateRelationshipAction
 } from './relationshipActions'
+import { createMockState, createMockContext, createMockRelationship } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
-import type { Project, BoundedContext, Relationship } from '../types'
 
 // Mock analytics
 vi.mock('../../utils/analytics', () => ({
@@ -17,13 +17,9 @@ vi.mock('../../utils/analytics', () => ({
 
 describe('relationshipActions', () => {
   let mockState: EditorState
-  let mockProject: Project
-  let mockContext1: BoundedContext
-  let mockContext2: BoundedContext
-  let mockRelationship: Relationship
 
   beforeEach(() => {
-    mockContext1 = {
+    const mockContext1 = createMockContext({
       id: 'context-1',
       name: 'Context 1',
       positions: {
@@ -34,9 +30,9 @@ describe('relationshipActions', () => {
       },
       strategicClassification: 'core',
       evolutionStage: 'custom-built',
-    }
+    })
 
-    mockContext2 = {
+    const mockContext2 = createMockContext({
       id: 'context-2',
       name: 'Context 2',
       positions: {
@@ -47,119 +43,25 @@ describe('relationshipActions', () => {
       },
       strategicClassification: 'supporting',
       evolutionStage: 'product',
-    }
+    })
 
-    mockRelationship = {
+    const mockRelationship = createMockRelationship({
       id: 'rel-1',
       fromContextId: 'context-1',
       toContextId: 'context-2',
-      pattern: 'customer-supplier',
-    }
+    })
 
-    mockProject = {
+    mockState = createMockState({
       id: 'project-1',
-      name: 'Test Project',
       contexts: [mockContext1, mockContext2],
       relationships: [mockRelationship],
-      repos: [],
-      groups: [],
-      actors: [],
-      userNeeds: [],
-      actorConnections: [],
-      actorNeedConnections: [],
-      needContextConnections: [],
-      viewConfig: {
-        flowStages: [],
-      },
-    }
-
-    mockState = {
-      activeProjectId: 'project-1',
-      projects: {
-        'project-1': mockProject,
-      },
-      activeViewMode: 'flow',
-      selectedContextId: null,
-      selectedRelationshipId: null,
-      selectedGroupId: null,
-      selectedActorId: null,
-      selectedUserNeedId: null,
-      selectedContextIds: [],
-      canvasView: {
-        flow: { zoom: 1, panX: 0, panY: 0 },
-        strategic: { zoom: 1, panX: 0, panY: 0 },
-        distillation: { zoom: 1, panX: 0, panY: 0 },
-      },
-      showGroups: true,
-      showRelationships: true,
-      groupOpacity: 0.2,
-      temporal: {
-        currentDate: '2025',
-        activeKeyframeId: null,
-      },
-      undoStack: [],
-      redoStack: [],
-      updateContext: vi.fn(),
-      updateContextPosition: vi.fn(),
-      updateMultipleContextPositions: vi.fn(),
-      setSelectedContext: vi.fn(),
-      toggleContextSelection: vi.fn(),
-      clearContextSelection: vi.fn(),
-      setViewMode: vi.fn(),
-      setActiveProject: vi.fn(),
-      addContext: vi.fn(),
-      deleteContext: vi.fn(),
-      assignRepoToContext: vi.fn(),
-      unassignRepo: vi.fn(),
-      createGroup: vi.fn(),
-      updateGroup: vi.fn(),
-      deleteGroup: vi.fn(),
-      removeContextFromGroup: vi.fn(),
-      addContextToGroup: vi.fn(),
-      addContextsToGroup: vi.fn(),
-      addRelationship: vi.fn(),
-      deleteRelationship: vi.fn(),
-      updateRelationship: vi.fn(),
-      setSelectedRelationship: vi.fn(),
-      addActor: vi.fn(),
-      deleteActor: vi.fn(),
-      updateActor: vi.fn(),
-      updateActorPosition: vi.fn(),
-      setSelectedActor: vi.fn(),
-      createActorConnection: vi.fn(),
-      deleteActorConnection: vi.fn(),
-      updateActorConnection: vi.fn(),
-      addUserNeed: vi.fn(),
-      deleteUserNeed: vi.fn(),
-      updateUserNeed: vi.fn(),
-      updateUserNeedPosition: vi.fn(),
-      setSelectedUserNeed: vi.fn(),
-      createActorNeedConnection: vi.fn(),
-      deleteActorNeedConnection: vi.fn(),
-      updateActorNeedConnection: vi.fn(),
-      createNeedContextConnection: vi.fn(),
-      deleteNeedContextConnection: vi.fn(),
-      updateNeedContextConnection: vi.fn(),
-      toggleShowGroups: vi.fn(),
-      toggleShowRelationships: vi.fn(),
-      setGroupOpacity: vi.fn(),
-      updateFlowStage: vi.fn(),
-      addFlowStage: vi.fn(),
-      deleteFlowStage: vi.fn(),
-      undo: vi.fn(),
-      redo: vi.fn(),
-      fitToMap: vi.fn(),
-      exportProject: vi.fn(),
-      importProject: vi.fn(),
-      reset: vi.fn(),
-      toggleTemporalMode: vi.fn(),
-      setCurrentDate: vi.fn(),
-      setActiveKeyframe: vi.fn(),
-      addKeyframe: vi.fn(),
-      deleteKeyframe: vi.fn(),
-      updateKeyframe: vi.fn(),
-      updateKeyframeContextPosition: vi.fn(),
-      setSelectedGroup: vi.fn(),
+    })
+    mockState.activeProjectId = 'project-1'
+    mockState.projects = {
+      'project-1': {
+        ...mockState.projects['test-project'],
+        id: 'project-1'
+      }
     }
   })
 
@@ -192,7 +94,7 @@ describe('relationshipActions', () => {
     })
 
     it('should clear redo stack', () => {
-      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: mockRelationship } }]
+      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: createMockRelationship() } }]
 
       const result = addRelationshipAction(mockState, 'context-1', 'context-2', 'conformist', undefined)
 
@@ -228,7 +130,7 @@ describe('relationshipActions', () => {
     })
 
     it('should clear redo stack', () => {
-      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: mockRelationship } }]
+      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: createMockRelationship() } }]
 
       const result = deleteRelationshipAction(mockState, 'rel-1')
 
@@ -296,7 +198,7 @@ describe('relationshipActions', () => {
     })
 
     it('should clear redo stack when pattern changes', () => {
-      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: mockRelationship } }]
+      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: createMockRelationship() } }]
 
       const result = updateRelationshipAction(mockState, 'rel-1', { pattern: 'conformist' })
 
@@ -304,7 +206,7 @@ describe('relationshipActions', () => {
     })
 
     it('should NOT clear redo stack when only description changes', () => {
-      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: mockRelationship } }]
+      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: createMockRelationship() } }]
 
       const result = updateRelationshipAction(mockState, 'rel-1', { description: 'Updated' })
 

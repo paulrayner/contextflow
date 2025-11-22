@@ -5,8 +5,6 @@
 
 ## Backlog
 
-- [ ] Break down addKeyframeAction into pure functions (likely already have unit tests in temporalActions.test.ts)
-- [ ] Check if temporalActions.test.ts mockProject and mockState are duplicated elsewhere
 - [ ] Work through process to test UX for everything implemented so far.
 - [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view
 - [ ] Add onboarding/tutorial for first-time users
@@ -24,6 +22,8 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Consolidate duplicated test fixtures (extracted shared mockState, mockContext, mockGroup, mockRelationship, mockKeyframe builders; migrated contextActions, groupActions, relationshipActions, temporalActions, and actorActions tests; eliminated ~350-400 lines of duplication)
+- [x] Break down addKeyframeAction into pure functions (likely already have unit tests in temporalActions.test.ts)
 - [x] Make strategic classification boundaries not magic numbers everywhere
 - [x] Export function from builtInProjects that indicates a project is builtin/sample that can be used from store.ts to replace "origin = 'sample'" logic
 - [x] Refactoring should clean up redundant comments (e.g. // autosave <- like this, and this -> // Track analytics, and this -> // Track property changes)
