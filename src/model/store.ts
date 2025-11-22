@@ -254,10 +254,16 @@ BUILT_IN_PROJECTS.forEach(project => {
   })
 })
 
-// Save all projects to IndexedDB asynchronously
+async function saveProjectIfNew(project: Project): Promise<void> {
+  const existingProject = await loadProject(project.id)
+  if (!existingProject) {
+    await saveProject(project)
+  }
+}
+
 BUILT_IN_PROJECTS.forEach(project => {
-  saveProject(project).catch((err) => {
-    console.error(`Failed to save ${project.name}:`, err)
+  saveProjectIfNew(project).catch(err => {
+    console.error(`Failed to check/save ${project.name}:`, err)
   })
 })
 

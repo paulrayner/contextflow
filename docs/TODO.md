@@ -24,6 +24,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] **[BUG]** Fix built-in projects overwriting user changes on app update
 - [x] Migrate to VirtualGenius organization and deploy to contextflow.virtualgenius.com
 - [x] Organic blob-based group rendering (Milestone 6)
 - [x] Set up sample empty practice project in production demo
