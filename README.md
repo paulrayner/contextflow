@@ -3,12 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![GitHub](https://img.shields.io/badge/GitHub-virtualgenius%2Fcontextflow-blue?logo=github)](https://github.com/virtualgenius/contextflow)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/ABRnay8PM5)
 
 **[🚀 Live Demo](https://contextflow.virtualgenius.com)** | Explore the ACME E-Commerce example!
 
 **Map reality, not aspiration.**
 
-ContextFlow is a visual DDD context mapper for analyzing bounded contexts, their relationships, and code ownership across two synchronized views: **Flow** (value stream) and **Strategic** (Wardley evolution).
+ContextFlow is a visual DDD context mapper for analyzing bounded contexts, their relationships, and code ownership across two synchronized views: **Value Stream** (flow of work) and **Strategic** (Wardley evolution with actors, user needs, and contexts).
 
 ![ContextFlow Screenshot](docs/context-flow-3.png)
 
@@ -18,19 +19,21 @@ ContextFlow helps teams map and edit their system architecture as it actually ex
 
 - **Bounded contexts** with strategic classification (core/supporting/generic), boundary integrity (strong/moderate/weak), and visual properties
 - **DDD relationship patterns** between contexts (customer-supplier, conformist, anti-corruption layer, open-host service, shared kernel, partnership, etc.)
+- **Wardley Map value chain** with actors, user needs, and contexts showing complete problem-to-solution flow
 - **Code ownership** linking repositories to contexts and teams via drag-and-drop
 - **Team topology** connecting teams to their boards and responsibilities
-- **Capability groups** as visual clusters of related contexts
+- **Capability groups** as organic blob-shaped visual clusters using Catmull-Rom smoothing
+- **Temporal evolution** showing how your architecture changes over time with keyframes and timeline playback
 
 The key differentiator: **two views of the same system**.
 
-### Flow View
+### Value Stream View
 Shows how value and data move left-to-right through your system (stages are configurable per project: e.g., "Discovery → Selection → Purchase → Fulfillment → Post-Sale" for e-commerce, or "Ingest → Normalize → Analyze → Publish" for data pipelines)
 
-![Flow View](docs/context-flow-1.png)
+![Value Stream View](docs/context-flow-1.png)
 
 ### Strategic View
-Shows where each capability sits on the Wardley evolution axis (Genesis → Custom-built → Product/Rental → Commodity/Utility)
+Shows the complete Wardley Map value chain: **Actors** (users of the map) → **User Needs** (problems to solve) → **Contexts** (solution components), all positioned along the evolution axis (Genesis → Custom-built → Product/Rental → Commodity/Utility)
 
 ![Strategic View](docs/context-flow-2.png)
 
@@ -48,9 +51,9 @@ Most architecture diagrams show the system you wish you had. ContextFlow helps y
 
 ### Two views of the same system
 
-**Flow View** resonates with delivery teams and product owners: "Here's how work moves across our pipeline."
+**Value Stream View** resonates with delivery teams and product owners: "Here's how work moves across our pipeline."
 
-**Strategic View** resonates with leadership and architects: "Here's what's core vs commodity, where we're exposed, and what we should buy vs build."
+**Strategic View** resonates with leadership and architects: "Here's what's core vs commodity, where we're exposed, and what we should buy vs build." It shows the full Wardley Map structure with actors, user needs, and contexts.
 
 Both views use the same underlying model. That's the unlock.
 
@@ -70,27 +73,37 @@ Both views use the same underlying model. That's the unlock.
 - Visual canvas with pan/zoom and fit-to-map
 - Bounded context nodes with strategic classification, boundary integrity, size, legacy/external badges
 - DDD relationship patterns rendered as directed edges with pattern-specific styling
-- Flow View with configurable value stream stages
-- Strategic View with Wardley evolution bands
-- Live view switching with animated transitions
+- **Value Stream View** with editable flow stages (rename, reposition, add/delete via TopBar)
+- **Strategic View** with three-layer Wardley Map structure:
+  - Actors (users of the map) with connections to User Needs
+  - User Needs (problem space) connecting Actors to Contexts
+  - Contexts (solution components) positioned on evolution axis
+  - 2-hop connection highlighting showing complete value chains
+- Live view switching with animated horizontal transitions
+- **Temporal evolution mode** with timeline slider, keyframes, and playback animation to visualize architecture changes over time
 - Full editing capabilities:
   - Drag nodes to reposition (updates per-view coordinates)
   - Multi-select and group drag with maintained relative positions
   - Edit context properties (name, purpose, classification, boundary integrity, notes)
   - Create/delete relationships with drag-to-connect workflow
-  - Create/delete capability groups (translucent hulls)
+  - Select and edit relationship edges (pattern, communication mode, description)
+  - Create/delete capability groups with organic blob-shaped rendering
+  - Add existing contexts to groups individually or in batch operations
+  - Create/edit/delete actors and user needs with full connection management
 - Repo sidebar with drag-to-assign functionality
+- **CodeCohesion API integration** for live repository statistics and contributor data
 - Team and ownership details with clickable Jira board links
-- Inspector panel for editing context/relationship/group details
-- Undo/redo for structural changes (add/move/delete context, relationships, repo assignments, groups)
+- Inspector panel for editing context/relationship/group/actor/user need details
+- **Multi-project support** with project switcher dropdown
+- Undo/redo for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes)
 - Theme toggle (light/dark mode)
-- Project autosave (localStorage)
+- IndexedDB persistence with autosave
 - Import/export project JSON
 
 **Planned:**
-- Multi-project picker (Miro-style recent boards)
-- IndexedDB persistence for better performance
 - Enhanced import/export options
+- Accessibility improvements
+- Keyboard shortcuts documentation overlay
 
 ## Getting Started
 
@@ -101,28 +114,40 @@ npm run dev
 
 This starts the Vite dev server and opens the app in your browser.
 
-The demo loads `examples/sample.project.json` — an ACME E-Commerce platform with 20 contexts, external services (Stripe, shipping carriers, fraud detection), and realistic DDD relationship patterns.
+The app includes multiple example projects:
+- **ACME E-Commerce** — 20 contexts with external services (Stripe, shipping carriers, fraud detection) and realistic DDD relationship patterns
+- **cBioPortal** — Complete genomics platform with user needs value chain demonstrating actors → needs → contexts flow
+- **Elan Extended Warranty** — DDD strategic patterns reference for teaching workshops
+- **Empty Project** — Practice template for your own context mapping
 
 **Try it out:**
-- Toggle between Flow and Strategic views
+- Toggle between Value Stream and Strategic views
 - Click a context to inspect and edit details
+- In Strategic View, add actors and user needs to build complete value chains
+- Use the timeline slider to create keyframes and visualize temporal evolution
 - Drag repos from the left sidebar onto contexts
 - Multi-select contexts (Shift+click) and drag as a group
 - Create relationships by dragging from one context to another
-- Your changes autosave to localStorage
+- Your changes autosave to IndexedDB
 
 ## Project Structure
 
 - `src/` – React app code (TypeScript + Vite)
 - `src/model/` – Core types and Zustand store
-- `examples/` – Demo project data (`sample.project.json`, `cbioportal.project.json`)
-- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [SPEC.md](docs/SPEC.md), [PLAN.md](docs/PLAN.md)
+- `examples/` – Demo project data (`sample.project.json`, `cbioportal.project.json`, `elan.project.json`, `empty.project.json`)
+- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [SPEC.md](docs/SPEC.md), [PLAN.md](docs/PLAN.md), [TODO.md](docs/TODO.md)
 
 ## Project Status
 
-**Beta.** Milestones 1-3 complete (Flow View, Strategic View, editing, repos, teams, groups). Ready for field testing with real projects.
+**Beta.** Milestones 1-6 in progress:
+- ✅ M1-M3: Value Stream View, Strategic View, editing, repos, teams, groups
+- ✅ M4: Full editability (flow stages, relationships, group membership)
+- ✅ M5: Wardley Map value chain (actors, user needs, 2-hop highlighting)
+- 🚧 M6: Organic blob-based group rendering (in progress)
 
-See [PLAN.md](docs/PLAN.md) for the full roadmap.
+Includes temporal evolution mode, CodeCohesion API integration, and multi-project support. Ready for field testing with real projects.
+
+See [PLAN.md](docs/PLAN.md) for the full roadmap and [TODO.md](docs/TODO.md) for current development tasks.
 
 ## Foundations & Resources
 

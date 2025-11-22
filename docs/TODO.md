@@ -2,7 +2,6 @@
 
 ## In Progress
 
-
 ## Backlog
 
 - [ ] Work through process to test UX for everything implemented so far.
@@ -22,6 +21,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Update README to reflect new capabilities and language (v0.6.1: Value Stream View, actors/user needs, temporal evolution, multi-project support, CodeCohesion API, all example projects)
 - [x] Consolidate duplicated test fixtures (extracted shared mockState, mockContext, mockGroup, mockRelationship, mockKeyframe builders; migrated contextActions, groupActions, relationshipActions, temporalActions, and actorActions tests; eliminated ~350-400 lines of duplication)
 - [x] Break down addKeyframeAction into pure functions (likely already have unit tests in temporalActions.test.ts)
 - [x] Make strategic classification boundaries not magic numbers everywhere
