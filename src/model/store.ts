@@ -2114,6 +2114,11 @@ export const useEditorStore = create<EditorState>((set) => ({
     const command = state.undoStack[state.undoStack.length - 1]
     const newUndoStack = state.undoStack.slice(0, -1)
 
+    // Track undo usage
+    trackEvent('undo_used', project, {
+      action_undone: command.type
+    })
+
     let newContexts = project.contexts
     let newRepos = project.repos
     let newGroups = project.groups
@@ -2340,6 +2345,11 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const command = state.redoStack[state.redoStack.length - 1]
     const newRedoStack = state.redoStack.slice(0, -1)
+
+    // Track redo usage
+    trackEvent('redo_used', project, {
+      action_redone: command.type
+    })
 
     let newContexts = project.contexts
     let newRepos = project.repos
@@ -2584,6 +2594,18 @@ export const useEditorStore = create<EditorState>((set) => ({
         }
       }
       return context
+    })
+
+    // Track analytics
+    const fileSize = JSON.stringify(project).length / 1024 // KB
+    trackEvent('project_imported', project, {
+      file_size_kb: Math.round(fileSize),
+      context_count: project.contexts.length,
+      relationship_count: project.relationships.length,
+      group_count: project.groups.length,
+      keyframe_count: project.temporal?.keyframes.length || 0,
+      actor_count: project.actors.length,
+      need_count: project.userNeeds.length
     })
 
     // Autosave imported project
