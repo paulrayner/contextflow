@@ -1,5 +1,10 @@
 # Plan: Temporal Evolution
 
+## Status: Milestone 1 Complete ✅ | Milestones 2-4 Planned
+
+**Completed:** Basic temporal infrastructure (v0.4.0, Nov 2025)
+**Next:** Interpolation polish, keyframe management UI, visualization enhancements
+
 ## Purpose
 
 This is the implementation roadmap for ContextFlow's Temporal Evolution feature. Temporal Evolution adds time-based visualization to Strategic View, allowing users to define keyframes at strategic dates and visualize how bounded contexts evolve over time.
@@ -10,7 +15,7 @@ Each milestone delivers independently valuable functionality that can be demoed 
 
 ---
 
-## Milestone 1: Basic Temporal Infrastructure
+## Milestone 1: Basic Temporal Infrastructure ✅ COMPLETE
 
 ### Goal
 
