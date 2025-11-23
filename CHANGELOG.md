@@ -4,6 +4,13 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.6.2] - 2025-11-23
+
+- Comprehensive product analytics with Simple Analytics (all 5 implementation slices complete)
+- Fixed built-in projects overwriting user edits on app updates (data loss prevention)
+- Store refactoring for improved maintainability (40+ commits: extracted actions to modules, consolidated test fixtures, removed magic numbers)
+- Fixed distillation positions for ACME and cBioPortal sample projects
+
 ## [0.6.1] - 2025-11-05
 
 - "Add User Need" button in TopBar for Strategic View to create new user needs

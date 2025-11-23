@@ -1,6 +1,6 @@
 {
   "name": "contextflow",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Visual DDD context mapper with Value Stream, Distillation, and Strategic views",
   "private": false,
   "license": "MIT",
