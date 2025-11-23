@@ -11,7 +11,7 @@
 
 ### UX & Polish
 - [ ] Work through process to test UX for everything implemented so far
-- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view
+- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view (https://userneedsmapping.com/)
 - [ ] Add onboarding/tutorial for first-time users
 - [ ] Accessibility checks
 - [ ] Responsive design

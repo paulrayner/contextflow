@@ -7,13 +7,17 @@ It lets you model:
 - The relationships between them (Customer/Supplier, Conformist, Open Host Service, etc.)
 - Which repos live in which context
 - Which teams are responsible for which repos
-- How value actually flows across the system
+- How value flows across the system
+- Strategic positioning and evolution of capabilities
+- The complete value chain from actors to user needs to solution components
+- How your architecture evolves over time
 
-It gives you two synchronized views of the same system:
-1. **Flow View** – shows how value / data / work moves left → right through the organization.
-2. **Strategic View** – shows where each capability sits in terms of strategic evolution / commoditization (Wardley-style).
+It gives you three synchronized views of the same system:
+1. **Value Stream View** – shows how value/data/work moves through configurable flow stages (e.g., Discovery → Selection → Purchase → Fulfillment for e-commerce)
+2. **Distillation View** – classifies contexts using Nick Tune's Core Domain Chart (Business Differentiation vs Model Complexity) to identify core vs supporting vs generic domains
+3. **Strategic View** – shows the complete Wardley Map value chain with Actors → User Needs → Contexts positioned on the evolution axis (Genesis → Custom-built → Product → Commodity)
 
-You can switch between these views live. The map itself animates horizontally, but remains the “same” system. This is how you explain reality to delivery teams and execs using the same model.
+You can switch between these views live. The map animates, but remains the "same" system. This is how you explain reality to delivery teams, architects, and execs using the same underlying model.
 
 ## Who is this for?
 - Software / platform / architecture consultants who walk into a new org and need to quickly understand “what’s really going on.”
@@ -44,19 +48,33 @@ This design is particularly valuable for consulting scenarios:
 
 ContextFlow runs in the browser, autosaves to local storage, and lets you import/export a single `project.json` file. Nothing leaves your machine unless you explicitly share it. This "private by default" stance builds immediate trust when working with sensitive organizational data.
 
-## Why two views (Flow View and Strategic View)?
-Because you need two different conversations:
-- **Flow View** resonates with delivery teams and product owners: “Here’s how data and work moves across our value stream: ingest → normalize → analyze → publish.”
-- **Strategic View** resonates with leadership: “Here’s what’s core and differentiating vs what’s commodity or external; here’s where we’re bleeding and brittle; here’s where we’re reinventing something that should be a utility.”
+## Why three views?
+Because you need different conversations with different stakeholders:
 
-Both views use the same underlying model. That is the unlock.
+- **Value Stream View** resonates with delivery teams and product owners: "Here's how data and work moves through our pipeline: Discovery → Selection → Purchase → Fulfillment." Configurable flow stages adapt to your domain (e-commerce, data platform, manufacturing, etc.).
+
+- **Distillation View** resonates with architects and strategic planners: "Here's what's core and differentiating (high business differentiation, high complexity) vs what's supporting (low differentiation, high complexity) vs what's generic (low on both axes)." Uses Nick Tune's Core Domain Chart to prioritize investment and identify what should be core vs commodity.
+
+- **Strategic View** resonates with leadership and strategy teams: "Here's the complete value chain from actors (who uses this?) to user needs (what problems?) to contexts (what components solve them?), all positioned on Wardley's evolution axis." Shows what's custom-built vs commodity, where you're exposed, and what to buy vs build.
+
+All three views use the same underlying model of bounded contexts, relationships, teams, and repos. That is the unlock.
+
+## Current capabilities (beyond original vision)
+ContextFlow has evolved significantly:
+- **Temporal evolution mode** – Timeline slider with keyframes showing how architecture changes over time
+- **Live repository data** – CodeCohesion API integration for contributor statistics and ownership signals
+- **Multi-project support** – Switch between projects with full autosave and isolation
+- **Full editability** – Drag-to-connect relationships, multi-select group operations, organic blob-shaped capability groups
+- **Three analytical models** – Value Stream (context mapping), Distillation (domain classification), Strategic (Wardley mapping)
 
 ## Future direction
-Beyond the MVP, ContextFlow can:
-- Auto-extract contributors from each repo’s last 90 days of commits and surface likely “who really touches this in prod.”
-- Detect boundary integrity risk (e.g. a context marked “strong boundary” but multiple other contexts directly read its DB).
-- Add Team Topologies alignment (stream-aligned vs platform vs enabling, etc.).
-- Track change velocity and hotspots.
-- Surface organizational ownership drift (“repo assigned to Portal team but top committers aren’t on Portal team anymore”).
+Beyond the current beta, ContextFlow can:
+- Auto-extract contributors from each repo's last 90 days of commits and surface likely "who really touches this in prod" (partially implemented via CodeCohesion API)
+- Detect boundary integrity risk (e.g. a context marked "strong boundary" but multiple other contexts directly read its DB)
+- Add Team Topologies alignment (stream-aligned vs platform vs enabling, etc.)
+- Track change velocity and hotspots
+- Surface organizational ownership drift ("repo assigned to Portal team but top committers aren't on Portal team anymore")
+- Enhanced import/export (C4 diagrams, Mermaid, PlantUML interop)
+- Collaborative editing with conflict resolution
 
-All of those are natural evolutions after MVP. The MVP is about making the map, not running analytics.
+The focus remains: make the map first, then enable analytics on top of that foundation.
