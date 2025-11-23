@@ -4,8 +4,14 @@
 
 ## Backlog
 
-- [ ] Work through process to test UX for everything implemented so far.
-- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view
+### Temporal Evolution Enhancements
+- [ ] Temporal Milestone 2: Interpolation polish (smooth animations, snap-to-keyframe refinements)
+- [ ] Temporal Milestone 3: Keyframe Management UI (keyframe list panel, context visibility per keyframe, copy keyframe)
+- [ ] Temporal Milestone 4: Visualization Enhancements (trajectory overlay, animated playback, ghost preview mode, quarter granularity)
+
+### UX & Polish
+- [ ] Work through process to test UX for everything implemented so far
+- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view
 - [ ] Add onboarding/tutorial for first-time users
 - [ ] Accessibility checks
 - [ ] Responsive design
@@ -29,7 +35,12 @@
 - [x] Export function from builtInProjects that indicates a project is builtin/sample that can be used from store.ts to replace "origin = 'sample'" logic
 - [x] Refactoring should clean up redundant comments (e.g. // autosave <- like this, and this -> // Track analytics, and this -> // Track property changes)
 - [x] Refactor store.ts following extract-and-prove pattern (see STORE_REFACTORING_PLAN.md)
-- [x] Add analytics (using Simple Analytics)
+- [x] Add analytics (using Simple Analytics) - all 5 slices completed
+  - [x] Analytics Slice 1: Product Validation - Core Usage Insights (project lifecycle, view switching, deployment context)
+  - [x] Analytics Slice 2: Feature Adoption tracking (context/relationship/group CRUD events, property changes, DDD pattern usage)
+  - [x] Analytics Slice 3: Onboarding & FTUE tracking (sample exploration, first milestones, drop-off analysis)
+  - [x] Analytics Slice 4: Power Users & Retention (export/import tracking, return visits, engagement levels, canvas interactions)
+  - [x] Analytics Slice 5: View-Specific Features (temporal keyframes, actors & needs, flow stage markers)
 - [x] **[BUG]** Fix built-in projects overwriting user changes on app update
 - [x] Migrate to VirtualGenius organization and deploy to contextflow.virtualgenius.com
 - [x] Organic blob-based group rendering (Milestone 6)
@@ -47,6 +58,7 @@
   - [x] UserNeed entities with management UI and connections
   - [x] 2-hop connection highlighting across value chain
 - [x] Temporal Evolution (v0.4.0)
+  - [x] Temporal Milestone 1: Basic Temporal Infrastructure (enable temporal mode, create keyframes, time slider UI)
   - [x] Time-based visualization with keyframes
   - [x] Timeline slider with playback animation
   - [x] Context position interpolation and fade effects
