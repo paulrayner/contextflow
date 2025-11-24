@@ -2,22 +2,30 @@
 
 ## In Progress
 
+
 ## Backlog
+
+### UX & Polish
+- [ ] Work through process to test UX for everything implemented so far
+- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view (https://userneedsmapping.com/)
+- [ ] Per https://userneedsmapping.com/docs/step-2-identifying-users/, classify actors as internal or external (toggle - display accordingly - different color? icon?). update sample projects based on this (likely schema change, but make it non-breaking)
+- [ ] Add optional actor attributes: goal(s), challenges
+- [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
+- [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/)
+- [ ] Add informational overlays/help throughout app by default (can turn off in settings). For example, what each of the evolution stages mean and their attributes (hover over the evolution stage name)
+- [ ] Context boundary width should reflect boundary strength
+- [ ] Check how shared kernel is represented
+- [ ] Accessibility checks
+- [ ] Responsive design
+- [ ] Add search/filter for contexts, repos, teams
+- [ ] Verify how to add/manage repos
+- [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
+- [ ] Add about page? link to repo?
 
 ### Temporal Evolution Enhancements
 - [ ] Temporal Milestone 2: Interpolation polish (smooth animations, snap-to-keyframe refinements)
 - [ ] Temporal Milestone 3: Keyframe Management UI (keyframe list panel, context visibility per keyframe, copy keyframe)
 - [ ] Temporal Milestone 4: Visualization Enhancements (trajectory overlay, animated playback, ghost preview mode, quarter granularity)
-
-### UX & Polish
-- [ ] Work through process to test UX for everything implemented so far
-- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view (https://userneedsmapping.com/)
-- [ ] Add onboarding/tutorial for first-time users
-- [ ] Accessibility checks
-- [ ] Responsive design
-- [ ] Add search/filter for contexts, repos, teams
-- [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
-- [ ] Add about page? link to repo?
 
 **Team Topologies:**
 - [ ] Enhance Team Topologies implementation with more substance (currently mostly conceptual)
@@ -27,6 +35,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Add users and needs for Elan Extended Warranty sample project
 - [x] Fix domain distillation locations for contexts in sample projects (ACME and cBioPortal now have proper distillation positions matching their strategic classifications)
 - [x] Update README to reflect new capabilities and language (v0.6.1: Value Stream View, actors/user needs, temporal evolution, multi-project support, CodeCohesion API, all example projects)
 - [x] Consolidate duplicated test fixtures (extracted shared mockState, mockContext, mockGroup, mockRelationship, mockKeyframe builders; migrated contextActions, groupActions, relationshipActions, temporalActions, and actorActions tests; eliminated ~350-400 lines of duplication)
