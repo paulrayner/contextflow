@@ -1,6 +1,7 @@
 {
   "id": "elan-warranty",
   "name": "Elan Extended Warranty",
+  "version": 2,
   "contexts": [
     {
       "id": "ctx.lead-mgmt",
@@ -287,10 +288,237 @@
   "people": [],
   "teams": [],
   "groups": [],
-  "actors": [],
-  "userNeeds": [],
-  "actorNeedConnections": [],
-  "needContextConnections": [],
+  "actors": [
+    {
+      "id": "actor.sales-rep",
+      "name": "Appliance Sales Representative",
+      "description": "Retail POS staff at Best Buy, Home Depot, etc. who sell warranties at point of purchase",
+      "position": 10
+    },
+    {
+      "id": "actor.customer",
+      "name": "Warranty Customer",
+      "description": "End customers who purchased extended warranties and need to file claims when products fail",
+      "position": 15
+    },
+    {
+      "id": "actor.marketing",
+      "name": "Marketing Specialist",
+      "description": "Staff executing lead campaigns and converting prospects approaching manufacturer warranty expiration",
+      "position": 20
+    },
+    {
+      "id": "actor.warranty-admin",
+      "name": "Warranty Administrator",
+      "description": "Staff managing contract creation, client relationships, and POS integration configurations",
+      "position": 25
+    },
+    {
+      "id": "actor.underwriting",
+      "name": "Underwriting & Product Manager",
+      "description": "Staff defining coverage rules, pricing models, and eligible product catalog",
+      "position": 35
+    },
+    {
+      "id": "actor.csr",
+      "name": "Customer Service Representative (CSR)",
+      "description": "Frontline staff who process claims and coordinate customer communication",
+      "position": 45
+    },
+    {
+      "id": "actor.adjudicator",
+      "name": "Claims Specialist/Adjudicator",
+      "description": "Expert staff analyzing complex claims, calculating limit of liability, and determining fulfillment strategies",
+      "position": 55
+    },
+    {
+      "id": "actor.technician",
+      "name": "Service Technician",
+      "description": "Field technicians (working for external servicer network) who execute repair work orders",
+      "position": 60
+    },
+    {
+      "id": "actor.accountant",
+      "name": "Accountant",
+      "description": "Finance staff processing reimbursements, store credits, and payment reconciliation",
+      "position": 70
+    }
+  ],
+  "userNeeds": [
+    {
+      "id": "need.sell-pos",
+      "name": "Sell warranties at POS",
+      "description": "Process warranty sales at retail point of sale systems",
+      "position": 10
+    },
+    {
+      "id": "need.file-track-claims",
+      "name": "File and track claims",
+      "description": "Report product failures and monitor claim progress",
+      "position": 15
+    },
+    {
+      "id": "need.execute-campaigns",
+      "name": "Execute lead campaigns",
+      "description": "Run marketing campaigns targeting customers with expiring manufacturer warranties",
+      "position": 20
+    },
+    {
+      "id": "need.manage-contracts",
+      "name": "Manage contracts and customer accounts",
+      "description": "Create contracts, manage customer records, and configure client integrations",
+      "position": 25
+    },
+    {
+      "id": "need.manage-catalog",
+      "name": "Manage product catalog and coverage rules",
+      "description": "Define eligible products, coverage terms, and pricing models",
+      "position": 35
+    },
+    {
+      "id": "need.process-intake",
+      "name": "Process claim intake",
+      "description": "Handle initial claim filing and customer communication",
+      "position": 45
+    },
+    {
+      "id": "need.adjudicate-claims",
+      "name": "Adjudicate claims and authorize fulfillment",
+      "description": "Evaluate claims, calculate liability limits, and coordinate repair or reimbursement",
+      "position": 55
+    },
+    {
+      "id": "need.execute-repairs",
+      "name": "Execute repair work orders",
+      "description": "Perform repair services and report completion and costs",
+      "position": 60
+    },
+    {
+      "id": "need.process-payments",
+      "name": "Process reimbursements and payments",
+      "description": "Issue store credits and process cash reimbursements",
+      "position": 70
+    }
+  ],
+  "actorNeedConnections": [
+    {
+      "id": "aconn.sales-rep-pos",
+      "actorId": "actor.sales-rep",
+      "userNeedId": "need.sell-pos"
+    },
+    {
+      "id": "aconn.customer-claims",
+      "actorId": "actor.customer",
+      "userNeedId": "need.file-track-claims"
+    },
+    {
+      "id": "aconn.marketing-campaigns",
+      "actorId": "actor.marketing",
+      "userNeedId": "need.execute-campaigns"
+    },
+    {
+      "id": "aconn.admin-contracts",
+      "actorId": "actor.warranty-admin",
+      "userNeedId": "need.manage-contracts"
+    },
+    {
+      "id": "aconn.underwriting-catalog",
+      "actorId": "actor.underwriting",
+      "userNeedId": "need.manage-catalog"
+    },
+    {
+      "id": "aconn.csr-intake",
+      "actorId": "actor.csr",
+      "userNeedId": "need.process-intake"
+    },
+    {
+      "id": "aconn.adjudicator-claims",
+      "actorId": "actor.adjudicator",
+      "userNeedId": "need.adjudicate-claims"
+    },
+    {
+      "id": "aconn.technician-repairs",
+      "actorId": "actor.technician",
+      "userNeedId": "need.execute-repairs"
+    },
+    {
+      "id": "aconn.accountant-payments",
+      "actorId": "actor.accountant",
+      "userNeedId": "need.process-payments"
+    }
+  ],
+  "needContextConnections": [
+    {
+      "id": "nconn.sell-pos-retail",
+      "userNeedId": "need.sell-pos",
+      "contextId": "ctx.retail-pos"
+    },
+    {
+      "id": "nconn.file-claims",
+      "userNeedId": "need.file-track-claims",
+      "contextId": "ctx.claims-mgmt"
+    },
+    {
+      "id": "nconn.campaigns-lead",
+      "userNeedId": "need.execute-campaigns",
+      "contextId": "ctx.lead-mgmt"
+    },
+    {
+      "id": "nconn.campaigns-reporting",
+      "userNeedId": "need.execute-campaigns",
+      "contextId": "ctx.reporting"
+    },
+    {
+      "id": "nconn.contracts-admin",
+      "userNeedId": "need.manage-contracts",
+      "contextId": "ctx.contract-admin"
+    },
+    {
+      "id": "nconn.contracts-lead",
+      "userNeedId": "need.manage-contracts",
+      "contextId": "ctx.lead-mgmt"
+    },
+    {
+      "id": "nconn.catalog-product",
+      "userNeedId": "need.manage-catalog",
+      "contextId": "ctx.product-mgmt"
+    },
+    {
+      "id": "nconn.catalog-contract",
+      "userNeedId": "need.manage-catalog",
+      "contextId": "ctx.contract-admin"
+    },
+    {
+      "id": "nconn.intake-claims",
+      "userNeedId": "need.process-intake",
+      "contextId": "ctx.claims-mgmt"
+    },
+    {
+      "id": "nconn.intake-crm",
+      "userNeedId": "need.process-intake",
+      "contextId": "ctx.crm"
+    },
+    {
+      "id": "nconn.adjudicate-claims",
+      "userNeedId": "need.adjudicate-claims",
+      "contextId": "ctx.claims-mgmt"
+    },
+    {
+      "id": "nconn.adjudicate-dispatch",
+      "userNeedId": "need.adjudicate-claims",
+      "contextId": "ctx.service-dispatch"
+    },
+    {
+      "id": "nconn.repairs-servicer",
+      "userNeedId": "need.execute-repairs",
+      "contextId": "ctx.servicer-system"
+    },
+    {
+      "id": "nconn.payments-finance",
+      "userNeedId": "need.process-payments",
+      "contextId": "ctx.finance"
+    }
+  ],
   "viewConfig": {
     "flowStages": [
       {

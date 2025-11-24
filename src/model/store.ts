@@ -5,7 +5,7 @@ import { config } from '../config'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../utils/analytics'
 import { classifyFromDistillationPosition, classifyFromStrategicPosition } from './classification'
 import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
-import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal } from './builtInProjects'
+import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
 import { applyUndo, applyRedo } from './undoRedo'
 import {
   updateContextAction,
@@ -869,23 +869,4 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 }))
 
-// Load saved projects from IndexedDB on startup
-Promise.all(
-  BUILT_IN_PROJECTS.map(project => loadProject(project.id))
-).then((savedProjects) => {
-  const projects: Record<string, Project> = {}
-
-  // For each built-in project, use saved version if available, otherwise use the default
-  BUILT_IN_PROJECTS.forEach((defaultProject, index) => {
-    const savedProject = savedProjects[index]
-    if (savedProject) {
-      projects[savedProject.id] = savedProject
-    } else {
-      projects[defaultProject.id] = defaultProject
-    }
-  })
-
-  useEditorStore.setState({ projects })
-}).catch(err => {
-  console.error('Failed to load projects from IndexedDB:', err)
-})
+initializeBuiltInProjects(useEditorStore.setState)

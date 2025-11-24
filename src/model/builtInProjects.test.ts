@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { initialProjects, initialActiveProjectId, determineProjectOrigin } from './builtInProjects'
+import { initialProjects, initialActiveProjectId, determineProjectOrigin, isBuiltInNewer } from './builtInProjects'
 
 describe('builtInProjects', () => {
   describe('initialProjects', () => {
@@ -201,6 +201,43 @@ describe('builtInProjects', () => {
 
     it('returns "continued" for subsequent load of custom project', () => {
       expect(determineProjectOrigin('custom-project', false)).toBe('continued')
+    })
+  })
+
+  describe('project versioning', () => {
+    it('should return true when built-in version is newer than saved', () => {
+      const builtInProject = { id: 'test-project', version: 2, name: 'Test' }
+      const savedProject = { id: 'test-project', version: 1, name: 'Test' }
+
+      expect(isBuiltInNewer(builtInProject, savedProject)).toBe(true)
+    })
+
+    it('should return false when versions are equal', () => {
+      const builtInProject = { id: 'test-project', version: 2, name: 'Test' }
+      const savedProject = { id: 'test-project', version: 2, name: 'Test' }
+
+      expect(isBuiltInNewer(builtInProject, savedProject)).toBe(false)
+    })
+
+    it('should return false when built-in version is older than saved', () => {
+      const builtInProject = { id: 'test-project', version: 1, name: 'Test' }
+      const savedProject = { id: 'test-project', version: 2, name: 'Test' }
+
+      expect(isBuiltInNewer(builtInProject, savedProject)).toBe(false)
+    })
+
+    it('should treat missing version as version 1', () => {
+      const builtInProject = { id: 'test-project', version: 2, name: 'Test' }
+      const savedProject = { id: 'test-project', name: 'Test' }
+
+      expect(isBuiltInNewer(builtInProject, savedProject)).toBe(true)
+    })
+
+    it('should return false when both have no version (both default to 1)', () => {
+      const builtInProject = { id: 'test-project', version: 1, name: 'Test' }
+      const savedProject = { id: 'test-project', name: 'Test' }
+
+      expect(isBuiltInNewer(builtInProject, savedProject)).toBe(false)
     })
   })
 })

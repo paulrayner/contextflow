@@ -61,7 +61,7 @@ BUILT_IN_PROJECTS.forEach(project => {
 
 async function saveProjectIfNew(project: Project): Promise<void> {
   const existingProject = await loadProject(project.id)
-  if (!existingProject) {
+  if (isBuiltInNewer(project, existingProject)) {
     await saveProject(project)
   }
 }
@@ -96,4 +96,40 @@ export function determineProjectOrigin(
     return 'imported'
   }
   return 'continued'
+}
+
+const DEFAULT_PROJECT_VERSION = 1
+
+export function isBuiltInNewer(
+  builtInProject: { version?: number },
+  savedProject: { version?: number } | null
+): boolean {
+  if (!savedProject) return true
+
+  const builtInVersion = builtInProject.version ?? DEFAULT_PROJECT_VERSION
+  const savedVersion = savedProject.version ?? DEFAULT_PROJECT_VERSION
+
+  return builtInVersion > savedVersion
+}
+
+export function initializeBuiltInProjects(
+  setState: (state: { projects: Record<string, Project> }) => void
+): void {
+  Promise.all(
+    BUILT_IN_PROJECTS.map(project => loadProject(project.id))
+  ).then((savedProjects) => {
+    const projects: Record<string, Project> = {}
+
+    BUILT_IN_PROJECTS.forEach((builtInProject, index) => {
+      const savedProject = savedProjects[index]
+      const selectedProject = isBuiltInNewer(builtInProject, savedProject)
+        ? builtInProject
+        : savedProject!
+      projects[selectedProject.id] = selectedProject
+    })
+
+    setState({ projects })
+  }).catch(err => {
+    console.error('Failed to load projects from IndexedDB:', err)
+  })
 }

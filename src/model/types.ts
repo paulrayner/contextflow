@@ -3,6 +3,7 @@
 export interface Project {
   id: string
   name: string
+  version?: number  // Version number for built-in projects (default: 1)
 
   contexts: BoundedContext[]
   relationships: Relationship[]
