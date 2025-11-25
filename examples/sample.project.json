@@ -1,6 +1,6 @@
 {
   "id": "acme-ecommerce",
-  "version": 4,
+  "version": 2,
   "name": "ACME E-Commerce Platform",
   "contexts": [
     {
