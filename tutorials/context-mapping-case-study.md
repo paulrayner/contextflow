@@ -502,8 +502,23 @@ Compare your work against:
 - [Completed solution in ContextFlow](https://contextflow.dev/?project=elan-warranty)
 - [Full domain analysis](../docs/elan-warranty-domain.md)
 
-### Practice
+### Practice: Map Your Own Domain
 
-1. Pick a domain you know and identify its bounded contexts
-2. For each Generic context, ask "what would make this Core?"
-3. What if Claims and Service Dispatch weren't a shared kernel?
+Apply this process to a domain you know:
+
+**Part I: Value Stream View**
+1. List the systems/applications in your domain
+2. For each, identify: What's its purpose? Who uses it? Internal or external?
+3. Add actors and their user needs
+4. Draw relationships—who depends on whom? What patterns apply?
+
+**Part II: Domain Distillation View**
+5. For each context, ask: Does this provide competitive advantage?
+6. Then ask: Did we build it, or buy it off-the-shelf?
+   - Built in-house + differentiating → Core
+   - Built in-house + not differentiating → Supporting
+   - Off-the-shelf/external → Generic
+
+**Part III: Strategic View**
+7. Position contexts by evolution stage (genesis → commodity)
+8. Look for mismatches: Core domains using commodity solutions? Supporting domains with excessive investment?

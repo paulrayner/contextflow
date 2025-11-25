@@ -245,6 +245,15 @@ export function InspectorPanel() {
           />
         </Section>
 
+        {/* External Toggle */}
+        <div className="flex flex-col gap-2">
+          <Switch
+            label="External"
+            checked={actor.isExternal || false}
+            onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
+          />
+        </div>
+
         {/* Connected User Needs */}
         <Section label={`Connected User Needs (${connectedUserNeeds.length})`}>
           <div className="space-y-1">
