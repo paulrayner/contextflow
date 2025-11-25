@@ -62,7 +62,10 @@ A **bounded context** is a boundary within which a particular domain model appli
 
 **Warranty Administrator** — needs to **manage contracts and customer accounts**
 
-**Add to your map**: Contract Administration context with Warranty Administrator as actor.
+**Add to your map**:
+- Contract Administration context
+- Warranty Administrator actor with need "Manage contracts and customer accounts"
+- Connect: Actor → Need → Context
 
 ---
 
@@ -106,7 +109,12 @@ When David called, the CSR needed to see his contact history—previous calls, n
 - **Customer Service Representative (CSR)** — needs to **process claim intake**
 - **Warranty Customer** (David) — needs to **file and track claims**
 
-**Add to your map**: Claims Management and CRM System (external).
+**Add to your map**:
+- Claims Management context
+- CRM System context (external)
+- Customer Service Representative actor with need "Process claim intake"
+- Warranty Customer actor with need "File and track claims"
+- Connect each: Actor → Need → Context
 
 ---
 
@@ -143,7 +151,12 @@ Consider: Who coordinates the repair? Who actually dispatches the technicians?
 - **Claims Specialist/Adjudicator** — needs to **adjudicate claims and authorize fulfillment**
 - **Service Technician** — needs to **execute repair work orders**
 
-**Add to your map**: Service Dispatch and Servicer Management System (external).
+**Add to your map**:
+- Service Dispatch context
+- Servicer Management System context (external)
+- Claims Specialist/Adjudicator actor with need "Adjudicate claims and authorize fulfillment"
+- Service Technician actor with need "Execute repair work orders"
+- Connect each: Actor → Need → Context
 
 ---
 
@@ -166,7 +179,10 @@ After three repair attempts, David's dishwasher still wasn't fixed. The repair c
 
 **Accountant** — needs to **process reimbursements and payments**
 
-**Add to your map**: Finance & Reimbursement.
+**Add to your map**:
+- Finance & Reimbursement context
+- Accountant actor with need "Process reimbursements and payments"
+- Connect: Actor → Need → Context
 
 ---
 
@@ -207,7 +223,12 @@ POS-originated warranties and lead-converted warranties remain in separate pipel
 - **Marketing Specialist** — needs to **execute lead campaigns**
 - **Appliance Sales Representative** — needs to **sell warranties at POS**
 
-**Add to your map**: Lead Management and Retail POS Systems (external).
+**Add to your map**:
+- Lead Management context
+- Retail POS Systems context (external)
+- Marketing Specialist actor with need "Execute lead campaigns"
+- Appliance Sales Representative actor with need "Sell warranties at POS"
+- Connect each: Actor → Need → Context
 
 ---
 
@@ -237,7 +258,10 @@ BBOM stands for "Big Ball of Mud"—a legacy system with tangled dependencies. T
 
 **Underwriting & Product Manager** — needs to **manage product catalog and coverage rules**
 
-**Add to your map**: Product Management (BBOM).
+**Add to your map**:
+- Product Management (BBOM) context
+- Underwriting & Product Manager actor with need "Manage product catalog and coverage rules"
+- Connect: Actor → Need → Context
 
 ---
 
@@ -255,7 +279,10 @@ Managers need visibility into business performance. How many claims are open? Wh
 
 </details>
 
-**Add to your map**: Reporting.
+**Add to your map**:
+- Reporting context
+
+(Reporting serves multiple actors—managers, analysts, CSRs—but we won't add separate actor-need connections for this exercise.)
 
 ---
 
