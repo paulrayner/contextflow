@@ -30,13 +30,45 @@ We'll build the context map in three phases:
 
 # Part I: Value Stream View
 
-Let's discover the bounded contexts. We're not judging importance yet—just mapping what exists.
+Let's discover the bounded contexts by following David's journey. We're not judging importance yet—just mapping what exists.
 
 ---
 
-## Chapter 1: Where Claims Live
+## Chapter 1: Where Contracts Live
 
-Remember when David called to report his broken dishwasher? The CSR opened a claim, and over the following weeks that claim tracked repair attempts, accumulated costs, and eventually triggered a reimbursement.
+David had a warranty contract before he ever filed a claim. That contract specified what product was covered, the coverage terms, effective dates, and customer information.
+
+**Think about it**: What bounded context manages warranty contracts?
+
+<details>
+<summary>Hint</summary>
+
+Look for where contracts are created, validated, and stored. This is the authoritative source for "does this customer have coverage?"
+
+</details>
+
+<details>
+<summary>Reveal</summary>
+
+**Contract Administration** — Where warranty contracts live. Manages contract lifecycle: creation, validation, covered products, customer data. Contains rules for effective dates, coverage terms, and eligibility.
+
+</details>
+
+### What's a Bounded Context?
+
+A **bounded context** is a boundary within which a particular domain model applies. Inside that boundary, terms have precise meaning and specific rules are enforced. "Contract" means something specific in Contract Administration—it might mean something different (or nothing) elsewhere.
+
+### Actor
+
+**Warranty Administrator** — needs to **manage contracts and customer accounts**
+
+**Add to your map**: Contract Administration context with Warranty Administrator as actor.
+
+---
+
+## Chapter 2: Filing a Claim
+
+When David's dishwasher broke, he called to report it. The CSR opened a claim, and over the following weeks that claim tracked repair attempts, accumulated costs, and eventually triggered a reimbursement.
 
 In your EventStorming, you explored this part of the journey—opening the claim, tracking repair attempts, calculating costs against the limit of liability, and eventually closing the claim.
 
@@ -45,73 +77,126 @@ In your EventStorming, you explored this part of the journey—opening the claim
 <details>
 <summary>Hint</summary>
 
-Look for events that share a common lifecycle and language around claims, repair tracking, and fulfillment decisions.
+Look for where claims are opened, tracked, and resolved. This is where decisions about repair vs. reimburse happen.
 
 </details>
 
 <details>
 <summary>Reveal</summary>
 
-**Claims Management** — This context owns the claim lifecycle: opening, tracking repair attempts, calculating limit of liability, and authorizing fulfillment.
+**Claims Management** — Owns the claim lifecycle: opening, tracking repair attempts, calculating limit of liability, and authorizing fulfillment.
 
 The domain model includes a Claim aggregate with a state machine (open → closed → reopened). This is where business rules determine repair vs. reimburse decisions.
 
 </details>
 
-### What's a Bounded Context?
+### The CSR's Toolbox
 
-A **bounded context** is a boundary within which a particular domain model applies. Inside that boundary, terms have precise meaning and specific rules are enforced. "Claim" means something specific in Claims Management—it might mean something different (or nothing) elsewhere.
+When David called, the CSR needed to see his contact history—previous calls, notes from other CSRs. Where does that live?
 
-### Actors and User Needs
+<details>
+<summary>Reveal</summary>
 
-Who uses Claims Management?
+**CRM System** (External) — Tracks customer contact history. Used by CSRs during claim processing. Third-party system (Salesforce, etc.)
+
+</details>
+
+### Actors
+
 - **Customer Service Representative (CSR)** — needs to **process claim intake**
 - **Warranty Customer** (David) — needs to **file and track claims**
 
-**Add to your map**: Claims Management context with CSR and Customer as actors.
+**Add to your map**: Claims Management and CRM System (external).
 
 ---
 
-## Chapter 2: Where Warranties Come From
+## Chapter 3: Getting the Repair Done
 
-Before David could file a claim, he needed a warranty contract. How did that come to exist?
+David's claim is approved. Now what? In your EventStorming, you traced what happens next—coordinating technicians, executing repairs, recording costs.
 
-**Think about it**: David's warranty could have originated from two completely different places. What are they?
+**Think about it**: What contexts handle repair fulfillment?
 
 <details>
 <summary>Hint</summary>
 
-One involves buying the warranty when purchasing the appliance. The other involves Elan's marketing team reaching out before the manufacturer warranty expires.
+Consider: Who coordinates the repair? Who actually dispatches the technicians?
 
 </details>
 
 <details>
 <summary>Reveal</summary>
 
-**Point of Sale** — Customers buy extended warranties at retail stores (Best Buy, Home Depot) when purchasing appliances. The retailer sends transaction data to Elan.
+**Service Dispatch**
+- Coordinates repair work orders
+- Creates purchase orders to the service network
+- Tracks repair costs and parts
 
-**Lead Marketing** — Elan identifies customers whose manufacturer warranties are expiring and sends targeted mailings. These prospects may convert to warranty customers.
+**Servicer Management System** (External)
+- Third-party network that dispatches technicians
+- Coordinates scheduling and field service
+- Returns cost data to Service Dispatch
 
 </details>
 
-### Three More Contexts
+### Actors
 
-These two paths, plus where contracts actually live, give us three contexts:
+- **Claims Specialist/Adjudicator** — needs to **adjudicate claims and authorize fulfillment**
+- **Service Technician** — needs to **execute repair work orders**
 
-**Retail POS Systems** (External)
-- Point of sale systems at retail partners
-- Each retailer sends data in a different format
-- **External context** — Elan doesn't own these systems
+**Add to your map**: Service Dispatch and Servicer Management System (external).
+
+---
+
+## Chapter 4: When Repair Doesn't Work
+
+After three repair attempts, David's dishwasher still wasn't fixed. The repair costs were approaching the product's replacement value. Time for a reimbursement.
+
+**Think about it**: What context handles payments?
+
+<details>
+<summary>Reveal</summary>
+
+**Finance & Reimbursement**
+- Processes payments and store credits
+- Issues reimbursement when costs exceed limit of liability
+
+</details>
+
+### Actor
+
+**Accountant** — needs to **process reimbursements and payments**
+
+**Add to your map**: Finance & Reimbursement.
+
+---
+
+## Chapter 5: Where Did the Contract Come From?
+
+We've followed David's journey from claim to repair to reimbursement. But step back: how did David get a warranty contract in the first place?
+
+**Think about it**: What are the two different ways customers get extended warranties?
+
+<details>
+<summary>Hint</summary>
+
+One involves buying the warranty when purchasing the appliance. The other involves Elan reaching out before the manufacturer warranty expires.
+
+</details>
+
+<details>
+<summary>Reveal</summary>
 
 **Lead Management**
 - Tracks prospects approaching manufacturer warranty expiration
 - Executes marketing campaigns
 - Maintains a separate leads database
 
-**Contract Administration**
-- Where warranty contracts live
-- Manages contract lifecycle: creation, validation, covered products, customer data
-- Contains rules for effective dates, coverage terms, eligibility
+**Retail POS Systems** (External)
+- Point of sale systems at retail partners (Best Buy, Home Depot, etc.)
+- Each retailer sends data in a different format
+- **External context** — Elan doesn't own these systems
+
+</details>
 
 ### Why Two Paths Stay Separate
 
@@ -119,17 +204,16 @@ POS-originated warranties and lead-converted warranties remain in separate pipel
 
 ### Actors
 
-- **Appliance Sales Representative** — needs to **sell warranties at POS**
 - **Marketing Specialist** — needs to **execute lead campaigns**
-- **Warranty Administrator** — needs to **manage contracts and customer accounts**
+- **Appliance Sales Representative** — needs to **sell warranties at POS**
 
-**Add to your map**: Retail POS (external), Lead Management, and Contract Administration.
+**Add to your map**: Lead Management and Retail POS Systems (external).
 
 ---
 
-## Chapter 3: What Products Are Covered?
+## Chapter 6: Product Data
 
-David's contract covers a specific product: a Bosch dishwasher. Where does product data come from?
+David's contract covers a specific product: a Bosch dishwasher. Where does product eligibility data come from?
 
 **Think about it**: What system knows which products are eligible for warranty coverage?
 
@@ -157,98 +241,58 @@ BBOM stands for "Big Ball of Mud"—a legacy system with tangled dependencies. T
 
 ---
 
-## Chapter 4: Getting the Repair Done
+## Chapter 7: Who Sees the Big Picture?
 
-David's claim is approved. Now what? In your EventStorming, you traced what happens next—coordinating technicians, executing repairs, recording costs.
-
-**Think about it**: What contexts handle fulfillment?
-
-<details>
-<summary>Hint</summary>
-
-Consider: Who coordinates the repair? Who actually does the repair? Who issues the reimbursement check?
-
-</details>
+Managers need visibility into business performance. How many claims are open? What's the average repair cost? Which servicers perform best?
 
 <details>
 <summary>Reveal</summary>
-
-**Service Dispatch**
-- Coordinates repair work orders
-- Creates purchase orders to the service network
-- Tracks repair costs and parts
-
-**Servicer Management System** (External)
-- Third-party network that dispatches technicians
-- Coordinates scheduling and field service
-- Returns cost data to Service Dispatch
-
-**Finance & Reimbursement**
-- Processes payments and store credits
-- Issues reimbursement when costs exceed limit of liability
-
-</details>
-
-### Actors
-
-- **Claims Specialist/Adjudicator** — needs to **adjudicate claims and authorize fulfillment**
-- **Service Technician** — needs to **execute repair work orders**
-- **Accountant** — needs to **process reimbursements and payments**
-
-**Add to your map**: Service Dispatch, Servicer Management System (external), and Finance & Reimbursement.
-
----
-
-## Chapter 5: Analytics and Customer Tracking
-
-Two more contexts round out the system:
 
 **Reporting**
 - Dashboards for managers and analysts
 - Operational reports for CSRs
 - Analytics on claim patterns, repair costs, contract performance
 
-**CRM System** (External)
-- Tracks customer contact history
-- Used by CSRs during claim processing
-- Third-party system (Salesforce, etc.)
+</details>
+
+**Add to your map**: Reporting.
 
 ---
 
-## Chapter 6: Your Complete Context Inventory
+## Chapter 8: Your Complete Context Inventory
 
 You should now have **10 bounded contexts**:
 
 | Context | Internal/External |
 |---------|-------------------|
-| Claims Management | Internal |
 | Contract Administration | Internal |
-| Lead Management | Internal |
-| Service Dispatch | Internal |
-| Reporting | Internal |
-| Product Management (BBOM) | Internal |
-| Finance & Reimbursement | Internal |
-| Retail POS Systems | External |
+| Claims Management | Internal |
 | CRM System | External |
+| Service Dispatch | Internal |
 | Servicer Management System | External |
+| Finance & Reimbursement | Internal |
+| Lead Management | Internal |
+| Retail POS Systems | External |
+| Product Management (BBOM) | Internal |
+| Reporting | Internal |
 
 And **9 actors** with their user needs:
 
 | Actor | User Need |
 |-------|-----------|
+| Warranty Administrator | Manage contracts and customer accounts |
 | Warranty Customer | File and track claims |
 | Customer Service Representative | Process claim intake |
-| Appliance Sales Representative | Sell warranties at POS |
-| Marketing Specialist | Execute lead campaigns |
-| Warranty Administrator | Manage contracts and customer accounts |
-| Underwriting & Product Manager | Manage product catalog and coverage rules |
 | Claims Specialist/Adjudicator | Adjudicate claims and authorize fulfillment |
 | Service Technician | Execute repair work orders |
 | Accountant | Process reimbursements and payments |
+| Marketing Specialist | Execute lead campaigns |
+| Appliance Sales Representative | Sell warranties at POS |
+| Underwriting & Product Manager | Manage product catalog and coverage rules |
 
 ---
 
-## Chapter 7: Adding Relationships
+## Chapter 9: Adding Relationships
 
 How do these contexts connect? DDD defines specific **relationship patterns**.
 
@@ -356,7 +400,7 @@ Now we classify contexts by strategic value.
 
 ---
 
-## Chapter 8: The Three Classifications
+## Chapter 10: The Three Classifications
 
 Not all contexts are equally important:
 
@@ -394,7 +438,7 @@ Before reading ahead, classify all 10 contexts. Ask:
 
 ---
 
-## Chapter 9: The Core Domain Chart
+## Chapter 11: The Core Domain Chart
 
 The **Core Domain Chart** positions contexts on two axes:
 
@@ -409,13 +453,13 @@ The **Core Domain Chart** positions contexts on two axes:
 
 **Product Management is Generic despite being complex.**
 
-Complexity ≠ strategic importance. Product catalog management is commodity function. The complexity is *accidental* (technical debt) not *essential* (business sophistication).
+Complexity ≠ strategic importance. Product catalog management is a commodity function. The complexity is *accidental* (technical debt) not *essential* (business sophistication).
 
 **Investment implication**: Minimize investment. Consider replacing with commercial solution. Don't mistake technical pain for strategic importance.
 
 ---
 
-## Chapter 10: Why ACLs Cluster Around Core
+## Chapter 12: Why ACLs Cluster Around Core
 
 Look at the relationship map. Contract Administration has three ACLs:
 - From Product Management (legacy complexity)
@@ -442,7 +486,7 @@ A brief look at evolution and visibility.
 
 ---
 
-## Chapter 11: Evolution
+## Chapter 13: Evolution
 
 Contexts vary by how commoditized they are:
 
@@ -457,7 +501,7 @@ This reinforces Domain Distillation: invest in custom-building your core, use co
 
 ---
 
-## Chapter 12: Putting It All Together
+## Chapter 14: Putting It All Together
 
 Three views, three questions answered:
 
