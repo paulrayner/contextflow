@@ -747,14 +747,19 @@ function ActorNode({ data }: NodeProps) {
           width: 100,
           height: 50,
           backgroundColor: isSelected || isHovered ? '#eff6ff' : '#f8fafc',
-          border: isSelected ? '2px solid #3b82f6' : '2px solid #cbd5e1',
+          borderWidth: '2px',
           borderStyle: actor.isExternal ? 'dashed' : 'solid',
+          borderColor: isSelected ? '#3b82f6' : '#cbd5e1',
           borderRadius: '8px',
           padding: '8px',
           boxShadow: isSelected
             ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
             : isHovered
-            ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
+            ? actor.isExternal
+              ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 4px 8px -1px rgba(0, 0, 0, 0.12)'
+              : '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
+            : actor.isExternal
+            ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 2px 6px 0 rgba(0, 0, 0, 0.06)'
             : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
           display: 'flex',
           flexDirection: 'column',
