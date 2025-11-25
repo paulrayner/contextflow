@@ -2,6 +2,7 @@ import React from 'react'
 import { useEditorStore } from '../model/store'
 import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
+import { Switch } from './Switch'
 import { config } from '../config'
 import { interpolatePosition, classifyFromStrategicPosition } from '../lib/temporal'
 import { classifyFromStrategicPosition as getEvolutionStage } from '../model/classification'
@@ -649,28 +650,18 @@ export function InspectorPanel() {
         </div>
       )}
 
-      {/* Attributes - toggleable pills */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => handleUpdate({ isLegacy: !context.isLegacy })}
-          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-            context.isLegacy
-              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-          }`}
-        >
-          {context.isLegacy ? '🕰️ Legacy' : 'Legacy'}
-        </button>
-        <button
-          onClick={() => handleUpdate({ isExternal: !context.isExternal })}
-          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
-            context.isExternal
-              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-          }`}
-        >
-          {context.isExternal ? '🔗 External' : 'External'}
-        </button>
+      {/* Attributes - toggle switches */}
+      <div className="flex flex-col gap-2">
+        <Switch
+          label="Legacy"
+          checked={context.isLegacy || false}
+          onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
+        />
+        <Switch
+          label="External"
+          checked={context.isExternal || false}
+          onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
+        />
       </div>
 
       {/* Member of Groups - under pills, no heading */}
