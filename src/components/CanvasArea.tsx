@@ -466,7 +466,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
     >
       {stages.map((stage, index) => {
         const xPos = (stage.position / 100) * 2000
-        const yPos = 40
+        const yPos = -60 // Above canvas boundary
 
         const transformedX = xPos * zoom + x
         const transformedY = yPos * zoom + y
@@ -611,7 +611,7 @@ function EvolutionBands() {
       >
         {bands.map((band) => {
           const xPos = (band.position / 100) * 2000
-          const yPos = 960 // Bottom of canvas (1000 height - 40px padding)
+          const yPos = 1040 // Below canvas boundary
 
           const transformedX = xPos * zoom + x
           const transformedY = yPos * zoom + y
@@ -1813,8 +1813,8 @@ function CanvasContent() {
     // Apply group visibility filter
     const finalGroupNodes = showGroups ? reorderedGroupNodes : []
 
-    // Create actor nodes (only in Strategic view)
-    const actorNodes: Node[] = viewMode === 'strategic' && project.actors
+    // Create actor nodes (visible in Strategic and Value Stream views, not Distillation)
+    const actorNodes: Node[] = viewMode !== 'distillation' && project.actors
       ? project.actors.map((actor) => {
           const x = (actor.position / 100) * 2000
           const y = 50 // Fixed y position at top (closer to boundary)
@@ -1841,13 +1841,13 @@ function CanvasContent() {
         })
       : []
 
-    // Create userNeed nodes (only in Strategic view)
-    const userNeedNodes: Node[] = viewMode === 'strategic' && project.userNeeds
+    // Create userNeed nodes (visible in Strategic and Value Stream views, not Distillation)
+    const userNeedNodes: Node[] = viewMode !== 'distillation' && project.userNeeds
       ? project.userNeeds
           .filter(need => need.visibility !== false)
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
-            const y = 200 // Fixed y position in middle layer (30% higher)
+            const y = 150 // Fixed y position below actors, above contexts
 
             return {
               id: userNeed.id,
@@ -1906,8 +1906,8 @@ function CanvasContent() {
         }))
       : []
 
-    // Add actor connection edges (only in Strategic view)
-    const actorConnectionEdges: Edge[] = viewMode === 'strategic' && project.actorConnections
+    // Add actor connection edges (Strategic and Value Stream views, not Distillation)
+    const actorConnectionEdges: Edge[] = viewMode !== 'distillation' && project.actorConnections
       ? project.actorConnections.map((conn) => ({
           id: conn.id,
           source: conn.actorId,
@@ -1919,8 +1919,8 @@ function CanvasContent() {
         }))
       : []
 
-    // Add actor-need connection edges (only in Strategic view)
-    const actorNeedConnectionEdges: Edge[] = viewMode === 'strategic' && project.actorNeedConnections
+    // Add actor-need connection edges (Strategic and Value Stream views, not Distillation)
+    const actorNeedConnectionEdges: Edge[] = viewMode !== 'distillation' && project.actorNeedConnections
       ? project.actorNeedConnections.map((conn) => ({
           id: conn.id,
           source: conn.actorId,
@@ -1932,8 +1932,8 @@ function CanvasContent() {
         }))
       : []
 
-    // Add need-context connection edges (only in Strategic view)
-    const needContextConnectionEdges: Edge[] = viewMode === 'strategic' && project.needContextConnections
+    // Add need-context connection edges (Strategic and Value Stream views, not Distillation)
+    const needContextConnectionEdges: Edge[] = viewMode !== 'distillation' && project.needContextConnections
       ? project.needContextConnections.map((conn) => ({
           id: conn.id,
           source: conn.userNeedId,

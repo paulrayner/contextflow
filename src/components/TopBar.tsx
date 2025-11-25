@@ -191,8 +191,8 @@ export function TopBar() {
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Strategic View: Actor → User Need → Context (workflow order) */}
-        {viewMode === 'strategic' && (
+        {/* Actor/Need buttons: Strategic and Value Stream views (not Distillation) */}
+        {viewMode !== 'distillation' && (
           <>
             <IconButton
               onClick={handleAddActor}
