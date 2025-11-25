@@ -38,14 +38,9 @@ Let's discover the bounded contexts. We're not judging importance yet—just map
 
 Remember when David called to report his broken dishwasher? The CSR opened a claim, and over the following weeks that claim tracked repair attempts, accumulated costs, and eventually triggered a reimbursement.
 
-In your EventStorming, you likely identified events like:
-- "Claim Opened"
-- "Repair Attempt Recorded"
-- "Limit of Liability Calculated"
-- "Reimbursement Authorized"
-- "Claim Closed"
+In your EventStorming, you explored this part of the journey—opening the claim, tracking repair attempts, calculating costs against the limit of liability, and eventually closing the claim.
 
-**Think about it**: What bounded context owns these events?
+**Think about it**: What bounded context owns this lifecycle?
 
 <details>
 <summary>Hint</summary>
@@ -164,7 +159,7 @@ BBOM stands for "Big Ball of Mud"—a legacy system with tangled dependencies. T
 
 ## Chapter 4: Getting the Repair Done
 
-David's claim is approved. Now what? You EventStormed events like "Work Order Created", "Technician Dispatched", "Repair Completed", "Repair Cost Recorded".
+David's claim is approved. Now what? In your EventStorming, you traced what happens next—coordinating technicians, executing repairs, recording costs.
 
 **Think about it**: What contexts handle fulfillment?
 
