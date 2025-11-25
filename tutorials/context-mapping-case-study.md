@@ -42,7 +42,7 @@ A **bounded context** is a boundary within which a particular domain model appli
 
 David had a warranty contract before he ever filed a claim. That contract specified what product was covered, the coverage terms, effective dates, and customer information.
 
-**Think about it**: What bounded context manages warranty contracts?
+**Think about it**: What bounded context manages warranty contracts? (For this first pass, it's fine to just use the application or system name.)
 
 <details>
 <summary>Hint</summary>
