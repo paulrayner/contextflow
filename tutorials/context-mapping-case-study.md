@@ -32,6 +32,10 @@ We'll build the context map in three phases:
 
 Let's discover the bounded contexts by following David's journey. We're not judging importance yet—just mapping what exists.
 
+### What's a Bounded Context?
+
+A **bounded context** is a boundary within which a particular domain model applies. Inside that boundary, terms have precise meaning and specific rules are enforced. The same word might mean different things in different contexts—or mean nothing at all outside its home context.
+
 ---
 
 ## Chapter 1: Where Contracts Live
@@ -53,10 +57,6 @@ Look for where contracts are created, validated, and stored. This is the authori
 **Contract Administration** — Where warranty contracts live. Manages contract lifecycle: creation, validation, covered products, customer data. Contains rules for effective dates, coverage terms, and eligibility.
 
 </details>
-
-### What's a Bounded Context?
-
-A **bounded context** is a boundary within which a particular domain model applies. Inside that boundary, terms have precise meaning and specific rules are enforced. "Contract" means something specific in Contract Administration—it might mean something different (or nothing) elsewhere.
 
 ### Actor
 
