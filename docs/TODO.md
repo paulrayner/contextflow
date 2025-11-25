@@ -3,12 +3,12 @@
 ## In Progress
 
 
+- [x] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view (https://userneedsmapping.com/)
+- [x] Per https://userneedsmapping.com/docs/step-2-identifying-users/, classify actors as internal or external (toggle - display accordingly - different color? icon?). update sample projects based on this (likely schema change, but make it non-breaking)
+
 ## Backlog
 
-### UX & Polish
 - [ ] Work through process to test UX for everything implemented so far
-- [ ] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view (https://userneedsmapping.com/)
-- [ ] Per https://userneedsmapping.com/docs/step-2-identifying-users/, classify actors as internal or external (toggle - display accordingly - different color? icon?). update sample projects based on this (likely schema change, but make it non-breaking)
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
 - [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/)

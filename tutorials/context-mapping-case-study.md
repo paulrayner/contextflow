@@ -38,6 +38,22 @@ A **bounded context** is a boundary within which a particular domain model appli
 
 ---
 
+### Setting Up the Value Stream
+
+From your EventStorming, you identified the major phases of the warranty lifecycle. These become your value stream stages—the scaffolding for organizing contexts:
+
+| Stage | What Happens Here |
+|-------|-------------------|
+| Acquisition | Customer obtains a warranty (via retail purchase or direct marketing) |
+| Warranty Admin | Contract creation, validation, and product eligibility |
+| Claims Benefit Management | Claim intake, adjudication, and authorization |
+| Fulfillment | Repair coordination and reimbursement processing |
+| Analysis | Reporting and business intelligence |
+
+**Add to your map**: Create these five stages. As you discover contexts, you'll position each one in the appropriate stage.
+
+---
+
 ## Chapter 1: Where Contracts Live
 
 David had a warranty contract before he ever filed a claim. That contract specified what product was covered, the coverage terms, effective dates, and customer information. What bounded context manages warranty contracts? (For this first pass, it's fine to just use the application or system name.)

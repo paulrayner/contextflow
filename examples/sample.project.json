@@ -1313,19 +1313,22 @@
       "id": "actor.shopper",
       "name": "Online Shopper",
       "description": "Customers browsing and purchasing products through the e-commerce platform",
-      "position": 20
+      "position": 20,
+      "isExternal": true
     },
     {
       "id": "actor.store-manager",
       "name": "Store Manager",
       "description": "Internal users managing catalog, inventory, and order fulfillment",
-      "position": 55
+      "position": 55,
+      "isExternal": false
     },
     {
       "id": "actor.warehouse-staff",
       "name": "Warehouse Staff",
       "description": "Staff handling physical inventory and shipment preparation",
-      "position": 78
+      "position": 78,
+      "isExternal": false
     }
   ],
   "userNeeds": [

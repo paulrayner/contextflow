@@ -293,55 +293,64 @@
       "id": "actor.sales-rep",
       "name": "Appliance Sales Representative",
       "description": "Retail POS staff at Best Buy, Home Depot, etc. who sell warranties at point of purchase",
-      "position": 3
+      "position": 3,
+      "isExternal": true
     },
     {
       "id": "actor.customer",
       "name": "Warranty Customer",
       "description": "End customers who purchased extended warranties and need to file claims when products fail",
-      "position": 60
+      "position": 60,
+      "isExternal": true
     },
     {
       "id": "actor.marketing",
       "name": "Marketing Specialist",
       "description": "Staff executing lead campaigns and converting prospects approaching manufacturer warranty expiration",
-      "position": 8
+      "position": 8,
+      "isExternal": false
     },
     {
       "id": "actor.warranty-admin",
       "name": "Warranty Administrator",
       "description": "Staff managing contract creation, client relationships, and POS integration configurations",
-      "position": 30
+      "position": 30,
+      "isExternal": false
     },
     {
       "id": "actor.underwriting",
       "name": "Underwriting & Product Manager",
       "description": "Staff defining coverage rules, pricing models, and eligible product catalog",
-      "position": 35
+      "position": 35,
+      "isExternal": false
     },
     {
       "id": "actor.csr",
       "name": "Customer Service Representative (CSR)",
       "description": "Frontline staff who process claims and coordinate customer communication",
-      "position": 40
+      "position": 40,
+      "isExternal": false
     },
     {
       "id": "actor.adjudicator",
       "name": "Claims Specialist/Adjudicator",
       "description": "Expert staff analyzing complex claims, calculating limit of liability, and determining fulfillment strategies",
-      "position": 50
+      "position": 50,
+      "isExternal": false
     },
     {
       "id": "actor.technician",
       "name": "Service Technician",
       "description": "Field technicians (working for external servicer network) who execute repair work orders",
-      "position": 72
+      "position": 72,
+      "isExternal": true
     },
     {
       "id": "actor.accountant",
       "name": "Accountant",
       "description": "Finance staff processing reimbursements, store credits, and payment reconciliation",
-      "position": 84
+      "position": 84,
+      "isExternal": false
     }
   ],
   "userNeeds": [
