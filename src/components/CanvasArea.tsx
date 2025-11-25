@@ -748,6 +748,7 @@ function ActorNode({ data }: NodeProps) {
           height: 50,
           backgroundColor: isSelected || isHovered ? '#eff6ff' : '#f8fafc',
           border: isSelected ? '2px solid #3b82f6' : '2px solid #cbd5e1',
+          borderStyle: actor.isExternal ? 'dashed' : 'solid',
           borderRadius: '8px',
           padding: '8px',
           boxShadow: isSelected

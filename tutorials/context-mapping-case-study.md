@@ -499,8 +499,8 @@ These eight patterns appear repeatedly in context mapping. As you encounter new 
 ## Reference
 
 Compare your work against:
+- [Completed solution in ContextFlow](https://contextflow.dev/?project=elan-warranty)
 - [Full domain analysis](../docs/elan-warranty-domain.md)
-- [Sample project file](../examples/elan-warranty.project.json)
 
 ### Practice
 

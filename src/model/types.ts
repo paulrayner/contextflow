@@ -126,6 +126,7 @@ export interface Actor {
   name: string
   description?: string
   position: number // 0..100 along Strategic View X axis (horizontal only)
+  isExternal?: boolean // external actors outside the organization
 }
 
 export interface UserNeed {
