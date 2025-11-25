@@ -42,28 +42,19 @@ A **bounded context** is a boundary within which a particular domain model appli
 
 David had a warranty contract before he ever filed a claim. That contract specified what product was covered, the coverage terms, effective dates, and customer information. What bounded context manages warranty contracts? (For this first pass, it's fine to just use the application or system name.)
 
-<details>
-<summary>Hint</summary>
-
 Look for where contracts are created, validated, and stored. This is the authoritative source for "does this customer have coverage?"
 
-</details>
-
-<details>
-<summary>Reveal</summary>
-
 **Contract Administration** — Where warranty contracts live. Manages contract lifecycle: creation, validation, covered products, customer data. Contains rules for effective dates, coverage terms, and eligibility.
-
-</details>
 
 ### Actor
 
 **Warranty Administrator** — needs to **manage contracts and customer accounts**
 
 **Add to your map**:
-- Contract Administration context
-- Warranty Administrator actor with need "Manage contracts and customer accounts"
-- Connect: Actor → Need → Context
+1. Draw/add the **Contract Administration** context (internal)
+2. Draw/add **Warranty Administrator** actor
+3. Add user need: "Manage contracts and customer accounts"
+4. Connect: Actor → Need → Context
 
 ---
 
@@ -73,32 +64,17 @@ When David's dishwasher broke, he called to report it. The CSR opened a claim, a
 
 In your EventStorming, you explored this part of the journey—opening the claim, tracking repair attempts, calculating costs against the limit of liability, and eventually closing the claim. What bounded context owns this lifecycle?
 
-<details>
-<summary>Hint</summary>
-
-Look for where claims are opened, tracked, and resolved. This is where decisions about repair vs. reimburse happen.
-
-</details>
-
-<details>
-<summary>Reveal</summary>
+> **Discussion**: Could Claims and Contract Administration be the same context? What would that look like?
 
 **Claims Management** — Owns the claim lifecycle: opening, tracking repair attempts, calculating limit of liability, and authorizing fulfillment.
 
 The domain model includes a Claim aggregate with a state machine (open → closed → reopened). This is where business rules determine repair vs. reimburse decisions.
 
-</details>
-
 ### The CSR's Toolbox
 
 When David called, the CSR needed to see his contact history—previous calls, notes from other CSRs. Where does that live?
 
-<details>
-<summary>Reveal</summary>
-
 **CRM System** (External) — Tracks customer contact history. Used by CSRs during claim processing. Third-party system (Salesforce, etc.)
-
-</details>
 
 ### Actors
 
@@ -106,27 +82,17 @@ When David called, the CSR needed to see his contact history—previous calls, n
 - **Warranty Customer** (David) — needs to **file and track claims**
 
 **Add to your map**:
-- Claims Management context
-- CRM System context (external)
-- Customer Service Representative actor with need "Process claim intake"
-- Warranty Customer actor with need "File and track claims"
-- Connect each: Actor → Need → Context
+1. Draw/add **Claims Management** context (internal)
+2. Draw/add **CRM System** context (external) — mark it as external
+3. Draw/add **Customer Service Representative** actor with need "Process claim intake"
+4. Draw/add **Warranty Customer** actor with need "File and track claims"
+5. Connect each: Actor → Need → Context
 
 ---
 
 ## Chapter 3: Getting the Repair Done
 
 David's claim is approved. Now what? In your EventStorming, you traced what happens next—coordinating technicians, executing repairs, recording costs. What contexts handle repair fulfillment?
-
-<details>
-<summary>Hint</summary>
-
-Consider: Who coordinates the repair? Who actually dispatches the technicians?
-
-</details>
-
-<details>
-<summary>Reveal</summary>
 
 **Service Dispatch**
 - Coordinates repair work orders
@@ -138,19 +104,17 @@ Consider: Who coordinates the repair? Who actually dispatches the technicians?
 - Coordinates scheduling and field service
 - Returns cost data to Service Dispatch
 
-</details>
-
 ### Actors
 
 - **Claims Specialist/Adjudicator** — needs to **adjudicate claims and authorize fulfillment**
 - **Service Technician** — needs to **execute repair work orders**
 
 **Add to your map**:
-- Service Dispatch context
-- Servicer Management System context (external)
-- Claims Specialist/Adjudicator actor with need "Adjudicate claims and authorize fulfillment"
-- Service Technician actor with need "Execute repair work orders"
-- Connect each: Actor → Need → Context
+1. Draw/add **Service Dispatch** context (internal)
+2. Draw/add **Servicer Management System** context (external)
+3. Draw/add **Claims Specialist/Adjudicator** actor with need "Adjudicate claims and authorize fulfillment"
+4. Draw/add **Service Technician** actor with need "Execute repair work orders"
+5. Connect each: Actor → Need → Context
 
 ---
 
@@ -158,39 +122,30 @@ Consider: Who coordinates the repair? Who actually dispatches the technicians?
 
 After three repair attempts, David's dishwasher still wasn't fixed. The repair costs were approaching the product's replacement value. Time for a reimbursement. What context handles payments?
 
-<details>
-<summary>Reveal</summary>
-
 **Finance & Reimbursement**
 - Processes payments and store credits
 - Issues reimbursement when costs exceed limit of liability
-
-</details>
 
 ### Actor
 
 **Accountant** — needs to **process reimbursements and payments**
 
 **Add to your map**:
-- Finance & Reimbursement context
-- Accountant actor with need "Process reimbursements and payments"
-- Connect: Actor → Need → Context
+1. Draw/add **Finance & Reimbursement** context (internal)
+2. Draw/add **Accountant** actor with need "Process reimbursements and payments"
+3. Connect: Actor → Need → Context
+
+---
+
+## Checkpoint: Core Journey Complete
+
+Your map should now have **6 contexts** (4 internal, 2 external) and **6 actors** with their needs connected. If you're missing any, go back and add them before continuing.
 
 ---
 
 ## Chapter 5: Where Did the Contract Come From?
 
-We've followed David's journey from claim to repair to reimbursement. But step back: how did David get a warranty contract in the first place? What are the two different ways customers get extended warranties?
-
-<details>
-<summary>Hint</summary>
-
-One involves buying the warranty when purchasing the appliance. The other involves Elan reaching out before the manufacturer warranty expires.
-
-</details>
-
-<details>
-<summary>Reveal</summary>
+We've followed David's journey from claim to repair to reimbursement. But step back: how did David get a warranty contract in the first place? There are two different ways customers get extended warranties:
 
 **Lead Management**
 - Tracks prospects approaching manufacturer warranty expiration
@@ -202,8 +157,6 @@ One involves buying the warranty when purchasing the appliance. The other involv
 - Each retailer sends data in a different format
 - **External context** — Elan doesn't own these systems
 
-</details>
-
 ### Why Two Paths Stay Separate
 
 POS-originated warranties and lead-converted warranties remain in separate pipelines. Different departments, different business rules. This reflects genuine domain complexity, not poor design.
@@ -214,42 +167,30 @@ POS-originated warranties and lead-converted warranties remain in separate pipel
 - **Appliance Sales Representative** — needs to **sell warranties at POS**
 
 **Add to your map**:
-- Lead Management context
-- Retail POS Systems context (external)
-- Marketing Specialist actor with need "Execute lead campaigns"
-- Appliance Sales Representative actor with need "Sell warranties at POS"
-- Connect each: Actor → Need → Context
+1. Draw/add **Lead Management** context (internal)
+2. Draw/add **Retail POS Systems** context (external)
+3. Draw/add **Marketing Specialist** actor with need "Execute lead campaigns"
+4. Draw/add **Appliance Sales Representative** actor with need "Sell warranties at POS"
+5. Connect each: Actor → Need → Context
 
 ---
 
 ## Chapter 6: Product Data
 
-David's contract covers a specific product: a Bosch dishwasher. Where does product eligibility data come from? What system knows which products are eligible for warranty coverage?
+David's contract covers a specific product: his dishwasher. Where does product eligibility data come from? What system knows which products are eligible for warranty coverage?
 
-<details>
-<summary>Hint</summary>
+**Product Management** — The product catalog that defines what's eligible for coverage.
 
-It's a legacy system. Teams complain about it.
-
-</details>
-
-<details>
-<summary>Reveal</summary>
-
-**Product Management (BBOM)** — The product catalog that defines what's eligible for coverage.
-
-BBOM stands for "Big Ball of Mud"—a legacy system with tangled dependencies. The Product entity contains far more detail than downstream systems need.
-
-</details>
+This is a legacy system with tangled dependencies—what Foote and Yoder call a "[Big Ball of Mud](http://www.laputan.org/mud/)." The Product entity contains far more detail than downstream systems need.
 
 ### Actor
 
 **Underwriting & Product Manager** — needs to **manage product catalog and coverage rules**
 
 **Add to your map**:
-- Product Management (BBOM) context
-- Underwriting & Product Manager actor with need "Manage product catalog and coverage rules"
-- Connect: Actor → Need → Context
+1. Draw/add **Product Management** context (internal)
+2. Draw/add **Underwriting & Product Manager** actor with need "Manage product catalog and coverage rules"
+3. Connect: Actor → Need → Context
 
 ---
 
@@ -257,18 +198,13 @@ BBOM stands for "Big Ball of Mud"—a legacy system with tangled dependencies. T
 
 Managers need visibility into business performance. How many claims are open? What's the average repair cost? Which servicers perform best?
 
-<details>
-<summary>Reveal</summary>
-
 **Reporting**
 - Dashboards for managers and analysts
 - Operational reports for CSRs
 - Analytics on claim patterns, repair costs, contract performance
 
-</details>
-
 **Add to your map**:
-- Reporting context
+1. Draw/add **Reporting** context (internal)
 
 (Reporting serves multiple actors—managers, analysts, CSRs—but we won't add separate actor-need connections for this exercise.)
 
@@ -288,7 +224,7 @@ You should now have **10 bounded contexts**:
 | Finance & Reimbursement | Internal |
 | Lead Management | Internal |
 | Retail POS Systems | External |
-| Product Management (BBOM) | Internal |
+| Product Management | Internal |
 | Reporting | Internal |
 
 And **9 actors** with their user needs:
@@ -304,6 +240,8 @@ And **9 actors** with their user needs:
 | Marketing Specialist | Execute lead campaigns |
 | Appliance Sales Representative | Sell warranties at POS |
 | Underwriting & Product Manager | Manage product catalog and coverage rules |
+
+**Verification**: Count your contexts and actors. You should have **10 contexts** and **9 actors**. If your numbers don't match, review before adding relationships.
 
 ---
 
@@ -323,13 +261,8 @@ Contract Administration uses an ACL to translate Product into a simple **Covered
 
 **Where else does Contract Administration need ACLs?**
 
-<details>
-<summary>Reveal</summary>
-
 - **Retail POS Systems** — Each retailer sends proprietary formats. Multiple ACLs normalize incoming data.
 - **Lead Management** — Lead data has different structure than POS transactions. Another ACL translates leads into contracts.
-
-</details>
 
 Contract Administration has three ACLs protecting it. This isn't accidental—it's protecting itself from volatility on all sides.
 
@@ -396,6 +329,14 @@ This is counterintuitive—Claims adapts to Finance, not vice versa. But commodi
 | Reporting → Claims Mgmt | Conformist | Read-only analytics |
 | Reporting → Service Dispatch | Conformist | Read-only analytics |
 
+*Note: Arrows show dependency direction (who adapts to whom), not data flow. CRM depends on Claims Management's published API.*
+
+---
+
+## Checkpoint: Relationships Complete
+
+Your map should now show **11 relationships**. If you have fewer, check: Did you add the three Conformist relationships from Reporting?
+
 ---
 
 ## Value Stream View Complete
@@ -430,8 +371,7 @@ Before reading ahead, classify all 10 contexts. Ask:
 - Would a competitor's version look different?
 - Could we buy this off-the-shelf?
 
-<details>
-<summary>Reveal Classifications</summary>
+> **Discussion**: Your team argues Product Management should be Core because it's complex and causes pain. How would you respond?
 
 **Core Domain**
 - **Claims Management** — Where Elan makes or loses money. The repair-vs-reimburse decision rules are business expertise.
@@ -443,13 +383,11 @@ Before reading ahead, classify all 10 contexts. Ask:
 - **Reporting** — Important for visibility but could use any BI tool.
 
 **Generic Domain**
-- **Product Management (BBOM)** — Product catalogs are commodity functions.
+- **Product Management** — Product catalogs are commodity functions.
 - **Finance & Reimbursement** — Standard accounting. Could be replaced.
 - **Retail POS Systems** — External commodity integrations.
 - **CRM System** — External commodity system.
 - **Servicer Management System** — External service network.
-
-</details>
 
 ---
 
@@ -466,7 +404,7 @@ The **Core Domain Chart** positions contexts on two axes:
 
 ### The Product Management Puzzle
 
-**Product Management is Generic despite being complex.**
+**Product Management is Generic despite being complex.** (It's a Big Ball of Mud, remember?)
 
 Complexity ≠ strategic importance. Product catalog management is a commodity function. The complexity is *accidental* (technical debt) not *essential* (business sophistication).
 
@@ -483,6 +421,8 @@ Look at the relationship map. Contract Administration has three ACLs:
 
 Core domains justify protection investment. ACLs keep the domain model clean while adapting to messy realities.
 
+> **Discussion**: Contract Administration has three ACLs. Claims Management has one. Is this intentional or accidental? What does it tell you about where to invest in boundary protection?
+
 ---
 
 ## Domain Distillation Complete
@@ -492,6 +432,12 @@ Core domains justify protection investment. ACLs keep the domain model clean whi
 - 5 Generic domains (everything else)
 
 This guides investment: maximum resources to Core, sufficient to Supporting, minimum to Generic.
+
+---
+
+## Checkpoint: Classifications Complete
+
+You should have **2 Core**, **3 Supporting**, and **5 Generic** contexts. If your counts differ, revisit: Does this provide competitive advantage? Could we buy this off-the-shelf?
 
 ---
 
@@ -528,6 +474,8 @@ Three views, three questions answered:
 
 # Part IV: Key Insights
 
+These eight patterns appear repeatedly in context mapping. As you encounter new domains, look for them:
+
 1. **Multiple ACLs protect core domains** — Contract Administration has three. Worth the investment.
 
 2. **Shared kernels require coordination** — Claims and Service Dispatch share repair cost concepts. Keep shared kernels small.
@@ -536,7 +484,7 @@ Three views, three questions answered:
 
 4. **Same concept, different forms** — Product is an Entity in Product Management, a Value Object in Contract Administration.
 
-5. **Complex ≠ strategic** — Product Management (BBOM) is Generic despite being complex.
+5. **Complex ≠ strategic** — Product Management is Generic despite being a Big Ball of Mud.
 
 6. **Separate paths stay separate** — POS and Lead pipelines reflect genuine domain complexity.
 
