@@ -432,7 +432,7 @@
       "boundaryNotes": "Consumes events from multiple contexts. Some direct database replication for legacy systems.",
       "positions": {
         "flow": {
-          "x": 95
+          "x": 88
         },
         "strategic": {
           "x": 61
