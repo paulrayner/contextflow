@@ -466,7 +466,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
     >
       {stages.map((stage, index) => {
         const xPos = (stage.position / 100) * 2000
-        const yPos = -60 // Above canvas boundary
+        const yPos = -15 // Just above canvas boundary
 
         const transformedX = xPos * zoom + x
         const transformedY = yPos * zoom + y
@@ -1817,7 +1817,7 @@ function CanvasContent() {
     const actorNodes: Node[] = viewMode !== 'distillation' && project.actors
       ? project.actors.map((actor) => {
           const x = (actor.position / 100) * 2000
-          const y = 50 // Fixed y position at top (closer to boundary)
+          const y = 20 // Fixed y position at top inside boundary
 
           return {
             id: actor.id,
@@ -1847,7 +1847,7 @@ function CanvasContent() {
           .filter(need => need.visibility !== false)
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
-            const y = 150 // Fixed y position below actors, above contexts
+            const y = 90 // Fixed y position below actors, inside boundary
 
             return {
               id: userNeed.id,
