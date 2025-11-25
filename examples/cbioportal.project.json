@@ -493,19 +493,22 @@
       "id": "actor.clinical-researcher",
       "name": "Clinical Researcher",
       "description": "Oncology researchers exploring patient cohorts, survival data, and mutation patterns for research studies",
-      "position": 20
+      "position": 20,
+      "isExternal": true
     },
     {
       "id": "actor.treating-oncologist",
       "name": "Treating Oncologist",
       "description": "Clinicians looking up genomic profiles and treatment options for specific cancer patients",
-      "position": 45
+      "position": 45,
+      "isExternal": true
     },
     {
       "id": "actor.bioinformatician",
       "name": "Bioinformatician",
       "description": "Computational biologists using programmatic API access to integrate cBioPortal data into analysis pipelines",
-      "position": 70
+      "position": 70,
+      "isExternal": true
     }
   ],
   "userNeeds": [

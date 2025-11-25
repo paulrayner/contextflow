@@ -2,10 +2,6 @@
 
 ## In Progress
 
-
-- [x] Determine when to introduce actors and user needs in flow. Problem is that Wardley mapping starts with this, but contexts already exist on Wardley map from context mapping in value stream view - check out User Needs Mapping as possible approach (https://miro.com/app/board/uXjVIt8K2Ps=/) that validates the idea of adding actors and user needs to value stream view (https://userneedsmapping.com/)
-- [x] Per https://userneedsmapping.com/docs/step-2-identifying-users/, classify actors as internal or external (toggle - display accordingly - different color? icon?). update sample projects based on this (likely schema change, but make it non-breaking)
-
 ## Backlog
 
 - [ ] Work through process to test UX for everything implemented so far
@@ -35,6 +31,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Classify actors as internal or external with dotted border styling (https://userneedsmapping.com/docs/step-2-identifying-users/) - updated all sample projects
 - [x] Add users and needs for Elan Extended Warranty sample project
 - [x] Fix domain distillation locations for contexts in sample projects (ACME and cBioPortal now have proper distillation positions matching their strategic classifications)
 - [x] Update README to reflect new capabilities and language (v0.6.1: Value Stream View, actors/user needs, temporal evolution, multi-project support, CodeCohesion API, all example projects)
