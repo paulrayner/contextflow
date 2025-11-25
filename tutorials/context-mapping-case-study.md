@@ -507,18 +507,20 @@ Compare your work against:
 Apply this process to a domain you know:
 
 **Part I: Value Stream View**
-1. List the systems/applications in your domain
-2. For each, identify: What's its purpose? Who uses it? Internal or external?
-3. Add actors and their user needs
-4. Draw relationships—who depends on whom? What patterns apply?
+1. Pick a user journey (like David's warranty claim)
+2. Walk through step by step: What happens first? What system handles it? Who's involved?
+3. For each step, identify: the context (system/application), the actor, and their need
+4. Note which contexts are internal (you own them) vs external (third-party)
+5. After completing the journey, ask: What upstream systems feed into this? (Like Lead Management and Retail POS)
+6. Add relationships between contexts—what patterns apply?
 
 **Part II: Domain Distillation View**
-5. For each context, ask: Does this provide competitive advantage?
-6. Then ask: Did we build it, or buy it off-the-shelf?
+7. For each context, ask: Does this provide competitive advantage?
+8. Then ask: Did we build it, or buy it off-the-shelf?
    - Built in-house + differentiating → Core
    - Built in-house + not differentiating → Supporting
    - Off-the-shelf/external → Generic
 
 **Part III: Strategic View**
-7. Position contexts by evolution stage (genesis → commodity)
-8. Look for mismatches: Core domains using commodity solutions? Supporting domains with excessive investment?
+9. Position contexts by evolution stage (genesis → commodity)
+10. Look for mismatches: Core domains using commodity solutions? Supporting domains with excessive investment?
