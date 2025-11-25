@@ -18,7 +18,7 @@
           "x": 44
         },
         "shared": {
-          "y": 35
+          "y": 20
         },
         "distillation": {
           "x": 75,
@@ -108,7 +108,7 @@
           "x": 48
         },
         "shared": {
-          "y": 40
+          "y": 22
         },
         "distillation": {
           "x": 72,
@@ -138,7 +138,7 @@
           "x": 46
         },
         "shared": {
-          "y": 45
+          "y": 24
         },
         "distillation": {
           "x": 70,
@@ -228,7 +228,7 @@
           "x": 50
         },
         "shared": {
-          "y": 50
+          "y": 28
         },
         "distillation": {
           "x": 78,
