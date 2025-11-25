@@ -1789,7 +1789,7 @@ function CanvasContent() {
     const actorNodes: Node[] = viewMode !== 'distillation' && project.actors
       ? project.actors.map((actor) => {
           const x = (actor.position / 100) * 2000
-          const y = 20 // Fixed y position at top inside boundary
+          const y = 10 // Fixed y position at top inside boundary
 
           return {
             id: actor.id,
@@ -1819,7 +1819,7 @@ function CanvasContent() {
           .filter(need => need.visibility !== false)
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
-            const y = 70 // Fixed y position below actors, inside boundary
+            const y = 90 // Fixed y position below actors, inside boundary
 
             return {
               id: userNeed.id,
