@@ -742,54 +742,40 @@ function ActorNode({ data }: NodeProps) {
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
 
       <div
+        title={actor.name}
         style={{
-          width: 140,
-          height: 60,
+          width: 100,
+          height: 50,
           backgroundColor: isSelected || isHovered ? '#eff6ff' : '#f8fafc',
           border: isSelected ? '2px solid #3b82f6' : '2px solid #cbd5e1',
-          borderRadius: '12px',
-          padding: '10px',
+          borderRadius: '8px',
+          padding: '8px',
           boxShadow: isSelected
             ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
             : isHovered
             ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
             : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
           display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '8px',
+          flexDirection: 'column',
+          justifyContent: 'center',
           cursor: 'pointer',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* User icon */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '32px',
-            height: '32px',
-            backgroundColor: '#dbeafe',
-            borderRadius: '50%',
-            flexShrink: 0,
-          }}
-        >
-          <User size={18} color="#3b82f6" strokeWidth={2.5} />
-        </div>
-
         {/* Actor name */}
         <div
           style={{
-            fontSize: '13px',
+            fontSize: '11px',
             fontWeight: 600,
             color: '#0f172a',
             lineHeight: '1.3',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            flex: 1,
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
           }}
         >
           {actor.name}
@@ -812,54 +798,40 @@ function UserNeedNode({ data }: NodeProps) {
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
 
       <div
+        title={userNeed.name}
         style={{
-          width: 140,
-          height: 60,
+          width: 100,
+          height: 50,
           backgroundColor: isSelected || isHovered ? '#f0fdf4' : '#f8fafc',
           border: isSelected ? '2px solid #10b981' : '2px solid #cbd5e1',
-          borderRadius: '12px',
-          padding: '10px',
+          borderRadius: '8px',
+          padding: '8px',
           boxShadow: isSelected
             ? '0 0 0 3px rgba(16, 185, 129, 0.3), 0 4px 12px -2px rgba(16, 185, 129, 0.25)'
             : isHovered
             ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
             : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
           display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: '8px',
+          flexDirection: 'column',
+          justifyContent: 'center',
           cursor: 'pointer',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Target icon */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '32px',
-            height: '32px',
-            backgroundColor: '#d1fae5',
-            borderRadius: '50%',
-            flexShrink: 0,
-          }}
-        >
-          <Target size={18} color="#10b981" strokeWidth={2.5} />
-        </div>
-
         {/* UserNeed name */}
         <div
           style={{
-            fontSize: '13px',
+            fontSize: '11px',
             fontWeight: 600,
             color: '#0f172a',
             lineHeight: '1.3',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            flex: 1,
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
           }}
         >
           {userNeed.name}
@@ -1828,12 +1800,12 @@ function CanvasContent() {
               isSelected: actor.id === selectedActorId,
             },
             style: {
-              width: 140,
-              height: 60,
+              width: 100,
+              height: 50,
               zIndex: 15, // Above contexts but below actor connections
             },
-            width: 140,
-            height: 60,
+            width: 100,
+            height: 50,
             draggable: true,
             selectable: true,
             connectable: false,
@@ -1847,7 +1819,7 @@ function CanvasContent() {
           .filter(need => need.visibility !== false)
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
-            const y = 90 // Fixed y position below actors, inside boundary
+            const y = 70 // Fixed y position below actors, inside boundary
 
             return {
               id: userNeed.id,
@@ -1858,12 +1830,12 @@ function CanvasContent() {
                 isSelected: userNeed.id === useEditorStore.getState().selectedUserNeedId,
               },
               style: {
-                width: 140,
-                height: 60,
+                width: 100,
+                height: 50,
                 zIndex: 14, // Between actors (15) and contexts (10)
               },
-              width: 140,
-              height: 60,
+              width: 100,
+              height: 50,
               draggable: true,
               selectable: true,
               connectable: false,
