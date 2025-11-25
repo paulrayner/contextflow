@@ -1,5 +1,6 @@
 {
   "id": "acme-ecommerce",
+  "version": 4,
   "name": "ACME E-Commerce Platform",
   "contexts": [
     {
@@ -17,7 +18,7 @@
           "x": 44
         },
         "shared": {
-          "y": 95
+          "y": 35
         },
         "distillation": {
           "x": 75,
@@ -47,7 +48,7 @@
           "x": 58
         },
         "shared": {
-          "y": 65
+          "y": 55
         },
         "distillation": {
           "x": 80,
@@ -77,7 +78,7 @@
           "x": 68
         },
         "shared": {
-          "y": 75
+          "y": 52
         },
         "distillation": {
           "x": 55,
@@ -107,7 +108,7 @@
           "x": 48
         },
         "shared": {
-          "y": 80
+          "y": 40
         },
         "distillation": {
           "x": 72,
@@ -137,7 +138,7 @@
           "x": 46
         },
         "shared": {
-          "y": 85
+          "y": 45
         },
         "distillation": {
           "x": 70,
@@ -167,7 +168,7 @@
           "x": 62
         },
         "shared": {
-          "y": 70
+          "y": 58
         },
         "distillation": {
           "x": 50,
@@ -197,7 +198,7 @@
           "x": 91
         },
         "shared": {
-          "y": 55
+          "y": 80
         },
         "distillation": {
           "x": 20,
@@ -227,7 +228,7 @@
           "x": 50
         },
         "shared": {
-          "y": 75
+          "y": 50
         },
         "distillation": {
           "x": 78,
@@ -257,7 +258,7 @@
           "x": 42
         },
         "shared": {
-          "y": 55
+          "y": 65
         },
         "distillation": {
           "x": 82,
@@ -287,7 +288,7 @@
           "x": 30
         },
         "shared": {
-          "y": 40
+          "y": 75
         },
         "distillation": {
           "x": 40,
@@ -317,7 +318,7 @@
           "x": 70
         },
         "shared": {
-          "y": 60
+          "y": 55
         },
         "distillation": {
           "x": 45,
@@ -347,7 +348,7 @@
           "x": 86
         },
         "shared": {
-          "y": 45
+          "y": 82
         },
         "distillation": {
           "x": 15,
@@ -377,7 +378,7 @@
           "x": 66
         },
         "shared": {
-          "y": 70
+          "y": 55
         },
         "distillation": {
           "x": 48,
@@ -407,7 +408,7 @@
           "x": 38
         },
         "shared": {
-          "y": 80
+          "y": 50
         },
         "distillation": {
           "x": 42,
@@ -437,7 +438,7 @@
           "x": 61
         },
         "shared": {
-          "y": 50
+          "y": 78
         },
         "distillation": {
           "x": 52,
@@ -467,7 +468,7 @@
           "x": 64
         },
         "shared": {
-          "y": 60
+          "y": 65
         },
         "distillation": {
           "x": 58,
@@ -497,7 +498,7 @@
           "x": 18
         },
         "shared": {
-          "y": 65
+          "y": 58
         },
         "distillation": {
           "x": 60,
@@ -527,7 +528,7 @@
           "x": 88
         },
         "shared": {
-          "y": 62
+          "y": 70
         },
         "distillation": {
           "x": 25,
@@ -557,7 +558,7 @@
           "x": 92
         },
         "shared": {
-          "y": 68
+          "y": 70
         },
         "distillation": {
           "x": 28,
@@ -805,11 +806,19 @@
       "name": "storefront-web",
       "remoteUrl": "https://github.com/acme-corp/storefront-web",
       "contextId": "ctx.storefront",
-      "teamIds": ["team.customer-experience"],
+      "teamIds": [
+        "team.customer-experience"
+      ],
       "contributors": [
-        { "personId": "person.sarah" },
-        { "personId": "person.mike" },
-        { "personId": "person.jessica" }
+        {
+          "personId": "person.sarah"
+        },
+        {
+          "personId": "person.mike"
+        },
+        {
+          "personId": "person.jessica"
+        }
       ]
     },
     {
@@ -817,10 +826,16 @@
       "name": "catalog-service",
       "remoteUrl": "https://github.com/acme-corp/catalog-service",
       "contextId": "ctx.catalog",
-      "teamIds": ["team.platform"],
+      "teamIds": [
+        "team.platform"
+      ],
       "contributors": [
-        { "personId": "person.david" },
-        { "personId": "person.emma" }
+        {
+          "personId": "person.david"
+        },
+        {
+          "personId": "person.emma"
+        }
       ]
     },
     {
@@ -828,10 +843,16 @@
       "name": "search-service",
       "remoteUrl": "https://github.com/acme-corp/search-service",
       "contextId": "ctx.search",
-      "teamIds": ["team.platform"],
+      "teamIds": [
+        "team.platform"
+      ],
       "contributors": [
-        { "personId": "person.david" },
-        { "personId": "person.alex" }
+        {
+          "personId": "person.david"
+        },
+        {
+          "personId": "person.alex"
+        }
       ]
     },
     {
@@ -839,10 +860,16 @@
       "name": "cart-service",
       "remoteUrl": "https://github.com/acme-corp/cart-service",
       "contextId": "ctx.cart",
-      "teamIds": ["team.checkout"],
+      "teamIds": [
+        "team.checkout"
+      ],
       "contributors": [
-        { "personId": "person.rachel" },
-        { "personId": "person.tom" }
+        {
+          "personId": "person.rachel"
+        },
+        {
+          "personId": "person.tom"
+        }
       ]
     },
     {
@@ -850,11 +877,19 @@
       "name": "checkout-service",
       "remoteUrl": "https://github.com/acme-corp/checkout-service",
       "contextId": "ctx.checkout",
-      "teamIds": ["team.checkout"],
+      "teamIds": [
+        "team.checkout"
+      ],
       "contributors": [
-        { "personId": "person.rachel" },
-        { "personId": "person.tom" },
-        { "personId": "person.lisa" }
+        {
+          "personId": "person.rachel"
+        },
+        {
+          "personId": "person.tom"
+        },
+        {
+          "personId": "person.lisa"
+        }
       ]
     },
     {
@@ -862,10 +897,16 @@
       "name": "payment-service",
       "remoteUrl": "https://github.com/acme-corp/payment-service",
       "contextId": "ctx.payment",
-      "teamIds": ["team.payments"],
+      "teamIds": [
+        "team.payments"
+      ],
       "contributors": [
-        { "personId": "person.kevin" },
-        { "personId": "person.amanda" }
+        {
+          "personId": "person.kevin"
+        },
+        {
+          "personId": "person.amanda"
+        }
       ]
     },
     {
@@ -873,10 +914,16 @@
       "name": "order-service",
       "remoteUrl": "https://github.com/acme-corp/order-service",
       "contextId": "ctx.orders",
-      "teamIds": ["team.fulfillment"],
+      "teamIds": [
+        "team.fulfillment"
+      ],
       "contributors": [
-        { "personId": "person.chris" },
-        { "personId": "person.nicole" }
+        {
+          "personId": "person.chris"
+        },
+        {
+          "personId": "person.nicole"
+        }
       ]
     },
     {
@@ -884,10 +931,16 @@
       "name": "inventory-service",
       "remoteUrl": "https://github.com/acme-corp/inventory-service",
       "contextId": "ctx.inventory",
-      "teamIds": ["team.fulfillment"],
+      "teamIds": [
+        "team.fulfillment"
+      ],
       "contributors": [
-        { "personId": "person.chris" },
-        { "personId": "person.brian" }
+        {
+          "personId": "person.chris"
+        },
+        {
+          "personId": "person.brian"
+        }
       ]
     },
     {
@@ -895,9 +948,13 @@
       "name": "warehouse-system-legacy",
       "remoteUrl": "https://github.com/acme-corp/warehouse-system-legacy",
       "contextId": "ctx.warehouse",
-      "teamIds": ["team.operations"],
+      "teamIds": [
+        "team.operations"
+      ],
       "contributors": [
-        { "personId": "person.robert" }
+        {
+          "personId": "person.robert"
+        }
       ],
       "analysisSummary": "Legacy Java monolith. Minimal test coverage. Poor documentation."
     },
@@ -906,10 +963,16 @@
       "name": "shipping-integration",
       "remoteUrl": "https://github.com/acme-corp/shipping-integration",
       "contextId": "ctx.shipping",
-      "teamIds": ["team.fulfillment"],
+      "teamIds": [
+        "team.fulfillment"
+      ],
       "contributors": [
-        { "personId": "person.chris" },
-        { "personId": "person.brian" }
+        {
+          "personId": "person.chris"
+        },
+        {
+          "personId": "person.brian"
+        }
       ]
     },
     {
@@ -917,10 +980,16 @@
       "name": "notification-service",
       "remoteUrl": "https://github.com/acme-corp/notification-service",
       "contextId": "ctx.notifications",
-      "teamIds": ["team.platform"],
+      "teamIds": [
+        "team.platform"
+      ],
       "contributors": [
-        { "personId": "person.emma" },
-        { "personId": "person.alex" }
+        {
+          "personId": "person.emma"
+        },
+        {
+          "personId": "person.alex"
+        }
       ]
     },
     {
@@ -928,10 +997,16 @@
       "name": "customer-service-portal",
       "remoteUrl": "https://github.com/acme-corp/customer-service-portal",
       "contextId": "ctx.customerService",
-      "teamIds": ["team.customer-experience"],
+      "teamIds": [
+        "team.customer-experience"
+      ],
       "contributors": [
-        { "personId": "person.jessica" },
-        { "personId": "person.mike" }
+        {
+          "personId": "person.jessica"
+        },
+        {
+          "personId": "person.mike"
+        }
       ]
     },
     {
@@ -939,10 +1014,16 @@
       "name": "analytics-data-warehouse",
       "remoteUrl": "https://github.com/acme-corp/analytics-data-warehouse",
       "contextId": "ctx.analytics",
-      "teamIds": ["team.data-engineering"],
+      "teamIds": [
+        "team.data-engineering"
+      ],
       "contributors": [
-        { "personId": "person.maya" },
-        { "personId": "person.james" }
+        {
+          "personId": "person.maya"
+        },
+        {
+          "personId": "person.james"
+        }
       ]
     },
     {
@@ -950,10 +1031,16 @@
       "name": "identity-service",
       "remoteUrl": "https://github.com/acme-corp/identity-service",
       "contextId": "ctx.identity",
-      "teamIds": ["team.platform"],
+      "teamIds": [
+        "team.platform"
+      ],
       "contributors": [
-        { "personId": "person.kevin" },
-        { "personId": "person.david" }
+        {
+          "personId": "person.kevin"
+        },
+        {
+          "personId": "person.david"
+        }
       ]
     },
     {
@@ -961,43 +1048,163 @@
       "name": "recommendations-ml-service",
       "remoteUrl": "https://github.com/acme-corp/recommendations-ml-service",
       "contextId": "ctx.recommendations",
-      "teamIds": ["team.data-engineering"],
+      "teamIds": [
+        "team.data-engineering"
+      ],
       "contributors": [
-        { "personId": "person.maya" },
-        { "personId": "person.sophia" }
+        {
+          "personId": "person.maya"
+        },
+        {
+          "personId": "person.sophia"
+        }
       ]
     },
     {
       "id": "repo.mobile-app-ios",
       "name": "mobile-app-ios",
       "remoteUrl": "https://github.com/acme-corp/mobile-app-ios",
-      "teamIds": ["team.customer-experience"],
+      "teamIds": [
+        "team.customer-experience"
+      ],
       "contributors": [
-        { "personId": "person.sarah" },
-        { "personId": "person.mike" }
+        {
+          "personId": "person.sarah"
+        },
+        {
+          "personId": "person.mike"
+        }
       ],
       "analysisSummary": "Native iOS mobile app. In development, not yet mapped to a specific bounded context."
     }
   ],
   "people": [
-    { "id": "person.sarah", "displayName": "Sarah Chen", "emails": ["sarah.chen@acme-corp.com"] },
-    { "id": "person.mike", "displayName": "Mike Johnson", "emails": ["mike.johnson@acme-corp.com"] },
-    { "id": "person.jessica", "displayName": "Jessica Martinez", "emails": ["jessica.martinez@acme-corp.com"] },
-    { "id": "person.david", "displayName": "David Kim", "emails": ["david.kim@acme-corp.com"] },
-    { "id": "person.emma", "displayName": "Emma Watson", "emails": ["emma.watson@acme-corp.com"] },
-    { "id": "person.alex", "displayName": "Alex Patel", "emails": ["alex.patel@acme-corp.com"] },
-    { "id": "person.rachel", "displayName": "Rachel Green", "emails": ["rachel.green@acme-corp.com"] },
-    { "id": "person.tom", "displayName": "Tom Anderson", "emails": ["tom.anderson@acme-corp.com"] },
-    { "id": "person.lisa", "displayName": "Lisa Wong", "emails": ["lisa.wong@acme-corp.com"] },
-    { "id": "person.kevin", "displayName": "Kevin Brown", "emails": ["kevin.brown@acme-corp.com"] },
-    { "id": "person.amanda", "displayName": "Amanda Lee", "emails": ["amanda.lee@acme-corp.com"] },
-    { "id": "person.chris", "displayName": "Chris Taylor", "emails": ["chris.taylor@acme-corp.com"] },
-    { "id": "person.nicole", "displayName": "Nicole Davis", "emails": ["nicole.davis@acme-corp.com"] },
-    { "id": "person.brian", "displayName": "Brian Wilson", "emails": ["brian.wilson@acme-corp.com"] },
-    { "id": "person.robert", "displayName": "Robert Miller", "emails": ["robert.miller@acme-corp.com"] },
-    { "id": "person.maya", "displayName": "Maya Singh", "emails": ["maya.singh@acme-corp.com"] },
-    { "id": "person.james", "displayName": "James Chen", "emails": ["james.chen@acme-corp.com"] },
-    { "id": "person.sophia", "displayName": "Sophia Rodriguez", "emails": ["sophia.rodriguez@acme-corp.com"] }
+    {
+      "id": "person.sarah",
+      "displayName": "Sarah Chen",
+      "emails": [
+        "sarah.chen@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.mike",
+      "displayName": "Mike Johnson",
+      "emails": [
+        "mike.johnson@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.jessica",
+      "displayName": "Jessica Martinez",
+      "emails": [
+        "jessica.martinez@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.david",
+      "displayName": "David Kim",
+      "emails": [
+        "david.kim@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.emma",
+      "displayName": "Emma Watson",
+      "emails": [
+        "emma.watson@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.alex",
+      "displayName": "Alex Patel",
+      "emails": [
+        "alex.patel@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.rachel",
+      "displayName": "Rachel Green",
+      "emails": [
+        "rachel.green@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.tom",
+      "displayName": "Tom Anderson",
+      "emails": [
+        "tom.anderson@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.lisa",
+      "displayName": "Lisa Wong",
+      "emails": [
+        "lisa.wong@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.kevin",
+      "displayName": "Kevin Brown",
+      "emails": [
+        "kevin.brown@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.amanda",
+      "displayName": "Amanda Lee",
+      "emails": [
+        "amanda.lee@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.chris",
+      "displayName": "Chris Taylor",
+      "emails": [
+        "chris.taylor@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.nicole",
+      "displayName": "Nicole Davis",
+      "emails": [
+        "nicole.davis@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.brian",
+      "displayName": "Brian Wilson",
+      "emails": [
+        "brian.wilson@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.robert",
+      "displayName": "Robert Miller",
+      "emails": [
+        "robert.miller@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.maya",
+      "displayName": "Maya Singh",
+      "emails": [
+        "maya.singh@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.james",
+      "displayName": "James Chen",
+      "emails": [
+        "james.chen@acme-corp.com"
+      ]
+    },
+    {
+      "id": "person.sophia",
+      "displayName": "Sophia Rodriguez",
+      "emails": [
+        "sophia.rodriguez@acme-corp.com"
+      ]
+    }
   ],
   "teams": [
     {
@@ -1048,35 +1255,56 @@
       "id": "group.customer-facing",
       "label": "Customer-Facing Experience",
       "color": "rgba(59, 130, 246, 0.6)",
-      "contextIds": ["ctx.storefront", "ctx.search", "ctx.recommendations"],
+      "contextIds": [
+        "ctx.storefront",
+        "ctx.search",
+        "ctx.recommendations"
+      ],
       "notes": "Front-end systems directly visible to customers."
     },
     {
       "id": "group.order-flow",
       "label": "Order & Checkout Flow",
       "color": "rgba(251, 146, 60, 0.6)",
-      "contextIds": ["ctx.cart", "ctx.checkout", "ctx.orders"],
+      "contextIds": [
+        "ctx.cart",
+        "ctx.checkout",
+        "ctx.orders"
+      ],
       "notes": "Core revenue-generating transactional flow."
     },
     {
       "id": "group.fulfillment",
       "label": "Fulfillment & Shipping",
       "color": "rgba(139, 92, 246, 0.6)",
-      "contextIds": ["ctx.inventory", "ctx.warehouse", "ctx.shipping"],
+      "contextIds": [
+        "ctx.inventory",
+        "ctx.warehouse",
+        "ctx.shipping"
+      ],
       "notes": "Physical goods handling and delivery."
     },
     {
       "id": "group.platform-services",
       "label": "Platform Services",
       "color": "rgba(34, 197, 94, 0.6)",
-      "contextIds": ["ctx.catalog", "ctx.identity", "ctx.payment", "ctx.notifications"],
+      "contextIds": [
+        "ctx.catalog",
+        "ctx.identity",
+        "ctx.payment",
+        "ctx.notifications"
+      ],
       "notes": "Shared platform capabilities."
     },
     {
       "id": "group.security-compliance",
       "label": "Security & Compliance",
       "color": "rgba(239, 68, 68, 0.6)",
-      "contextIds": ["ctx.payment", "ctx.identity", "ctx.fraudDetection"],
+      "contextIds": [
+        "ctx.payment",
+        "ctx.identity",
+        "ctx.fraudDetection"
+      ],
       "notes": "Security-critical systems handling authentication, authorization, payments, and fraud prevention. Overlaps with Platform Services."
     }
   ],
@@ -1085,19 +1313,19 @@
       "id": "actor.shopper",
       "name": "Online Shopper",
       "description": "Customers browsing and purchasing products through the e-commerce platform",
-      "position": 15
+      "position": 20
     },
     {
       "id": "actor.store-manager",
       "name": "Store Manager",
       "description": "Internal users managing catalog, inventory, and order fulfillment",
-      "position": 50
+      "position": 55
     },
     {
       "id": "actor.warehouse-staff",
       "name": "Warehouse Staff",
       "description": "Staff handling physical inventory and shipment preparation",
-      "position": 75
+      "position": 78
     }
   ],
   "userNeeds": [
@@ -1105,35 +1333,35 @@
       "id": "need.discover-products",
       "name": "Discover Products",
       "description": "Find relevant products through search and browsing",
-      "position": 30,
+      "position": 20,
       "visibility": true
     },
     {
       "id": "need.checkout-fast",
       "name": "Fast Checkout",
       "description": "Complete purchase quickly and securely",
-      "position": 45,
+      "position": 60,
       "visibility": true
     },
     {
       "id": "need.track-order",
       "name": "Track Orders",
       "description": "Monitor order status and delivery progress",
-      "position": 55,
+      "position": 88,
       "visibility": true
     },
     {
       "id": "need.manage-inventory",
       "name": "Manage Inventory",
       "description": "Track stock levels and fulfill orders",
-      "position": 42,
+      "position": 60,
       "visibility": true
     },
     {
       "id": "need.ship-efficiently",
       "name": "Ship Efficiently",
       "description": "Process shipments and generate labels",
-      "position": 70,
+      "position": 80,
       "visibility": true
     }
   ],
@@ -1233,11 +1461,26 @@
   ],
   "viewConfig": {
     "flowStages": [
-      { "label": "Discovery", "position": 10 },
-      { "label": "Selection", "position": 30 },
-      { "label": "Purchase", "position": 50 },
-      { "label": "Fulfillment", "position": 70 },
-      { "label": "Post-Sale", "position": 90 }
+      {
+        "label": "Discovery",
+        "position": 10
+      },
+      {
+        "label": "Selection",
+        "position": 30
+      },
+      {
+        "label": "Purchase",
+        "position": 50
+      },
+      {
+        "label": "Fulfillment",
+        "position": 70
+      },
+      {
+        "label": "Post-Sale",
+        "position": 90
+      }
     ]
   }
 }
