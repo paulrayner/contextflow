@@ -46,14 +46,14 @@ The case study follows David and Claudia's dishwasher warranty journey:
 - **Notes**: Core domain with complex validation rules. Protected by ACLs from both Product Management BBOM and multiple retail POS systems.
 
 #### 3. Product Management (BBOM)
-- **Classification**: Generic + Legacy
+- **Classification**: Supporting + Legacy
 - **Purpose**: Manage catalog of products eligible for warranty coverage (brands, makes, models)
 - **Boundary Integrity**: Weak (big ball of mud)
 - **Key Responsibilities**:
   - Define product catalog with full technical specifications
   - Determine coverage eligibility
   - Provide product master data
-- **Notes**: Legacy system with tangled dependencies. BBOM = Big Ball of Mud. No clear API contracts. Product entity is complex and overly detailed for downstream needs.
+- **Notes**: Legacy system with tangled dependencies. BBOM = Big Ball of Mud. No clear API contracts. Product entity is complex and overly detailed for downstream needs. Supporting (not Generic) because it was custom-built in-house—could become Generic if replaced with commercial PIM.
 
 #### 4. Claims Management
 - **Classification**: Core
@@ -280,13 +280,13 @@ The case study follows David and Claudia's dishwasher warranty journey:
 - Provides visibility but not competitive advantage
 - Position: Middle-lower quadrant (x: 45, y: 30)
 
-### Generic Domain
-
 **Product Management (BBOM)**
 - Low differentiation (commodity product catalog function)
 - Medium-high complexity (legacy system, tangled model)
-- Generic function + legacy debt = no competitive advantage despite complexity
-- Position: Left quadrant (x: 15, y: 60)
+- Supporting because it was custom-built in-house, even though it *could* be replaced by a commodity PIM
+- Position: Middle-lower quadrant (x: 35, y: 60)
+
+### Generic Domain
 
 **Finance & Reimbursement**
 - Low differentiation (standard accounting operations)
@@ -333,9 +333,9 @@ Covered Product is a Value Object in Contract Administration (immutable, no iden
 
 ### 5. Strategic Classification Despite Complexity
 
-Product Management (BBOM) is Generic despite high model complexity.
+Product Management (BBOM) is Supporting despite high model complexity.
 
-**Discussion**: Complexity ≠ Strategic importance. Generic function + legacy = no competitive advantage.
+**Discussion**: Complexity ≠ Strategic importance. The key distinction: Generic means you *bought* it off-the-shelf; Supporting means you *built* it in-house. Product Management is custom-built (legacy), so it's Supporting—even though the domain *could* be handled by a commercial PIM. It becomes Generic only when you replace it with a commodity solution.
 
 ### 6. Separate Customer Acquisition Channels
 

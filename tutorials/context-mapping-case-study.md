@@ -381,10 +381,10 @@ Before reading ahead, classify all 10 contexts. Ask:
 - **Lead Management** — Enables acquisition but isn't core competency.
 - **Service Dispatch** — Coordinates repairs but isn't the differentiator.
 - **Reporting** — Important for visibility but could use any BI tool.
+- **Product Management** — Custom-built system that *should* be generic, but isn't. We built it in-house, so it's Supporting.
 
 **Generic Domain**
-- **Product Management** — Product catalogs are commodity functions.
-- **Finance & Reimbursement** — Standard accounting. Could be replaced.
+- **Finance & Reimbursement** — Standard accounting. Could be replaced with off-the-shelf solution.
 - **Retail POS Systems** — External commodity integrations.
 - **CRM System** — External commodity system.
 - **Servicer Management System** — External service network.
@@ -404,11 +404,13 @@ The **Core Domain Chart** positions contexts on two axes:
 
 ### The Product Management Puzzle
 
-**Product Management is Generic despite being complex.** (It's a Big Ball of Mud, remember?)
+**Product Management is Supporting despite being complex.** (It's a Big Ball of Mud, remember?)
 
-Complexity ≠ strategic importance. Product catalog management is a commodity function. The complexity is *accidental* (technical debt) not *essential* (business sophistication).
+Product catalog management *could* be Generic—you could buy a PIM (Product Information Management) system off the shelf. But Elan built this in-house, which makes it Supporting. Custom-built = Supporting, regardless of whether the domain *should* be generic.
 
-**Investment implication**: Minimize investment. Consider replacing with commercial solution. Don't mistake technical pain for strategic importance.
+Complexity ≠ strategic importance. The complexity here is *accidental* (technical debt) not *essential* (business sophistication).
+
+**Investment implication**: The right move may be to replace it with a commercial solution—at which point it *would* become Generic. Until then, it's Supporting: we built it, we maintain it, but it doesn't differentiate us.
 
 ---
 
@@ -428,8 +430,8 @@ Core domains justify protection investment. ACLs keep the domain model clean whi
 ## Domain Distillation Complete
 
 - 2 Core domains (Claims Management, Contract Administration)
-- 3 Supporting domains (Lead Management, Service Dispatch, Reporting)
-- 5 Generic domains (everything else)
+- 4 Supporting domains (Lead Management, Service Dispatch, Reporting, Product Management)
+- 4 Generic domains (Finance & Reimbursement, Retail POS, CRM, Servicer Management)
 
 This guides investment: maximum resources to Core, sufficient to Supporting, minimum to Generic.
 
@@ -437,7 +439,7 @@ This guides investment: maximum resources to Core, sufficient to Supporting, min
 
 ## Checkpoint: Classifications Complete
 
-You should have **2 Core**, **3 Supporting**, and **5 Generic** contexts. If your counts differ, revisit: Does this provide competitive advantage? Could we buy this off-the-shelf?
+You should have **2 Core**, **4 Supporting**, and **4 Generic** contexts. If your counts differ, revisit: Does this provide competitive advantage? Did we build it, or buy it off-the-shelf?
 
 ---
 
@@ -484,7 +486,7 @@ These eight patterns appear repeatedly in context mapping. As you encounter new 
 
 4. **Same concept, different forms** — Product is an Entity in Product Management, a Value Object in Contract Administration.
 
-5. **Complex ≠ strategic** — Product Management is Generic despite being a Big Ball of Mud.
+5. **Complex ≠ strategic** — Product Management is Supporting despite being a Big Ball of Mud. The distinction: Generic means you bought it off-the-shelf; Supporting means you built it. Product Management *could* become Generic if replaced with a commercial PIM.
 
 6. **Separate paths stay separate** — POS and Lead pipelines reflect genuine domain complexity.
 

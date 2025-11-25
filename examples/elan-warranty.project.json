@@ -1,7 +1,7 @@
 {
   "id": "elan-warranty",
   "name": "Elan Extended Warranty",
-  "version": 2,
+  "version": 3,
   "contexts": [
     {
       "id": "ctx.lead-mgmt",
@@ -45,20 +45,20 @@
       "id": "ctx.product-mgmt",
       "name": "Product Management (BBOM)",
       "purpose": "Manage catalog of products eligible for warranty coverage, including brands, makes, models, and technical specifications.",
-      "strategicClassification": "generic",
+      "strategicClassification": "supporting",
       "boundaryIntegrity": "weak",
       "boundaryNotes": "Big ball of mud legacy system with tangled dependencies and no clear API contracts. Overly complex product entity structure that requires translation downstream.",
       "positions": {
         "flow": { "x": 25 },
         "strategic": { "x": 25 },
-        "distillation": { "x": 15, "y": 60 },
+        "distillation": { "x": 35, "y": 60 },
         "shared": { "y": 75 }
       },
       "evolutionStage": "custom-built",
       "codeSize": { "bucket": "huge" },
       "isLegacy": true,
       "isExternal": false,
-      "notes": "BBOM = Big Ball of Mud. Legacy system upstream of Contract Administration. Product entity is complex with full technical specs, but downstream contexts only need Brand-Make-Model-SKU. Candidate for modernization or replacement with commercial product catalog solution."
+      "notes": "BBOM = Big Ball of Mud. Supporting (not Generic) because it was custom-built in-house. Product entity is complex with full technical specs, but downstream contexts only need Brand-Make-Model-SKU. Candidate to become Generic by replacing with commercial PIM solution."
     },
     {
       "id": "ctx.claims-mgmt",
