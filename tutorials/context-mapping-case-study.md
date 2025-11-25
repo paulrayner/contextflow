@@ -40,9 +40,7 @@ A **bounded context** is a boundary within which a particular domain model appli
 
 ## Chapter 1: Where Contracts Live
 
-David had a warranty contract before he ever filed a claim. That contract specified what product was covered, the coverage terms, effective dates, and customer information.
-
-**Think about it**: What bounded context manages warranty contracts? (For this first pass, it's fine to just use the application or system name.)
+David had a warranty contract before he ever filed a claim. That contract specified what product was covered, the coverage terms, effective dates, and customer information. What bounded context manages warranty contracts? (For this first pass, it's fine to just use the application or system name.)
 
 <details>
 <summary>Hint</summary>
@@ -73,9 +71,7 @@ Look for where contracts are created, validated, and stored. This is the authori
 
 When David's dishwasher broke, he called to report it. The CSR opened a claim, and over the following weeks that claim tracked repair attempts, accumulated costs, and eventually triggered a reimbursement.
 
-In your EventStorming, you explored this part of the journey—opening the claim, tracking repair attempts, calculating costs against the limit of liability, and eventually closing the claim.
-
-**Think about it**: What bounded context owns this lifecycle?
+In your EventStorming, you explored this part of the journey—opening the claim, tracking repair attempts, calculating costs against the limit of liability, and eventually closing the claim. What bounded context owns this lifecycle?
 
 <details>
 <summary>Hint</summary>
@@ -120,9 +116,7 @@ When David called, the CSR needed to see his contact history—previous calls, n
 
 ## Chapter 3: Getting the Repair Done
 
-David's claim is approved. Now what? In your EventStorming, you traced what happens next—coordinating technicians, executing repairs, recording costs.
-
-**Think about it**: What contexts handle repair fulfillment?
+David's claim is approved. Now what? In your EventStorming, you traced what happens next—coordinating technicians, executing repairs, recording costs. What contexts handle repair fulfillment?
 
 <details>
 <summary>Hint</summary>
@@ -162,9 +156,7 @@ Consider: Who coordinates the repair? Who actually dispatches the technicians?
 
 ## Chapter 4: When Repair Doesn't Work
 
-After three repair attempts, David's dishwasher still wasn't fixed. The repair costs were approaching the product's replacement value. Time for a reimbursement.
-
-**Think about it**: What context handles payments?
+After three repair attempts, David's dishwasher still wasn't fixed. The repair costs were approaching the product's replacement value. Time for a reimbursement. What context handles payments?
 
 <details>
 <summary>Reveal</summary>
@@ -188,9 +180,7 @@ After three repair attempts, David's dishwasher still wasn't fixed. The repair c
 
 ## Chapter 5: Where Did the Contract Come From?
 
-We've followed David's journey from claim to repair to reimbursement. But step back: how did David get a warranty contract in the first place?
-
-**Think about it**: What are the two different ways customers get extended warranties?
+We've followed David's journey from claim to repair to reimbursement. But step back: how did David get a warranty contract in the first place? What are the two different ways customers get extended warranties?
 
 <details>
 <summary>Hint</summary>
@@ -234,9 +224,7 @@ POS-originated warranties and lead-converted warranties remain in separate pipel
 
 ## Chapter 6: Product Data
 
-David's contract covers a specific product: a Bosch dishwasher. Where does product eligibility data come from?
-
-**Think about it**: What system knows which products are eligible for warranty coverage?
+David's contract covers a specific product: a Bosch dishwasher. Where does product eligibility data come from? What system knows which products are eligible for warranty coverage?
 
 <details>
 <summary>Hint</summary>
