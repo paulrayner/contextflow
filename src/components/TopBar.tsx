@@ -191,6 +191,16 @@ export function TopBar() {
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
+        {/* Add Stage button - first action in Value Stream View */}
+        {viewMode === 'flow' && (
+          <IconButton
+            onClick={handleAddStage}
+            icon={<Hash size={16} />}
+            label="Add Stage"
+            tooltip="Add new flow stage"
+          />
+        )}
+
         {/* Actor/Need buttons: Strategic and Value Stream views (not Distillation) */}
         {viewMode !== 'distillation' && (
           <>
@@ -215,16 +225,6 @@ export function TopBar() {
           label="Add Context"
           tooltip="Add new bounded context"
         />
-
-        {/* Add Stage button - only visible in Value Stream View */}
-        {viewMode === 'flow' && (
-          <IconButton
-            onClick={handleAddStage}
-            icon={<Hash size={16} />}
-            label="Add Stage"
-            tooltip="Add new flow stage"
-          />
-        )}
 
         {/* Temporal Mode toggle - only visible in Strategic View */}
         {viewMode === 'strategic' && (

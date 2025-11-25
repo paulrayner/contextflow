@@ -12,24 +12,7 @@
   "actorNeedConnections": [],
   "needContextConnections": [],
   "viewConfig": {
-    "flowStages": [
-      {
-        "label": "Explore",
-        "position": 20
-      },
-      {
-        "label": "Establish",
-        "position": 40
-      },
-      {
-        "label": "Expand",
-        "position": 60
-      },
-      {
-        "label": "Extract",
-        "position": 80
-      }
-    ]
+    "flowStages": []
   },
   "temporal": {
     "enabled": false,
