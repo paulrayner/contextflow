@@ -7,11 +7,9 @@
 - [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
 - [ ] Add grouping of elements and bulk-move
 - [ ] Add BIGGER YUGE size for context
-- [ ] Add relationships between contexts by clicking rather than just the Add Relationship button (same as users/needs/contexts)
 - [ ] Can't reverse context relationships
 - [ ] Add explanation for each context relationship type
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated
-- [ ] Context relationships shouldn't be INCOMING/OUTGOING, but upstream/downstream, partners, shared kernel
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] How to avoid confusion between actor, need, and context?
 - [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads managemenent!
@@ -47,6 +45,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Use upstream/downstream labels for context relationships in inspector (symmetric patterns like shared-kernel and partnership show as "Mutual")
 - [x] Fix Fit to Map to include stage labels and value chain labels in viewport bounds
 - [x] Fix connections (make easier to find and attach connection points)
 - [x] Enable drag connections between contexts

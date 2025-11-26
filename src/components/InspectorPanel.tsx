@@ -859,20 +859,28 @@ export function InspectorPanel() {
 
       {/* Relationships */}
       {(() => {
-        const outgoing = project.relationships.filter(r => r.fromContextId === context.id)
-        const incoming = project.relationships.filter(r => r.toContextId === context.id)
-        const hasRelationships = outgoing.length > 0 || incoming.length > 0
+        const isSymmetricPattern = (pattern: string) =>
+          pattern === 'shared-kernel' || pattern === 'partnership'
+
+        const upstream = project.relationships.filter(r =>
+          r.fromContextId === context.id && !isSymmetricPattern(r.pattern))
+        const downstream = project.relationships.filter(r =>
+          r.toContextId === context.id && !isSymmetricPattern(r.pattern))
+        const mutual = project.relationships.filter(r =>
+          (r.fromContextId === context.id || r.toContextId === context.id) &&
+          isSymmetricPattern(r.pattern))
+
+        const hasRelationships = upstream.length > 0 || downstream.length > 0 || mutual.length > 0
 
         return (
           <Section label="Relationships">
-            {/* Outgoing relationships */}
-            {outgoing.length > 0 && (
+            {upstream.length > 0 && (
               <div className="mb-3">
                 <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
-                  Outgoing
+                  Upstream
                 </div>
                 <div className="space-y-2">
-                  {outgoing.map(rel => {
+                  {upstream.map(rel => {
                     const targetContext = project.contexts.find(c => c.id === rel.toContextId)
                     return (
                       <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
@@ -906,14 +914,13 @@ export function InspectorPanel() {
               </div>
             )}
 
-            {/* Incoming relationships */}
-            {incoming.length > 0 && (
+            {downstream.length > 0 && (
               <div className="mb-3">
                 <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
-                  Incoming
+                  Downstream
                 </div>
                 <div className="space-y-2">
-                  {incoming.map(rel => {
+                  {downstream.map(rel => {
                     const sourceContext = project.contexts.find(c => c.id === rel.fromContextId)
                     return (
                       <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
@@ -922,6 +929,47 @@ export function InspectorPanel() {
                             <ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />
                             <span className="text-slate-700 dark:text-slate-300 font-medium">
                               {sourceContext?.name || 'Unknown'}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 ml-5 mt-0.5">
+                            {rel.pattern}
+                          </div>
+                          {rel.description && (
+                            <div className="text-[10px] text-slate-600 dark:text-slate-400 ml-5 mt-1">
+                              {rel.description}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => deleteRelationship(rel.id)}
+                          className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/rel:opacity-100"
+                          title="Delete relationship"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {mutual.length > 0 && (
+              <div className="mb-3">
+                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
+                  Mutual
+                </div>
+                <div className="space-y-2">
+                  {mutual.map(rel => {
+                    const otherContextId = rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId
+                    const otherContext = project.contexts.find(c => c.id === otherContextId)
+                    return (
+                      <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>
+                            <span className="text-slate-700 dark:text-slate-300 font-medium">
+                              {otherContext?.name || 'Unknown'}
                             </span>
                           </div>
                           <div className="text-[10px] text-slate-500 dark:text-slate-400 ml-5 mt-0.5">
