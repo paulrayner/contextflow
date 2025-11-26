@@ -35,8 +35,8 @@ const NODE_SIZES = {
   tiny: { width: 120, height: 70 },
   small: { width: 140, height: 80 },
   medium: { width: 170, height: 100 },
-  large: { width: 200, height: 120 },
-  huge: { width: 240, height: 140 },
+  large: { width: 200, height: 150 },
+  huge: { width: 240, height: 240 },
 }
 
 // Helper functions for dynamic edge positioning (floating edges pattern)
@@ -1185,8 +1185,8 @@ function YAxisLabels() {
   const { x, y, zoom } = useViewport()
 
   const labels = [
-    { text: 'User-Facing / Value Delivery', yPos: 325 },
-    { text: 'Enabling / Platform', yPos: 1000 }
+    { text: 'Visible', yPos: 80 },
+    { text: 'Invisible', yPos: 1000 }
   ]
 
   return (
@@ -1202,7 +1202,7 @@ function YAxisLabels() {
       }}
     >
       {labels.map((label) => {
-        const xPos = -30
+        const xPos = -20
         const transformedX = xPos * zoom + x
         const transformedY = label.yPos * zoom + y
 

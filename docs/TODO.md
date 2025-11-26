@@ -4,32 +4,54 @@
 
 ## Backlog
 
-- [ ] Add grouping of elements and bulk-move
-- [ ] Add BIGGER YUGE size for context
-- [ ] Can't reverse context relationships
+- [ ] Highlight actors and needs in light/opaque blue and green
+- [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. This will require a schema change, which will break existing projects
+- [ ] Should be able to select and delete user->need line
+- [ ] Should be able to select and delete need->context line
 - [ ] Add explanation for each context relationship type
-- [ ] Add elan working starter project, with sample stages, sample contexts already populated
-- [ ] Add optional actor attributes: goal(s), challenges
-- [ ] How to avoid confusion between actor, need, and context?
-- [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads managemenent!
-- [ ] Not clear how to add a context to a group
-- [ ] Decide on actor vs user (e.g. actor + user need, or user + user need)
-- [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
-- [ ] When switching to distillation view, all contexts are overlapping in the middle - a little confusing
-- [ ] Remove UPDATE buttons next to context strategic classification and evolution stage
-- [ ] Hide context strategic classification and evolution stage values until explicity set in appropriate views
-- [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/)
-- [ ] Add informational overlays/help throughout app by default (can turn off in settings). For example, what each of the evolution stages mean and their attributes (hover over the evolution stage name)
-- [ ] Context boundary width should reflect boundary strength
+- [ ] Add grouping of elements and bulk-move
+- [ ] Figure out what the canvas lock icon does
+- [ ] Enable reversing context relationships (swap upstream<--downstream contexts)
+- [ ] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
+- [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views
+- [ ] When switching to distillation view, all contexts are initially placed overlapping in the middle - confusing. They should **not** overlap.
+- [ ] When adding contexts, they overlap the existing context by default - confusing.  They should **not** overlap.
+- [ ] Fix overrunning of labels by relationship names
+- [ ] Enable contexts to be connected by top and bottom as well as the sides
+- [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
+- [ ] Update ARCHITECTURE.md, UX_GUIDELINES.md
+- [ ] Incorporate VISION.md into README.md as appropriate
+- [ ] Update README.md with fresh images
+- [ ] Update virtualgenius.com with fresh images
+- [ ] Improve graphical representation of ACL and OHS (check what DDD Crew do in their context mapping template, and in contextmapper.org)
+- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
+- [ ] Hide context description in box when code size is tiny or small, and add hover
+- [ ] Context boundary width should more obviously reflect boundary strength (dotted line might be confused with external context?)
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
 - [ ] Add teams to contexts
+- [ ] Implement ANALYTICS_PLAN.doc
 - [ ] Seems to be a delay on connections when dragging contexts
+- [ ] Fix flickering labels on relationship names
+- [ ] Add problem space section for users and needs
+- [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
+- [ ] How to avoid confusion between user, need, and context? Icons? Maybe not have boxes for users?
+- [ ] Add optional actor attributes: goal(s), challenges
+- [ ] Not clear how to add a context to a group
+- [ ] Don't allow context to be dragged outside of canvas boundary
+- [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
+- [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
+- [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/) - see case study for example steps
+- [ ] Add informational overlays/help throughout app by default (can turn off in settings). For example, what each of the evolution stages mean and their attributes (hover over the evolution stage name)
 - [ ] Accessibility checks
 - [ ] Responsive design
+- [ ] Distillation - can a context overlap subdomain boundaries? what would this tell us if it did?
 - [ ] Add search/filter for contexts, repos, teams
 - [ ] Verify how to add/manage repos
 - [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
 - [ ] Add about page? link to repo?
+- [ ] Project management - add/rename/delete(archive?) projects
+- [ ] Add logo
+- [ ] Implement SAAS hosting (orgs & users etc)
 
 ### Temporal Evolution Enhancements
 - [ ] Temporal Milestone 2: Interpolation polish (smooth animations, snap-to-keyframe refinements)
@@ -44,6 +66,8 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Change Y-axis labels for value chain to "Visible" / "Invisible"
+- [x] Make huge node size YUGE (240x240 square dimensions)
 - [x] Fix Delete key not working on Mac/Firefox (added onNodesDelete handler and deleteKeyCode=['Backspace', 'Delete'] to React Flow)
 - [x] Use upstream/downstream labels for context relationships in inspector (symmetric patterns like shared-kernel and partnership show as "Mutual")
 - [x] Fix Fit to Map to include stage labels and value chain labels in viewport bounds
