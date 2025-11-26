@@ -4,7 +4,6 @@
 
 ## Backlog
 
-- [ ] Fit to map icon on canvas doesn't work properly
 - [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
 - [ ] Add grouping of elements and bulk-move
 - [ ] Add BIGGER YUGE size for context
@@ -48,6 +47,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Fix Fit to Map to include stage labels and value chain labels in viewport bounds
 - [x] Fix connections (make easier to find and attach connection points)
 - [x] Enable drag connections between contexts
 - [x] Remove redundant Fit to Map button from top bar (canvas controls already have fit view)

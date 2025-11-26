@@ -1596,18 +1596,20 @@ const edgeTypes = {
   needContextConnection: NeedContextConnectionEdge,
 }
 
-// Custom Controls that resets to fit view
 function CustomControls() {
-  const { fitView } = useReactFlow()
+  const { fitBounds } = useReactFlow()
+  const viewMode = useEditorStore(s => s.activeViewMode)
 
   const handleFitView = useCallback(() => {
-    fitView({
-      padding: 0.15,
+    const bounds = viewMode === 'flow'
+      ? { x: -120, y: -50, width: 2120, height: 1080 }
+      : { x: 0, y: -50, width: 2000, height: 1080 }
+
+    fitBounds(bounds, {
+      padding: 0.1,
       duration: 200,
-      minZoom: 0.1,
-      maxZoom: 0.8,
     })
-  }, [fitView])
+  }, [fitBounds, viewMode])
 
   return <Controls position="bottom-right" onFitView={handleFitView} />
 }
@@ -1639,20 +1641,23 @@ function CanvasContent() {
   // Pending connection state for context→context relationships (needs pattern selection)
   const [pendingConnection, setPendingConnection] = React.useState<{ sourceId: string; targetId: string } | null>(null)
 
-  // Get React Flow instance for fitView
-  const { fitView } = useReactFlow()
+  const { fitBounds } = useReactFlow()
 
-  // Register fitView callback with the store
+  const getBounds = useCallback(() => {
+    return viewMode === 'flow'
+      ? { x: -120, y: -50, width: 2120, height: 1080 }
+      : { x: 0, y: -50, width: 2000, height: 1080 }
+  }, [viewMode])
+
   useEffect(() => {
     setFitViewCallback(() => {
-      fitView({
-        padding: 0.15,
-        duration: 200,
-        minZoom: 0.1,
-        maxZoom: 0.8,
-      })
+      fitBounds(getBounds(), { padding: 0.1, duration: 200 })
     })
-  }, [fitView])
+  }, [fitBounds, getBounds])
+
+  const onInit = useCallback(() => {
+    fitBounds(getBounds(), { padding: 0.1 })
+  }, [fitBounds, getBounds])
 
   // Convert BoundedContexts and Groups to React Flow nodes
   const baseNodes: Node[] = useMemo(() => {
@@ -2329,13 +2334,8 @@ function CanvasContent() {
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onNodeDragStop={onNodeDragStop}
+        onInit={onInit}
         elementsSelectable
-        fitView
-        fitViewOptions={{
-          padding: 0.15,
-          minZoom: 0.1,
-          maxZoom: 0.8,
-        }}
         minZoom={0.1}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
