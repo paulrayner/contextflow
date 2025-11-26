@@ -2,9 +2,6 @@
 
 ## In Progress
 
-- [x] Enable drag connections between contexts
-- [x] Fix connections (make easier to find and attach connection points)
-
 ## Backlog
 
 - [ ] Fit to map icon on canvas doesn't work properly
@@ -51,6 +48,8 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Fix connections (make easier to find and attach connection points)
+- [x] Enable drag connections between contexts
 - [x] Remove redundant Fit to Map button from top bar (canvas controls already have fit view)
 - [x] Stage labels in value stream view now show hover-based delete button (red X) for easier discoverability
 - [x] Adding stages auto-positions by finding the largest gap (no longer prompts for position number)
