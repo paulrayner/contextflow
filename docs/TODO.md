@@ -4,7 +4,6 @@
 
 ## Backlog
 
-- [ ] Fit to map icon on top menu is redundant
 - [ ] Fit to map icon on canvas doesn't work properly
 - [ ] Fix connections (make easier to find and attach connection points)
 - [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
@@ -50,6 +49,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Remove redundant Fit to Map button from top bar (canvas controls already have fit view)
 - [x] Stage labels in value stream view now show hover-based delete button (red X) for easier discoverability
 - [x] Adding stages auto-positions by finding the largest gap (no longer prompts for position number)
 - [x] Top menu buttons for add stage, actor, need, context clearer and cleaner CTAs (grouped in container with + prefix icons)

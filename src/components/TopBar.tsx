@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, ZoomIn, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
+import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 export function TopBar() {
@@ -15,7 +15,6 @@ export function TopBar() {
   const canRedo = useEditorStore(s => s.redoStack.length > 0)
   const undo = useEditorStore(s => s.undo)
   const redo = useEditorStore(s => s.redo)
-  const fitToMap = useEditorStore(s => s.fitToMap)
   const addContext = useEditorStore(s => s.addContext)
   const addActor = useEditorStore(s => s.addActor)
   const addUserNeed = useEditorStore(s => s.addUserNeed)
@@ -254,15 +253,6 @@ export function TopBar() {
           icon={<Redo2 size={16} />}
           disabled={!canRedo}
           tooltip="Redo (⌘⇧Z)"
-        />
-
-        <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
-
-        <IconButton
-          onClick={fitToMap}
-          icon={<ZoomIn size={16} />}
-          label="Fit to Map"
-          tooltip="Fit all contexts to view"
         />
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
