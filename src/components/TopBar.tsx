@@ -138,7 +138,7 @@ export function TopBar() {
           <select
             value={projectId || ''}
             onChange={(e) => setActiveProject(e.target.value)}
-            className="text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none cursor-pointer"
+            className="text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 pr-6 outline-none cursor-pointer max-w-[220px] truncate"
           >
             {Object.values(projects)
               .sort((a, b) => {

@@ -4,13 +4,35 @@
 
 ## Backlog
 
+- [ ] Adding stages should be easier/faster (don't ask for location #)
 - [ ] Work through process to test UX for everything implemented so far
+- [ ] Fix connections (make easier to find and attach connection points)
+- [ ] Add grouping of elements and bulk-move
+- [ ] Add BIGGER YUGE size for context
+- [ ] Add relationships between contexts by clicking rather than just the Add Relationship button (same as users/needs/contexts)
+- [ ] Can't reverse context relationships
+- [ ] Add explanation for each context relationship type
+- [ ] Add elan working starter project, with sample stages, sample contexts already populated
+- [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
+- [ ] Context relationships shouldn't be INCOMING/OUTGOING, but upstream/downstream, partners, shared kernel
 - [ ] Add optional actor attributes: goal(s), challenges
+- [ ] How to avoid confusion between actor, need, and context?
+- [ ] Top menu buttons for add stage, actor, need, context should be clearer CTAs
+- [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads managemenent!
+- [ ] Not clear how to add a context to a group
+- [ ] Decide on actor vs user (e.g. actor + user need, or user + user need)
 - [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
+- [ ] When switching to distillation view, all contexts are overlapping in the middle - a little confusing
+- [ ] Remove UPDATE buttons next to context strategic classification and evolution stage
+- [ ] Hide context strategic classification and evolution stage values until explicity set in appropriate views
+- [ ] Fit to map icon on canvas doesn't work properly
+- [ ] Fit to map icon on top menu is redundant
 - [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/)
 - [ ] Add informational overlays/help throughout app by default (can turn off in settings). For example, what each of the evolution stages mean and their attributes (hover over the evolution stage name)
 - [ ] Context boundary width should reflect boundary strength
-- [ ] Check how shared kernel is represented
+- [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
+- [ ] Add teams to contexts
+- [ ] Seems to be a delay on connections when dragging contexts
 - [ ] Accessibility checks
 - [ ] Responsive design
 - [ ] Add search/filter for contexts, repos, teams
@@ -31,6 +53,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Fix project selection dropdown icon overlapping project name when name is long
 - [x] Classify actors as internal or external with dotted border styling (https://userneedsmapping.com/docs/step-2-identifying-users/) - updated all sample projects
 - [x] Add users and needs for Elan Extended Warranty sample project
 - [x] Fix domain distillation locations for contexts in sample projects (ACME and cBioPortal now have proper distillation positions matching their strategic classifications)
