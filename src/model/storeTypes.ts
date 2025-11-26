@@ -136,7 +136,7 @@ export interface EditorState {
   toggleShowRelationships: () => void
   setGroupOpacity: (opacity: number) => void
   updateFlowStage: (index: number, updates: Partial<{ label: string; position: number }>) => void
-  addFlowStage: (label: string, position: number) => void
+  addFlowStage: (label: string, position?: number) => void
   deleteFlowStage: (index: number) => void
   undo: () => void
   redo: () => void

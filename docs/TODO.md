@@ -4,7 +4,6 @@
 
 ## Backlog
 
-- [ ] Adding stages should be easier/faster (don't ask for location #)
 - [ ] Work through process to test UX for everything implemented so far
 - [ ] Fix connections (make easier to find and attach connection points)
 - [ ] Add grouping of elements and bulk-move
@@ -52,6 +51,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Adding stages auto-positions by finding the largest gap (no longer prompts for position number)
 - [x] Top menu buttons for add stage, actor, need, context clearer and cleaner CTAs (grouped in container with + prefix icons)
 - [x] Fix project selection dropdown icon overlapping project name when name is long
 - [x] Classify actors as internal or external with dotted border styling (https://userneedsmapping.com/docs/step-2-identifying-users/) - updated all sample projects

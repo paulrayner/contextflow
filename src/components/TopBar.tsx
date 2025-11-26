@@ -108,17 +108,8 @@ export function TopBar() {
     const label = prompt('Stage label:')
     if (!label) return
 
-    const positionStr = prompt('Position (0-100):', '50')
-    if (!positionStr) return
-
-    const position = parseFloat(positionStr)
-    if (isNaN(position) || position < 0 || position > 100) {
-      alert('Position must be a number between 0 and 100')
-      return
-    }
-
     try {
-      addFlowStage(label.trim(), position)
+      addFlowStage(label.trim())
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to add stage')
     }

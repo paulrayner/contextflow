@@ -7,6 +7,7 @@ import { classifyFromDistillationPosition, classifyFromStrategicPosition } from 
 import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
 import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
 import { applyUndo, applyRedo } from './undoRedo'
+import { calculateNextStagePosition } from './stagePosition'
 import {
   updateContextAction,
   updateContextPositionAction,
@@ -588,7 +589,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
-  addFlowStage: (label, position) => set((state) => {
+  addFlowStage: (label, position?) => set((state) => {
     const projectId = state.activeProjectId
     if (!projectId) return state
 
@@ -597,10 +598,13 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const stages = project.viewConfig.flowStages
 
-    validateStageLabel(stages, label)
-    validateStagePosition(stages, position)
+    // Auto-calculate position if not provided
+    const finalPosition = position ?? calculateNextStagePosition(stages)
 
-    const newStage = { label, position }
+    validateStageLabel(stages, label)
+    validateStagePosition(stages, finalPosition)
+
+    const newStage = { label, position: finalPosition }
     const updatedStages = [...stages, newStage]
 
     const updatedProject = {
