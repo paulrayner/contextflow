@@ -80,8 +80,6 @@ When David's dishwasher broke, he called to report it. The CSR opened a claim, a
 
 In your EventStorming, you explored this part of the journey—opening the claim, tracking repair attempts, calculating costs against the limit of liability, and eventually closing the claim. What bounded context owns this lifecycle?
 
-> **Discussion**: Could Claims and Contract Administration be the same context? What would that look like?
-
 **Claims Management** — Owns the claim lifecycle: opening, tracking repair attempts, calculating limit of liability, and authorizing fulfillment.
 
 The domain model includes a Claim aggregate with a state machine (open → closed → reopened). This is where business rules determine repair vs. reimburse decisions.
@@ -387,8 +385,6 @@ Before reading ahead, classify all 10 contexts. Ask:
 - Would a competitor's version look different?
 - Could we buy this off-the-shelf?
 
-> **Discussion**: Your team argues Product Management should be Core because it's complex and causes pain. How would you respond?
-
 **Core Domain**
 - **Claims Management** — Where Elan makes or loses money. The repair-vs-reimburse decision rules are business expertise.
 - **Contract Administration** — Complex validation rules, multi-channel integration. Proprietary business logic.
@@ -438,8 +434,6 @@ Look at the relationship map. Contract Administration has three ACLs:
 - From Lead Management (different data structures)
 
 Core domains justify protection investment. ACLs keep the domain model clean while adapting to messy realities.
-
-> **Discussion**: Contract Administration has three ACLs. Claims Management has one. Is this intentional or accidental? What does it tell you about where to invest in boundary protection?
 
 ---
 
