@@ -191,40 +191,43 @@ export function TopBar() {
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Add Stage button - first action in Value Stream View */}
-        {viewMode === 'flow' && (
-          <IconButton
-            onClick={handleAddStage}
-            icon={<Hash size={16} />}
-            label="Add Stage"
-            tooltip="Add new flow stage"
+        {/* Add buttons - primary creation CTAs */}
+        <div className="flex items-center gap-1 bg-slate-50 dark:bg-neutral-900 rounded-lg px-1.5 py-1">
+          {/* Add Stage button - only in Value Stream View */}
+          {viewMode === 'flow' && (
+            <AddButton
+              onClick={handleAddStage}
+              icon={<Hash size={14} />}
+              label="Stage"
+              tooltip="Add new flow stage"
+            />
+          )}
+
+          {/* Actor/Need buttons: Strategic and Value Stream views (not Distillation) */}
+          {viewMode !== 'distillation' && (
+            <>
+              <AddButton
+                onClick={handleAddActor}
+                icon={<User size={14} />}
+                label="Actor"
+                tooltip="Add new actor"
+              />
+              <AddButton
+                onClick={handleAddUserNeed}
+                icon={<Target size={14} />}
+                label="Need"
+                tooltip="Add new user need"
+              />
+            </>
+          )}
+
+          <AddButton
+            onClick={handleAddContext}
+            icon={<Box size={14} />}
+            label="Context"
+            tooltip="Add new bounded context"
           />
-        )}
-
-        {/* Actor/Need buttons: Strategic and Value Stream views (not Distillation) */}
-        {viewMode !== 'distillation' && (
-          <>
-            <IconButton
-              onClick={handleAddActor}
-              icon={<User size={16} />}
-              label="Add Actor"
-              tooltip="Add new actor"
-            />
-            <IconButton
-              onClick={handleAddUserNeed}
-              icon={<Target size={16} />}
-              label="Add User Need"
-              tooltip="Add new user need"
-            />
-          </>
-        )}
-
-        <IconButton
-          onClick={handleAddContext}
-          icon={<Box size={16} />}
-          label="Add Context"
-          tooltip="Add new bounded context"
-        />
+        </div>
 
         {/* Temporal Mode toggle - only visible in Strategic View */}
         {viewMode === 'strategic' && (
@@ -437,6 +440,27 @@ function IconButton({ onClick, icon, label, disabled, tooltip }: IconButtonProps
     >
       {icon}
       {label && <span>{label}</span>}
+    </button>
+  )
+}
+
+interface AddButtonProps {
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+  tooltip?: string
+}
+
+function AddButton({ onClick, icon, label, tooltip }: AddButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      title={tooltip}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-slate-100 hover:shadow-sm"
+    >
+      <Plus size={12} className="text-slate-400 dark:text-slate-500" />
+      {icon}
+      <span>{label}</span>
     </button>
   )
 }

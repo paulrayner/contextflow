@@ -17,7 +17,6 @@
 - [ ] Context relationships shouldn't be INCOMING/OUTGOING, but upstream/downstream, partners, shared kernel
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] How to avoid confusion between actor, need, and context?
-- [ ] Top menu buttons for add stage, actor, need, context should be clearer CTAs
 - [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads managemenent!
 - [ ] Not clear how to add a context to a group
 - [ ] Decide on actor vs user (e.g. actor + user need, or user + user need)
@@ -53,6 +52,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Top menu buttons for add stage, actor, need, context clearer and cleaner CTAs (grouped in container with + prefix icons)
 - [x] Fix project selection dropdown icon overlapping project name when name is long
 - [x] Classify actors as internal or external with dotted border styling (https://userneedsmapping.com/docs/step-2-identifying-users/) - updated all sample projects
 - [x] Add users and needs for Elan Extended Warranty sample project
