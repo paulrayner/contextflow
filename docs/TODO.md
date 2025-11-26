@@ -2,6 +2,8 @@
 
 ## In Progress
 
+- [ ] Enable drag connections between contexts
+
 ## Backlog
 
 - [ ] Fit to map icon on canvas doesn't work properly

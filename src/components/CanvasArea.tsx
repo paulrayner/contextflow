@@ -22,7 +22,8 @@ import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedConnection, NeedContextConnection } from '../model/types'
-import { User, Target, X } from 'lucide-react'
+import { User, Target, X, ArrowRight } from 'lucide-react'
+import { DDD_PATTERNS } from './RelationshipCreateDialog'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
@@ -228,12 +229,16 @@ function ContextNode({ data }: NodeProps) {
     : '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
 
   return (
-    <>
-      {/* Invisible handles for edge connections */}
-      <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ position: 'relative' }}
+    >
+      {/* Connection handles - styled via CSS in index.css, visible on node hover */}
+      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
       {/* Top handle for receiving connections from User Needs in Strategic View */}
-      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} id="top" />
+      <Handle type="target" position={Position.Top} id="top" />
 
       <div
         style={{
@@ -253,8 +258,6 @@ function ContextNode({ data }: NodeProps) {
           opacity: opacity ?? 1,
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -350,7 +353,7 @@ function ContextNode({ data }: NodeProps) {
           </button>
         </div>
       )}
-    </>
+    </div>
   )
 }
 
@@ -1633,6 +1636,9 @@ function CanvasContent() {
   const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
   const updateKeyframeContextPosition = useEditorStore(s => s.updateKeyframeContextPosition)
 
+  // Pending connection state for context→context relationships (needs pattern selection)
+  const [pendingConnection, setPendingConnection] = React.useState<{ sourceId: string; targetId: string } | null>(null)
+
   // Get React Flow instance for fitView
   const { fitView } = useReactFlow()
 
@@ -1741,7 +1747,7 @@ function CanvasContent() {
         height: size.height,
         draggable: true,
         selectable: true,
-        connectable: false,
+        connectable: true,
       }
     })
 
@@ -2011,7 +2017,7 @@ function CanvasContent() {
     useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null })
   }, [])
 
-  // Handle edge connection (Actor → User Need → Context)
+  // Handle edge connection (Actor → User Need → Context, or Context → Context)
   const onConnect = useCallback((connection: any) => {
     const { source, target } = connection
     const sourceNode = nodes.find(n => n.id === source)
@@ -2028,6 +2034,13 @@ function CanvasContent() {
     // User Need → Context
     if (sourceNode.type === 'userNeed' && targetNode.type === 'context') {
       useEditorStore.getState().createNeedContextConnection(source, target)
+      return
+    }
+
+    // Context → Context (relationship - needs pattern selection)
+    if (sourceNode.type === 'context' && targetNode.type === 'context') {
+      // Store pending connection, show pattern picker dialog
+      setPendingConnection({ sourceId: source, targetId: target })
       return
     }
 
@@ -2429,6 +2442,72 @@ function CanvasContent() {
           </defs>
         </svg>
       </ReactFlow>
+
+      {/* Pattern Picker Dialog for context→context relationships */}
+      {pendingConnection && project && (() => {
+        const sourceContext = project.contexts.find(c => c.id === pendingConnection.sourceId)
+        const targetContext = project.contexts.find(c => c.id === pendingConnection.targetId)
+        if (!sourceContext || !targetContext) return null
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[400px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-neutral-700">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                  Create Relationship
+                </h2>
+                <button
+                  onClick={() => setPendingConnection(null)}
+                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Context Preview */}
+              <div className="px-4 pt-4 pb-2">
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  <span className="font-medium text-slate-900 dark:text-slate-100">{sourceContext.name}</span>
+                  <ArrowRight size={14} />
+                  <span className="font-medium text-slate-900 dark:text-slate-100">{targetContext.name}</span>
+                </div>
+              </div>
+
+              {/* Pattern Selection */}
+              <div className="px-4 py-3 space-y-2 max-h-[400px] overflow-y-auto">
+                {DDD_PATTERNS.map(p => (
+                  <button
+                    key={p.value}
+                    onClick={() => {
+                      useEditorStore.getState().addRelationship(
+                        pendingConnection.sourceId,
+                        pendingConnection.targetId,
+                        p.value
+                      )
+                      setPendingConnection(null)
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+                  >
+                    <div className="font-medium text-sm text-slate-900 dark:text-slate-100">{p.label}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{p.description}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Cancel button */}
+              <div className="px-4 py-3 border-t border-slate-200 dark:border-neutral-700">
+                <button
+                  onClick={() => setPendingConnection(null)}
+                  className="w-full px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

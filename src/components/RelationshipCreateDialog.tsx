@@ -9,7 +9,7 @@ interface RelationshipCreateDialogProps {
   onCancel: () => void
 }
 
-const DDD_PATTERNS = [
+export const DDD_PATTERNS = [
   { value: 'customer-supplier', label: 'Customer-Supplier', description: 'Downstream depends on upstream' },
   { value: 'conformist', label: 'Conformist', description: 'Downstream conforms to upstream model' },
   { value: 'anti-corruption-layer', label: 'Anti-Corruption Layer', description: 'Downstream uses translation layer' },
