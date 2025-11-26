@@ -1632,6 +1632,10 @@ function CanvasContent() {
   const updateUserNeedPosition = useEditorStore(s => s.updateUserNeedPosition)
   const setSelectedActor = useEditorStore(s => s.setSelectedActor)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
+  const deleteContext = useEditorStore(s => s.deleteContext)
+  const deleteActor = useEditorStore(s => s.deleteActor)
+  const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
+  const deleteGroup = useEditorStore(s => s.deleteGroup)
 
   // Temporal state
   const currentDate = useEditorStore(s => s.temporal.currentDate)
@@ -2297,6 +2301,26 @@ function CanvasContent() {
     }
   }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, updateUserNeedPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId])
 
+  // Handle node deletion via keyboard (Delete/Backspace key)
+  const onNodesDelete = useCallback((deletedNodes: Node[]) => {
+    for (const node of deletedNodes) {
+      switch (node.type) {
+        case 'context':
+          deleteContext(node.id)
+          break
+        case 'actor':
+          deleteActor(node.id)
+          break
+        case 'userNeed':
+          deleteUserNeed(node.id)
+          break
+        case 'group':
+          deleteGroup(node.id)
+          break
+      }
+    }
+  }, [deleteContext, deleteActor, deleteUserNeed, deleteGroup])
+
   // Handle keyboard shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -2327,6 +2351,7 @@ function CanvasContent() {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
+        onNodesDelete={onNodesDelete}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -2336,6 +2361,7 @@ function CanvasContent() {
         onNodeDragStop={onNodeDragStop}
         onInit={onInit}
         elementsSelectable
+        deleteKeyCode={['Backspace', 'Delete']}
         minZoom={0.1}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}

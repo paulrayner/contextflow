@@ -4,7 +4,6 @@
 
 ## Backlog
 
-- [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
 - [ ] Add grouping of elements and bulk-move
 - [ ] Add BIGGER YUGE size for context
 - [ ] Can't reverse context relationships
@@ -45,6 +44,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Fix Delete key not working on Mac/Firefox (added onNodesDelete handler and deleteKeyCode=['Backspace', 'Delete'] to React Flow)
 - [x] Use upstream/downstream labels for context relationships in inspector (symmetric patterns like shared-kernel and partnership show as "Mutual")
 - [x] Fix Fit to Map to include stage labels and value chain labels in viewport bounds
 - [x] Fix connections (make easier to find and attach connection points)
