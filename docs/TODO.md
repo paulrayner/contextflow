@@ -2,12 +2,12 @@
 
 ## In Progress
 
-- [ ] Enable drag connections between contexts
+- [x] Enable drag connections between contexts
+- [x] Fix connections (make easier to find and attach connection points)
 
 ## Backlog
 
 - [ ] Fit to map icon on canvas doesn't work properly
-- [ ] Fix connections (make easier to find and attach connection points)
 - [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
 - [ ] Add grouping of elements and bulk-move
 - [ ] Add BIGGER YUGE size for context

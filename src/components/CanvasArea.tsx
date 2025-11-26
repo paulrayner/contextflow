@@ -768,8 +768,8 @@ function ActorNode({ data }: NodeProps) {
 
   return (
     <>
-      {/* Invisible handles for edge connections */}
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+      {/* Handle for edge connections */}
+      <Handle type="source" position={Position.Bottom} />
 
       <div
         title={actor.name}
@@ -830,8 +830,8 @@ function UserNeedNode({ data }: NodeProps) {
   return (
     <>
       {/* Handles for edge connections */}
-      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
 
       <div
         title={userNeed.name}

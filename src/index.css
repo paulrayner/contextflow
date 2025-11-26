@@ -22,22 +22,26 @@
   box-shadow: none !important;
 }
 
-/* Context node connection handles - hidden by default, shown on hover */
-.react-flow__node-context .react-flow__handle {
+/* Connection handles - subtle by default, prominent on hover */
+.react-flow__node-context .react-flow__handle,
+.react-flow__node-actor .react-flow__handle,
+.react-flow__node-userNeed .react-flow__handle {
   width: 10px;
   height: 10px;
-  background-color: #94a3b8;
+  background-color: #cbd5e1;
   border: 2px solid white;
-  opacity: 0;
+  opacity: 0.5;
   transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
-.react-flow__node-context:hover .react-flow__handle {
+.react-flow__node-context:hover .react-flow__handle,
+.react-flow__node-actor:hover .react-flow__handle,
+.react-flow__node-userNeed:hover .react-flow__handle {
   opacity: 1;
   background-color: #3b82f6;
 }
 
-/* Keep the top handle always hidden (used for Need→Context connections) */
+/* Keep the top handle on contexts always hidden (used for Need→Context connections) */
 .react-flow__node-context .react-flow__handle[data-handlepos="top"] {
   opacity: 0 !important;
 }
