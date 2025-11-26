@@ -4,15 +4,16 @@
 
 ## Backlog
 
-- [ ] Work through process to test UX for everything implemented so far
+- [ ] Fit to map icon on top menu is redundant
+- [ ] Fit to map icon on canvas doesn't work properly
 - [ ] Fix connections (make easier to find and attach connection points)
+- [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
 - [ ] Add grouping of elements and bulk-move
 - [ ] Add BIGGER YUGE size for context
 - [ ] Add relationships between contexts by clicking rather than just the Add Relationship button (same as users/needs/contexts)
 - [ ] Can't reverse context relationships
 - [ ] Add explanation for each context relationship type
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated
-- [ ] Delete key on mac/firefox doesn't work (Delete something, click on it and it comes back), but Delete button does
 - [ ] Context relationships shouldn't be INCOMING/OUTGOING, but upstream/downstream, partners, shared kernel
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] How to avoid confusion between actor, need, and context?
@@ -23,8 +24,6 @@
 - [ ] When switching to distillation view, all contexts are overlapping in the middle - a little confusing
 - [ ] Remove UPDATE buttons next to context strategic classification and evolution stage
 - [ ] Hide context strategic classification and evolution stage values until explicity set in appropriate views
-- [ ] Fit to map icon on canvas doesn't work properly
-- [ ] Fit to map icon on top menu is redundant
 - [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/)
 - [ ] Add informational overlays/help throughout app by default (can turn off in settings). For example, what each of the evolution stages mean and their attributes (hover over the evolution stage name)
 - [ ] Context boundary width should reflect boundary strength
@@ -51,6 +50,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Stage labels in value stream view now show hover-based delete button (red X) for easier discoverability
 - [x] Adding stages auto-positions by finding the largest gap (no longer prompts for position number)
 - [x] Top menu buttons for add stage, actor, need, context clearer and cleaner CTAs (grouped in container with + prefix icons)
 - [x] Fix project selection dropdown icon overlapping project name when name is long

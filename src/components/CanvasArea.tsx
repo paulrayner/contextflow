@@ -22,7 +22,7 @@ import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedConnection, NeedContextConnection } from '../model/types'
-import { User, Target } from 'lucide-react'
+import { User, Target, X } from 'lucide-react'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
@@ -363,6 +363,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
   const [editValue, setEditValue] = React.useState('')
   const [draggingIndex, setDraggingIndex] = React.useState<number | null>(null)
   const [dragStartX, setDragStartX] = React.useState(0)
+  const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
   const [contextMenuIndex, setContextMenuIndex] = React.useState<number | null>(null)
   const [contextMenuPos, setContextMenuPos] = React.useState({ x: 0, y: 0 })
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -473,11 +474,12 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
 
         const isEditing = editingIndex === index
         const isDragging = draggingIndex === index
+        const isHovered = hoveredIndex === index
 
         return (
           <div
             key={stage.label}
-            className={`text-slate-700 dark:text-slate-200 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`text-slate-700 dark:text-slate-200 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} group`}
             style={{
               position: 'absolute',
               left: transformedX,
@@ -489,10 +491,15 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
               letterSpacing: '-0.01em',
               pointerEvents: 'auto',
               userSelect: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: `${4 * zoom}px`,
             }}
             onMouseDown={(e) => handleMouseDown(e, index)}
             onClick={() => !isDragging && handleStartEdit(index, stage.label)}
             onContextMenu={(e) => handleContextMenu(e, index)}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
           >
             {isEditing ? (
               <input
@@ -518,7 +525,27 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
                 onMouseDown={(e) => e.stopPropagation()}
               />
             ) : (
-              stage.label
+              <>
+                <span>{stage.label}</span>
+                {isHovered && stages.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteStage(index)
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
+                    style={{
+                      width: `${18 * zoom}px`,
+                      height: `${18 * zoom}px`,
+                      minWidth: `${18 * zoom}px`,
+                    }}
+                    title="Delete stage"
+                  >
+                    <X size={12 * zoom} strokeWidth={2.5} />
+                  </button>
+                )}
+              </>
             )}
           </div>
         )
