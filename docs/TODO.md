@@ -62,7 +62,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
-- [x] Add explanation for each context relationship type (power dynamics icons, collapsible "About" section, comprehensive Patterns Guide modal)
+- [x] Add explanation for each context relationship type (power dynamics icons, collapsible "About" section, comprehensive Patterns Guide modal with SVG diagrams, upstream/downstream clarification note)
 - [x] Should be able to select a Need->Context line. Should highlight similar to the actor-need line highlighting we just implemented (line and connected user need and context highlight)
 - [x] Should be able to select and delete need->context line
 - [x] Should be able to select a user->need line. Should highlight similar to a context relationship line (line and connected actor and need highlight)
