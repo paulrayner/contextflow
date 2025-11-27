@@ -2505,11 +2505,21 @@ function CanvasContent() {
     }
   }, [nodes, selectedContextIds, onNodesChangeOriginal])
 
-  const constrainActorAndNeedToHorizontal: NodeDragHandler = useCallback((event, node) => {
+  const constrainNodePosition: NodeDragHandler = useCallback((event, node) => {
     if (node.type === 'actor') {
       node.position.y = 10
     } else if (node.type === 'userNeed') {
       node.position.y = 90
+    } else if (node.type === 'context') {
+      const CANVAS_WIDTH = 2000
+      const CANVAS_HEIGHT = 1000
+      const PROBLEM_SPACE_HEIGHT = 150
+
+      const nodeWidth = node.width ?? 170
+      const nodeHeight = node.height ?? 100
+
+      node.position.x = Math.max(0, Math.min(CANVAS_WIDTH - nodeWidth, node.position.x))
+      node.position.y = Math.max(PROBLEM_SPACE_HEIGHT, Math.min(CANVAS_HEIGHT - nodeHeight, node.position.y))
     }
   }, [])
 
@@ -2714,7 +2724,7 @@ function CanvasContent() {
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
-        onNodeDrag={constrainActorAndNeedToHorizontal}
+        onNodeDrag={constrainNodePosition}
         onNodeDragStop={onNodeDragStop}
         onInit={onInit}
         elementsSelectable
