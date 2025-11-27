@@ -803,21 +803,30 @@ function ActorNode({ data }: NodeProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Actor name */}
+        {/* Actor icon and name */}
         <div
           style={{
-            fontSize: '11px',
-            fontWeight: 600,
-            color: '#0f172a',
-            lineHeight: '1.3',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '4px',
           }}
         >
-          {actor.name}
+          <User size={12} color="#3b82f6" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: '1px' }} />
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              color: '#0f172a',
+              lineHeight: '1.3',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {actor.name}
+          </div>
         </div>
       </div>
     </>
