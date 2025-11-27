@@ -1528,8 +1528,8 @@ function RelationshipEdge({
     targetPosition: targetPos,
   })
 
-  // Non-directional patterns
-  const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership'
+  // Non-directional patterns (no arrow)
+  const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'
 
   // Use ReactFlow's built-in marker system (automatically handles rotation)
   const markerId = isSelected ? 'arrow-selected' : isHovered ? 'arrow-hover' : 'arrow-default'
