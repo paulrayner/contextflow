@@ -1,7 +1,8 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle, BookOpen } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
+import { PatternsGuideModal } from './PatternsGuideModal'
 import { Switch } from './Switch'
 import { config } from '../config'
 import { interpolatePosition, classifyFromStrategicPosition } from '../lib/temporal'
@@ -63,6 +64,7 @@ export function InspectorPanel() {
   const [expandedRepoId, setExpandedRepoId] = React.useState<string | null>(null)
   const [showRelationshipDialog, setShowRelationshipDialog] = React.useState(false)
   const [showPatternDetails, setShowPatternDetails] = React.useState(false)
+  const [showPatternsGuide, setShowPatternsGuide] = React.useState(false)
   const [useCodeCohesionAPI, setUseCodeCohesionAPI] = React.useState(() => {
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
     return stored === null ? true : stored === 'true' // Default to true if not set
@@ -582,6 +584,15 @@ export function InspectorPanel() {
               </div>
             )
           })()}
+
+          {/* View all patterns link */}
+          <button
+            onClick={() => setShowPatternsGuide(true)}
+            className="mt-2 flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+          >
+            <BookOpen size={12} />
+            <span>View all patterns</span>
+          </button>
         </Section>
 
         {/* Communication Mode (autosaves) */}
@@ -616,6 +627,11 @@ export function InspectorPanel() {
             Delete Relationship
           </button>
         </div>
+
+        {/* Patterns Guide Modal */}
+        {showPatternsGuide && (
+          <PatternsGuideModal onClose={() => setShowPatternsGuide(false)} />
+        )}
       </div>
     )
   }

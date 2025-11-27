@@ -2,15 +2,9 @@
 
 ## In Progress
 
-- [ ] Add explanation for each context relationship type
-  - [x] Slice 1: Power dynamics icons in pattern dropdowns (↑↓↔○)
-  - [x] Slice 2: Collapsible "About this pattern" section in Inspector
-  - [ ] Slice 3: Patterns Reference Modal (comprehensive guide)
-
 ## Backlog
 - [ ] Add grouping of elements and bulk-move
-- [ ] Highlight actors and needs in light/opaque blue and green
-- [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
+- [ ] Display helpful message when someone tries to connect actor<->context without user need
 - [ ] Enable reversing context relationships (swap upstream<--downstream contexts)
 - [ ] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views
@@ -18,6 +12,9 @@
 - [ ] When adding contexts, they overlap the existing context by default - confusing.  They should **not** overlap.
 - [ ] Fix overrunning of labels by relationship names
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
+- [ ] Highlight actors and needs in light/opaque blue and green
+- [ ] Mark out "Problem Space" + "Solution Space" (or maybe use "Problem Domain") areas
+- [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
 - [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
 - [ ] Update ARCHITECTURE.md, UX_GUIDELINES.md
 - [ ] Incorporate VISION.md into README.md as appropriate
@@ -32,7 +29,6 @@
 - [ ] Implement ANALYTICS_PLAN.doc
 - [ ] Seems to be a delay on connections when dragging contexts
 - [ ] Fix flickering labels on relationship names
-- [ ] Add problem space section for users and needs
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
 - [ ] How to avoid confusion between user, need, and context? Icons? Maybe not have boxes for users?
 - [ ] Add optional actor attributes: goal(s), challenges
@@ -66,6 +62,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Add explanation for each context relationship type (power dynamics icons, collapsible "About" section, comprehensive Patterns Guide modal)
 - [x] Should be able to select a Need->Context line. Should highlight similar to the actor-need line highlighting we just implemented (line and connected user need and context highlight)
 - [x] Should be able to select and delete need->context line
 - [x] Should be able to select a user->need line. Should highlight similar to a context relationship line (line and connected actor and need highlight)
