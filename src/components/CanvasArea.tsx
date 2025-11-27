@@ -758,6 +758,28 @@ function EvolutionBands() {
   )
 }
 
+function ProblemSpaceBand() {
+  const { x, y, zoom } = useViewport()
+
+  const BAND_HEIGHT = 150
+  const CANVAS_WIDTH = 2000
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        width: CANVAS_WIDTH * zoom,
+        height: BAND_HEIGHT * zoom,
+        backgroundColor: 'rgba(251, 191, 36, 0.05)',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    />
+  )
+}
+
 // Group node component - renders as a ReactFlow node for proper pan/zoom
 function GroupNode({ data }: NodeProps) {
   const group = data.group as Group
@@ -2704,11 +2726,13 @@ function CanvasContent() {
           <DistillationRegions />
         ) : viewMode === 'flow' ? (
           <>
+            <ProblemSpaceBand />
             <StageLabels stages={flowStages} />
             <YAxisLabels />
           </>
         ) : (
           <>
+            <ProblemSpaceBand />
             <EvolutionBands />
             <YAxisLabels />
           </>
