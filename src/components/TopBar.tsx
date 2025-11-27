@@ -3,6 +3,7 @@ import { useEditorStore } from '../model/store'
 import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
+import { SimpleTooltip } from './SimpleTooltip'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, ACTOR_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION } from '../model/conceptDefinitions'
 
 export function TopBar() {
@@ -256,40 +257,45 @@ export function TopBar() {
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
-        <IconButton
-          onClick={undo}
-          icon={<Undo2 size={16} />}
-          disabled={!canUndo}
-          tooltip="Undo (⌘Z)"
-        />
-        <IconButton
-          onClick={redo}
-          icon={<Redo2 size={16} />}
-          disabled={!canRedo}
-          tooltip="Redo (⌘⇧Z)"
-        />
+        <SimpleTooltip text="Undo (⌘Z)">
+          <IconButton
+            onClick={undo}
+            icon={<Undo2 size={16} />}
+            disabled={!canUndo}
+          />
+        </SimpleTooltip>
+        <SimpleTooltip text="Redo (⌘⇧Z)">
+          <IconButton
+            onClick={redo}
+            icon={<Redo2 size={16} />}
+            disabled={!canRedo}
+          />
+        </SimpleTooltip>
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
-        <IconButton
-          onClick={handleExport}
-          icon={<Download size={16} />}
-          tooltip="Export project JSON"
-        />
-        <IconButton
-          onClick={handleImport}
-          icon={<Upload size={16} />}
-          tooltip="Import project JSON"
-        />
+        <SimpleTooltip text="Export project JSON">
+          <IconButton
+            onClick={handleExport}
+            icon={<Download size={16} />}
+          />
+        </SimpleTooltip>
+        <SimpleTooltip text="Import project JSON">
+          <IconButton
+            onClick={handleImport}
+            icon={<Upload size={16} />}
+          />
+        </SimpleTooltip>
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
         <div className="relative" ref={settingsRef}>
-          <IconButton
-            onClick={() => setShowSettings(!showSettings)}
-            icon={<Settings size={16} />}
-            tooltip="Settings"
-          />
+          <SimpleTooltip text="Settings">
+            <IconButton
+              onClick={() => setShowSettings(!showSettings)}
+              icon={<Settings size={16} />}
+            />
+          </SimpleTooltip>
 
           {showSettings && (
             <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 z-50">
@@ -441,15 +447,13 @@ interface IconButtonProps {
   icon: React.ReactNode
   label?: string
   disabled?: boolean
-  tooltip?: string
 }
 
-function IconButton({ onClick, icon, label, disabled, tooltip }: IconButtonProps) {
+function IconButton({ onClick, icon, label, disabled }: IconButtonProps) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      title={tooltip}
       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
         disabled
           ? 'text-slate-300 dark:text-neutral-600 cursor-not-allowed'
