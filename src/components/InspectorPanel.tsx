@@ -34,6 +34,7 @@ export function InspectorPanel() {
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
+  const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContext = useEditorStore(s => s.updateContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
@@ -58,6 +59,7 @@ export function InspectorPanel() {
   const updateActorNeedConnection = useEditorStore(s => s.updateActorNeedConnection)
   const createNeedContextConnection = useEditorStore(s => s.createNeedContextConnection)
   const deleteNeedContextConnection = useEditorStore(s => s.deleteNeedContextConnection)
+  const updateNeedContextConnection = useEditorStore(s => s.updateNeedContextConnection)
 
   // Temporal state
   const currentDate = useEditorStore(s => s.temporal.currentDate)
@@ -604,6 +606,84 @@ export function InspectorPanel() {
               className="text-blue-600 dark:text-blue-400 hover:underline"
             >
               {userNeed?.name || 'Unknown'}
+            </button>
+          </div>
+        </Section>
+
+        {/* Notes (autosaves) */}
+        <Section label="Notes">
+          <textarea
+            defaultValue={connection.notes || ''}
+            onBlur={handleNotesChange}
+            placeholder="Additional details about this connection..."
+            rows={3}
+            className={TEXTAREA_CLASS}
+          />
+        </Section>
+
+        {/* Delete Connection */}
+        <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
+          <button
+            onClick={handleDeleteConnection}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+          >
+            <Trash2 size={14} />
+            Delete Connection
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show need-context connection details if connection is selected
+  if (selectedNeedContextConnectionId) {
+    const connection = project.needContextConnections?.find(c => c.id === selectedNeedContextConnectionId)
+    if (!connection) {
+      return (
+        <div className="text-neutral-500 dark:text-neutral-400">
+          Connection not found.
+        </div>
+      )
+    }
+
+    const userNeed = project.userNeeds?.find(n => n.id === connection.userNeedId)
+    const context = project.contexts?.find(c => c.id === connection.contextId)
+
+    const handleDeleteConnection = () => {
+      if (window.confirm(`Delete connection from "${userNeed?.name}" to "${context?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
+        deleteNeedContextConnection(connection.id)
+      }
+    }
+
+    const handleNotesChange = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value.trim()
+      if (newValue !== connection.notes) {
+        updateNeedContextConnection(connection.id, { notes: newValue || undefined })
+      }
+    }
+
+    return (
+      <div className="space-y-5">
+        {/* Connection Title */}
+        <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+          Need → Context Connection
+        </div>
+
+        {/* From/To - User Need and Context */}
+        <Section label="Connection">
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed?.id, selectedNeedContextConnectionId: null })}
+              className="text-emerald-600 dark:text-emerald-400 hover:underline"
+            >
+              {userNeed?.name || 'Unknown'}
+            </button>
+            <ArrowRight size={14} className="text-slate-400" />
+            <button
+              onClick={() => useEditorStore.setState({ selectedContextId: context?.id, selectedNeedContextConnectionId: null })}
+              className="text-emerald-600 dark:text-emerald-400 hover:underline"
+            >
+              {context?.name || 'Unknown'}
             </button>
           </div>
         </Section>

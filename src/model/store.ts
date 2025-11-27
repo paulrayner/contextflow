@@ -79,6 +79,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedActorId: null,
   selectedUserNeedId: null,
   selectedActorNeedConnectionId: null,
+  selectedNeedContextConnectionId: null,
   selectedContextIds: [],
 
   canvasView: {
@@ -187,6 +188,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedActorId: null,
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       selectedContextIds: [],
       undoStack: [],
       redoStack: [],
@@ -364,6 +366,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedActorId: null,
     selectedUserNeedId: null,
     selectedActorNeedConnectionId: null,
+    selectedNeedContextConnectionId: null,
   }),
 
   addActor: (name) => set((state) => {
@@ -402,6 +405,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedRelationshipId: null,
     selectedUserNeedId: null,
     selectedActorNeedConnectionId: null,
+    selectedNeedContextConnectionId: null,
   }),
 
   createActorConnection: (actorId, contextId) => set((state) => {
@@ -462,6 +466,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedRelationshipId: null,
     selectedActorId: null,
     selectedActorNeedConnectionId: null,
+    selectedNeedContextConnectionId: null,
   }),
 
   setSelectedActorNeedConnection: (connectionId) => set({
@@ -472,6 +477,18 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedRelationshipId: null,
     selectedActorId: null,
     selectedUserNeedId: null,
+    selectedNeedContextConnectionId: null,
+  }),
+
+  setSelectedNeedContextConnection: (connectionId) => set({
+    selectedNeedContextConnectionId: connectionId,
+    selectedContextId: null,
+    selectedContextIds: [],
+    selectedGroupId: null,
+    selectedRelationshipId: null,
+    selectedActorId: null,
+    selectedUserNeedId: null,
+    selectedActorNeedConnectionId: null,
   }),
 
   createActorNeedConnection: (actorId, userNeedId) => {
@@ -803,6 +820,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedActorId: null,
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
     }
   }),
 
@@ -819,6 +837,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedActorId: null,
     selectedUserNeedId: null,
     selectedActorNeedConnectionId: null,
+    selectedNeedContextConnectionId: null,
     selectedContextIds: [],
     undoStack: [],
     redoStack: [],

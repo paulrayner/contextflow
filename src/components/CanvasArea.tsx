@@ -1091,9 +1091,11 @@ function NeedContextConnectionEdge({
   const [isHovered, setIsHovered] = React.useState(false)
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
   const selectedContextId = useEditorStore(s => s.selectedContextId)
+  const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const connection = data?.connection as NeedContextConnection | undefined
 
-  const isHighlighted = source === selectedUserNeedId || target === selectedContextId
+  const isSelected = id === selectedNeedContextConnectionId
+  const isHighlighted = isSelected || source === selectedUserNeedId || target === selectedContextId
 
   const { getNode } = useReactFlow()
   const sourceNode = getNode(source)
@@ -1131,14 +1133,15 @@ function NeedContextConnectionEdge({
         className="react-flow__edge-path"
         d={edgePath}
         style={{
-          stroke: isHighlighted ? '#10b981' : isHovered ? '#34d399' : '#94a3b8',
-          strokeWidth: isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
+          stroke: isSelected ? '#10b981' : isHighlighted ? '#10b981' : isHovered ? '#34d399' : '#94a3b8',
+          strokeWidth: isSelected ? 2.5 : isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
           strokeDasharray: '5,5',
           fill: 'none',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         markerEnd="url(#need-arrow)"
       />
+      {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
         style={{
@@ -1146,9 +1149,23 @@ function NeedContextConnectionEdge({
           strokeWidth: 20,
           fill: 'none',
           cursor: 'pointer',
+          pointerEvents: 'all',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={(e) => {
+          e.stopPropagation()
+          useEditorStore.setState({
+            selectedNeedContextConnectionId: id,
+            selectedContextId: null,
+            selectedContextIds: [],
+            selectedGroupId: null,
+            selectedRelationshipId: null,
+            selectedActorId: null,
+            selectedUserNeedId: null,
+            selectedActorNeedConnectionId: null,
+          })
+        }}
       >
         <title>Need-Context connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
       </path>
@@ -2023,6 +2040,8 @@ function CanvasContent() {
         selectedGroupId: null,
         selectedActorId: null,
         selectedUserNeedId: null,
+        selectedActorNeedConnectionId: null,
+        selectedNeedContextConnectionId: null,
       })
     }
   }, [])
@@ -2039,6 +2058,8 @@ function CanvasContent() {
         selectedActorId: null,
         selectedUserNeedId: null,
         selectedRelationshipId: null,
+        selectedActorNeedConnectionId: null,
+        selectedNeedContextConnectionId: null,
       })
       return
     }
@@ -2061,13 +2082,13 @@ function CanvasContent() {
       useEditorStore.getState().toggleContextSelection(node.id)
     } else {
       // Single select
-      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null })
+      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedActorNeedConnectionId: null, selectedNeedContextConnectionId: null })
     }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedActorNeedConnectionId: null, selectedNeedContextConnectionId: null })
   }, [])
 
   // Handle edge connection (Actor → User Need → Context, or Context → Context)
@@ -2370,6 +2391,20 @@ function CanvasContent() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         useEditorStore.setState({ selectedContextId: null })
+      }
+      // Delete/Backspace: Delete selected connection edges
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const state = useEditorStore.getState()
+        // Delete selected actor-need connection
+        if (state.selectedActorNeedConnectionId) {
+          e.preventDefault()
+          state.deleteActorNeedConnection(state.selectedActorNeedConnectionId)
+        }
+        // Delete selected need-context connection
+        if (state.selectedNeedContextConnectionId) {
+          e.preventDefault()
+          state.deleteNeedContextConnection(state.selectedNeedContextConnectionId)
+        }
       }
       // Undo: Cmd/Ctrl + Z
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {

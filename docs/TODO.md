@@ -2,10 +2,12 @@
 
 ## In Progress
 
-## Backlog 
+- [x] Should be able to select a Need->Context line. Should highlight similar to the actor-need line highlighting we just implemented (line and connected user need and context highlight)
+- [x] Should be able to select and delete need->context line
+
+## Backlog
 - [ ] Highlight actors and needs in light/opaque blue and green
 - [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
-- [ ] Should be able to select and delete need->context line
 - [ ] Add explanation for each context relationship type
 - [ ] Add grouping of elements and bulk-move
 - [ ] Figure out what the canvas lock icon does

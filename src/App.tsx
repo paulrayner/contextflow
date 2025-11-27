@@ -19,6 +19,7 @@ function App() {
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
+  const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const clearContextSelection = useEditorStore(s => s.clearContextSelection)
   const createGroup = useEditorStore(s => s.createGroup)
@@ -56,7 +57,7 @@ function App() {
 
   const hasUnassignedRepos = unassignedRepos.length > 0
   const showRepoSidebar = hasUnassignedRepos && !isRepoSidebarCollapsed
-  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedActorId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedActorNeedConnectionId
+  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedActorId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedActorNeedConnectionId || !!selectedNeedContextConnectionId
 
   const gridCols = showRepoSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
                  : showRepoSidebar ? 'grid-cols-[240px_1fr]'
@@ -160,8 +161,8 @@ function App() {
           <CanvasArea />
         </section>
 
-        {/* Inspector Panel - shown when context, group, actor, userNeed, relationship, or actor-need connection is selected */}
-        {(selectedContextId || selectedGroupId || selectedActorId || selectedUserNeedId || selectedRelationshipId || selectedActorNeedConnectionId) && (
+        {/* Inspector Panel - shown when context, group, actor, userNeed, relationship, or connection is selected */}
+        {(selectedContextId || selectedGroupId || selectedActorId || selectedUserNeedId || selectedRelationshipId || selectedActorNeedConnectionId || selectedNeedContextConnectionId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>
