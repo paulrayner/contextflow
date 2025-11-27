@@ -2,6 +2,7 @@ import type { Project, BoundedContext } from '../types'
 import type { EditorState, EditorCommand } from '../storeTypes'
 import { classifyFromDistillationPosition, classifyFromStrategicPosition } from '../classification'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../../utils/analytics'
+import { getGridPosition } from '../../lib/distillationGrid'
 
 export function updateContextAction(
   state: EditorState,
@@ -227,11 +228,11 @@ export function addContextAction(
     positions: {
       flow: { x: 50 },
       strategic: { x: 50 },
-      distillation: { x: 50, y: 50 },
+      distillation: getGridPosition(project.contexts.length),
       shared: { y: 50 },
     },
-    strategicClassification: 'supporting', // Default to supporting (middle of distillation map)
-    evolutionStage: 'custom-built', // Default evolution stage
+    strategicClassification: 'supporting',
+    evolutionStage: 'custom-built',
   }
 
   const command: EditorCommand = {

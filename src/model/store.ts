@@ -8,6 +8,7 @@ import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
 import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
 import { applyUndo, applyRedo } from './undoRedo'
 import { calculateNextStagePosition } from './stagePosition'
+import { getGridPosition, needsRedistribution } from '../lib/distillationGrid'
 import {
   updateContextAction,
   updateContextPositionAction,
@@ -166,6 +167,29 @@ export const useEditorStore = create<EditorState>((set) => ({
       trackFTUEMilestone('second_view_discovered', project, {
         views_used: viewsUsed
       })
+    }
+
+    // Redistribute overlapping contexts when switching to distillation view
+    if (mode === 'distillation' && project && needsRedistribution(project.contexts)) {
+      const redistributedContexts = project.contexts.map((ctx, i) => ({
+        ...ctx,
+        positions: {
+          ...ctx.positions,
+          distillation: getGridPosition(i),
+        },
+        strategicClassification: classifyFromDistillationPosition(
+          getGridPosition(i).x,
+          getGridPosition(i).y
+        ),
+      }))
+
+      const updatedProject = { ...project, contexts: redistributedContexts }
+      saveProject(updatedProject)
+
+      return {
+        activeViewMode: mode,
+        projects: { ...state.projects, [projectId!]: updatedProject },
+      }
     }
 
     return { activeViewMode: mode }

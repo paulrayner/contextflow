@@ -275,14 +275,15 @@ describe('contextActions', () => {
       expect(result.projects?.['project-1'].contexts[1].name).toBe('New Context')
     })
 
-    it('should set default positions', () => {
+    it('should set default positions with grid-based distillation position', () => {
       const result = addContextAction(mockState, 'New Context')
 
       const newContext = result.projects?.['project-1'].contexts[1]
       expect(newContext?.positions.flow.x).toBe(50)
       expect(newContext?.positions.strategic.x).toBe(50)
-      expect(newContext?.positions.distillation.x).toBe(50)
-      expect(newContext?.positions.distillation.y).toBe(50)
+      // Second context (index 1) gets grid position, not center
+      expect(newContext?.positions.distillation.x).toBe(40)
+      expect(newContext?.positions.distillation.y).toBe(30)
       expect(newContext?.positions.shared.y).toBe(50)
     })
 
