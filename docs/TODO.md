@@ -14,7 +14,6 @@
 - [ ] Update README.md with fresh images
 - [ ] Update virtualgenius.com with fresh images
 - [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
-- [ ] Context boundary width should more obviously reflect boundary strength (dotted line might be confused with external context?)
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
 - [ ] Need some way to mark concerns or problems on the canvas (e.g. core domain is inside BBOM, or )
 - [ ] Add teams to contexts
@@ -50,6 +49,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Context boundary width should more obviously reflect boundary strength (weak=dotted thin, external=dashed)
 - [x] Add informational overlays/help throughout app by default (can turn off in settings) - hover tooltips for evolution stages, strategic classifications, and view tabs with educational content
 - [x] Hide context description in box when code size is tiny or small, and add hover
 - [x] Don't allow context to be dragged outside of canvas boundary

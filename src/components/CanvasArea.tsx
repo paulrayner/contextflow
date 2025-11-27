@@ -288,23 +288,22 @@ function ContextNode({ data }: NodeProps) {
     context.strategicClassification === 'supporting' ? '#dbeafe' : '#f3f4f6'
 
   // Border style based on boundary integrity
+  // Strong = thick solid, Moderate = medium solid, Weak = thin dotted
   const borderWidth =
     context.boundaryIntegrity === 'strong' ? '3px' :
-    context.boundaryIntegrity === 'moderate' ? '2px' : '2px'
+    context.boundaryIntegrity === 'moderate' ? '2px' : '1.5px'
 
   const borderStyle =
-    context.boundaryIntegrity === 'weak' ? 'dashed' : 'solid'
+    context.boundaryIntegrity === 'weak' ? 'dotted' : 'solid'
 
   // Consolidated highlight state for selected or group member contexts
   const isHighlighted = isSelected || isMemberOfSelectedGroup
 
-  // Border color - use blue for highlighted contexts
   const borderColor = isDragOver ? '#3b82f6'
     : isHighlighted ? '#3b82f6'
-    : '#cbd5e1'
+    : '#64748b'
 
-  // External context ring style (used in hover and default states)
-  const externalRing = '0 0 0 2px white, 0 0 0 3px #cbd5e1'
+  const externalRing = '0 0 0 2px white, 0 0 0 3px #64748b'
 
   // Box shadow for visual depth
   const shadow = isDragOver
