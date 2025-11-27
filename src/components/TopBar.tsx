@@ -5,6 +5,7 @@ import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, ACTOR_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION } from '../model/conceptDefinitions'
+import { version } from '../../package.json'
 
 export function TopBar() {
   const settingsRef = useRef<HTMLDivElement>(null)
@@ -122,9 +123,11 @@ export function TopBar() {
   return (
     <header className="flex items-center gap-4 px-5 py-3 border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
       {/* Logo */}
-      <div className="font-semibold text-base text-slate-800 dark:text-slate-100">
-        ContextFlow
-      </div>
+      <SimpleTooltip text={`v${version}`}>
+        <div className="font-semibold text-base text-slate-800 dark:text-slate-100">
+          ContextFlow
+        </div>
+      </SimpleTooltip>
 
       {/* Project Selector */}
       {project && (
