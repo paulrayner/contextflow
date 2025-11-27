@@ -28,7 +28,7 @@ import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { InfoTooltip } from './InfoTooltip'
-import { EVOLUTION_STAGES, EDGE_INDICATORS } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, EDGE_INDICATORS, VALUE_CHAIN_VISIBILITY, DISTILLATION_AXES, DISTILLATION_REGIONS } from '../model/conceptDefinitions'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { getIndicatorBoxPosition } from '../lib/edgeUtils'
 import { generateBlobPath } from '../lib/blobShape'
@@ -1319,8 +1319,8 @@ function YAxisLabels() {
   const { x, y, zoom } = useViewport()
 
   const labels = [
-    { text: 'Visible', yPos: 80 },
-    { text: 'Invisible', yPos: 1000 }
+    { text: 'Visible', key: 'visible', yPos: 80 },
+    { text: 'Invisible', key: 'invisible', yPos: 1000 }
   ]
 
   return (
@@ -1343,22 +1343,30 @@ function YAxisLabels() {
         return (
           <div
             key={label.text}
-            className="text-slate-700 dark:text-slate-200"
             style={{
               position: 'absolute',
               left: transformedX,
               top: transformedY,
               transform: 'translate(0, -50%) rotate(-90deg)',
               transformOrigin: 'left center',
-              whiteSpace: 'nowrap',
-              fontSize: `${16.5 * zoom}px`,
-              fontWeight: 600,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              opacity: 0.9,
+              pointerEvents: 'auto',
             }}
           >
-            {label.text}
+            <InfoTooltip content={VALUE_CHAIN_VISIBILITY[label.key]} position="right">
+              <span
+                className="text-slate-700 dark:text-slate-200 cursor-help"
+                style={{
+                  whiteSpace: 'nowrap',
+                  fontSize: `${16.5 * zoom}px`,
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  opacity: 0.9,
+                }}
+              >
+                {label.text}
+              </span>
+            </InfoTooltip>
           </div>
         )
       })}
@@ -1374,10 +1382,10 @@ function DistillationRegions() {
   // X-axis = Business Differentiation (0=Low, 100=High)
   // Y-axis = Model Complexity (0=Low, 100=High)
   const regions = [
-    { name: 'GENERIC', xStart: 0, xEnd: DISTILLATION_GENERIC_MAX_X, yStart: 0, yEnd: 100, color: 'rgba(153, 153, 153, 0.30)', textColor: '#fff', labelX: DISTILLATION_GENERIC_MAX_X / 2, labelY: 50 },
-    { name: 'SUPPORTING', xStart: DISTILLATION_GENERIC_MAX_X, xEnd: 100, yStart: 0, yEnd: DISTILLATION_CORE_MIN_Y, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: (DISTILLATION_GENERIC_MAX_X + 100) / 2, labelY: DISTILLATION_CORE_MIN_Y / 2 },
-    { name: 'SUPPORTING', xStart: DISTILLATION_GENERIC_MAX_X, xEnd: DISTILLATION_CORE_MIN_X, yStart: DISTILLATION_CORE_MIN_Y, yEnd: 100, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: (DISTILLATION_GENERIC_MAX_X + DISTILLATION_CORE_MIN_X) / 2, labelY: (DISTILLATION_CORE_MIN_Y + 100) / 2 },
-    { name: 'CORE', xStart: DISTILLATION_CORE_MIN_X, xEnd: 100, yStart: DISTILLATION_CORE_MIN_Y, yEnd: 100, color: 'rgba(93, 186, 164, 0.35)', textColor: '#fff', labelX: (DISTILLATION_CORE_MIN_X + 100) / 2, labelY: (DISTILLATION_CORE_MIN_Y + 100) / 2 },
+    { name: 'GENERIC', key: 'generic', xStart: 0, xEnd: DISTILLATION_GENERIC_MAX_X, yStart: 0, yEnd: 100, color: 'rgba(153, 153, 153, 0.30)', textColor: '#fff', labelX: DISTILLATION_GENERIC_MAX_X / 2, labelY: 50 },
+    { name: 'SUPPORTING', key: 'supporting', xStart: DISTILLATION_GENERIC_MAX_X, xEnd: 100, yStart: 0, yEnd: DISTILLATION_CORE_MIN_Y, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: (DISTILLATION_GENERIC_MAX_X + 100) / 2, labelY: DISTILLATION_CORE_MIN_Y / 2 },
+    { name: 'SUPPORTING', key: 'supporting', xStart: DISTILLATION_GENERIC_MAX_X, xEnd: DISTILLATION_CORE_MIN_X, yStart: DISTILLATION_CORE_MIN_Y, yEnd: 100, color: 'rgba(162, 132, 193, 0.35)', textColor: '#fff', labelX: (DISTILLATION_GENERIC_MAX_X + DISTILLATION_CORE_MIN_X) / 2, labelY: (DISTILLATION_CORE_MIN_Y + 100) / 2, hideLabel: true },
+    { name: 'CORE', key: 'core', xStart: DISTILLATION_CORE_MIN_X, xEnd: 100, yStart: DISTILLATION_CORE_MIN_Y, yEnd: 100, color: 'rgba(93, 186, 164, 0.35)', textColor: '#fff', labelX: (DISTILLATION_CORE_MIN_X + 100) / 2, labelY: (DISTILLATION_CORE_MIN_Y + 100) / 2 },
   ]
 
   const gridLines = [
@@ -1388,16 +1396,16 @@ function DistillationRegions() {
   // Axis labels - matching Nick Tune's layout
   // X-axis (bottom) = Business Differentiation (Low to High)
   const xAxisLabels = [
-    { text: 'Low', xPos: 100, yPos: 980 },
-    { text: 'Business Differentiation', xPos: 1000, yPos: 980 },
-    { text: 'High', xPos: 1900, yPos: 980 },
+    { text: 'Low', xPos: 100, yPos: 980, hasTooltip: false },
+    { text: 'Business Differentiation', xPos: 1000, yPos: 980, hasTooltip: true, tooltipKey: 'businessDifferentiation' },
+    { text: 'High', xPos: 1900, yPos: 980, hasTooltip: false },
   ]
 
   // Y-axis (left) = Model Complexity (Low to High)
   const yAxisLabels = [
-    { text: 'High', xPos: 50, yPos: 100 },
-    { text: 'Model Complexity', xPos: 50, yPos: 500 },
-    { text: 'Low', xPos: 50, yPos: 900 },
+    { text: 'High', xPos: 50, yPos: 100, hasTooltip: false },
+    { text: 'Model Complexity', xPos: 50, yPos: 500, hasTooltip: true, tooltipKey: 'modelComplexity' },
+    { text: 'Low', xPos: 50, yPos: 900, hasTooltip: false },
   ]
 
   return (
@@ -1444,25 +1452,35 @@ function DistillationRegions() {
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                 }}
               />
-              {/* Region label */}
-              <div
-                style={{
-                  position: 'absolute',
-                  left: transformedLabelX,
-                  top: transformedLabelY,
-                  transform: 'translate(-50%, -50%)',
-                  color: region.textColor,
-                  fontSize: `${48 * zoom}px`,
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  opacity: 0.85,
-                  pointerEvents: 'none',
-                  textShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                }}
-              >
-                {region.name}
-              </div>
+              {/* Region label with tooltip (skip duplicate SUPPORTING label) */}
+              {!region.hideLabel && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: transformedLabelX,
+                    top: transformedLabelY,
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'auto',
+                  }}
+                >
+                  <InfoTooltip content={DISTILLATION_REGIONS[region.key]} position="top">
+                    <span
+                      className="cursor-help"
+                      style={{
+                        color: region.textColor,
+                        fontSize: `${48 * zoom}px`,
+                        fontWeight: 700,
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        opacity: 0.85,
+                        textShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      {region.name}
+                    </span>
+                  </InfoTooltip>
+                </div>
+              )}
             </React.Fragment>
           )
         })}
@@ -1523,15 +1541,10 @@ function DistillationRegions() {
           const transformedX = label.xPos * zoom + x
           const transformedY = label.yPos * zoom + y
 
-          return (
-            <div
-              key={label.text}
-              className="text-slate-700 dark:text-slate-200"
+          const labelContent = (
+            <span
+              className={`text-slate-700 dark:text-slate-200 ${label.hasTooltip ? 'cursor-help' : ''}`}
               style={{
-                position: 'absolute',
-                left: transformedX,
-                top: transformedY,
-                transform: 'translate(-50%, -50%)',
                 whiteSpace: 'nowrap',
                 fontSize: `${18 * zoom}px`,
                 fontWeight: 600,
@@ -1541,6 +1554,27 @@ function DistillationRegions() {
               }}
             >
               {label.text}
+            </span>
+          )
+
+          return (
+            <div
+              key={label.text}
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: label.hasTooltip ? 'auto' : 'none',
+              }}
+            >
+              {label.hasTooltip && label.tooltipKey ? (
+                <InfoTooltip content={DISTILLATION_AXES[label.tooltipKey]} position="top">
+                  {labelContent}
+                </InfoTooltip>
+              ) : (
+                labelContent
+              )}
             </div>
           )
         })}
@@ -1562,16 +1596,10 @@ function DistillationRegions() {
           const transformedX = label.xPos * zoom + x
           const transformedY = label.yPos * zoom + y
 
-          return (
-            <div
-              key={label.text}
-              className="text-slate-700 dark:text-slate-200"
+          const labelContent = (
+            <span
+              className={`text-slate-700 dark:text-slate-200 ${label.hasTooltip ? 'cursor-help' : ''}`}
               style={{
-                position: 'absolute',
-                left: transformedX,
-                top: transformedY,
-                transform: 'translate(0, -50%) rotate(-90deg)',
-                transformOrigin: 'left center',
                 whiteSpace: 'nowrap',
                 fontSize: `${18 * zoom}px`,
                 fontWeight: 600,
@@ -1581,6 +1609,28 @@ function DistillationRegions() {
               }}
             >
               {label.text}
+            </span>
+          )
+
+          return (
+            <div
+              key={label.text}
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                transform: 'translate(0, -50%) rotate(-90deg)',
+                transformOrigin: 'left center',
+                pointerEvents: label.hasTooltip ? 'auto' : 'none',
+              }}
+            >
+              {label.hasTooltip && label.tooltipKey ? (
+                <InfoTooltip content={DISTILLATION_AXES[label.tooltipKey]} position="right">
+                  {labelContent}
+                </InfoTooltip>
+              ) : (
+                labelContent
+              )}
             </div>
           )
         })}

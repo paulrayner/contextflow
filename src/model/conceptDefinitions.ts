@@ -294,3 +294,85 @@ export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
     ],
   },
 }
+
+// Value Chain Visibility (Y-axis labels in Value Stream and Strategic views)
+export const VALUE_CHAIN_VISIBILITY: Record<string, ConceptDefinition> = {
+  visible: {
+    title: 'Visible',
+    description: 'Components that users directly interact with or are aware of.',
+    characteristics: [
+      'User-facing functionality',
+      'Directly creates perceived value',
+      'Changes here are noticed by users',
+      'Often the focus of UX investment',
+    ],
+  },
+  invisible: {
+    title: 'Invisible',
+    description: 'Components that support visible features but users never see directly.',
+    characteristics: [
+      'Infrastructure and plumbing',
+      'Enables visible capabilities',
+      'Technical debt often accumulates here',
+      'Commoditize where possible',
+    ],
+  },
+}
+
+// Distillation Axes (Nick Tune's Core Domain Chart)
+export const DISTILLATION_AXES: Record<string, ConceptDefinition> = {
+  businessDifferentiation: {
+    title: 'Business Differentiation',
+    description: 'How much this capability sets you apart from competitors.',
+    characteristics: [
+      'Low: Common to all businesses in your industry',
+      'High: Unique to your competitive advantage',
+      'Core domains should be high differentiation',
+      'Generic domains are low differentiation',
+    ],
+  },
+  modelComplexity: {
+    title: 'Model Complexity',
+    description: 'How intricate and sophisticated the domain model needs to be.',
+    characteristics: [
+      'Low: Simple CRUD operations, few business rules',
+      'High: Complex algorithms, many edge cases',
+      'Core domains often have high complexity',
+      'Consider simplifying or buying low-complexity domains',
+    ],
+  },
+}
+
+// Distillation Regions (extends STRATEGIC_CLASSIFICATIONS with canvas-specific guidance)
+export const DISTILLATION_REGIONS: Record<string, ConceptDefinition> = {
+  core: {
+    title: 'Core Domain',
+    description: 'High differentiation, high complexity. This is your competitive advantage.',
+    characteristics: [
+      'Invest your best talent here',
+      'Build and maintain in-house',
+      'Worth significant investment',
+      'Source of competitive moat',
+    ],
+  },
+  supporting: {
+    title: 'Supporting Subdomain',
+    description: 'High differentiation but lower complexity, or supporting core functionality.',
+    characteristics: [
+      'Necessary for core to function',
+      'Could be custom or off-the-shelf',
+      'Consider outsourcing if complex',
+      'Keep simple where possible',
+    ],
+  },
+  generic: {
+    title: 'Generic Subdomain',
+    description: 'Low differentiation. Common capabilities that many businesses need.',
+    characteristics: [
+      'Not unique to your business',
+      'Buy, rent, or use open source',
+      'Minimize custom development',
+      'Commoditize aggressively',
+    ],
+  },
+}
