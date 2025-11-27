@@ -200,7 +200,6 @@ export function TopBar() {
                 onClick={handleAddStage}
                 icon={<Hash size={14} />}
                 label="Stage"
-                tooltip="Add new flow stage"
               />
             </InfoTooltip>
           )}
