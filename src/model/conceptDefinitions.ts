@@ -134,16 +134,16 @@ export const STAGE_DEFINITION: ConceptDefinition = {
   ],
 }
 
-// Actor Definition (Value Stream / Strategic View)
-export const ACTOR_DEFINITION: ConceptDefinition = {
-  title: 'Actor',
+// User Definition (Value Stream / Strategic View)
+export const USER_DEFINITION: ConceptDefinition = {
+  title: 'User',
   description:
     'A person or system that interacts with your product to satisfy their needs.',
   characteristics: [
     'Represents a user role or external system',
     'Has specific needs your system fulfills',
     'Positioned at the top of the value chain (most visible)',
-    'Multiple actors may share the same underlying needs',
+    'Multiple users may share the same underlying needs',
   ],
 }
 
@@ -151,10 +151,10 @@ export const ACTOR_DEFINITION: ConceptDefinition = {
 export const USER_NEED_DEFINITION: ConceptDefinition = {
   title: 'User Need',
   description:
-    'A capability or outcome that an actor requires from your system.',
+    'A capability or outcome that a user requires from your system.',
   characteristics: [
     'Describes what the user wants to accomplish',
-    'Connected to actors who have this need',
+    'Connected to users who have this need',
     'Fulfilled by one or more bounded contexts',
     'Drives the value chain from user to implementation',
   ],
@@ -222,15 +222,15 @@ export const LEGACY_CONTEXT: ConceptDefinition = {
   ],
 }
 
-// External Actor
-export const EXTERNAL_ACTOR: ConceptDefinition = {
-  title: 'External Actor',
+// External User
+export const EXTERNAL_USER: ConceptDefinition = {
+  title: 'External User',
   description:
-    'Mark an actor as external when they are outside your organization - customers, partners, regulators, or third-party systems.',
+    'Mark a user as external when they are outside your organization - customers, partners, regulators, or third-party systems.',
   characteristics: [
     'Shown with dotted border on canvas',
     'Helps distinguish internal users from external ones',
-    'External actors often have different access patterns',
+    'External users often have different access patterns',
   ],
 }
 

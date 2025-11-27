@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Project, BoundedContext, Actor, UserNeed, ActorNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../utils/analytics'
@@ -31,24 +31,21 @@ import {
   swapRelationshipDirectionAction
 } from './actions/relationshipActions'
 import {
-  addActorAction,
-  deleteActorAction,
-  updateActorAction,
-  updateActorPositionAction,
-  createActorConnectionAction,
-  deleteActorConnectionAction,
-  updateActorConnectionAction,
+  addUserAction,
+  deleteUserAction,
+  updateUserAction,
+  updateUserPositionAction,
   addUserNeedAction,
   deleteUserNeedAction,
   updateUserNeedAction,
   updateUserNeedPositionAction,
-  createActorNeedConnectionAction,
-  deleteActorNeedConnectionAction,
-  updateActorNeedConnectionAction,
+  createUserNeedConnectionAction,
+  deleteUserNeedConnectionAction,
+  updateUserNeedConnectionAction,
   createNeedContextConnectionAction,
   deleteNeedContextConnectionAction,
   updateNeedContextConnectionAction
-} from './actions/actorActions'
+} from './actions/userActions'
 import {
   toggleTemporalModeAction,
   addKeyframeAction,
@@ -85,9 +82,9 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedContextId: null,
   selectedRelationshipId: null,
   selectedGroupId: null,
-  selectedActorId: null,
+  selectedUserId: null,
   selectedUserNeedId: null,
-  selectedActorNeedConnectionId: null,
+  selectedUserNeedConnectionId: null,
   selectedNeedContextConnectionId: null,
   selectedContextIds: [],
 
@@ -230,9 +227,9 @@ export const useEditorStore = create<EditorState>((set) => ({
       activeProjectId: projectId,
       selectedContextId: null,
       selectedGroupId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
       undoStack: [],
@@ -415,70 +412,49 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
-    selectedActorId: null,
+    selectedUserId: null,
     selectedUserNeedId: null,
-    selectedActorNeedConnectionId: null,
+    selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
   }),
 
-  addActor: (name) => set((state) => {
-    const result = addActorAction(state, name)
+  addUser: (name) => set((state) => {
+    const result = addUserAction(state, name)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
-  deleteActor: (actorId) => set((state) => {
-    const result = deleteActorAction(state, actorId)
+  deleteUser: (userId) => set((state) => {
+    const result = deleteUserAction(state, userId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
-  updateActor: (actorId, updates) => set((state) => {
-    const result = updateActorAction(state, actorId, updates)
+  updateUser: (userId, updates) => set((state) => {
+    const result = updateUserAction(state, userId, updates)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
-  updateActorPosition: (actorId, newPosition) => set((state) => {
-    const result = updateActorPositionAction(state, actorId, newPosition)
+  updateUserPosition: (userId, newPosition) => set((state) => {
+    const result = updateUserPositionAction(state, userId, newPosition)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
-  setSelectedActor: (actorId) => set({
-    selectedActorId: actorId,
+  setSelectedUser: (userId) => set({
+    selectedUserId: userId,
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
     selectedRelationshipId: null,
     selectedUserNeedId: null,
-    selectedActorNeedConnectionId: null,
+    selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
-  }),
-
-  createActorConnection: (actorId, contextId) => set((state) => {
-    const result = createActorConnectionAction(state, actorId, contextId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
-  }),
-
-  deleteActorConnection: (connectionId) => set((state) => {
-    const result = deleteActorConnectionAction(state, connectionId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
-  }),
-
-  updateActorConnection: (connectionId, updates) => set((state) => {
-    const result = updateActorConnectionAction(state, connectionId, updates)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
   }),
 
   addUserNeed: (name) => {
@@ -516,18 +492,18 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextIds: [],
     selectedGroupId: null,
     selectedRelationshipId: null,
-    selectedActorId: null,
-    selectedActorNeedConnectionId: null,
+    selectedUserId: null,
+    selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
   }),
 
-  setSelectedActorNeedConnection: (connectionId) => set({
-    selectedActorNeedConnectionId: connectionId,
+  setSelectedUserNeedConnection: (connectionId) => set({
+    selectedUserNeedConnectionId: connectionId,
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
     selectedRelationshipId: null,
-    selectedActorId: null,
+    selectedUserId: null,
     selectedUserNeedId: null,
     selectedNeedContextConnectionId: null,
   }),
@@ -538,29 +514,29 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextIds: [],
     selectedGroupId: null,
     selectedRelationshipId: null,
-    selectedActorId: null,
+    selectedUserId: null,
     selectedUserNeedId: null,
-    selectedActorNeedConnectionId: null,
+    selectedUserNeedConnectionId: null,
   }),
 
-  createActorNeedConnection: (actorId, userNeedId) => {
+  createUserNeedConnection: (userId, userNeedId) => {
     const state = useEditorStore.getState()
-    const { newState, newConnectionId } = createActorNeedConnectionAction(state, actorId, userNeedId)
+    const { newState, newConnectionId } = createUserNeedConnectionAction(state, userId, userNeedId)
 
     autosaveIfNeeded(state.activeProjectId, newState.projects)
     useEditorStore.setState(newState)
     return newConnectionId
   },
 
-  deleteActorNeedConnection: (connectionId) => set((state) => {
-    const result = deleteActorNeedConnectionAction(state, connectionId)
+  deleteUserNeedConnection: (connectionId) => set((state) => {
+    const result = deleteUserNeedConnectionAction(state, connectionId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
-  updateActorNeedConnection: (connectionId, updates) => set((state) => {
-    const result = updateActorNeedConnectionAction(state, connectionId, updates)
+  updateUserNeedConnection: (connectionId, updates) => set((state) => {
+    const result = updateUserNeedConnectionAction(state, connectionId, updates)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
@@ -874,7 +850,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       relationship_count: migratedProject.relationships.length,
       group_count: migratedProject.groups.length,
       keyframe_count: migratedProject.temporal?.keyframes.length || 0,
-      actor_count: migratedProject.actors.length,
+      user_count: migratedProject.users.length,
       need_count: migratedProject.userNeeds.length
     })
 
@@ -887,9 +863,9 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
       activeProjectId: migratedProject.id,
       selectedContextId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
     }
   }),
@@ -904,9 +880,9 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedRelationshipId: null,
     selectedGroupId: null,
-    selectedActorId: null,
+    selectedUserId: null,
     selectedUserNeedId: null,
-    selectedActorNeedConnectionId: null,
+    selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
     selectedContextIds: [],
     undoStack: [],

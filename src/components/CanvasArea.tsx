@@ -21,8 +21,8 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
-import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedConnection, NeedContextConnection } from '../model/types'
-import { User, Target, X, ArrowRight, ArrowLeftRight, Trash2 } from 'lucide-react'
+import type { BoundedContext, Relationship, Group, User as UserType, UserNeed, UserNeedConnection, NeedContextConnection } from '../model/types'
+import { User as UserIcon, Target, X, ArrowRight, ArrowLeftRight, Trash2 } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
@@ -881,9 +881,9 @@ function GroupNode({ data }: NodeProps) {
   )
 }
 
-// Actor node component - displayed at the top of Strategic View
-function ActorNode({ data }: NodeProps) {
-  const actor = data.actor as Actor
+// User node component - displayed at the top of Strategic View
+function UserNode({ data }: NodeProps) {
+  const user = data.user as UserType
   const isSelected = data.isSelected as boolean
   const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
@@ -896,23 +896,23 @@ function ActorNode({ data }: NodeProps) {
       <Handle type="source" position={Position.Bottom} />
 
       <div
-        title={actor.name}
+        title={user.name}
         style={{
           width: 100,
           height: 50,
           backgroundColor: isHighlighted || isHovered ? '#eff6ff' : '#f8fafc',
           borderWidth: '2px',
-          borderStyle: actor.isExternal ? 'dashed' : 'solid',
+          borderStyle: user.isExternal ? 'dashed' : 'solid',
           borderColor: isHighlighted ? '#3b82f6' : '#cbd5e1',
           borderRadius: '8px',
           padding: '8px',
           boxShadow: isHighlighted
             ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
             : isHovered
-            ? actor.isExternal
+            ? user.isExternal
               ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 4px 8px -1px rgba(0, 0, 0, 0.12)'
               : '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
-            : actor.isExternal
+            : user.isExternal
             ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 2px 6px 0 rgba(0, 0, 0, 0.06)'
             : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
           display: 'flex',
@@ -924,7 +924,7 @@ function ActorNode({ data }: NodeProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Actor icon and name */}
+        {/* User icon and name */}
         <div
           style={{
             display: 'flex',
@@ -932,7 +932,7 @@ function ActorNode({ data }: NodeProps) {
             gap: '4px',
           }}
         >
-          <User size={12} color="#3b82f6" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: '1px' }} />
+          <UserIcon size={12} color="#3b82f6" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: '1px' }} />
           <div
             style={{
               fontSize: '11px',
@@ -946,7 +946,7 @@ function ActorNode({ data }: NodeProps) {
               WebkitBoxOrient: 'vertical',
             }}
           >
-            {actor.name}
+            {user.name}
           </div>
         </div>
       </div>
@@ -1013,8 +1013,8 @@ function UserNeedNode({ data }: NodeProps) {
   )
 }
 
-// Actor connection edge component
-function ActorConnectionEdge({
+// User connection edge component
+function UserConnectionEdge({
   id,
   source,
   target,
@@ -1027,11 +1027,11 @@ function ActorConnectionEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
-  const selectedActorId = useEditorStore(s => s.selectedActorId)
-  const connection = data?.connection as ActorConnection | undefined
+  const selectedUserId = useEditorStore(s => s.selectedUserId)
+  const connection = data?.connection as UserConnection | undefined
 
-  // Highlight if this connection belongs to the selected actor
-  const isHighlighted = source === selectedActorId
+  // Highlight if this connection belongs to the selected user
+  const isHighlighted = source === selectedUserId
   const edgeState = getEdgeState(false, isHighlighted, isHovered)
 
   // Get node objects from React Flow to calculate dynamic positions
@@ -1066,7 +1066,7 @@ function ActorConnectionEdge({
           fill: 'none',
           transition: EDGE_TRANSITION,
         }}
-        markerEnd="url(#actor-arrow)"
+        markerEnd="url(#user-arrow)"
       />
       {/* Invisible wider path for easier hovering */}
       <path
@@ -1080,14 +1080,14 @@ function ActorConnectionEdge({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <title>Actor connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
+        <title>User connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
       </path>
     </>
   )
 }
 
-// Actor-Need connection edge component
-function ActorNeedConnectionEdge({
+// User-Need connection edge component
+function UserNeedConnectionEdge({
   id,
   source,
   target,
@@ -1100,13 +1100,13 @@ function ActorNeedConnectionEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
-  const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const selectedUserId = useEditorStore(s => s.selectedUserId)
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
-  const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
-  const connection = data?.connection as ActorNeedConnection | undefined
+  const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
+  const connection = data?.connection as UserNeedConnection | undefined
 
-  const isSelected = id === selectedActorNeedConnectionId
-  const isHighlighted = isSelected || source === selectedActorId || target === selectedUserNeedId
+  const isSelected = id === selectedUserNeedConnectionId
+  const isHighlighted = isSelected || source === selectedUserId || target === selectedUserNeedId
   const edgeState = getEdgeState(isSelected, isHighlighted, isHovered)
 
   const { getNode } = useReactFlow()
@@ -1139,7 +1139,7 @@ function ActorNeedConnectionEdge({
           fill: 'none',
           transition: EDGE_TRANSITION,
         }}
-        markerEnd="url(#actor-arrow)"
+        markerEnd="url(#user-arrow)"
       />
       {/* Invisible wider path for easier hovering and clicking */}
       <path
@@ -1156,17 +1156,17 @@ function ActorNeedConnectionEdge({
         onClick={(e) => {
           e.stopPropagation()
           useEditorStore.setState({
-            selectedActorNeedConnectionId: id,
+            selectedUserNeedConnectionId: id,
             selectedContextId: null,
             selectedContextIds: [],
             selectedGroupId: null,
             selectedRelationshipId: null,
-            selectedActorId: null,
+            selectedUserId: null,
             selectedUserNeedId: null,
           })
         }}
       >
-        <title>Actor-Need connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
+        <title>User-Need connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
       </path>
     </>
   )
@@ -1247,9 +1247,9 @@ function NeedContextConnectionEdge({
             selectedContextIds: [],
             selectedGroupId: null,
             selectedRelationshipId: null,
-            selectedActorId: null,
+            selectedUserId: null,
             selectedUserNeedId: null,
-            selectedActorNeedConnectionId: null,
+            selectedUserNeedConnectionId: null,
           })
         }}
       >
@@ -1844,10 +1844,10 @@ function RelationshipEdge({
             selectedContextId: null,
             selectedContextIds: [source, target],
             selectedGroupId: null,
-            selectedActorId: null,
+            selectedUserId: null,
             selectedUserNeedId: null,
             selectedNeedContextConnectionId: null,
-            selectedActorNeedConnectionId: null,
+            selectedUserNeedConnectionId: null,
           })
         }}
         onContextMenu={(e) => {
@@ -1938,14 +1938,14 @@ function RelationshipEdge({
 const nodeTypes = {
   context: ContextNode,
   group: GroupNode,
-  actor: ActorNode,
+  user: UserNode,
   userNeed: UserNeedNode,
 }
 
 const edgeTypes = {
   relationship: RelationshipEdge,
-  actorConnection: ActorConnectionEdge,
-  actorNeedConnection: ActorNeedConnectionEdge,
+  userConnection: UserConnectionEdge,
+  userNeedConnection: UserNeedConnectionEdge,
   needContextConnection: NeedContextConnectionEdge,
 }
 
@@ -1974,21 +1974,21 @@ function CanvasContent() {
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
-  const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const selectedUserId = useEditorStore(s => s.selectedUserId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
-  const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
+  const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const showGroups = useEditorStore(s => s.showGroups)
   const showRelationships = useEditorStore(s => s.showRelationships)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
   const updateMultipleContextPositions = useEditorStore(s => s.updateMultipleContextPositions)
-  const updateActorPosition = useEditorStore(s => s.updateActorPosition)
+  const updateUserPosition = useEditorStore(s => s.updateUserPosition)
   const updateUserNeedPosition = useEditorStore(s => s.updateUserNeedPosition)
-  const setSelectedActor = useEditorStore(s => s.setSelectedActor)
+  const setSelectedUser = useEditorStore(s => s.setSelectedUser)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
-  const deleteActor = useEditorStore(s => s.deleteActor)
+  const deleteUser = useEditorStore(s => s.deleteUser)
   const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
   const deleteGroup = useEditorStore(s => s.deleteGroup)
 
@@ -2005,8 +2005,8 @@ function CanvasContent() {
 
   // Invalid connection state (for showing guidance tooltip)
   const [invalidConnectionAttempt, setInvalidConnectionAttempt] = React.useState<{
-    sourceType: 'actor' | 'userNeed' | 'context'
-    targetType: 'actor' | 'userNeed' | 'context'
+    sourceType: 'user' | 'userNeed' | 'context'
+    targetType: 'user' | 'userNeed' | 'context'
     sourceId: string
     targetId: string
     position: { x: number; y: number }
@@ -2045,11 +2045,11 @@ function CanvasContent() {
     // Find the selected group (if any)
     const selectedGroup = selectedGroupId ? project.groups.find(g => g.id === selectedGroupId) : null
 
-    // Find connected contexts for selected actor
-    const selectedActorConnections = selectedActorId
-      ? project.actorConnections?.filter(ac => ac.actorId === selectedActorId) || []
+    // Find connected contexts for selected user
+    const selectedUserConnections = selectedUserId
+      ? project.userConnections?.filter(uc => uc.userId === selectedUserId) || []
       : []
-    const connectedContextIds = new Set(selectedActorConnections.map(ac => ac.contextId))
+    const connectedContextIds = new Set(selectedUserConnections.map(uc => uc.contextId))
 
     // Find connected contexts for selected relationship
     const selectedRelationship = selectedRelationshipId
@@ -2059,12 +2059,12 @@ function CanvasContent() {
       selectedRelationship ? [selectedRelationship.fromContextId, selectedRelationship.toContextId] : []
     )
 
-    // Find connected actor and user need for selected actor-need connection
-    const selectedActorNeedConnection = selectedActorNeedConnectionId
-      ? project.actorNeedConnections?.find(c => c.id === selectedActorNeedConnectionId)
+    // Find connected user and user need for selected user-need connection
+    const selectedUserNeedConnection = selectedUserNeedConnectionId
+      ? project.userNeedConnections?.find(c => c.id === selectedUserNeedConnectionId)
       : null
-    const actorNeedConnectionActorId = selectedActorNeedConnection?.actorId || null
-    const actorNeedConnectionUserNeedId = selectedActorNeedConnection?.userNeedId || null
+    const userNeedConnectionUserId = selectedUserNeedConnection?.userId || null
+    const userNeedConnectionUserNeedId = selectedUserNeedConnection?.userNeedId || null
 
     // Find connected user need and context for selected need-context connection
     const selectedNeedContextConnection = selectedNeedContextConnectionId
@@ -2111,7 +2111,7 @@ function CanvasContent() {
         y = (yPos / 100) * 1000
       }
 
-      // Check if this context is highlighted (by group, actor, relationship, or need-context connection selection)
+      // Check if this context is highlighted (by group, user, relationship, or need-context connection selection)
       const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id)
         || connectedContextIds.has(context.id)
         || relationshipConnectedContextIds.has(context.id)
@@ -2223,26 +2223,26 @@ function CanvasContent() {
     // Apply group visibility filter
     const finalGroupNodes = showGroups ? reorderedGroupNodes : []
 
-    // Create actor nodes (visible in Strategic and Value Stream views, not Distillation)
-    const actorNodes: Node[] = viewMode !== 'distillation' && project.actors
-      ? project.actors.map((actor) => {
-          const x = (actor.position / 100) * 2000
+    // Create user nodes (visible in Strategic and Value Stream views, not Distillation)
+    const userNodes: Node[] = viewMode !== 'distillation' && project.users
+      ? project.users.map((user) => {
+          const x = (user.position / 100) * 2000
           const y = 10 // Fixed y position at top inside boundary
-          const isHighlightedByConnection = actor.id === actorNeedConnectionActorId
+          const isHighlightedByConnection = user.id === userNeedConnectionUserId
 
           return {
-            id: actor.id,
-            type: 'actor',
+            id: user.id,
+            type: 'user',
             position: { x, y },
             data: {
-              actor,
-              isSelected: actor.id === selectedActorId,
+              user,
+              isSelected: user.id === selectedUserId,
               isHighlightedByConnection,
             },
             style: {
               width: 100,
               height: 50,
-              zIndex: 15, // Above contexts but below actor connections
+              zIndex: 15, // Above contexts but below user connections
             },
             width: 100,
             height: 50,
@@ -2260,8 +2260,8 @@ function CanvasContent() {
           .filter(need => need.visibility !== false)
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
-            const y = 90 // Fixed y position below actors, inside boundary
-            const isHighlightedByConnection = userNeed.id === actorNeedConnectionUserNeedId || userNeed.id === needContextConnectionUserNeedId
+            const y = 90 // Fixed y position below users, inside boundary
+            const isHighlightedByConnection = userNeed.id === userNeedConnectionUserNeedId || userNeed.id === needContextConnectionUserNeedId
 
             return {
               id: userNeed.id,
@@ -2275,7 +2275,7 @@ function CanvasContent() {
               style: {
                 width: 100,
                 height: 50,
-                zIndex: 14, // Between actors (15) and contexts (10)
+                zIndex: 14, // Between users (15) and contexts (10)
               },
               width: 100,
               height: 50,
@@ -2287,9 +2287,9 @@ function CanvasContent() {
           })
       : []
 
-    // Return groups first (with selected on top), then contexts, then user needs, then actors
-    return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...actorNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, selectedActorNeedConnectionId, selectedNeedContextConnectionId, viewMode, showGroups, currentDate])
+    // Return groups first (with selected on top), then contexts, then user needs, then users
+    return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...userNodes]
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedUserId, selectedRelationshipId, selectedUserNeedConnectionId, selectedNeedContextConnectionId, viewMode, showGroups, currentDate])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)
@@ -2305,7 +2305,7 @@ function CanvasContent() {
     })
   }, [baseNodes, setNodes, selectedContextIds, selectedGroupId])
 
-  // Convert Relationships and ActorConnections to React Flow edges
+  // Convert Relationships and UserConnections to React Flow edges
   const edges: Edge[] = useMemo(() => {
     if (!project) return []
 
@@ -2322,26 +2322,26 @@ function CanvasContent() {
         }))
       : []
 
-    // Add actor connection edges (Strategic and Value Stream views, not Distillation)
-    const actorConnectionEdges: Edge[] = viewMode !== 'distillation' && project.actorConnections
-      ? project.actorConnections.map((conn) => ({
+    // Add user connection edges (Strategic and Value Stream views, not Distillation)
+    const userConnectionEdges: Edge[] = viewMode !== 'distillation' && project.userConnections
+      ? project.userConnections.map((conn) => ({
           id: conn.id,
-          source: conn.actorId,
+          source: conn.userId,
           target: conn.contextId,
-          type: 'actorConnection',
+          type: 'userConnection',
           data: { connection: conn },
           animated: false,
-          zIndex: 12, // Above contexts (10) but below actors (15)
+          zIndex: 12, // Above contexts (10) but below users (15)
         }))
       : []
 
-    // Add actor-need connection edges (Strategic and Value Stream views, not Distillation)
-    const actorNeedConnectionEdges: Edge[] = viewMode !== 'distillation' && project.actorNeedConnections
-      ? project.actorNeedConnections.map((conn) => ({
+    // Add user-need connection edges (Strategic and Value Stream views, not Distillation)
+    const userNeedConnectionEdges: Edge[] = viewMode !== 'distillation' && project.userNeedConnections
+      ? project.userNeedConnections.map((conn) => ({
           id: conn.id,
-          source: conn.actorId,
+          source: conn.userId,
           target: conn.userNeedId,
-          type: 'actorNeedConnection',
+          type: 'userNeedConnection',
           data: { connection: conn },
           animated: false,
           zIndex: 12,
@@ -2361,12 +2361,12 @@ function CanvasContent() {
         }))
       : []
 
-    return [...relationshipEdges, ...actorConnectionEdges, ...actorNeedConnectionEdges, ...needContextConnectionEdges]
-  }, [project, viewMode, showRelationships, selectedActorId, selectedRelationshipId])
+    return [...relationshipEdges, ...userConnectionEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
+  }, [project, viewMode, showRelationships, selectedUserId, selectedRelationshipId])
 
   // Handle edge click
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
-    // Only handle relationship edges, not actor connections
+    // Only handle relationship edges, not user connections
     if (edge.type === 'relationship') {
       const relationship = project?.relationships.find(r => r.id === edge.id)
       const connectedContextIds = relationship
@@ -2378,9 +2378,9 @@ function CanvasContent() {
         selectedContextId: null,
         selectedContextIds: connectedContextIds,
         selectedGroupId: null,
-        selectedActorId: null,
+        selectedUserId: null,
         selectedUserNeedId: null,
-        selectedActorNeedConnectionId: null,
+        selectedUserNeedConnectionId: null,
         selectedNeedContextConnectionId: null,
       })
     }
@@ -2395,18 +2395,18 @@ function CanvasContent() {
         selectedGroupId: groupId,
         selectedContextId: null,
         selectedContextIds: [],
-        selectedActorId: null,
+        selectedUserId: null,
         selectedUserNeedId: null,
         selectedRelationshipId: null,
-        selectedActorNeedConnectionId: null,
+        selectedUserNeedConnectionId: null,
         selectedNeedContextConnectionId: null,
       })
       return
     }
 
-    // Handle actor node clicks
-    if (node.type === 'actor') {
-      useEditorStore.getState().setSelectedActor(node.id)
+    // Handle user node clicks
+    if (node.type === 'user') {
+      useEditorStore.getState().setSelectedUser(node.id)
       return
     }
 
@@ -2422,16 +2422,16 @@ function CanvasContent() {
       useEditorStore.getState().toggleContextSelection(node.id)
     } else {
       // Single select
-      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedActorNeedConnectionId: null, selectedNeedContextConnectionId: null })
+      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null })
     }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedActorId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedActorNeedConnectionId: null, selectedNeedContextConnectionId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null })
   }, [])
 
-  // Handle edge connection (Actor → User Need → Context, or Context → Context)
+  // Handle edge connection (User → User Need → Context, or Context → Context)
   const onConnect = useCallback((connection: any) => {
     const { source, target } = connection
     const sourceNode = nodes.find(n => n.id === source)
@@ -2439,9 +2439,9 @@ function CanvasContent() {
 
     if (!sourceNode || !targetNode) return
 
-    // Actor → User Need
-    if (sourceNode.type === 'actor' && targetNode.type === 'userNeed') {
-      useEditorStore.getState().createActorNeedConnection(source, target)
+    // User → User Need
+    if (sourceNode.type === 'user' && targetNode.type === 'userNeed') {
+      useEditorStore.getState().createUserNeedConnection(source, target)
       return
     }
 
@@ -2463,8 +2463,8 @@ function CanvasContent() {
     const rect = targetNodeElement?.getBoundingClientRect()
 
     setInvalidConnectionAttempt({
-      sourceType: sourceNode.type as 'actor' | 'userNeed' | 'context',
-      targetType: targetNode.type as 'actor' | 'userNeed' | 'context',
+      sourceType: sourceNode.type as 'user' | 'userNeed' | 'context',
+      targetType: targetNode.type as 'user' | 'userNeed' | 'context',
       sourceId: source,
       targetId: target,
       position: rect
@@ -2617,7 +2617,7 @@ function CanvasContent() {
   }, [nodes, selectedContextIds, onNodesChangeOriginal])
 
   const constrainNodePosition: NodeDragHandler = useCallback((event, node) => {
-    if (node.type === 'actor') {
+    if (node.type === 'user') {
       node.position.y = 10
       return
     }
@@ -2645,14 +2645,14 @@ function CanvasContent() {
 
     if (!project) return
 
-    // Handle actor drag (horizontal only)
-    if (node.type === 'actor') {
-      const actor = project.actors?.find(a => a.id === node.id)
-      if (!actor) return
+    // Handle user drag (horizontal only)
+    if (node.type === 'user') {
+      const user = project.users?.find(u => u.id === node.id)
+      if (!user) return
 
       // Only update horizontal position, constrain to 0-100%
       const newPosition = Math.max(0, Math.min(100, (node.position.x / 2000) * 100))
-      updateActorPosition(node.id, newPosition)
+      updateUserPosition(node.id, newPosition)
       return
     }
 
@@ -2770,7 +2770,7 @@ function CanvasContent() {
         }
       }
     }
-  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, updateUserNeedPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId, setDragging])
+  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateUserPosition, updateUserNeedPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId, setDragging])
 
   // Handle node deletion via keyboard (Delete/Backspace key)
   const onNodesDelete = useCallback((deletedNodes: Node[]) => {
@@ -2779,8 +2779,8 @@ function CanvasContent() {
         case 'context':
           deleteContext(node.id)
           break
-        case 'actor':
-          deleteActor(node.id)
+        case 'user':
+          deleteUser(node.id)
           break
         case 'userNeed':
           deleteUserNeed(node.id)
@@ -2790,7 +2790,7 @@ function CanvasContent() {
           break
       }
     }
-  }, [deleteContext, deleteActor, deleteUserNeed, deleteGroup])
+  }, [deleteContext, deleteUser, deleteUserNeed, deleteGroup])
 
   // Handle keyboard shortcuts
   React.useEffect(() => {
@@ -2801,10 +2801,10 @@ function CanvasContent() {
       // Delete/Backspace: Delete selected connection edges
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const state = useEditorStore.getState()
-        // Delete selected actor-need connection
-        if (state.selectedActorNeedConnectionId) {
+        // Delete selected user-need connection
+        if (state.selectedUserNeedConnectionId) {
           e.preventDefault()
-          state.deleteActorNeedConnection(state.selectedActorNeedConnectionId)
+          state.deleteUserNeedConnection(state.selectedUserNeedConnectionId)
         }
         // Delete selected need-context connection
         if (state.selectedNeedContextConnectionId) {
@@ -2863,7 +2863,7 @@ function CanvasContent() {
         <CustomControls />
 
         {/* Empty state welcome message */}
-        {project && project.contexts.length === 0 && (!project.actors || project.actors.length === 0) && !hideEmptyStatePanel && (
+        {project && project.contexts.length === 0 && (!project.users || project.users.length === 0) && !hideEmptyStatePanel && (
           <Panel position="top-center" className="mt-24">
             <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-slate-200 dark:border-neutral-700 p-6 max-w-lg relative">
               <button
@@ -2886,8 +2886,8 @@ function CanvasContent() {
                     1
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200">Add an Actor</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">Who uses your system? Click <strong>+ Actor</strong> above</div>
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200">Add a User</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Who uses your system? Click <strong>+ User</strong> above</div>
                   </div>
                 </div>
 
@@ -2995,9 +2995,9 @@ function CanvasContent() {
                 fill="#3b82f6"
               />
             </marker>
-            {/* Marker for actor connection edges */}
+            {/* Marker for user connection edges */}
             <marker
-              id="actor-arrow"
+              id="user-arrow"
               viewBox="0 0 10 10"
               refX="8"
               refY="5"
@@ -3107,27 +3107,27 @@ function CanvasContent() {
           position={invalidConnectionAttempt.position}
           onDismiss={() => setInvalidConnectionAttempt(null)}
           onCreateUserNeed={() => {
-            // Only handle Actor → Context case
-            if (invalidConnectionAttempt.sourceType === 'actor' && invalidConnectionAttempt.targetType === 'context') {
+            // Only handle User → Context case
+            if (invalidConnectionAttempt.sourceType === 'user' && invalidConnectionAttempt.targetType === 'context') {
               const name = prompt('User need name:')
               if (name) {
                 const store = useEditorStore.getState()
-                const actorId = invalidConnectionAttempt.sourceId
+                const userId = invalidConnectionAttempt.sourceId
                 const contextId = invalidConnectionAttempt.targetId
 
-                // Get actor position to place user need nearby
-                const actor = project?.actors?.find(a => a.id === actorId)
-                const actorPosition = actor?.position ?? 50
+                // Get user position to place user need nearby
+                const user = project?.users?.find(u => u.id === userId)
+                const userPosition = user?.position ?? 50
 
                 // Create the user need
                 const newUserNeedId = store.addUserNeed(name)
 
                 if (newUserNeedId) {
-                  // Position user need at same horizontal position as actor
-                  store.updateUserNeed(newUserNeedId, { position: actorPosition })
+                  // Position user need at same horizontal position as user
+                  store.updateUserNeed(newUserNeedId, { position: userPosition })
 
-                  // Create Actor → UserNeed connection
-                  store.createActorNeedConnection(actorId, newUserNeedId)
+                  // Create User → UserNeed connection
+                  store.createUserNeedConnection(userId, newUserNeedId)
 
                   // Create UserNeed → Context connection
                   store.createNeedContextConnection(newUserNeedId, contextId)

@@ -1,6 +1,7 @@
 // IndexedDB persistence for ContextFlow projects
 import type { Project } from './types'
 import { classifyFromStrategicPosition } from './classification'
+import { migrateActorToUser } from './migrations/migrateActorToUser'
 
 const DB_NAME = 'contextflow'
 const DB_VERSION = 1
@@ -88,8 +89,12 @@ export function autosaveIfNeeded(
 }
 
 export function migrateProject(project: Project): Project {
-  if (!project.actors) project.actors = []
-  if (!project.actorConnections) project.actorConnections = []
+  // Apply actor→user migration
+  const migrated = migrateActorToUser(project)
+  Object.assign(project, migrated)
+
+  if (!project.users) project.users = []
+  if (!project.userNeedConnections) project.userNeedConnections = []
 
   project.contexts = project.contexts.map(context => {
     const needsDistillation = !context.positions.distillation

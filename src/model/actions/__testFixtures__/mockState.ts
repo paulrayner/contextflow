@@ -75,10 +75,9 @@ export const createBaseMockProject = (): Project => ({
   relationships: [],
   groups: [],
   repos: [],
-  actors: [],
+  users: [],
   userNeeds: [],
-  actorConnections: [],
-  actorNeedConnections: [],
+  userNeedConnections: [],
   needContextConnections: [],
   viewConfig: {
     flowStages: [],
@@ -97,7 +96,9 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   selectedContextId: null,
   selectedRelationshipId: null,
   selectedGroupId: null,
-  selectedActorId: null,
+  selectedUserId: null,
+  selectedUserNeedConnectionId: null,
+  selectedNeedContextConnectionId: null,
   selectedUserNeedId: null,
   selectedContextIds: [],
   canvasView: {

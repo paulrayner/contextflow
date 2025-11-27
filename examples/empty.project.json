@@ -7,9 +7,9 @@
   "people": [],
   "teams": [],
   "groups": [],
-  "actors": [],
+  "users": [],
   "userNeeds": [],
-  "actorNeedConnections": [],
+  "userNeedConnections": [],
   "needContextConnections": [],
   "viewConfig": {
     "flowStages": []

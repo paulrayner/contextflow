@@ -40,10 +40,10 @@ describe('builtInProjects', () => {
   })
 
   describe('backwards compatibility - required arrays', () => {
-    it('should ensure all projects have actors array', () => {
+    it('should ensure all projects have users array', () => {
       Object.values(initialProjects).forEach(project => {
-        expect(project.actors).toBeDefined()
-        expect(Array.isArray(project.actors)).toBe(true)
+        expect(project.users).toBeDefined()
+        expect(Array.isArray(project.users)).toBe(true)
       })
     })
 
@@ -54,10 +54,10 @@ describe('builtInProjects', () => {
       })
     })
 
-    it('should ensure all projects have actorNeedConnections array', () => {
+    it('should ensure all projects have userNeedConnections array', () => {
       Object.values(initialProjects).forEach(project => {
-        expect(project.actorNeedConnections).toBeDefined()
-        expect(Array.isArray(project.actorNeedConnections)).toBe(true)
+        expect(project.userNeedConnections).toBeDefined()
+        expect(Array.isArray(project.userNeedConnections)).toBe(true)
       })
     })
 

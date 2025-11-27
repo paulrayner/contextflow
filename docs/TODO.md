@@ -2,13 +2,13 @@
 
 ## In Progress
 
-- [ ] Change "actor" -> "user" everywhere. This will make it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**. need to think hard about how to deal with that for any existing users (not sure if there are any)
-
+- [ ] Change "actor" -> "user" everywhere in the app where appropriate. This will make it consistent with Susanne's article and user needs mapping. **This renaming will require a schema change, which will break existing projects**. need to think hard about how to deal with that for any existing users (not sure if there are any)
 
 ## Backlog
-- [ ] Update virtualgenius.com with fresh images
-- [ ] Need some way to mark concerns or problems on the canvas (e.g. core domain is inside BBOM, or )
-- [ ] Add teams to contexts
+- [ ] Update virtualgenius.com with fresh images & licensing/pricing
+- [ ] Need some way to mark concerns or problems on the canvas (e.g. "core domain is inside BBOM", or "core domain inside ACL", "Customer/Supplier expectations unclear", "Teams overly coupled", "Needs OHS", "Boundary needs reinforcing")
+- [ ] Assign team names to contexts
+- [ ] Different color coding options (e.g. mine|internal to org|external to org, strategic classification, team, boundary condition?)
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)

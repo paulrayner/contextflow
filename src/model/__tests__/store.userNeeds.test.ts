@@ -89,19 +89,19 @@ describe('Store - UserNeed Management', () => {
     it('should delete associated connections when deleting user need', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { addUserNeed, createActorNeedConnection, createNeedContextConnection, deleteUserNeed } = state
+      const { addUserNeed, createUserNeedConnection, createNeedContextConnection, deleteUserNeed } = state
 
       const needId = addUserNeed('Test Need')
-      const actorId = project.actors[0]?.id
+      const userId = project.users[0]?.id
       const contextId = project.contexts[0]?.id
 
-      if (actorId && contextId) {
-        createActorNeedConnection(actorId, needId!)
+      if (userId && contextId) {
+        createUserNeedConnection(userId, needId!)
         createNeedContextConnection(needId!, contextId)
 
         const beforeDelete = useEditorStore.getState()
         const projectBeforeDelete = beforeDelete.projects[beforeDelete.activeProjectId!]
-        expect(projectBeforeDelete.actorNeedConnections.length).toBeGreaterThan(0)
+        expect(projectBeforeDelete.userNeedConnections.length).toBeGreaterThan(0)
         expect(projectBeforeDelete.needContextConnections.length).toBeGreaterThan(0)
 
         deleteUserNeed(needId!)
@@ -109,7 +109,7 @@ describe('Store - UserNeed Management', () => {
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
         expect(projectAfterDelete.userNeeds.find(n => n.id === needId)).toBeUndefined()
-        expect(projectAfterDelete.actorNeedConnections.find(c => c.userNeedId === needId)).toBeUndefined()
+        expect(projectAfterDelete.userNeedConnections.find(c => c.userNeedId === needId)).toBeUndefined()
         expect(projectAfterDelete.needContextConnections.find(c => c.userNeedId === needId)).toBeUndefined()
       }
     })

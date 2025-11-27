@@ -16,10 +16,10 @@ function App() {
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
-  const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const selectedUserId = useEditorStore(s => s.selectedUserId)
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
-  const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
+  const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const clearContextSelection = useEditorStore(s => s.clearContextSelection)
@@ -62,7 +62,7 @@ function App() {
 
   const hasUnassignedRepos = unassignedRepos.length > 0
   const showRepoSidebar = hasUnassignedRepos && !isRepoSidebarCollapsed
-  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedActorId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedActorNeedConnectionId || !!selectedNeedContextConnectionId
+  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedUserId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedUserNeedConnectionId || !!selectedNeedContextConnectionId
 
   const gridCols = showRepoSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
                  : showRepoSidebar ? 'grid-cols-[240px_1fr]'
@@ -181,8 +181,8 @@ function App() {
           <CanvasArea />
         </section>
 
-        {/* Inspector Panel - shown when context, group, actor, userNeed, relationship, or connection is selected */}
-        {(selectedContextId || selectedGroupId || selectedActorId || selectedUserNeedId || selectedRelationshipId || selectedActorNeedConnectionId || selectedNeedContextConnectionId) && (
+        {/* Inspector Panel - shown when context, group, user, userNeed, relationship, or connection is selected */}
+        {(selectedContextId || selectedGroupId || selectedUserId || selectedUserNeedId || selectedRelationshipId || selectedUserNeedConnectionId || selectedNeedContextConnectionId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>

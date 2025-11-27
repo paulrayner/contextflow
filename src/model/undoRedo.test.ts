@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { applyUndo, applyRedo } from './undoRedo'
-import type { Project, BoundedContext, Group, Relationship, Actor, UserNeed, ActorNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type { Project, BoundedContext, Group, Relationship, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
 import type { EditorCommand } from './storeTypes'
 
 // Helper to create minimal project for testing
@@ -12,9 +12,9 @@ function createTestProject(overrides: Partial<Project> = {}): Project {
     repos: [],
     groups: [],
     relationships: [],
-    actors: [],
+    users: [],
     userNeeds: [],
-    actorNeedConnections: [],
+    userNeedConnections: [],
     needContextConnections: [],
     viewConfig: {
       flowStages: [],
@@ -457,56 +457,56 @@ describe('applyUndo', () => {
     })
   })
 
-  describe('addActor command', () => {
-    it('should remove the added actor', () => {
-      const actor: Actor = {
-        id: 'actor1',
+  describe('addUser command', () => {
+    it('should remove the added user', () => {
+      const user: User = {
+        id: 'user1',
         name: 'User',
         position: 0,
       }
-      const project = createTestProject({ actors: [actor] })
+      const project = createTestProject({ users: [user] })
       const command: EditorCommand = {
-        type: 'addActor',
-        payload: { actor },
+        type: 'addUser',
+        payload: { user },
       }
 
       const result = applyUndo(project, command)
 
-      expect(result.actors).toEqual([])
+      expect(result.users).toEqual([])
     })
   })
 
-  describe('deleteActor command', () => {
-    it('should restore the deleted actor', () => {
-      const actor: Actor = {
-        id: 'actor1',
+  describe('deleteUser command', () => {
+    it('should restore the deleted user', () => {
+      const user: User = {
+        id: 'user1',
         name: 'User',
         position: 0,
       }
-      const project = createTestProject({ actors: [] })
+      const project = createTestProject({ users: [] })
       const command: EditorCommand = {
-        type: 'deleteActor',
-        payload: { actor },
+        type: 'deleteUser',
+        payload: { user },
       }
 
       const result = applyUndo(project, command)
 
-      expect(result.actors).toEqual([actor])
+      expect(result.users).toEqual([user])
     })
   })
 
-  describe('moveActor command', () => {
-    it('should restore old actor position', () => {
-      const actor: Actor = {
-        id: 'actor1',
+  describe('moveUser command', () => {
+    it('should restore old user position', () => {
+      const user: User = {
+        id: 'user1',
         name: 'User',
         position: 1,
       }
-      const project = createTestProject({ actors: [actor] })
+      const project = createTestProject({ users: [user] })
       const command: EditorCommand = {
-        type: 'moveActor',
+        type: 'moveUser',
         payload: {
-          actorId: 'actor1',
+          userId: 'user1',
           oldPosition: 0,
           newPosition: 1,
         },
@@ -514,7 +514,7 @@ describe('applyUndo', () => {
 
       const result = applyUndo(project, command)
 
-      expect(result.actors[0].position).toBe(0)
+      expect(result.users[0].position).toBe(0)
     })
   })
 
@@ -580,44 +580,44 @@ describe('applyUndo', () => {
   })
 
   describe('connection commands', () => {
-    it('should remove added actor connection', () => {
-      const connection: ActorNeedConnection = {
+    it('should remove added user-need connection', () => {
+      const connection: UserNeedConnection = {
         id: 'conn1',
-        actorId: 'actor1',
-        needId: 'need1',
+        userId: 'user1',
+        userNeedId: 'need1',
       }
-      const project = createTestProject({ actorNeedConnections: [connection] })
+      const project = createTestProject({ userNeedConnections: [connection] })
       const command: EditorCommand = {
-        type: 'addActorNeedConnection',
-        payload: { actorNeedConnection: connection },
+        type: 'addUserNeedConnection',
+        payload: { userNeedConnection: connection },
       }
 
       const result = applyUndo(project, command)
 
-      expect(result.actorNeedConnections).toEqual([])
+      expect(result.userNeedConnections).toEqual([])
     })
 
-    it('should restore deleted actor connection', () => {
-      const connection: ActorNeedConnection = {
+    it('should restore deleted user-need connection', () => {
+      const connection: UserNeedConnection = {
         id: 'conn1',
-        actorId: 'actor1',
-        needId: 'need1',
+        userId: 'user1',
+        userNeedId: 'need1',
       }
-      const project = createTestProject({ actorNeedConnections: [] })
+      const project = createTestProject({ userNeedConnections: [] })
       const command: EditorCommand = {
-        type: 'deleteActorNeedConnection',
-        payload: { actorNeedConnection: connection },
+        type: 'deleteUserNeedConnection',
+        payload: { userNeedConnection: connection },
       }
 
       const result = applyUndo(project, command)
 
-      expect(result.actorNeedConnections).toEqual([connection])
+      expect(result.userNeedConnections).toEqual([connection])
     })
 
     it('should remove added need-context connection', () => {
       const connection: NeedContextConnection = {
         id: 'conn1',
-        needId: 'need1',
+        userNeedId: 'need1',
         contextId: 'ctx1',
       }
       const project = createTestProject({ needContextConnections: [connection] })
@@ -634,7 +634,7 @@ describe('applyUndo', () => {
     it('should restore deleted need-context connection', () => {
       const connection: NeedContextConnection = {
         id: 'conn1',
-        needId: 'need1',
+        userNeedId: 'need1',
         contextId: 'ctx1',
       }
       const project = createTestProject({ needContextConnections: [] })

@@ -30,7 +30,7 @@
 
 /* Connection handles - subtle by default, prominent on hover */
 .react-flow__node-context .react-flow__handle,
-.react-flow__node-actor .react-flow__handle,
+.react-flow__node-user .react-flow__handle,
 .react-flow__node-userNeed .react-flow__handle {
   width: 10px;
   height: 10px;
@@ -41,7 +41,7 @@
 }
 
 .react-flow__node-context:hover .react-flow__handle,
-.react-flow__node-actor:hover .react-flow__handle,
+.react-flow__node-user:hover .react-flow__handle,
 .react-flow__node-userNeed:hover .react-flow__handle {
   opacity: 1;
   background-color: #3b82f6;

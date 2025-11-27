@@ -22,24 +22,24 @@ vi.mock('./classification', () => ({
 }))
 
 describe('migrateProject', () => {
-  it('adds empty actors array when missing', () => {
-    const project = { contexts: [], actorConnections: [] } as unknown as Project
+  it('adds empty users array when missing', () => {
+    const project = { contexts: [] } as unknown as Project
     const migrated = migrateProject(project)
 
-    expect(migrated.actors).toEqual([])
+    expect(migrated.users).toEqual([])
   })
 
-  it('adds empty actorConnections array when missing', () => {
-    const project = { contexts: [], actors: [] } as unknown as Project
+  it('adds empty userNeedConnections array when missing', () => {
+    const project = { contexts: [], users: [] } as unknown as Project
     const migrated = migrateProject(project)
 
-    expect(migrated.actorConnections).toEqual([])
+    expect(migrated.userNeedConnections).toEqual([])
   })
 
   it('adds distillation position to contexts missing it', () => {
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [
         {
           id: 'ctx1',
@@ -55,8 +55,8 @@ describe('migrateProject', () => {
 
   it('adds evolutionStage to contexts missing it', () => {
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [
         {
           id: 'ctx1',
@@ -72,8 +72,8 @@ describe('migrateProject', () => {
 
   it('adds strategicClassification to contexts missing it', () => {
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [
         {
           id: 'ctx1',
@@ -99,8 +99,8 @@ describe('migrateProject', () => {
       evolutionStage: 'product',
     }
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [context],
     } as unknown as Project
 
@@ -111,8 +111,8 @@ describe('migrateProject', () => {
 
   it('classifies genesis evolution stage for x < 25', () => {
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [
         {
           id: 'ctx1',
@@ -128,8 +128,8 @@ describe('migrateProject', () => {
 
   it('classifies custom-built evolution stage for 25 <= x < 50', () => {
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [
         {
           id: 'ctx1',
@@ -145,8 +145,8 @@ describe('migrateProject', () => {
 
   it('classifies product evolution stage for 50 <= x < 75', () => {
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [
         {
           id: 'ctx1',
@@ -162,8 +162,8 @@ describe('migrateProject', () => {
 
   it('classifies commodity evolution stage for x >= 75', () => {
     const project = {
-      actors: [],
-      actorConnections: [],
+      users: [],
+      userNeedConnections: [],
       contexts: [
         {
           id: 'ctx1',

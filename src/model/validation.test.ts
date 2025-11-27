@@ -62,9 +62,9 @@ describe('createSelectionState', () => {
       selectedContextId: 'ctx1',
       selectedRelationshipId: null,
       selectedGroupId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
@@ -77,9 +77,9 @@ describe('createSelectionState', () => {
       selectedContextId: null,
       selectedRelationshipId: 'rel1',
       selectedGroupId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
@@ -92,24 +92,24 @@ describe('createSelectionState', () => {
       selectedContextId: null,
       selectedRelationshipId: null,
       selectedGroupId: 'grp1',
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
 
-  it('creates actor selection state', () => {
-    const result = createSelectionState('act1', 'actor')
+  it('creates user selection state', () => {
+    const result = createSelectionState('user1', 'user')
 
     expect(result).toEqual({
       selectedContextId: null,
       selectedRelationshipId: null,
       selectedGroupId: null,
-      selectedActorId: 'act1',
+      selectedUserId: 'user1',
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
@@ -122,24 +122,24 @@ describe('createSelectionState', () => {
       selectedContextId: null,
       selectedRelationshipId: null,
       selectedGroupId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: 'need1',
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
 
-  it('creates actorNeedConnection selection state', () => {
-    const result = createSelectionState('conn1', 'actorNeedConnection')
+  it('creates userNeedConnection selection state', () => {
+    const result = createSelectionState('conn1', 'userNeedConnection')
 
     expect(result).toEqual({
       selectedContextId: null,
       selectedRelationshipId: null,
       selectedGroupId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: 'conn1',
+      selectedUserNeedConnectionId: 'conn1',
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
@@ -152,9 +152,9 @@ describe('createSelectionState', () => {
       selectedContextId: null,
       selectedRelationshipId: null,
       selectedGroupId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: 'conn2',
       selectedContextIds: [],
     })
@@ -167,9 +167,9 @@ describe('createSelectionState', () => {
       selectedContextId: null,
       selectedRelationshipId: null,
       selectedGroupId: null,
-      selectedActorId: null,
+      selectedUserId: null,
       selectedUserNeedId: null,
-      selectedActorNeedConnectionId: null,
+      selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })

@@ -16,10 +16,10 @@ function ValueChainDiagram() {
 
   return (
     <svg viewBox="0 0 440 80" className="w-full h-20">
-      {/* Actor */}
+      {/* User */}
       <g>
         <rect x={10} y={20} width={100} height={40} rx={8} className="fill-slate-50 dark:fill-neutral-800 stroke-slate-300 dark:stroke-neutral-600" strokeWidth={2} />
-        <text x={60} y={38} textAnchor="middle" className={textStyle}>Actor</text>
+        <text x={60} y={38} textAnchor="middle" className={textStyle}>User</text>
         <text x={60} y={52} textAnchor="middle" className={subtextStyle}>(who)</text>
       </g>
 

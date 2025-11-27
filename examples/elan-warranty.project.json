@@ -288,65 +288,65 @@
   "people": [],
   "teams": [],
   "groups": [],
-  "actors": [
+  "users": [
     {
-      "id": "actor.sales-rep",
+      "id": "user.sales-rep",
       "name": "Appliance Sales Representative",
       "description": "Retail POS staff at Best Buy, Home Depot, etc. who sell warranties at point of purchase",
       "position": 3,
       "isExternal": true
     },
     {
-      "id": "actor.customer",
+      "id": "user.customer",
       "name": "Warranty Customer",
       "description": "End customers who purchased extended warranties and need to file claims when products fail",
       "position": 60,
       "isExternal": true
     },
     {
-      "id": "actor.marketing",
+      "id": "user.marketing",
       "name": "Marketing Specialist",
       "description": "Staff executing lead campaigns and converting prospects approaching manufacturer warranty expiration",
       "position": 8,
       "isExternal": false
     },
     {
-      "id": "actor.warranty-admin",
+      "id": "user.warranty-admin",
       "name": "Warranty Administrator",
       "description": "Staff managing contract creation, client relationships, and POS integration configurations",
       "position": 30,
       "isExternal": false
     },
     {
-      "id": "actor.underwriting",
+      "id": "user.underwriting",
       "name": "Underwriting & Product Manager",
       "description": "Staff defining coverage rules, pricing models, and eligible product catalog",
       "position": 35,
       "isExternal": false
     },
     {
-      "id": "actor.csr",
+      "id": "user.csr",
       "name": "Customer Service Representative (CSR)",
       "description": "Frontline staff who process claims and coordinate customer communication",
       "position": 40,
       "isExternal": false
     },
     {
-      "id": "actor.adjudicator",
+      "id": "user.adjudicator",
       "name": "Claims Specialist/Adjudicator",
       "description": "Expert staff analyzing complex claims, calculating limit of liability, and determining fulfillment strategies",
       "position": 50,
       "isExternal": false
     },
     {
-      "id": "actor.technician",
+      "id": "user.technician",
       "name": "Service Technician",
       "description": "Field technicians (working for external servicer network) who execute repair work orders",
       "position": 72,
       "isExternal": true
     },
     {
-      "id": "actor.accountant",
+      "id": "user.accountant",
       "name": "Accountant",
       "description": "Finance staff processing reimbursements, store credits, and payment reconciliation",
       "position": 84,
@@ -409,50 +409,50 @@
       "position": 84
     }
   ],
-  "actorNeedConnections": [
+  "userNeedConnections": [
     {
-      "id": "aconn.sales-rep-pos",
-      "actorId": "actor.sales-rep",
+      "id": "uconn.sales-rep-pos",
+      "userId": "user.sales-rep",
       "userNeedId": "need.sell-pos"
     },
     {
-      "id": "aconn.customer-claims",
-      "actorId": "actor.customer",
+      "id": "uconn.customer-claims",
+      "userId": "user.customer",
       "userNeedId": "need.file-track-claims"
     },
     {
-      "id": "aconn.marketing-campaigns",
-      "actorId": "actor.marketing",
+      "id": "uconn.marketing-campaigns",
+      "userId": "user.marketing",
       "userNeedId": "need.execute-campaigns"
     },
     {
-      "id": "aconn.admin-contracts",
-      "actorId": "actor.warranty-admin",
+      "id": "uconn.admin-contracts",
+      "userId": "user.warranty-admin",
       "userNeedId": "need.manage-contracts"
     },
     {
-      "id": "aconn.underwriting-catalog",
-      "actorId": "actor.underwriting",
+      "id": "uconn.underwriting-catalog",
+      "userId": "user.underwriting",
       "userNeedId": "need.manage-catalog"
     },
     {
-      "id": "aconn.csr-intake",
-      "actorId": "actor.csr",
+      "id": "uconn.csr-intake",
+      "userId": "user.csr",
       "userNeedId": "need.process-intake"
     },
     {
-      "id": "aconn.adjudicator-claims",
-      "actorId": "actor.adjudicator",
+      "id": "uconn.adjudicator-claims",
+      "userId": "user.adjudicator",
       "userNeedId": "need.adjudicate-claims"
     },
     {
-      "id": "aconn.technician-repairs",
-      "actorId": "actor.technician",
+      "id": "uconn.technician-repairs",
+      "userId": "user.technician",
       "userNeedId": "need.execute-repairs"
     },
     {
-      "id": "aconn.accountant-payments",
-      "actorId": "actor.accountant",
+      "id": "uconn.accountant-payments",
+      "userId": "user.accountant",
       "userNeedId": "need.process-payments"
     }
   ],

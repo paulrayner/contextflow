@@ -29,14 +29,14 @@ export interface SelectionState {
   selectedContextId: string | null
   selectedRelationshipId: string | null
   selectedGroupId: string | null
-  selectedActorId: string | null
+  selectedUserId: string | null
   selectedUserNeedId: string | null
-  selectedActorNeedConnectionId: string | null
+  selectedUserNeedConnectionId: string | null
   selectedNeedContextConnectionId: string | null
   selectedContextIds: string[]
 }
 
-type SelectionType = 'context' | 'relationship' | 'group' | 'actor' | 'userNeed' | 'actorNeedConnection' | 'needContextConnection'
+type SelectionType = 'context' | 'relationship' | 'group' | 'user' | 'userNeed' | 'userNeedConnection' | 'needContextConnection'
 
 export function createSelectionState(
   selectedId: string | null,
@@ -46,9 +46,9 @@ export function createSelectionState(
     selectedContextId: null,
     selectedRelationshipId: null,
     selectedGroupId: null,
-    selectedActorId: null,
+    selectedUserId: null,
     selectedUserNeedId: null,
-    selectedActorNeedConnectionId: null,
+    selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
     selectedContextIds: [],
   }
@@ -60,12 +60,12 @@ export function createSelectionState(
       return { ...baseState, selectedRelationshipId: selectedId }
     case 'group':
       return { ...baseState, selectedGroupId: selectedId }
-    case 'actor':
-      return { ...baseState, selectedActorId: selectedId }
+    case 'user':
+      return { ...baseState, selectedUserId: selectedId }
     case 'userNeed':
       return { ...baseState, selectedUserNeedId: selectedId }
-    case 'actorNeedConnection':
-      return { ...baseState, selectedActorNeedConnectionId: selectedId }
+    case 'userNeedConnection':
+      return { ...baseState, selectedUserNeedConnectionId: selectedId }
     case 'needContextConnection':
       return { ...baseState, selectedNeedContextConnectionId: selectedId }
   }

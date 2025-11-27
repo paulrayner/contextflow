@@ -2,8 +2,8 @@ import React, { useRef, useEffect } from 'react'
 import { User, FileText, Box } from 'lucide-react'
 
 interface ConnectionGuidanceTooltipProps {
-  sourceType: 'actor' | 'userNeed' | 'context'
-  targetType: 'actor' | 'userNeed' | 'context'
+  sourceType: 'user' | 'userNeed' | 'context'
+  targetType: 'user' | 'userNeed' | 'context'
   position: { x: number; y: number }
   onDismiss: () => void
   onCreateUserNeed: () => void
@@ -11,13 +11,13 @@ interface ConnectionGuidanceTooltipProps {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  actor: 'Actor',
+  user: 'User',
   userNeed: 'User Need',
   context: 'Context',
 }
 
 /**
- * SVG diagram showing Actor → UserNeed → Context flow
+ * SVG diagram showing User → UserNeed → Context flow
  */
 function ValueChainDiagram() {
   const boxStyle = "fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500"
@@ -26,9 +26,9 @@ function ValueChainDiagram() {
 
   return (
     <svg viewBox="0 0 200 40" className="w-full h-10">
-      {/* Actor - octagon approximated as rounded rect */}
+      {/* User - octagon approximated as rounded rect */}
       <rect x={5} y={10} width={50} height={20} rx={6} className={boxStyle} strokeWidth={1.5} />
-      <text x={30} y={23} textAnchor="middle" className={textStyle}>Actor</text>
+      <text x={30} y={23} textAnchor="middle" className={textStyle}>User</text>
 
       {/* Arrow 1 */}
       <g className={arrowStyle}>
@@ -89,8 +89,8 @@ export function ConnectionGuidanceTooltip({
   }, [onDismiss])
 
   // Determine if we should show the "Create User Need" button
-  // Only makes sense when connecting Actor → Context
-  const showCreateUserNeed = sourceType === 'actor' && targetType === 'context'
+  // Only makes sense when connecting User → Context
+  const showCreateUserNeed = sourceType === 'user' && targetType === 'context'
 
   // Constrain tooltip to viewport
   const tooltipWidth = 280
@@ -127,7 +127,7 @@ export function ConnectionGuidanceTooltip({
           <span className="font-medium">{sourceLabel}</span> cannot connect directly to <span className="font-medium">{targetLabel}</span>.
         </p>
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-          Actors connect through User Needs, which represent the problems your users are trying to solve.
+          Users connect through User Needs, which represent the problems your users are trying to solve.
         </p>
 
         {/* Action buttons */}

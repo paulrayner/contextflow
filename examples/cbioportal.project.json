@@ -488,23 +488,23 @@
       }
     ]
   },
-  "actors": [
+  "users": [
     {
-      "id": "actor.clinical-researcher",
+      "id": "user.clinical-researcher",
       "name": "Clinical Researcher",
       "description": "Oncology researchers exploring patient cohorts, survival data, and mutation patterns for research studies",
       "position": 20,
       "isExternal": true
     },
     {
-      "id": "actor.treating-oncologist",
+      "id": "user.treating-oncologist",
       "name": "Treating Oncologist",
       "description": "Clinicians looking up genomic profiles and treatment options for specific cancer patients",
       "position": 45,
       "isExternal": true
     },
     {
-      "id": "actor.bioinformatician",
+      "id": "user.bioinformatician",
       "name": "Bioinformatician",
       "description": "Computational biologists using programmatic API access to integrate cBioPortal data into analysis pipelines",
       "position": 70,
@@ -555,40 +555,40 @@
       "position": 75
     }
   ],
-  "actorNeedConnections": [
+  "userNeedConnections": [
     {
-      "id": "aconn.researcher-explore",
-      "actorId": "actor.clinical-researcher",
+      "id": "uconn.researcher-explore",
+      "userId": "user.clinical-researcher",
       "userNeedId": "need.explore-cohorts"
     },
     {
-      "id": "aconn.researcher-survival",
-      "actorId": "actor.clinical-researcher",
+      "id": "uconn.researcher-survival",
+      "userId": "user.clinical-researcher",
       "userNeedId": "need.analyze-survival"
     },
     {
-      "id": "aconn.researcher-save",
-      "actorId": "actor.clinical-researcher",
+      "id": "uconn.researcher-save",
+      "userId": "user.clinical-researcher",
       "userNeedId": "need.save-research"
     },
     {
-      "id": "aconn.oncologist-lookup",
-      "actorId": "actor.treating-oncologist",
+      "id": "uconn.oncologist-lookup",
+      "userId": "user.treating-oncologist",
       "userNeedId": "need.lookup-patient"
     },
     {
-      "id": "aconn.oncologist-treatments",
-      "actorId": "actor.treating-oncologist",
+      "id": "uconn.oncologist-treatments",
+      "userId": "user.treating-oncologist",
       "userNeedId": "need.find-treatments"
     },
     {
-      "id": "aconn.bioinformatician-automate",
-      "actorId": "actor.bioinformatician",
+      "id": "uconn.bioinformatician-automate",
+      "userId": "user.bioinformatician",
       "userNeedId": "need.automate-analysis"
     },
     {
-      "id": "aconn.bioinformatician-export",
-      "actorId": "actor.bioinformatician",
+      "id": "uconn.bioinformatician-export",
+      "userId": "user.bioinformatician",
       "userNeedId": "need.export-data"
     }
   ],
@@ -659,5 +659,5 @@
       "contextId": "ctx.queryEngine"
     }
   ],
-  "version": 2
+  "version": 3
 }

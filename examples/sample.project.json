@@ -1,6 +1,6 @@
 {
   "id": "acme-ecommerce",
-  "version": 2,
+  "version": 3,
   "name": "ACME E-Commerce Platform",
   "contexts": [
     {
@@ -1308,23 +1308,23 @@
       "notes": "Security-critical systems handling authentication, authorization, payments, and fraud prevention. Overlaps with Platform Services."
     }
   ],
-  "actors": [
+  "users": [
     {
-      "id": "actor.shopper",
+      "id": "user.shopper",
       "name": "Online Shopper",
       "description": "Customers browsing and purchasing products through the e-commerce platform",
       "position": 20,
       "isExternal": true
     },
     {
-      "id": "actor.store-manager",
+      "id": "user.store-manager",
       "name": "Store Manager",
       "description": "Internal users managing catalog, inventory, and order fulfillment",
       "position": 55,
       "isExternal": false
     },
     {
-      "id": "actor.warehouse-staff",
+      "id": "user.warehouse-staff",
       "name": "Warehouse Staff",
       "description": "Staff handling physical inventory and shipment preparation",
       "position": 78,
@@ -1368,30 +1368,30 @@
       "visibility": true
     }
   ],
-  "actorNeedConnections": [
+  "userNeedConnections": [
     {
       "id": "conn.shopper-discover",
-      "actorId": "actor.shopper",
+      "userId": "user.shopper",
       "userNeedId": "need.discover-products"
     },
     {
       "id": "conn.shopper-checkout",
-      "actorId": "actor.shopper",
+      "userId": "user.shopper",
       "userNeedId": "need.checkout-fast"
     },
     {
       "id": "conn.shopper-track",
-      "actorId": "actor.shopper",
+      "userId": "user.shopper",
       "userNeedId": "need.track-order"
     },
     {
       "id": "conn.manager-inventory",
-      "actorId": "actor.store-manager",
+      "userId": "user.store-manager",
       "userNeedId": "need.manage-inventory"
     },
     {
       "id": "conn.warehouse-ship",
-      "actorId": "actor.warehouse-staff",
+      "userId": "user.warehouse-staff",
       "userNeedId": "need.ship-efficiently"
     }
   ],

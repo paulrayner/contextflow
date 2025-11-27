@@ -115,9 +115,9 @@ describe('analytics', () => {
         ],
         people: [{} as any, {} as any],
         teams: [{} as any],
-        actors: [],
+        users: [],
         userNeeds: [],
-        actorNeedConnections: [],
+        userNeedConnections: [],
         needContextConnections: [],
         viewConfig: { flowStages: [{} as any, {} as any] }
       }
@@ -137,9 +137,9 @@ describe('analytics', () => {
         contributor_count: 0,
         has_temporal: false,
         keyframe_count: 0,
-        actor_count: 0,
+        user_count: 0,
         need_count: 0,
-        actor_need_connection_count: 0,
+        user_need_connection_count: 0,
         need_context_connection_count: 0,
         flow_stage_marker_count: 2
       })
@@ -158,9 +158,9 @@ describe('analytics', () => {
         ],
         people: [],
         teams: [],
-        actors: [],
+        users: [],
         userNeeds: [],
-        actorNeedConnections: [],
+        userNeedConnections: [],
         needContextConnections: [],
         viewConfig: { flowStages: [] }
       }
@@ -179,9 +179,9 @@ describe('analytics', () => {
         repos: [],
         people: [],
         teams: [],
-        actors: [],
+        users: [],
         userNeeds: [],
-        actorNeedConnections: [],
+        userNeedConnections: [],
         needContextConnections: [],
         viewConfig: { flowStages: [] },
         temporal: {
@@ -205,9 +205,9 @@ describe('analytics', () => {
         repos: [],
         people: [],
         teams: [],
-        actors: [],
+        users: [],
         userNeeds: [],
-        actorNeedConnections: [],
+        userNeedConnections: [],
         needContextConnections: [],
         viewConfig: { flowStages: [] },
         temporal: {
@@ -220,7 +220,7 @@ describe('analytics', () => {
       expect(metadata?.has_temporal).toBe(false)
     })
 
-    it('counts actors and needs', () => {
+    it('counts users and needs', () => {
       const project: Project = {
         id: 'test',
         name: 'Test',
@@ -230,17 +230,17 @@ describe('analytics', () => {
         repos: [],
         people: [],
         teams: [],
-        actors: [{} as any, {} as any],
+        users: [{} as any, {} as any],
         userNeeds: [{} as any, {} as any, {} as any],
-        actorNeedConnections: [{} as any],
+        userNeedConnections: [{} as any],
         needContextConnections: [{} as any, {} as any],
         viewConfig: { flowStages: [] }
       }
 
       const metadata = getProjectMetadata(project)
-      expect(metadata?.actor_count).toBe(2)
+      expect(metadata?.user_count).toBe(2)
       expect(metadata?.need_count).toBe(3)
-      expect(metadata?.actor_need_connection_count).toBe(1)
+      expect(metadata?.user_need_connection_count).toBe(1)
       expect(metadata?.need_context_connection_count).toBe(2)
     })
   })
@@ -279,9 +279,9 @@ describe('analytics', () => {
         repos: [],
         people: [],
         teams: [],
-        actors: [],
+        users: [],
         userNeeds: [],
-        actorNeedConnections: [],
+        userNeedConnections: [],
         needContextConnections: [],
         viewConfig: { flowStages: [] }
       }
@@ -303,9 +303,9 @@ describe('analytics', () => {
         contributor_count: 0,
         has_temporal: false,
         keyframe_count: 0,
-        actor_count: 0,
+        user_count: 0,
         need_count: 0,
-        actor_need_connection_count: 0,
+        user_need_connection_count: 0,
         need_context_connection_count: 0,
         flow_stage_marker_count: 0,
         custom: 'value'

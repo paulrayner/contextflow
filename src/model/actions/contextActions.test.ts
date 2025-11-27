@@ -279,12 +279,14 @@ describe('contextActions', () => {
       const result = addContextAction(mockState, 'New Context')
 
       const newContext = result.projects?.['project-1'].contexts[1]
-      expect(newContext?.positions.flow.x).toBe(50)
-      expect(newContext?.positions.strategic.x).toBe(50)
-      // Second context (index 1) gets grid position, not center
+      // Second context gets next unoccupied grid position (index 1)
+      // Flow/strategic grid: x = round(30 + 0.5 * 13.33) = 37, y = 30
+      expect(newContext?.positions.flow.x).toBe(37)
+      expect(newContext?.positions.strategic.x).toBe(37)
+      // Distillation grid: x = round(35 + 0.5 * 10) = 40, y = 30
       expect(newContext?.positions.distillation.x).toBe(40)
       expect(newContext?.positions.distillation.y).toBe(30)
-      expect(newContext?.positions.shared.y).toBe(50)
+      expect(newContext?.positions.shared.y).toBe(30)
     })
 
     it('should set default strategic classification to supporting', () => {

@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, Actor, UserNeed, ActorNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
 import type { EditorCommand } from './storeTypes'
 
 /**
@@ -10,9 +10,9 @@ export function applyUndo(project: Project, command: EditorCommand): Project {
   let newRepos = project.repos
   let newGroups = project.groups
   let newRelationships = project.relationships
-  let newActors = project.actors || []
+  let newUsers = project.users || []
   let newUserNeeds = project.userNeeds || []
-  let newActorNeedConnections = project.actorNeedConnections || []
+  let newUserNeedConnections = project.userNeedConnections || []
   let newNeedContextConnections = project.needContextConnections || []
 
   if (command.type === 'moveContext' && command.payload.contextId && command.payload.oldPositions) {
@@ -92,23 +92,19 @@ export function applyUndo(project: Project, command: EditorCommand): Project {
       newRelationships = [...newRelationships]
       newRelationships[relIndex] = command.payload.oldRelationship
     }
-  } else if (command.type === 'addActor' && command.payload.actor) {
-    newActors = newActors.filter(a => a.id !== command.payload.actor?.id)
-  } else if (command.type === 'deleteActor' && command.payload.actor) {
-    newActors = [...newActors, command.payload.actor]
-  } else if (command.type === 'moveActor' && command.payload.actorId && command.payload.oldPosition !== undefined) {
-    const actorIndex = newActors.findIndex(a => a.id === command.payload.actorId)
-    if (actorIndex !== -1) {
-      newActors = [...newActors]
-      newActors[actorIndex] = {
-        ...newActors[actorIndex],
+  } else if (command.type === 'addUser' && command.payload.user) {
+    newUsers = newUsers.filter(u => u.id !== command.payload.user?.id)
+  } else if (command.type === 'deleteUser' && command.payload.user) {
+    newUsers = [...newUsers, command.payload.user]
+  } else if (command.type === 'moveUser' && command.payload.userId && command.payload.oldPosition !== undefined) {
+    const userIndex = newUsers.findIndex(u => u.id === command.payload.userId)
+    if (userIndex !== -1) {
+      newUsers = [...newUsers]
+      newUsers[userIndex] = {
+        ...newUsers[userIndex],
         position: command.payload.oldPosition,
       }
     }
-  } else if (command.type === 'addActorConnection' && command.payload.actorConnection) {
-    newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
-  } else if (command.type === 'deleteActorConnection' && command.payload.actorConnection) {
-    newActorConnections = [...newActorConnections, command.payload.actorConnection]
   } else if (command.type === 'addUserNeed' && command.payload.userNeed) {
     newUserNeeds = newUserNeeds.filter(n => n.id !== command.payload.userNeed?.id)
   } else if (command.type === 'deleteUserNeed' && command.payload.userNeed) {
@@ -122,10 +118,10 @@ export function applyUndo(project: Project, command: EditorCommand): Project {
         position: command.payload.oldPosition,
       }
     }
-  } else if (command.type === 'addActorNeedConnection' && command.payload.actorNeedConnection) {
-    newActorNeedConnections = newActorNeedConnections.filter(c => c.id !== command.payload.actorNeedConnection?.id)
-  } else if (command.type === 'deleteActorNeedConnection' && command.payload.actorNeedConnection) {
-    newActorNeedConnections = [...newActorNeedConnections, command.payload.actorNeedConnection]
+  } else if (command.type === 'addUserNeedConnection' && command.payload.userNeedConnection) {
+    newUserNeedConnections = newUserNeedConnections.filter(c => c.id !== command.payload.userNeedConnection?.id)
+  } else if (command.type === 'deleteUserNeedConnection' && command.payload.userNeedConnection) {
+    newUserNeedConnections = [...newUserNeedConnections, command.payload.userNeedConnection]
   } else if (command.type === 'addNeedContextConnection' && command.payload.needContextConnection) {
     newNeedContextConnections = newNeedContextConnections.filter(c => c.id !== command.payload.needContextConnection?.id)
   } else if (command.type === 'deleteNeedContextConnection' && command.payload.needContextConnection) {
@@ -197,9 +193,9 @@ export function applyUndo(project: Project, command: EditorCommand): Project {
     repos: newRepos,
     groups: newGroups,
     relationships: newRelationships,
-    actors: newActors,
+    users: newUsers,
     userNeeds: newUserNeeds,
-    actorNeedConnections: newActorNeedConnections,
+    userNeedConnections: newUserNeedConnections,
     needContextConnections: newNeedContextConnections,
     viewConfig: {
       ...project.viewConfig,
@@ -218,9 +214,9 @@ export function applyRedo(project: Project, command: EditorCommand): Project {
   let newRepos = project.repos
   let newGroups = project.groups
   let newRelationships = project.relationships
-  let newActors = project.actors || []
+  let newUsers = project.users || []
   let newUserNeeds = project.userNeeds || []
-  let newActorNeedConnections = project.actorNeedConnections || []
+  let newUserNeedConnections = project.userNeedConnections || []
   let newNeedContextConnections = project.needContextConnections || []
 
   if (command.type === 'moveContext' && command.payload.contextId && command.payload.newPositions) {
@@ -300,23 +296,19 @@ export function applyRedo(project: Project, command: EditorCommand): Project {
       newRelationships = [...newRelationships]
       newRelationships[relIndex] = command.payload.newRelationship
     }
-  } else if (command.type === 'addActor' && command.payload.actor) {
-    newActors = [...newActors, command.payload.actor]
-  } else if (command.type === 'deleteActor' && command.payload.actor) {
-    newActors = newActors.filter(a => a.id !== command.payload.actor?.id)
-  } else if (command.type === 'moveActor' && command.payload.actorId && command.payload.newPosition !== undefined) {
-    const actorIndex = newActors.findIndex(a => a.id === command.payload.actorId)
-    if (actorIndex !== -1) {
-      newActors = [...newActors]
-      newActors[actorIndex] = {
-        ...newActors[actorIndex],
+  } else if (command.type === 'addUser' && command.payload.user) {
+    newUsers = [...newUsers, command.payload.user]
+  } else if (command.type === 'deleteUser' && command.payload.user) {
+    newUsers = newUsers.filter(u => u.id !== command.payload.user?.id)
+  } else if (command.type === 'moveUser' && command.payload.userId && command.payload.newPosition !== undefined) {
+    const userIndex = newUsers.findIndex(u => u.id === command.payload.userId)
+    if (userIndex !== -1) {
+      newUsers = [...newUsers]
+      newUsers[userIndex] = {
+        ...newUsers[userIndex],
         position: command.payload.newPosition,
       }
     }
-  } else if (command.type === 'addActorConnection' && command.payload.actorConnection) {
-    newActorConnections = [...newActorConnections, command.payload.actorConnection]
-  } else if (command.type === 'deleteActorConnection' && command.payload.actorConnection) {
-    newActorConnections = newActorConnections.filter(ac => ac.id !== command.payload.actorConnection?.id)
   } else if (command.type === 'addUserNeed' && command.payload.userNeed) {
     newUserNeeds = [...newUserNeeds, command.payload.userNeed]
   } else if (command.type === 'deleteUserNeed' && command.payload.userNeed) {
@@ -330,10 +322,10 @@ export function applyRedo(project: Project, command: EditorCommand): Project {
         position: command.payload.newPosition,
       }
     }
-  } else if (command.type === 'addActorNeedConnection' && command.payload.actorNeedConnection) {
-    newActorNeedConnections = [...newActorNeedConnections, command.payload.actorNeedConnection]
-  } else if (command.type === 'deleteActorNeedConnection' && command.payload.actorNeedConnection) {
-    newActorNeedConnections = newActorNeedConnections.filter(c => c.id !== command.payload.actorNeedConnection?.id)
+  } else if (command.type === 'addUserNeedConnection' && command.payload.userNeedConnection) {
+    newUserNeedConnections = [...newUserNeedConnections, command.payload.userNeedConnection]
+  } else if (command.type === 'deleteUserNeedConnection' && command.payload.userNeedConnection) {
+    newUserNeedConnections = newUserNeedConnections.filter(c => c.id !== command.payload.userNeedConnection?.id)
   } else if (command.type === 'addNeedContextConnection' && command.payload.needContextConnection) {
     newNeedContextConnections = [...newNeedContextConnections, command.payload.needContextConnection]
   } else if (command.type === 'deleteNeedContextConnection' && command.payload.needContextConnection) {
@@ -403,9 +395,9 @@ export function applyRedo(project: Project, command: EditorCommand): Project {
     repos: newRepos,
     groups: newGroups,
     relationships: newRelationships,
-    actors: newActors,
+    users: newUsers,
     userNeeds: newUserNeeds,
-    actorNeedConnections: newActorNeedConnections,
+    userNeedConnections: newUserNeedConnections,
     needContextConnections: newNeedContextConnections,
     viewConfig: {
       ...project.viewConfig,

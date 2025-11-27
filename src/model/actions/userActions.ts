@@ -1,36 +1,36 @@
 import type { EditorState, EditorCommand } from '../storeTypes'
-import type { Project, Actor, UserNeed, ActorConnection, ActorNeedConnection, NeedContextConnection } from '../types'
+import type { User, UserNeed, UserNeedConnection, NeedContextConnection } from '../types'
 import { trackEvent } from '../../utils/analytics'
 
-export function addActorAction(state: EditorState, name: string): Partial<EditorState> {
+export function addUserAction(state: EditorState, name: string): Partial<EditorState> {
   const projectId = state.activeProjectId
   if (!projectId) return state
 
   const project = state.projects[projectId]
   if (!project) return state
 
-  const newActor: Actor = {
-    id: `actor-${Date.now()}`,
+  const newUser: User = {
+    id: `user-${Date.now()}`,
     name,
     position: 50,
   }
 
   const command: EditorCommand = {
-    type: 'addActor',
+    type: 'addUser',
     payload: {
-      actor: newActor,
+      user: newUser,
     },
   }
 
   const updatedProject = {
     ...project,
-    actors: [...(project.actors || []), newActor],
+    users: [...(project.users || []), newUser],
   }
 
   // Track analytics
-  trackEvent('actor_added', updatedProject, {
-    entity_type: 'actor',
-    entity_id: newActor.id
+  trackEvent('user_added', updatedProject, {
+    entity_type: 'user',
+    entity_id: newUser.id
   })
 
   return {
@@ -38,47 +38,47 @@ export function addActorAction(state: EditorState, name: string): Partial<Editor
       ...state.projects,
       [projectId]: updatedProject,
     },
-    selectedActorId: newActor.id,
+    selectedUserId: newUser.id,
     undoStack: [...state.undoStack, command],
     redoStack: [],
   }
 }
 
-export function deleteActorAction(state: EditorState, actorId: string): Partial<EditorState> {
+export function deleteUserAction(state: EditorState, userId: string): Partial<EditorState> {
   const projectId = state.activeProjectId
   if (!projectId) return state
 
   const project = state.projects[projectId]
   if (!project) return state
 
-  const actor = project.actors?.find(a => a.id === actorId)
-  if (!actor) return state
+  const user = project.users?.find(u => u.id === userId)
+  if (!user) return state
 
   const command: EditorCommand = {
-    type: 'deleteActor',
+    type: 'deleteUser',
     payload: {
-      actor,
+      user,
     },
   }
 
-  // Also delete any actor connections for this actor
-  const updatedActorConnections = (project.actorConnections || []).filter(
-    ac => ac.actorId !== actorId
+  // Also delete any user need connections for this user
+  const updatedUserNeedConnections = (project.userNeedConnections || []).filter(
+    unc => unc.userId !== userId
   )
 
   const updatedProject = {
     ...project,
-    actors: project.actors.filter(a => a.id !== actorId),
-    actorConnections: updatedActorConnections,
+    users: project.users.filter(u => u.id !== userId),
+    userNeedConnections: updatedUserNeedConnections,
   }
 
   // Track analytics
-  const connectionCount = (project.actorConnections || []).filter(
-    ac => ac.actorId === actorId
+  const connectionCount = (project.userNeedConnections || []).filter(
+    unc => unc.userId === userId
   ).length
-  trackEvent('actor_deleted', project, {
-    entity_type: 'actor',
-    entity_id: actorId,
+  trackEvent('user_deleted', project, {
+    entity_type: 'user',
+    entity_id: userId,
     metadata: {
       connection_count: connectionCount
     }
@@ -89,31 +89,31 @@ export function deleteActorAction(state: EditorState, actorId: string): Partial<
       ...state.projects,
       [projectId]: updatedProject,
     },
-    selectedActorId: state.selectedActorId === actorId ? null : state.selectedActorId,
+    selectedUserId: state.selectedUserId === userId ? null : state.selectedUserId,
     undoStack: [...state.undoStack, command],
     redoStack: [],
   }
 }
 
-export function updateActorAction(state: EditorState, actorId: string, updates: Partial<Actor>): Partial<EditorState> {
+export function updateUserAction(state: EditorState, userId: string, updates: Partial<User>): Partial<EditorState> {
   const projectId = state.activeProjectId
   if (!projectId) return state
 
   const project = state.projects[projectId]
   if (!project) return state
 
-  const actorIndex = project.actors?.findIndex(a => a.id === actorId) ?? -1
-  if (actorIndex === -1) return state
+  const userIndex = project.users?.findIndex(u => u.id === userId) ?? -1
+  if (userIndex === -1) return state
 
-  const updatedActors = [...(project.actors || [])]
-  updatedActors[actorIndex] = {
-    ...updatedActors[actorIndex],
+  const updatedUsers = [...(project.users || [])]
+  updatedUsers[userIndex] = {
+    ...updatedUsers[userIndex],
     ...updates,
   }
 
   const updatedProject = {
     ...project,
-    actors: updatedActors,
+    users: updatedUsers,
   }
 
   return {
@@ -124,35 +124,35 @@ export function updateActorAction(state: EditorState, actorId: string, updates: 
   }
 }
 
-export function updateActorPositionAction(state: EditorState, actorId: string, newPosition: number): Partial<EditorState> {
+export function updateUserPositionAction(state: EditorState, userId: string, newPosition: number): Partial<EditorState> {
   const projectId = state.activeProjectId
   if (!projectId) return state
 
   const project = state.projects[projectId]
   if (!project) return state
 
-  const actorIndex = project.actors?.findIndex(a => a.id === actorId) ?? -1
-  if (actorIndex === -1) return state
+  const userIndex = project.users?.findIndex(u => u.id === userId) ?? -1
+  if (userIndex === -1) return state
 
-  const actor = project.actors[actorIndex]
-  const oldPosition = actor.position
+  const user = project.users[userIndex]
+  const oldPosition = user.position
 
-  const updatedActors = [...(project.actors || [])]
-  updatedActors[actorIndex] = {
-    ...updatedActors[actorIndex],
+  const updatedUsers = [...(project.users || [])]
+  updatedUsers[userIndex] = {
+    ...updatedUsers[userIndex],
     position: newPosition,
   }
 
   const updatedProject = {
     ...project,
-    actors: updatedActors,
+    users: updatedUsers,
   }
 
   // Add to undo stack
   const command: EditorCommand = {
-    type: 'moveActor',
+    type: 'moveUser',
     payload: {
-      actorId,
+      userId,
       oldPosition,
       newPosition,
     },
@@ -165,103 +165,6 @@ export function updateActorPositionAction(state: EditorState, actorId: string, n
     },
     undoStack: [...state.undoStack, command],
     redoStack: [],
-  }
-}
-
-export function createActorConnectionAction(state: EditorState, actorId: string, contextId: string): Partial<EditorState> {
-  const projectId = state.activeProjectId
-  if (!projectId) return state
-
-  const project = state.projects[projectId]
-  if (!project) return state
-
-  const newConnection: ActorConnection = {
-    id: `actor-conn-${Date.now()}`,
-    actorId,
-    contextId,
-  }
-
-  const command: EditorCommand = {
-    type: 'addActorConnection',
-    payload: {
-      actorConnection: newConnection,
-    },
-  }
-
-  const updatedProject = {
-    ...project,
-    actorConnections: [...(project.actorConnections || []), newConnection],
-  }
-
-  return {
-    projects: {
-      ...state.projects,
-      [projectId]: updatedProject,
-    },
-    undoStack: [...state.undoStack, command],
-    redoStack: [],
-  }
-}
-
-export function deleteActorConnectionAction(state: EditorState, connectionId: string): Partial<EditorState> {
-  const projectId = state.activeProjectId
-  if (!projectId) return state
-
-  const project = state.projects[projectId]
-  if (!project) return state
-
-  const connection = project.actorConnections?.find(ac => ac.id === connectionId)
-  if (!connection) return state
-
-  const command: EditorCommand = {
-    type: 'deleteActorConnection',
-    payload: {
-      actorConnection: connection,
-    },
-  }
-
-  const updatedProject = {
-    ...project,
-    actorConnections: (project.actorConnections || []).filter(ac => ac.id !== connectionId),
-  }
-
-  return {
-    projects: {
-      ...state.projects,
-      [projectId]: updatedProject,
-    },
-    selectedActorConnectionId: state.selectedActorConnectionId === connectionId ? null : state.selectedActorConnectionId,
-    undoStack: [...state.undoStack, command],
-    redoStack: [],
-  }
-}
-
-export function updateActorConnectionAction(state: EditorState, connectionId: string, updates: Partial<ActorConnection>): Partial<EditorState> {
-  const projectId = state.activeProjectId
-  if (!projectId) return state
-
-  const project = state.projects[projectId]
-  if (!project) return state
-
-  const connectionIndex = project.actorConnections?.findIndex(ac => ac.id === connectionId) ?? -1
-  if (connectionIndex === -1) return state
-
-  const updatedConnections = [...(project.actorConnections || [])]
-  updatedConnections[connectionIndex] = {
-    ...updatedConnections[connectionIndex],
-    ...updates,
-  }
-
-  const updatedProject = {
-    ...project,
-    actorConnections: updatedConnections,
-  }
-
-  return {
-    projects: {
-      ...state.projects,
-      [projectId]: updatedProject,
-    },
   }
 }
 
@@ -312,18 +215,18 @@ export function deleteUserNeedAction(state: EditorState, userNeedId: string): Pa
   const updatedProject = {
     ...project,
     userNeeds: (project.userNeeds || []).filter(n => n.id !== userNeedId),
-    actorNeedConnections: (project.actorNeedConnections || []).filter(c => c.userNeedId !== userNeedId),
+    userNeedConnections: (project.userNeedConnections || []).filter(c => c.userNeedId !== userNeedId),
     needContextConnections: (project.needContextConnections || []).filter(c => c.userNeedId !== userNeedId),
   }
 
   // Track analytics
-  const actorConnectionCount = (project.actorNeedConnections || []).filter(c => c.userNeedId === userNeedId).length
+  const userConnectionCount = (project.userNeedConnections || []).filter(c => c.userNeedId === userNeedId).length
   const contextConnectionCount = (project.needContextConnections || []).filter(c => c.userNeedId === userNeedId).length
   trackEvent('user_need_deleted', project, {
     entity_type: 'user_need',
     entity_id: userNeedId,
     metadata: {
-      actor_connection_count: actorConnectionCount,
+      user_connection_count: userConnectionCount,
       context_connection_count: contextConnectionCount
     }
   })
@@ -408,37 +311,37 @@ export function updateUserNeedPositionAction(state: EditorState, userNeedId: str
   }
 }
 
-export function createActorNeedConnectionAction(state: EditorState, actorId: string, userNeedId: string): { newState: Partial<EditorState>, newConnectionId: string | null } {
+export function createUserNeedConnectionAction(state: EditorState, userId: string, userNeedId: string): { newState: Partial<EditorState>, newConnectionId: string | null } {
   const projectId = state.activeProjectId
   if (!projectId) return { newState: state, newConnectionId: null }
 
   const project = state.projects[projectId]
   if (!project) return { newState: state, newConnectionId: null }
 
-  const newConnection: ActorNeedConnection = {
-    id: `actor-need-conn-${Date.now()}`,
-    actorId,
+  const newConnection: UserNeedConnection = {
+    id: `user-need-conn-${Date.now()}`,
+    userId,
     userNeedId,
   }
 
   const command: EditorCommand = {
-    type: 'addActorNeedConnection',
+    type: 'addUserNeedConnection',
     payload: {
-      actorNeedConnection: newConnection,
+      userNeedConnection: newConnection,
     },
   }
 
   const updatedProject = {
     ...project,
-    actorNeedConnections: [...(project.actorNeedConnections || []), newConnection],
+    userNeedConnections: [...(project.userNeedConnections || []), newConnection],
   }
 
   // Track analytics
-  trackEvent('actor_need_connection_created', updatedProject, {
-    entity_type: 'actor_need_connection',
+  trackEvent('user_need_connection_created', updatedProject, {
+    entity_type: 'user_need_connection',
     entity_id: newConnection.id,
     metadata: {
-      actor_id: actorId,
+      user_id: userId,
       user_need_id: userNeedId
     }
   })
@@ -456,26 +359,26 @@ export function createActorNeedConnectionAction(state: EditorState, actorId: str
   }
 }
 
-export function deleteActorNeedConnectionAction(state: EditorState, connectionId: string): Partial<EditorState> {
+export function deleteUserNeedConnectionAction(state: EditorState, connectionId: string): Partial<EditorState> {
   const projectId = state.activeProjectId
   if (!projectId) return state
 
   const project = state.projects[projectId]
   if (!project) return state
 
-  const connection = project.actorNeedConnections?.find(c => c.id === connectionId)
+  const connection = project.userNeedConnections?.find(c => c.id === connectionId)
   if (!connection) return state
 
   const command: EditorCommand = {
-    type: 'deleteActorNeedConnection',
+    type: 'deleteUserNeedConnection',
     payload: {
-      actorNeedConnection: connection,
+      userNeedConnection: connection,
     },
   }
 
   const updatedProject = {
     ...project,
-    actorNeedConnections: (project.actorNeedConnections || []).filter(c => c.id !== connectionId),
+    userNeedConnections: (project.userNeedConnections || []).filter(c => c.id !== connectionId),
   }
 
   return {
@@ -488,17 +391,17 @@ export function deleteActorNeedConnectionAction(state: EditorState, connectionId
   }
 }
 
-export function updateActorNeedConnectionAction(state: EditorState, connectionId: string, updates: Partial<ActorNeedConnection>): Partial<EditorState> {
+export function updateUserNeedConnectionAction(state: EditorState, connectionId: string, updates: Partial<UserNeedConnection>): Partial<EditorState> {
   const projectId = state.activeProjectId
   if (!projectId) return state
 
   const project = state.projects[projectId]
   if (!project) return state
 
-  const connectionIndex = project.actorNeedConnections?.findIndex(c => c.id === connectionId) ?? -1
+  const connectionIndex = project.userNeedConnections?.findIndex(c => c.id === connectionId) ?? -1
   if (connectionIndex === -1) return state
 
-  const updatedConnections = [...(project.actorNeedConnections || [])]
+  const updatedConnections = [...(project.userNeedConnections || [])]
   updatedConnections[connectionIndex] = {
     ...updatedConnections[connectionIndex],
     ...updates,
@@ -506,7 +409,7 @@ export function updateActorNeedConnectionAction(state: EditorState, connectionId
 
   const updatedProject = {
     ...project,
-    actorNeedConnections: updatedConnections,
+    userNeedConnections: updatedConnections,
   }
 
   return {

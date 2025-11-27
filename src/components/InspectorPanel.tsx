@@ -13,7 +13,7 @@ import {
   getPatternDefinition,
 } from '../model/patternDefinitions'
 import { InfoTooltip } from './InfoTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_ACTOR, POWER_DYNAMICS, COMMUNICATION_MODE } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_USER, POWER_DYNAMICS, COMMUNICATION_MODE } from '../model/conceptDefinitions'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -27,10 +27,10 @@ export function InspectorPanel() {
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
-  const selectedActorId = useEditorStore(s => s.selectedActorId)
+  const selectedUserId = useEditorStore(s => s.selectedUserId)
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
-  const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
+  const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContext = useEditorStore(s => s.updateContext)
@@ -45,16 +45,16 @@ export function InspectorPanel() {
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
   const updateRelationship = useEditorStore(s => s.updateRelationship)
   const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
-  const updateActor = useEditorStore(s => s.updateActor)
+  const updateUser = useEditorStore(s => s.updateUser)
   const setViewMode = useEditorStore(s => s.setViewMode)
-  const deleteActor = useEditorStore(s => s.deleteActor)
-  const createActorConnection = useEditorStore(s => s.createActorConnection)
-  const deleteActorConnection = useEditorStore(s => s.deleteActorConnection)
+  const deleteUser = useEditorStore(s => s.deleteUser)
+  const createUserConnection = useEditorStore(s => s.createUserConnection)
+  const deleteUserConnection = useEditorStore(s => s.deleteUserConnection)
   const updateUserNeed = useEditorStore(s => s.updateUserNeed)
   const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
-  const createActorNeedConnection = useEditorStore(s => s.createActorNeedConnection)
-  const deleteActorNeedConnection = useEditorStore(s => s.deleteActorNeedConnection)
-  const updateActorNeedConnection = useEditorStore(s => s.updateActorNeedConnection)
+  const createUserNeedConnection = useEditorStore(s => s.createUserNeedConnection)
+  const deleteUserNeedConnection = useEditorStore(s => s.deleteUserNeedConnection)
+  const updateUserNeedConnection = useEditorStore(s => s.updateUserNeedConnection)
   const createNeedContextConnection = useEditorStore(s => s.createNeedContextConnection)
   const deleteNeedContextConnection = useEditorStore(s => s.deleteNeedContextConnection)
   const updateNeedContextConnection = useEditorStore(s => s.updateNeedContextConnection)
@@ -198,31 +198,31 @@ export function InspectorPanel() {
     )
   }
 
-  // Show actor details if actor is selected
-  if (selectedActorId) {
-    const actor = project.actors?.find(a => a.id === selectedActorId)
-    if (!actor) {
+  // Show user details if user is selected
+  if (selectedUserId) {
+    const user = project.users?.find(u => u.id === selectedUserId)
+    if (!user) {
       return (
         <div className="text-neutral-500 dark:text-neutral-400">
-          Actor not found.
+          User not found.
         </div>
       )
     }
 
-    // Find connections for this actor (Actor → User Need)
-    const connections = (project.actorNeedConnections || []).filter(ac => ac.actorId === actor.id)
+    // Find connections for this user (User → User Need)
+    const connections = (project.userNeedConnections || []).filter(uc => uc.userId === user.id)
     const connectedUserNeeds = connections.map(conn => {
       const userNeed = project.userNeeds?.find(un => un.id === conn.userNeedId)
       return { connection: conn, userNeed }
     }).filter(item => item.userNeed)
 
-    const handleUpdate = (updates: Partial<typeof actor>) => {
-      updateActor(actor.id, updates)
+    const handleUpdate = (updates: Partial<typeof user>) => {
+      updateUser(user.id, updates)
     }
 
     const handleDelete = () => {
-      if (window.confirm(`Delete actor "${actor.name}"? This will also delete all connections to user needs. This can be undone with Cmd/Ctrl+Z.`)) {
-        deleteActor(actor.id)
+      if (window.confirm(`Delete user "${user.name}"? This will also delete all connections to user needs. This can be undone with Cmd/Ctrl+Z.`)) {
+        deleteUser(user.id)
       }
     }
 
@@ -232,7 +232,7 @@ export function InspectorPanel() {
         <div>
           <input
             type="text"
-            value={actor.name}
+            value={user.name}
             onChange={(e) => handleUpdate({ name: e.target.value })}
             className={INPUT_TITLE_CLASS}
           />
@@ -241,9 +241,9 @@ export function InspectorPanel() {
         {/* Description */}
         <Section label="Description">
           <textarea
-            value={actor.description || ''}
+            value={user.description || ''}
             onChange={(e) => handleUpdate({ description: e.target.value })}
-            placeholder="Describe this actor/user type..."
+            placeholder="Describe this user type..."
             rows={2}
             className={TEXTAREA_CLASS}
           />
@@ -254,10 +254,10 @@ export function InspectorPanel() {
           <div className="flex items-center gap-2">
             <Switch
               label="External"
-              checked={actor.isExternal || false}
+              checked={user.isExternal || false}
               onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
             />
-            <InfoTooltip content={EXTERNAL_ACTOR} position="bottom">
+            <InfoTooltip content={EXTERNAL_USER} position="bottom">
               <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
             </InfoTooltip>
           </div>
@@ -277,13 +277,13 @@ export function InspectorPanel() {
                   className="flex items-center gap-2 group"
                 >
                   <button
-                    onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed!.id, selectedActorId: null })}
+                    onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed!.id, selectedUserId: null })}
                     className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
                   >
                     {userNeed!.name}
                   </button>
                   <button
-                    onClick={() => deleteActorNeedConnection(connection.id)}
+                    onClick={() => deleteUserNeedConnection(connection.id)}
                     className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
                     title="Remove connection"
                   >
@@ -295,14 +295,14 @@ export function InspectorPanel() {
           </div>
         </Section>
 
-        {/* Delete Actor */}
+        {/* Delete User */}
         <div className="pt-4 border-t border-slate-200 dark:border-neutral-700">
           <button
             onClick={handleDelete}
             className="flex items-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded text-xs font-medium"
           >
             <Trash2 size={14} />
-            Delete Actor
+            Delete User
           </button>
         </div>
       </div>
@@ -321,11 +321,11 @@ export function InspectorPanel() {
     }
 
     // Find connections for this user need
-    const actorConnections = (project.actorNeedConnections || []).filter(c => c.userNeedId === userNeed.id)
-    const connectedActors = actorConnections.map(conn => {
-      const actor = project.actors?.find(a => a.id === conn.actorId)
-      return { connection: conn, actor }
-    }).filter(item => item.actor)
+    const userConnections = (project.userNeedConnections || []).filter(c => c.userNeedId === userNeed.id)
+    const connectedUsers = userConnections.map(conn => {
+      const user = project.users?.find(u => u.id === conn.userId)
+      return { connection: conn, user }
+    }).filter(item => item.user)
 
     const contextConnections = (project.needContextConnections || []).filter(c => c.userNeedId === userNeed.id)
     const connectedContexts = contextConnections.map(conn => {
@@ -366,27 +366,27 @@ export function InspectorPanel() {
           />
         </Section>
 
-        {/* Connected Actors */}
-        <Section label={`Actors (${connectedActors.length})`}>
+        {/* Connected Users */}
+        <Section label={`Users (${connectedUsers.length})`}>
           <div className="space-y-1">
-            {connectedActors.length === 0 ? (
+            {connectedUsers.length === 0 ? (
               <div className="text-slate-500 dark:text-slate-400 text-xs italic">
-                No actors connected
+                No users connected
               </div>
             ) : (
-              connectedActors.map(({ connection, actor }) => (
+              connectedUsers.map(({ connection, user }) => (
                 <div
                   key={connection.id}
                   className="flex items-center gap-2 group"
                 >
                   <button
-                    onClick={() => useEditorStore.setState({ selectedActorId: actor!.id, selectedUserNeedId: null })}
+                    onClick={() => useEditorStore.setState({ selectedUserId: user!.id, selectedUserNeedId: null })}
                     className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
                   >
-                    {actor!.name}
+                    {user!.name}
                   </button>
                   <button
-                    onClick={() => deleteActorNeedConnection(connection.id)}
+                    onClick={() => deleteUserNeedConnection(connection.id)}
                     className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
                     title="Remove connection"
                   >
@@ -667,9 +667,9 @@ export function InspectorPanel() {
     )
   }
 
-  // Show actor-need connection details if connection is selected
-  if (selectedActorNeedConnectionId) {
-    const connection = project.actorNeedConnections?.find(c => c.id === selectedActorNeedConnectionId)
+  // Show user-need connection details if connection is selected
+  if (selectedUserNeedConnectionId) {
+    const connection = project.userNeedConnections?.find(c => c.id === selectedUserNeedConnectionId)
     if (!connection) {
       return (
         <div className="text-neutral-500 dark:text-neutral-400">
@@ -678,19 +678,19 @@ export function InspectorPanel() {
       )
     }
 
-    const actor = project.actors?.find(a => a.id === connection.actorId)
+    const user = project.users?.find(u => u.id === connection.userId)
     const userNeed = project.userNeeds?.find(n => n.id === connection.userNeedId)
 
     const handleDeleteConnection = () => {
-      if (window.confirm(`Delete connection from "${actor?.name}" to "${userNeed?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
-        deleteActorNeedConnection(connection.id)
+      if (window.confirm(`Delete connection from "${user?.name}" to "${userNeed?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
+        deleteUserNeedConnection(connection.id)
       }
     }
 
     const handleNotesChange = (e: React.FocusEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value.trim()
       if (newValue !== connection.notes) {
-        updateActorNeedConnection(connection.id, { notes: newValue || undefined })
+        updateUserNeedConnection(connection.id, { notes: newValue || undefined })
       }
     }
 
@@ -698,21 +698,21 @@ export function InspectorPanel() {
       <div className="space-y-5">
         {/* Connection Title */}
         <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
-          Actor → Need Connection
+          User → Need Connection
         </div>
 
-        {/* From/To - Actor and User Need */}
+        {/* From/To - User and User Need */}
         <Section label="Connection">
           <div className="flex items-center gap-2 text-sm">
             <button
-              onClick={() => useEditorStore.setState({ selectedActorId: actor?.id, selectedActorNeedConnectionId: null })}
+              onClick={() => useEditorStore.setState({ selectedUserId: user?.id, selectedUserNeedConnectionId: null })}
               className="text-blue-600 dark:text-blue-400 hover:underline"
             >
-              {actor?.name || 'Unknown'}
+              {user?.name || 'Unknown'}
             </button>
             <ArrowRight size={14} className="text-slate-400" />
             <button
-              onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed?.id, selectedActorNeedConnectionId: null })}
+              onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed?.id, selectedUserNeedConnectionId: null })}
               className="text-blue-600 dark:text-blue-400 hover:underline"
             >
               {userNeed?.name || 'Unknown'}
@@ -869,32 +869,32 @@ export function InspectorPanel() {
         />
       </div>
 
-      {/* Actors - between name and purpose, no heading */}
+      {/* Users - between name and purpose, no heading */}
       {(() => {
-        const actorConns = (project.actorConnections || []).filter(ac => ac.contextId === context.id)
-        const actorsForContext = actorConns.map(conn => {
-          const actor = project.actors?.find(a => a.id === conn.actorId)
-          return { connection: conn, actor }
-        }).filter(item => item.actor)
+        const userConns = (project.userConnections || []).filter(uc => uc.contextId === context.id)
+        const usersForContext = userConns.map(conn => {
+          const user = project.users?.find(u => u.id === conn.userId)
+          return { connection: conn, user }
+        }).filter(item => item.user)
 
-        return actorsForContext.length > 0 ? (
+        return usersForContext.length > 0 ? (
           <div className="space-y-1">
-            {actorsForContext.map(({ connection, actor }) => (
+            {usersForContext.map(({ connection, user }) => (
               <div
                 key={connection.id}
-                className="flex items-center gap-2 group/actor"
+                className="flex items-center gap-2 group/user"
               >
                 <button
-                  onClick={() => useEditorStore.setState({ selectedActorId: actor!.id, selectedContextId: null })}
+                  onClick={() => useEditorStore.setState({ selectedUserId: user!.id, selectedContextId: null })}
                   className="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-xs flex items-center gap-2 text-slate-600 dark:text-slate-400"
                 >
                   <Users size={12} className="text-blue-500 flex-shrink-0" />
-                  {actor!.name}
+                  {user!.name}
                 </button>
                 <button
-                  onClick={() => deleteActorConnection(connection.id)}
-                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/actor:opacity-100"
-                  title="Remove actor connection"
+                  onClick={() => deleteUserConnection(connection.id)}
+                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/user:opacity-100"
+                  title="Remove user connection"
                 >
                   <Trash2 size={11} />
                 </button>

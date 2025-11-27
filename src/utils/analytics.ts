@@ -47,9 +47,9 @@ interface ProjectMetadata {
   contributor_count: number
   has_temporal: boolean
   keyframe_count: number
-  actor_count: number
+  user_count: number
   need_count: number
-  actor_need_connection_count: number
+  user_need_connection_count: number
   need_context_connection_count: number
   flow_stage_marker_count: number
 }
@@ -70,9 +70,9 @@ export function getProjectMetadata(project: Project | null): ProjectMetadata | n
     contributor_count: project.repos.reduce((sum, r) => sum + r.contributors.length, 0),
     has_temporal: project.temporal?.enabled || false,
     keyframe_count: project.temporal?.keyframes.length || 0,
-    actor_count: project.actors.length,
+    user_count: project.users.length,
     need_count: project.userNeeds.length,
-    actor_need_connection_count: project.actorNeedConnections.length,
+    user_need_connection_count: project.userNeedConnections.length,
     need_context_connection_count: project.needContextConnections.length,
     flow_stage_marker_count: project.viewConfig.flowStages.length
   }

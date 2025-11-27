@@ -11,9 +11,9 @@ export interface Project {
   people: Person[]
   teams: Team[]
   groups: Group[]
-  actors: Actor[]
+  users: User[]
   userNeeds: UserNeed[]
-  actorNeedConnections: ActorNeedConnection[]
+  userNeedConnections: UserNeedConnection[]
   needContextConnections: NeedContextConnection[]
 
   viewConfig: {
@@ -121,12 +121,12 @@ export interface FlowStageMarker {
   position: number // 0..100 along Flow View X axis
 }
 
-export interface Actor {
+export interface User {
   id: string
   name: string
   description?: string
   position: number // 0..100 along Strategic View X axis (horizontal only)
-  isExternal?: boolean // external actors outside the organization
+  isExternal?: boolean // external users outside the organization
 }
 
 export interface UserNeed {
@@ -137,9 +137,9 @@ export interface UserNeed {
   visibility?: boolean // can be hidden without deleting
 }
 
-export interface ActorNeedConnection {
+export interface UserNeedConnection {
   id: string
-  actorId: string
+  userId: string
   userNeedId: string
   notes?: string
 }

@@ -1,23 +1,20 @@
 import { describe, it, expect, vi } from 'vitest'
 import {
-  addActorAction,
-  deleteActorAction,
-  updateActorAction,
-  updateActorPositionAction,
-  createActorConnectionAction,
-  deleteActorConnectionAction,
-  updateActorConnectionAction,
+  addUserAction,
+  deleteUserAction,
+  updateUserAction,
+  updateUserPositionAction,
   addUserNeedAction,
   deleteUserNeedAction,
   updateUserNeedAction,
   updateUserNeedPositionAction,
-  createActorNeedConnectionAction,
-  deleteActorNeedConnectionAction,
-  updateActorNeedConnectionAction,
+  createUserNeedConnectionAction,
+  deleteUserNeedConnectionAction,
+  updateUserNeedConnectionAction,
   createNeedContextConnectionAction,
   deleteNeedContextConnectionAction,
   updateNeedContextConnectionAction,
-} from './actorActions'
+} from './userActions'
 import { createMockState } from './__testFixtures__/mockState'
 
 // Mock analytics
@@ -25,38 +22,38 @@ vi.mock('../../utils/analytics', () => ({
   trackEvent: vi.fn(),
 }))
 
-describe('actorActions', () => {
-  describe('addActorAction', () => {
-    it('should add a new actor to the project', () => {
+describe('userActions', () => {
+  describe('addUserAction', () => {
+    it('should add a new user to the project', () => {
       const state = createMockState()
-      const result = addActorAction(state, 'Customer')
+      const result = addUserAction(state, 'Customer')
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actors).toHaveLength(1)
-      expect(updatedProject?.actors[0].name).toBe('Customer')
-      expect(updatedProject?.actors[0].position).toBe(50)
+      expect(updatedProject?.users).toHaveLength(1)
+      expect(updatedProject?.users[0].name).toBe('Customer')
+      expect(updatedProject?.users[0].position).toBe(50)
     })
 
-    it('should set selectedActorId to new actor', () => {
+    it('should set selectedUserId to new user', () => {
       const state = createMockState()
-      const result = addActorAction(state, 'Customer')
+      const result = addUserAction(state, 'Customer')
 
       const updatedProject = result.projects?.['test-project']
-      expect(result.selectedActorId).toBe(updatedProject?.actors[0].id)
+      expect(result.selectedUserId).toBe(updatedProject?.users[0].id)
     })
 
     it('should add to undo stack', () => {
       const state = createMockState()
-      const result = addActorAction(state, 'Customer')
+      const result = addUserAction(state, 'Customer')
 
       expect(result.undoStack).toHaveLength(1)
-      expect(result.undoStack?.[0].type).toBe('addActor')
+      expect(result.undoStack?.[0].type).toBe('addUser')
     })
 
     it('should clear redo stack', () => {
       const state = createMockState()
-      state.redoStack = [{ type: 'addActor', payload: { actor: { id: 'old', name: 'Old', position: 50 } } }]
-      const result = addActorAction(state, 'Customer')
+      state.redoStack = [{ type: 'addUser', payload: { user: { id: 'old', name: 'Old', position: 50 } } }]
+      const result = addUserAction(state, 'Customer')
 
       expect(result.redoStack).toEqual([])
     })
@@ -64,164 +61,106 @@ describe('actorActions', () => {
     it('should return unchanged state if no active project', () => {
       const state = createMockState()
       state.activeProjectId = null
-      const result = addActorAction(state, 'Customer')
+      const result = addUserAction(state, 'Customer')
 
       expect(result).toBe(state)
     })
   })
 
-  describe('deleteActorAction', () => {
-    it('should delete an actor from the project', () => {
+  describe('deleteUserAction', () => {
+    it('should delete a user from the project', () => {
       const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
+        users: [{ id: 'user-1', name: 'Customer', position: 50 }],
       })
-      const result = deleteActorAction(state, 'actor-1')
+      const result = deleteUserAction(state, 'user-1')
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actors).toHaveLength(0)
+      expect(updatedProject?.users).toHaveLength(0)
     })
 
-    it('should delete all actor connections for the actor', () => {
+    it('should delete all user-need connections for the user', () => {
       const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
-        contexts: [{ id: 'ctx-1', name: 'Context', positions: { flow: { x: 0 }, strategic: { x: 50 }, distillation: { x: 50, y: 50 }, shared: { y: 50 } }, isExternal: false, evolutionStage: 'custom', strategicClassification: 'core' }],
-        actorConnections: [
-          { id: 'conn-1', actorId: 'actor-1', contextId: 'ctx-1' },
-          { id: 'conn-2', actorId: 'actor-2', contextId: 'ctx-1' },
+        users: [{ id: 'user-1', name: 'Customer', position: 50 }],
+        userNeedConnections: [
+          { id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' },
+          { id: 'conn-2', userId: 'user-2', userNeedId: 'need-1' },
         ],
       })
-      const result = deleteActorAction(state, 'actor-1')
+      const result = deleteUserAction(state, 'user-1')
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actorConnections).toHaveLength(1)
-      expect(updatedProject?.actorConnections[0].id).toBe('conn-2')
+      expect(updatedProject?.userNeedConnections).toHaveLength(1)
+      expect(updatedProject?.userNeedConnections[0].id).toBe('conn-2')
     })
 
-    it('should clear selectedActorId if deleted actor was selected', () => {
+    it('should clear selectedUserId if deleted user was selected', () => {
       const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
+        users: [{ id: 'user-1', name: 'Customer', position: 50 }],
       })
-      state.selectedActorId = 'actor-1'
-      const result = deleteActorAction(state, 'actor-1')
+      state.selectedUserId = 'user-1'
+      const result = deleteUserAction(state, 'user-1')
 
-      expect(result.selectedActorId).toBeNull()
+      expect(result.selectedUserId).toBeNull()
     })
 
     it('should add to undo stack', () => {
       const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
+        users: [{ id: 'user-1', name: 'Customer', position: 50 }],
       })
-      const result = deleteActorAction(state, 'actor-1')
+      const result = deleteUserAction(state, 'user-1')
 
       expect(result.undoStack).toHaveLength(1)
-      expect(result.undoStack?.[0].type).toBe('deleteActor')
+      expect(result.undoStack?.[0].type).toBe('deleteUser')
     })
 
-    it('should return unchanged state if actor not found', () => {
+    it('should return unchanged state if user not found', () => {
       const state = createMockState()
-      const result = deleteActorAction(state, 'nonexistent')
+      const result = deleteUserAction(state, 'nonexistent')
 
       expect(result).toBe(state)
     })
   })
 
-  describe('updateActorAction', () => {
-    it('should update actor properties', () => {
+  describe('updateUserAction', () => {
+    it('should update user properties', () => {
       const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
+        users: [{ id: 'user-1', name: 'Customer', position: 50 }],
       })
-      const result = updateActorAction(state, 'actor-1', { name: 'Updated Customer' })
+      const result = updateUserAction(state, 'user-1', { name: 'Updated Customer' })
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actors[0].name).toBe('Updated Customer')
+      expect(updatedProject?.users[0].name).toBe('Updated Customer')
     })
 
-    it('should return unchanged state if actor not found', () => {
+    it('should return unchanged state if user not found', () => {
       const state = createMockState()
-      const result = updateActorAction(state, 'nonexistent', { name: 'Test' })
+      const result = updateUserAction(state, 'nonexistent', { name: 'Test' })
 
       expect(result).toBe(state)
     })
   })
 
-  describe('updateActorPositionAction', () => {
-    it('should update actor position', () => {
+  describe('updateUserPositionAction', () => {
+    it('should update user position', () => {
       const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
+        users: [{ id: 'user-1', name: 'Customer', position: 50 }],
       })
-      const result = updateActorPositionAction(state, 'actor-1', 75)
+      const result = updateUserPositionAction(state, 'user-1', 75)
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actors[0].position).toBe(75)
+      expect(updatedProject?.users[0].position).toBe(75)
     })
 
     it('should add to undo stack with old and new positions', () => {
       const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
+        users: [{ id: 'user-1', name: 'Customer', position: 50 }],
       })
-      const result = updateActorPositionAction(state, 'actor-1', 75)
+      const result = updateUserPositionAction(state, 'user-1', 75)
 
       expect(result.undoStack).toHaveLength(1)
-      expect(result.undoStack?.[0].type).toBe('moveActor')
+      expect(result.undoStack?.[0].type).toBe('moveUser')
       expect(result.undoStack?.[0].payload.oldPosition).toBe(50)
       expect(result.undoStack?.[0].payload.newPosition).toBe(75)
-    })
-  })
-
-  describe('createActorConnectionAction', () => {
-    it('should create a connection between actor and context', () => {
-      const state = createMockState({
-        actors: [{ id: 'actor-1', name: 'Customer', position: 50 }],
-        contexts: [{ id: 'ctx-1', name: 'Context', positions: { flow: { x: 0 }, strategic: { x: 50 }, distillation: { x: 50, y: 50 }, shared: { y: 50 } }, isExternal: false, evolutionStage: 'custom', strategicClassification: 'core' }],
-      })
-      const result = createActorConnectionAction(state, 'actor-1', 'ctx-1')
-
-      const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actorConnections).toHaveLength(1)
-      expect(updatedProject?.actorConnections[0].actorId).toBe('actor-1')
-      expect(updatedProject?.actorConnections[0].contextId).toBe('ctx-1')
-    })
-
-    it('should add to undo stack', () => {
-      const state = createMockState()
-      const result = createActorConnectionAction(state, 'actor-1', 'ctx-1')
-
-      expect(result.undoStack).toHaveLength(1)
-      expect(result.undoStack?.[0].type).toBe('addActorConnection')
-    })
-  })
-
-  describe('deleteActorConnectionAction', () => {
-    it('should delete an actor connection', () => {
-      const state = createMockState({
-        actorConnections: [{ id: 'conn-1', actorId: 'actor-1', contextId: 'ctx-1' }],
-      })
-      const result = deleteActorConnectionAction(state, 'conn-1')
-
-      const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actorConnections).toHaveLength(0)
-    })
-
-    it('should add to undo stack', () => {
-      const state = createMockState({
-        actorConnections: [{ id: 'conn-1', actorId: 'actor-1', contextId: 'ctx-1' }],
-      })
-      const result = deleteActorConnectionAction(state, 'conn-1')
-
-      expect(result.undoStack).toHaveLength(1)
-      expect(result.undoStack?.[0].type).toBe('deleteActorConnection')
-    })
-  })
-
-  describe('updateActorConnectionAction', () => {
-    it('should update actor connection properties', () => {
-      const state = createMockState({
-        actorConnections: [{ id: 'conn-1', actorId: 'actor-1', contextId: 'ctx-1' }],
-      })
-      const result = updateActorConnectionAction(state, 'conn-1', { contextId: 'ctx-2' })
-
-      const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actorConnections[0].contextId).toBe('ctx-2')
     })
   })
 
@@ -265,19 +204,19 @@ describe('actorActions', () => {
       expect(updatedProject?.userNeeds).toHaveLength(0)
     })
 
-    it('should delete all actor-need connections for the need', () => {
+    it('should delete all user-need connections for the need', () => {
       const state = createMockState({
         userNeeds: [{ id: 'need-1', name: 'Track Orders', position: 50, visibility: true }],
-        actorNeedConnections: [
-          { id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' },
-          { id: 'conn-2', actorId: 'actor-1', userNeedId: 'need-2' },
+        userNeedConnections: [
+          { id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' },
+          { id: 'conn-2', userId: 'user-1', userNeedId: 'need-2' },
         ],
       })
       const result = deleteUserNeedAction(state, 'need-1')
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actorNeedConnections).toHaveLength(1)
-      expect(updatedProject?.actorNeedConnections[0].userNeedId).toBe('need-2')
+      expect(updatedProject?.userNeedConnections).toHaveLength(1)
+      expect(updatedProject?.userNeedConnections[0].userNeedId).toBe('need-2')
     })
 
     it('should delete all need-context connections for the need', () => {
@@ -349,65 +288,65 @@ describe('actorActions', () => {
     })
   })
 
-  describe('createActorNeedConnectionAction', () => {
-    it('should create a connection between actor and user need', () => {
+  describe('createUserNeedConnectionAction', () => {
+    it('should create a connection between user and user need', () => {
       const state = createMockState()
-      const { newState } = createActorNeedConnectionAction(state, 'actor-1', 'need-1')
+      const { newState } = createUserNeedConnectionAction(state, 'user-1', 'need-1')
 
       const updatedProject = newState.projects?.['test-project']
-      expect(updatedProject?.actorNeedConnections).toHaveLength(1)
-      expect(updatedProject?.actorNeedConnections[0].actorId).toBe('actor-1')
-      expect(updatedProject?.actorNeedConnections[0].userNeedId).toBe('need-1')
+      expect(updatedProject?.userNeedConnections).toHaveLength(1)
+      expect(updatedProject?.userNeedConnections[0].userId).toBe('user-1')
+      expect(updatedProject?.userNeedConnections[0].userNeedId).toBe('need-1')
     })
 
     it('should add to undo stack', () => {
       const state = createMockState()
-      const { newState } = createActorNeedConnectionAction(state, 'actor-1', 'need-1')
+      const { newState } = createUserNeedConnectionAction(state, 'user-1', 'need-1')
 
       expect(newState.undoStack).toHaveLength(1)
-      expect(newState.undoStack?.[0].type).toBe('addActorNeedConnection')
+      expect(newState.undoStack?.[0].type).toBe('addUserNeedConnection')
     })
 
     it('should return connection id', () => {
       const state = createMockState()
-      const { newConnectionId } = createActorNeedConnectionAction(state, 'actor-1', 'need-1')
+      const { newConnectionId } = createUserNeedConnectionAction(state, 'user-1', 'need-1')
 
       expect(newConnectionId).toBeDefined()
       expect(newConnectionId).not.toBeNull()
     })
   })
 
-  describe('deleteActorNeedConnectionAction', () => {
-    it('should delete an actor-need connection', () => {
+  describe('deleteUserNeedConnectionAction', () => {
+    it('should delete a user-need connection', () => {
       const state = createMockState({
-        actorNeedConnections: [{ id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }],
+        userNeedConnections: [{ id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' }],
       })
-      const result = deleteActorNeedConnectionAction(state, 'conn-1')
+      const result = deleteUserNeedConnectionAction(state, 'conn-1')
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actorNeedConnections).toHaveLength(0)
+      expect(updatedProject?.userNeedConnections).toHaveLength(0)
     })
 
     it('should add to undo stack', () => {
       const state = createMockState({
-        actorNeedConnections: [{ id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }],
+        userNeedConnections: [{ id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' }],
       })
-      const result = deleteActorNeedConnectionAction(state, 'conn-1')
+      const result = deleteUserNeedConnectionAction(state, 'conn-1')
 
       expect(result.undoStack).toHaveLength(1)
-      expect(result.undoStack?.[0].type).toBe('deleteActorNeedConnection')
+      expect(result.undoStack?.[0].type).toBe('deleteUserNeedConnection')
     })
   })
 
-  describe('updateActorNeedConnectionAction', () => {
-    it('should update actor-need connection properties', () => {
+  describe('updateUserNeedConnectionAction', () => {
+    it('should update user-need connection properties', () => {
       const state = createMockState({
-        actorNeedConnections: [{ id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }],
+        userNeedConnections: [{ id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' }],
       })
-      const result = updateActorNeedConnectionAction(state, 'conn-1', { userNeedId: 'need-2' })
+      const result = updateUserNeedConnectionAction(state, 'conn-1', { userNeedId: 'need-2' })
 
       const updatedProject = result.projects?.['test-project']
-      expect(updatedProject?.actorNeedConnections[0].userNeedId).toBe('need-2')
+      expect(updatedProject?.userNeedConnections[0].userNeedId).toBe('need-2')
     })
   })
 

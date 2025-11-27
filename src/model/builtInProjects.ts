@@ -32,9 +32,9 @@ export const [sampleProject, cbioportal, empty, elanWarranty] = BUILT_IN_PROJECT
 
 // Ensure all projects have required arrays (for backwards compatibility)
 BUILT_IN_PROJECTS.forEach(project => {
-  if (!project.actors) project.actors = []
+  if (!project.users) project.users = []
   if (!project.userNeeds) project.userNeeds = []
-  if (!project.actorNeedConnections) project.actorNeedConnections = []
+  if (!project.userNeedConnections) project.userNeedConnections = []
   if (!project.needContextConnections) project.needContextConnections = []
 })
 

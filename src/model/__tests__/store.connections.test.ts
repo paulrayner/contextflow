@@ -1,122 +1,122 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useEditorStore } from '../store'
 
-describe('Store - Actor-Need-Context Connection Management', () => {
+describe('Store - User-Need-Context Connection Management', () => {
   beforeEach(() => {
     const { reset } = useEditorStore.getState()
     reset()
   })
 
-  describe('createActorNeedConnection', () => {
-    it('should create connection between actor and user need', () => {
+  describe('createUserNeedConnection', () => {
+    it('should create connection between user and user need', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { createActorNeedConnection, addUserNeed } = state
+      const { createUserNeedConnection, addUserNeed } = state
 
-      const actorId = project.actors[0]?.id
+      const userId = project.users[0]?.id
       const needId = addUserNeed('Test Need')
 
-      if (actorId && needId) {
-        const initialCount = project.actorNeedConnections.length
+      if (userId && needId) {
+        const initialCount = project.userNeedConnections.length
 
-        const connectionId = createActorNeedConnection(actorId, needId)
+        const connectionId = createUserNeedConnection(userId, needId)
 
         const updatedState = useEditorStore.getState()
         const updatedProject = updatedState.projects[updatedState.activeProjectId!]
 
-        expect(updatedProject.actorNeedConnections.length).toBe(initialCount + 1)
+        expect(updatedProject.userNeedConnections.length).toBe(initialCount + 1)
 
-        const connection = updatedProject.actorNeedConnections.find(c => c.id === connectionId)
+        const connection = updatedProject.userNeedConnections.find(c => c.id === connectionId)
         expect(connection).toBeDefined()
-        expect(connection?.actorId).toBe(actorId)
+        expect(connection?.userId).toBe(userId)
         expect(connection?.userNeedId).toBe(needId)
       }
     })
 
-    it('should support undo/redo for actor-need connections', () => {
+    it('should support undo/redo for user-need connections', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { createActorNeedConnection, addUserNeed, undo, redo } = state
+      const { createUserNeedConnection, addUserNeed, undo, redo } = state
 
-      const actorId = project.actors[0]?.id
+      const userId = project.users[0]?.id
       const needId = addUserNeed('Test Need')
 
-      if (actorId && needId) {
-        const initialCount = project.actorNeedConnections.length
+      if (userId && needId) {
+        const initialCount = project.userNeedConnections.length
 
-        const connectionId = createActorNeedConnection(actorId, needId)
+        const connectionId = createUserNeedConnection(userId, needId)
 
         const afterCreate = useEditorStore.getState()
         const projectAfterCreate = afterCreate.projects[afterCreate.activeProjectId!]
-        expect(projectAfterCreate.actorNeedConnections.length).toBe(initialCount + 1)
+        expect(projectAfterCreate.userNeedConnections.length).toBe(initialCount + 1)
 
         undo()
 
         const afterUndo = useEditorStore.getState()
         const projectAfterUndo = afterUndo.projects[afterUndo.activeProjectId!]
-        expect(projectAfterUndo.actorNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(projectAfterUndo.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
 
         redo()
 
         const afterRedo = useEditorStore.getState()
         const projectAfterRedo = afterRedo.projects[afterRedo.activeProjectId!]
-        expect(projectAfterRedo.actorNeedConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(projectAfterRedo.userNeedConnections.find(c => c.id === connectionId)).toBeDefined()
       }
     })
   })
 
-  describe('deleteActorNeedConnection', () => {
-    it('should delete actor-need connection', () => {
+  describe('deleteUserNeedConnection', () => {
+    it('should delete user-need connection', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { createActorNeedConnection, deleteActorNeedConnection, addUserNeed } = state
+      const { createUserNeedConnection, deleteUserNeedConnection, addUserNeed } = state
 
-      const actorId = project.actors[0]?.id
+      const userId = project.users[0]?.id
       const needId = addUserNeed('Test Need')
 
-      if (actorId && needId) {
-        const connectionId = createActorNeedConnection(actorId, needId)
+      if (userId && needId) {
+        const connectionId = createUserNeedConnection(userId, needId)
 
         const beforeDelete = useEditorStore.getState()
         const projectBeforeDelete = beforeDelete.projects[beforeDelete.activeProjectId!]
-        expect(projectBeforeDelete.actorNeedConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(projectBeforeDelete.userNeedConnections.find(c => c.id === connectionId)).toBeDefined()
 
-        deleteActorNeedConnection(connectionId!)
+        deleteUserNeedConnection(connectionId!)
 
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-        expect(projectAfterDelete.actorNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(projectAfterDelete.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
       }
     })
 
-    it('should support undo/redo for deleting actor-need connections', () => {
+    it('should support undo/redo for deleting user-need connections', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { createActorNeedConnection, deleteActorNeedConnection, addUserNeed, undo, redo } = state
+      const { createUserNeedConnection, deleteUserNeedConnection, addUserNeed, undo, redo } = state
 
-      const actorId = project.actors[0]?.id
+      const userId = project.users[0]?.id
       const needId = addUserNeed('Test Need')
 
-      if (actorId && needId) {
-        const connectionId = createActorNeedConnection(actorId, needId)
+      if (userId && needId) {
+        const connectionId = createUserNeedConnection(userId, needId)
 
-        deleteActorNeedConnection(connectionId!)
+        deleteUserNeedConnection(connectionId!)
 
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-        expect(projectAfterDelete.actorNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(projectAfterDelete.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
 
         undo()
 
         const afterUndo = useEditorStore.getState()
         const projectAfterUndo = afterUndo.projects[afterUndo.activeProjectId!]
-        expect(projectAfterUndo.actorNeedConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(projectAfterUndo.userNeedConnections.find(c => c.id === connectionId)).toBeDefined()
 
         redo()
 
         const afterRedo = useEditorStore.getState()
         const projectAfterRedo = afterRedo.projects[afterRedo.activeProjectId!]
-        expect(projectAfterRedo.actorNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(projectAfterRedo.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
       }
     })
   })
@@ -235,23 +235,23 @@ describe('Store - Actor-Need-Context Connection Management', () => {
     })
   })
 
-  describe('updateActorNeedConnection', () => {
-    it('should update actor-need connection notes', () => {
+  describe('updateUserNeedConnection', () => {
+    it('should update user-need connection notes', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { createActorNeedConnection, updateActorNeedConnection, addUserNeed } = state
+      const { createUserNeedConnection, updateUserNeedConnection, addUserNeed } = state
 
-      const actorId = project.actors[0]?.id
+      const userId = project.users[0]?.id
       const needId = addUserNeed('Test Need')
 
-      if (actorId && needId) {
-        const connectionId = createActorNeedConnection(actorId, needId)
+      if (userId && needId) {
+        const connectionId = createUserNeedConnection(userId, needId)
 
-        updateActorNeedConnection(connectionId!, { notes: 'Important connection' })
+        updateUserNeedConnection(connectionId!, { notes: 'Important connection' })
 
         const updatedState = useEditorStore.getState()
         const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-        const connection = updatedProject.actorNeedConnections.find(c => c.id === connectionId)
+        const connection = updatedProject.userNeedConnections.find(c => c.id === connectionId)
 
         expect(connection?.notes).toBe('Important connection')
       }

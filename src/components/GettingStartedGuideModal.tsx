@@ -91,26 +91,26 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
           {/* Step 2 */}
           <StepCard number={2} title="Identify Who's Involved">
             <p>
-              Add <strong className="text-slate-700 dark:text-slate-300">Actors</strong> for each person or role in the journey.
+              Add <strong className="text-slate-700 dark:text-slate-300">Users</strong> for each person or role in the journey.
             </p>
             <div className="flex items-center gap-2 mt-2">
               <Users size={14} className="text-slate-400" />
-              <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Actor</strong> in the toolbar</span>
+              <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> in the toolbar</span>
             </div>
             <p className="mt-2">
-              Mark actors as <em>external</em> (customers, partners) or <em>internal</em> (employees) in the inspector panel.
+              Mark users as <em>external</em> (customers, partners) or <em>internal</em> (employees) in the inspector panel.
             </p>
           </StepCard>
 
           {/* Step 3 */}
           <StepCard number={3} title="Map Their Needs to Systems">
             <p>
-              For each actor, add what they need to accomplish, then connect those needs to the systems that fulfill them.
+              For each user, add what they need to accomplish, then connect those needs to the systems that fulfill them.
             </p>
             <div className="flex flex-col gap-2 mt-2">
               <div className="flex items-center gap-2">
                 <FileText size={14} className="text-slate-400" />
-                <span className="text-xs"><strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — what the actor is trying to do</span>
+                <span className="text-xs"><strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — what the user is trying to do</span>
               </div>
               <div className="flex items-center gap-2">
                 <Box size={14} className="text-slate-400" />

@@ -1,9 +1,9 @@
-import type { Project, BoundedContext, Actor, UserNeed, ActorNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
 export interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addToGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addActor' | 'deleteActor' | 'moveActor' | 'addActorConnection' | 'deleteActorConnection' | 'addUserNeed' | 'deleteUserNeed' | 'moveUserNeed' | 'addActorNeedConnection' | 'deleteActorNeedConnection' | 'addNeedContextConnection' | 'deleteNeedContextConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
+  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addToGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addUser' | 'deleteUser' | 'moveUser' | 'addUserNeed' | 'deleteUserNeed' | 'moveUserNeed' | 'addUserNeedConnection' | 'deleteUserNeedConnection' | 'addNeedContextConnection' | 'deleteNeedContextConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
   payload: {
     contextId?: string
     contextIds?: string[]
@@ -18,16 +18,14 @@ export interface EditorCommand {
     groupId?: string
     relationship?: any
     relationshipId?: string
-    actor?: Actor
-    actorId?: string
+    user?: User
+    userId?: string
     oldPosition?: number
     newPosition?: number
-    actorConnection?: any
-    actorConnectionId?: string
     userNeed?: UserNeed
     userNeedId?: string
-    actorNeedConnection?: ActorNeedConnection
-    actorNeedConnectionId?: string
+    userNeedConnection?: UserNeedConnection
+    userNeedConnectionId?: string
     needContextConnection?: NeedContextConnection
     needContextConnectionId?: string
     keyframe?: TemporalKeyframe
@@ -53,9 +51,9 @@ export interface EditorState {
   selectedContextId: string | null
   selectedRelationshipId: string | null
   selectedGroupId: string | null
-  selectedActorId: string | null
+  selectedUserId: string | null
   selectedUserNeedId: string | null
-  selectedActorNeedConnectionId: string | null
+  selectedUserNeedConnectionId: string | null
   selectedNeedContextConnectionId: string | null
   selectedContextIds: string[]
   isDragging: boolean
@@ -123,24 +121,21 @@ export interface EditorState {
   updateRelationship: (relationshipId: string, updates: Partial<{ pattern: string; communicationMode: string; description: string }>) => void
   swapRelationshipDirection: (relationshipId: string) => void
   setSelectedRelationship: (relationshipId: string | null) => void
-  addActor: (name: string) => void
-  deleteActor: (actorId: string) => void
-  updateActor: (actorId: string, updates: Partial<Actor>) => void
-  updateActorPosition: (actorId: string, newPosition: number) => void
-  setSelectedActor: (actorId: string | null) => void
-  createActorConnection: (actorId: string, contextId: string) => void
-  deleteActorConnection: (connectionId: string) => void
-  updateActorConnection: (connectionId: string, updates: Partial<any>) => void
+  addUser: (name: string) => void
+  deleteUser: (userId: string) => void
+  updateUser: (userId: string, updates: Partial<User>) => void
+  updateUserPosition: (userId: string, newPosition: number) => void
+  setSelectedUser: (userId: string | null) => void
   addUserNeed: (name: string) => string | null
   deleteUserNeed: (userNeedId: string) => void
   updateUserNeed: (userNeedId: string, updates: Partial<UserNeed>) => void
   updateUserNeedPosition: (userNeedId: string, newPosition: number) => void
   setSelectedUserNeed: (userNeedId: string | null) => void
-  setSelectedActorNeedConnection: (connectionId: string | null) => void
+  setSelectedUserNeedConnection: (connectionId: string | null) => void
   setSelectedNeedContextConnection: (connectionId: string | null) => void
-  createActorNeedConnection: (actorId: string, userNeedId: string) => string | null
-  deleteActorNeedConnection: (connectionId: string) => void
-  updateActorNeedConnection: (connectionId: string, updates: Partial<ActorNeedConnection>) => void
+  createUserNeedConnection: (userId: string, userNeedId: string) => string | null
+  deleteUserNeedConnection: (connectionId: string) => void
+  updateUserNeedConnection: (connectionId: string, updates: Partial<UserNeedConnection>) => void
   createNeedContextConnection: (userNeedId: string, contextId: string) => string | null
   deleteNeedContextConnection: (connectionId: string) => void
   updateNeedContextConnection: (connectionId: string, updates: Partial<NeedContextConnection>) => void

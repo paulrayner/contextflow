@@ -5,7 +5,7 @@ import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
-import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, ACTOR_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
+import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, USER_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -21,7 +21,7 @@ export function TopBar() {
   const undo = useEditorStore(s => s.undo)
   const redo = useEditorStore(s => s.redo)
   const addContext = useEditorStore(s => s.addContext)
-  const addActor = useEditorStore(s => s.addActor)
+  const addUser = useEditorStore(s => s.addUser)
   const addUserNeed = useEditorStore(s => s.addUserNeed)
   const addFlowStage = useEditorStore(s => s.addFlowStage)
   const exportProject = useEditorStore(s => s.exportProject)
@@ -100,10 +100,10 @@ export function TopBar() {
     addContext(name)
   }
 
-  const handleAddActor = () => {
-    const name = prompt('Actor name:')
+  const handleAddUser = () => {
+    const name = prompt('User name:')
     if (!name) return
-    addActor(name)
+    addUser(name)
   }
 
   const handleAddUserNeed = () => {
@@ -211,14 +211,14 @@ export function TopBar() {
             </InfoTooltip>
           )}
 
-          {/* Actor/Need buttons: Strategic and Value Stream views (not Distillation) */}
+          {/* User/Need buttons: Strategic and Value Stream views (not Distillation) */}
           {viewMode !== 'distillation' && (
             <>
-              <InfoTooltip content={ACTOR_DEFINITION} position="bottom">
+              <InfoTooltip content={USER_DEFINITION} position="bottom">
                 <AddButton
-                  onClick={handleAddActor}
+                  onClick={handleAddUser}
                   icon={<User size={14} />}
-                  label="Actor"
+                  label="User"
                 />
               </InfoTooltip>
               <InfoTooltip content={USER_NEED_DEFINITION} position="bottom">
