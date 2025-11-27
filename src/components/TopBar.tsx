@@ -3,7 +3,7 @@ import { useEditorStore } from '../model/store'
 import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
-import { VIEW_DESCRIPTIONS } from '../model/conceptDefinitions'
+import { VIEW_DESCRIPTIONS, STAGE_DEFINITION } from '../model/conceptDefinitions'
 
 export function TopBar() {
   const settingsRef = useRef<HTMLDivElement>(null)
@@ -195,12 +195,14 @@ export function TopBar() {
         <div className="flex items-center gap-1 bg-slate-50 dark:bg-neutral-900 rounded-lg px-1.5 py-1">
           {/* Add Stage button - only in Value Stream View */}
           {viewMode === 'flow' && (
-            <AddButton
-              onClick={handleAddStage}
-              icon={<Hash size={14} />}
-              label="Stage"
-              tooltip="Add new flow stage"
-            />
+            <InfoTooltip content={STAGE_DEFINITION} position="bottom">
+              <AddButton
+                onClick={handleAddStage}
+                icon={<Hash size={14} />}
+                label="Stage"
+                tooltip="Add new flow stage"
+              />
+            </InfoTooltip>
           )}
 
           {/* Actor/Need buttons: Strategic and Value Stream views (not Distillation) */}

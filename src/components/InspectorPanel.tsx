@@ -13,7 +13,7 @@ import {
   getPatternDefinition,
 } from '../model/patternDefinitions'
 import { InfoTooltip } from './InfoTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, POWER_DYNAMICS } from '../model/conceptDefinitions'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -924,11 +924,16 @@ export function InspectorPanel() {
           checked={context.isLegacy || false}
           onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
         />
-        <Switch
-          label="External"
-          checked={context.isExternal || false}
-          onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
-        />
+        <div className="flex items-center gap-2">
+          <Switch
+            label="External"
+            checked={context.isExternal || false}
+            onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
+          />
+          <InfoTooltip content={EXTERNAL_CONTEXT} position="bottom">
+            <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+          </InfoTooltip>
+        </div>
       </div>
 
       {/* Member of Groups - under pills, no heading */}
@@ -1084,6 +1089,9 @@ export function InspectorPanel() {
           <option value="large">Large</option>
           <option value="huge">Huge</option>
         </select>
+        <InfoTooltip content={CODE_SIZE_TIERS} position="bottom">
+          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+        </InfoTooltip>
       </div>
 
       {/* Boundary */}
@@ -1100,6 +1108,11 @@ export function InspectorPanel() {
             <option value="moderate">Moderate</option>
             <option value="weak">Weak</option>
           </select>
+          {context.boundaryIntegrity && BOUNDARY_INTEGRITY[context.boundaryIntegrity] && (
+            <InfoTooltip content={BOUNDARY_INTEGRITY[context.boundaryIntegrity]} position="bottom">
+              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
+          )}
         </div>
         <textarea
           value={context.boundaryNotes || ''}
@@ -1137,7 +1150,16 @@ export function InspectorPanel() {
         const hasRelationships = upstream.length > 0 || downstream.length > 0 || mutual.length > 0
 
         return (
-          <Section label="Relationships">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Relationships
+              </span>
+              <InfoTooltip content={POWER_DYNAMICS} position="bottom">
+                <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
+            </div>
+            <div className="text-[13px]">
             {upstream.length > 0 && (
               <div className="mb-3">
                 <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
@@ -1267,7 +1289,8 @@ export function InspectorPanel() {
               <Plus size={12} />
               Add Relationship
             </button>
-          </Section>
+            </div>
+          </div>
         )
       })()}
 

@@ -121,6 +121,82 @@ export const BOUNDARY_INTEGRITY: Record<string, ConceptDefinition> = {
   },
 }
 
+// Stage Definition (Flow View)
+export const STAGE_DEFINITION: ConceptDefinition = {
+  title: 'Stage (Value Stream Phase)',
+  description:
+    'A stage represents a distinct phase in your value stream - similar to the sections between pivotal events in an EventStorming Big Picture timeline.',
+  characteristics: [
+    'Maps to subprocess boundaries in EventStorming',
+    'Groups related user needs and contexts',
+    'Represents a coherent step in delivering value',
+    'Often aligns with team or capability boundaries',
+  ],
+}
+
+// Relationship Edge Indicators
+export const EDGE_INDICATORS: Record<string, ConceptDefinition> = {
+  acl: {
+    title: 'Anti-Corruption Layer',
+    description:
+      'This context translates the upstream model into its own domain language, protecting itself from upstream changes.',
+    characteristics: [
+      'Isolates domain model from external concepts',
+      'Adds translation overhead but increases autonomy',
+      'Common when integrating with legacy or third-party systems',
+    ],
+  },
+  ohs: {
+    title: 'Open-Host Service',
+    description:
+      'This context exposes a well-defined public API for downstream consumers to integrate with.',
+    characteristics: [
+      'Provides stable, versioned interface',
+      'Decouples upstream implementation from downstream needs',
+      'Often paired with Published Language',
+    ],
+  },
+}
+
+// External Context
+export const EXTERNAL_CONTEXT: ConceptDefinition = {
+  title: 'External Context',
+  description:
+    "Mark a context as external when it's outside your organization's control - third-party services, vendor systems, or legacy systems you can't modify.",
+  characteristics: [
+    'Cannot have repositories assigned',
+    'Shown with dotted border on canvas',
+    'Typically requires ACL pattern when integrating',
+  ],
+}
+
+// Code Size Tiers
+export const CODE_SIZE_TIERS: ConceptDefinition = {
+  title: 'Code Size',
+  description:
+    'Estimate the relative size of this bounded context. Size affects the visual representation on the canvas.',
+  characteristics: [
+    'Tiny: < 1,000 lines of code',
+    'Small: 1K - 10K lines',
+    'Medium: 10K - 50K lines',
+    'Large: 50K - 200K lines',
+    'Huge: > 200K lines',
+  ],
+}
+
+// Power Dynamics Legend
+export const POWER_DYNAMICS: ConceptDefinition = {
+  title: 'Power Dynamics',
+  description:
+    'Indicates which team has more control or influence over the relationship between bounded contexts.',
+  characteristics: [
+    '↑ Upstream controls the relationship',
+    '↓ Downstream adapts to upstream',
+    '↔ Mutual dependency (both teams coordinate)',
+    '○ No integration (Separate Ways)',
+  ],
+}
+
 // View Descriptions
 export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
   flow: {

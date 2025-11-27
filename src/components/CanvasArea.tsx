@@ -28,7 +28,7 @@ import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { InfoTooltip } from './InfoTooltip'
-import { EVOLUTION_STAGES } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, EDGE_INDICATORS } from '../model/conceptDefinitions'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { getIndicatorBoxPosition } from '../lib/edgeUtils'
 import { generateBlobPath } from '../lib/blobShape'
@@ -1746,6 +1746,11 @@ function RelationshipEdge({
       {/* Pattern indicator box (ACL/OHS) */}
       {indicatorConfig && boxPos && (
         <g>
+          <title>
+            {isACL
+              ? `${EDGE_INDICATORS.acl.title}: ${EDGE_INDICATORS.acl.description}`
+              : `${EDGE_INDICATORS.ohs.title}: ${EDGE_INDICATORS.ohs.description}`}
+          </title>
           <rect
             x={boxPos.x - indicatorConfig.boxWidth / 2}
             y={boxPos.y - indicatorConfig.boxHeight / 2}
@@ -2753,6 +2758,27 @@ function CanvasContent() {
         <CanvasBoundary />
 
         <CustomControls />
+
+        {/* Empty state welcome message */}
+        {project && project.contexts.length === 0 && (!project.actors || project.actors.length === 0) && (
+          <Panel position="top-center" className="mt-32">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-slate-200 dark:border-neutral-700 p-8 max-w-md text-center">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-3">
+                Welcome to ContextFlow
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                Start mapping your domain by adding your first Bounded Context using the <strong>+ Context</strong> button above, or explore the sample project to see how it works.
+              </p>
+              <div className="text-xs text-slate-500 dark:text-slate-500 bg-slate-50 dark:bg-neutral-900 rounded p-3">
+                <strong>What is a Bounded Context?</strong>
+                <p className="mt-1">
+                  A boundary within which a particular domain model applies. It's where your ubiquitous language is consistent and your team has ownership.
+                </p>
+              </div>
+            </div>
+          </Panel>
+        )}
+
         {viewMode === 'distillation' ? (
           <DistillationRegions />
         ) : viewMode === 'flow' ? (
