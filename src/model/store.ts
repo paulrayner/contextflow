@@ -100,7 +100,11 @@ export const useEditorStore = create<EditorState>((set) => ({
     return stored !== null ? stored === 'true' : true
   })(),
 
-  // UI preferences (load from localStorage if available)
+  showHelpTooltips: (() => {
+    const stored = localStorage.getItem('contextflow.showHelpTooltips')
+    return stored !== null ? stored === 'true' : true
+  })(),
+
   groupOpacity: (() => {
     const stored = localStorage.getItem('contextflow.groupOpacity')
     return stored !== null ? parseFloat(stored) : config.ui.groupOpacity
@@ -579,6 +583,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newValue = !state.showRelationships
     localStorage.setItem('contextflow.showRelationships', String(newValue))
     return { showRelationships: newValue }
+  }),
+
+  toggleHelpTooltips: () => set((state) => {
+    const newValue = !state.showHelpTooltips
+    localStorage.setItem('contextflow.showHelpTooltips', String(newValue))
+    return { showHelpTooltips: newValue }
   }),
 
   setGroupOpacity: (opacity) => {

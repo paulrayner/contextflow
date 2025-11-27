@@ -12,6 +12,8 @@ import {
   POWER_DYNAMICS_ICONS,
   getPatternDefinition,
 } from '../model/patternDefinitions'
+import { InfoTooltip } from './InfoTooltip'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS } from '../model/conceptDefinitions'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -962,30 +964,48 @@ export function InspectorPanel() {
 
       {/* Domain Classification - position-based, no section header */}
       <div>
-        <span
-          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${
-            context.strategicClassification === 'core'
-              ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
-              : context.strategicClassification === 'supporting'
-              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-          }`}
-        >
-          {context.strategicClassification === 'core' && '⚡ Core'}
-          {context.strategicClassification === 'supporting' && '🔧 Supporting'}
-          {context.strategicClassification === 'generic' && '📦 Generic'}
-          {!context.strategicClassification && 'Not classified'}
-        </span>
+        {context.strategicClassification && STRATEGIC_CLASSIFICATIONS[context.strategicClassification] ? (
+          <InfoTooltip content={STRATEGIC_CLASSIFICATIONS[context.strategicClassification]} position="left">
+            <span
+              className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md cursor-help ${
+                context.strategicClassification === 'core'
+                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+                  : context.strategicClassification === 'supporting'
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              {context.strategicClassification === 'core' && '⚡ Core'}
+              {context.strategicClassification === 'supporting' && '🔧 Supporting'}
+              {context.strategicClassification === 'generic' && '📦 Generic'}
+            </span>
+          </InfoTooltip>
+        ) : (
+          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            Not classified
+          </span>
+        )}
       </div>
 
       {/* Evolution Stage - position-based, no section header */}
       <div>
-        <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
-          {context.evolutionStage === 'genesis' && '🌱 Genesis'}
-          {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
-          {context.evolutionStage === 'product/rental' && '📦 Product'}
-          {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
-        </span>
+        {context.evolutionStage && EVOLUTION_STAGES[context.evolutionStage] ? (
+          <InfoTooltip content={EVOLUTION_STAGES[context.evolutionStage]} position="left">
+            <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300 cursor-help">
+              {context.evolutionStage === 'genesis' && '🌱 Genesis'}
+              {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
+              {context.evolutionStage === 'product/rental' && '📦 Product'}
+              {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
+            </span>
+          </InfoTooltip>
+        ) : (
+          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
+            {context.evolutionStage === 'genesis' && '🌱 Genesis'}
+            {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
+            {context.evolutionStage === 'product/rental' && '📦 Product'}
+            {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
+          </span>
+        )}
       </div>
 
       {/* Temporal Position (only in Strategic View with temporal mode enabled) */}

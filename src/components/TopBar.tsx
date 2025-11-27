@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
 import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
+import { InfoTooltip } from './InfoTooltip'
+import { VIEW_DESCRIPTIONS } from '../model/conceptDefinitions'
 
 export function TopBar() {
   const settingsRef = useRef<HTMLDivElement>(null)
@@ -25,6 +27,8 @@ export function TopBar() {
   const showRelationships = useEditorStore(s => s.showRelationships)
   const toggleShowGroups = useEditorStore(s => s.toggleShowGroups)
   const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
+  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const toggleHelpTooltips = useEditorStore(s => s.toggleHelpTooltips)
   const groupOpacity = useEditorStore(s => s.groupOpacity)
   const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
   const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
@@ -147,36 +151,42 @@ export function TopBar() {
 
       {/* View Toggle */}
       <div className="ml-8 flex items-center bg-slate-100 dark:bg-neutral-900 rounded-lg p-1">
-        <button
-          onClick={() => setViewMode('flow')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-            viewMode === 'flow'
-              ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-          }`}
-        >
-          Value Stream
-        </button>
-        <button
-          onClick={() => setViewMode('distillation')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-            viewMode === 'distillation'
-              ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-          }`}
-        >
-          Distillation
-        </button>
-        <button
-          onClick={() => setViewMode('strategic')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-            viewMode === 'strategic'
-              ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-          }`}
-        >
-          Strategic
-        </button>
+        <InfoTooltip content={VIEW_DESCRIPTIONS.flow}>
+          <button
+            onClick={() => setViewMode('flow')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              viewMode === 'flow'
+                ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Value Stream
+          </button>
+        </InfoTooltip>
+        <InfoTooltip content={VIEW_DESCRIPTIONS.distillation}>
+          <button
+            onClick={() => setViewMode('distillation')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              viewMode === 'distillation'
+                ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Distillation
+          </button>
+        </InfoTooltip>
+        <InfoTooltip content={VIEW_DESCRIPTIONS.strategic}>
+          <button
+            onClick={() => setViewMode('strategic')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              viewMode === 'strategic'
+                ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Strategic
+          </button>
+        </InfoTooltip>
       </div>
 
       {/* Actions */}
@@ -301,6 +311,29 @@ export function TopBar() {
                       />
                     </button>
                   </div>
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-neutral-700" />
+
+                {/* Help Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Help</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-600 dark:text-slate-400">Show concept tooltips</span>
+                    <button
+                      onClick={toggleHelpTooltips}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                      style={{ backgroundColor: showHelpTooltips ? '#3b82f6' : '#cbd5e1' }}
+                    >
+                      <span
+                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                        style={{ transform: showHelpTooltips ? 'translateX(18px)' : 'translateX(2px)' }}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+                    Hover explanations for DDD & Wardley concepts
+                  </p>
                 </div>
 
                 <div className="border-t border-slate-200 dark:border-neutral-700" />

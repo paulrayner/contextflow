@@ -69,6 +69,9 @@ export interface EditorState {
   showGroups: boolean
   showRelationships: boolean
 
+  // Help preferences
+  showHelpTooltips: boolean
+
   // UI preferences
   groupOpacity: number
 
@@ -139,6 +142,7 @@ export interface EditorState {
   updateNeedContextConnection: (connectionId: string, updates: Partial<NeedContextConnection>) => void
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
+  toggleHelpTooltips: () => void
   setGroupOpacity: (opacity: number) => void
   updateFlowStage: (index: number, updates: Partial<{ label: string; position: number }>) => void
   addFlowStage: (label: string, position?: number) => void

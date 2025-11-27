@@ -27,6 +27,8 @@ import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefin
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
+import { InfoTooltip } from './InfoTooltip'
+import { EVOLUTION_STAGES } from '../model/conceptDefinitions'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { getIndicatorBoxPosition } from '../lib/edgeUtils'
 import { generateBlobPath } from '../lib/blobShape'
@@ -216,6 +218,7 @@ function ContextNode({ data }: NodeProps) {
   const updateKeyframe = useEditorStore(s => s.updateKeyframe)
 
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
+  const hideDescription = context.codeSize?.bucket === 'tiny' || context.codeSize?.bucket === 'small'
 
   // Handle context menu
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -350,6 +353,7 @@ function ContextNode({ data }: NodeProps) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onContextMenu={handleContextMenu}
+        title={hideDescription && context.purpose ? context.purpose : undefined}
       >
       {/* Legacy badge */}
       {context.isLegacy && (
@@ -403,7 +407,7 @@ function ContextNode({ data }: NodeProps) {
       </div>
 
       {/* Purpose */}
-      {context.purpose && (
+      {context.purpose && !hideDescription && (
         <div
           style={{
             fontSize: '10.5px',
@@ -671,13 +675,12 @@ function EvolutionBands() {
   const { x, y, zoom } = useViewport()
 
   const bands = [
-    { label: 'Genesis', position: 12.5, width: 25 },
-    { label: 'Custom-Built', position: 37.5, width: 25 },
-    { label: 'Product', position: 62.5, width: 25 },
-    { label: 'Commodity', position: 87.5, width: 25 },
+    { label: 'Genesis', key: 'genesis', position: 12.5, width: 25 },
+    { label: 'Custom-Built', key: 'custom-built', position: 37.5, width: 25 },
+    { label: 'Product', key: 'product/rental', position: 62.5, width: 25 },
+    { label: 'Commodity', key: 'commodity/utility', position: 87.5, width: 25 },
   ]
 
-  // Zone dividers at 25%, 50%, 75%
   const zoneDividers = [25, 50, 75]
 
   return (
@@ -729,7 +732,7 @@ function EvolutionBands() {
       >
         {bands.map((band) => {
           const xPos = (band.position / 100) * 2000
-          const yPos = 1040 // Below canvas boundary
+          const yPos = 1040
 
           const transformedX = xPos * zoom + x
           const transformedY = yPos * zoom + y
@@ -737,19 +740,27 @@ function EvolutionBands() {
           return (
             <div
               key={band.label}
-              className="text-slate-700 dark:text-slate-200"
               style={{
                 position: 'absolute',
                 left: transformedX,
                 top: transformedY,
                 transform: 'translate(-50%, -50%)',
-                whiteSpace: 'nowrap',
-                fontSize: `${22.5 * zoom}px`,
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
+                pointerEvents: 'auto',
               }}
             >
-              {band.label}
+              <InfoTooltip content={EVOLUTION_STAGES[band.key]} position="top">
+                <span
+                  className="text-slate-700 dark:text-slate-200 cursor-help"
+                  style={{
+                    whiteSpace: 'nowrap',
+                    fontSize: `${22.5 * zoom}px`,
+                    fontWeight: 600,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {band.label}
+                </span>
+              </InfoTooltip>
             </div>
           )
         })}
