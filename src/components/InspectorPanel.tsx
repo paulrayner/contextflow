@@ -483,7 +483,7 @@ export function InspectorPanel() {
         </div>
 
         {/* From/To Contexts */}
-        <Section label={patternDef && (patternDef.powerDynamics === 'mutual' || patternDef.powerDynamics === 'none') ? "Contexts" : "Direction"}>
+        <Section label={patternDef?.powerDynamics === 'mutual' ? "Contexts" : "Direction"}>
           <div className="flex items-center gap-2 text-sm">
             <button
               onClick={() => useEditorStore.setState({ selectedContextId: fromContext?.id, selectedRelationshipId: null })}
@@ -491,7 +491,7 @@ export function InspectorPanel() {
             >
               {fromContext?.name || 'Unknown'}
             </button>
-            {patternDef && (patternDef.powerDynamics === 'mutual' || patternDef.powerDynamics === 'none') ? (
+            {patternDef?.powerDynamics === 'mutual' ? (
               <ArrowLeftRight size={14} className="text-slate-400" />
             ) : (
               <ArrowRight size={14} className="text-slate-400" />
