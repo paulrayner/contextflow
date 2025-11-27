@@ -209,6 +209,31 @@ export const EXTERNAL_CONTEXT: ConceptDefinition = {
   ],
 }
 
+// Legacy Context
+export const LEGACY_CONTEXT: ConceptDefinition = {
+  title: 'Legacy Context',
+  description:
+    'Mark a context as legacy when it represents aging systems that may need modernization, replacement, or careful maintenance.',
+  characteristics: [
+    'Often accumulated technical debt',
+    'May have weak or undocumented boundaries',
+    'Consider strangler fig pattern for replacement',
+    'Shown with amber/warning visual treatment',
+  ],
+}
+
+// External Actor
+export const EXTERNAL_ACTOR: ConceptDefinition = {
+  title: 'External Actor',
+  description:
+    'Mark an actor as external when they are outside your organization - customers, partners, regulators, or third-party systems.',
+  characteristics: [
+    'Shown with dotted border on canvas',
+    'Helps distinguish internal users from external ones',
+    'External actors often have different access patterns',
+  ],
+}
+
 // Code Size Tiers
 export const CODE_SIZE_TIERS: ConceptDefinition = {
   title: 'Code Size',

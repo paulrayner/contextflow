@@ -13,7 +13,7 @@ import {
   getPatternDefinition,
 } from '../model/patternDefinitions'
 import { InfoTooltip } from './InfoTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, POWER_DYNAMICS } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_ACTOR, POWER_DYNAMICS } from '../model/conceptDefinitions'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -251,11 +251,16 @@ export function InspectorPanel() {
 
         {/* External Toggle */}
         <div className="flex flex-col gap-2">
-          <Switch
-            label="External"
-            checked={actor.isExternal || false}
-            onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
-          />
+          <div className="flex items-center gap-2">
+            <Switch
+              label="External"
+              checked={actor.isExternal || false}
+              onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
+            />
+            <InfoTooltip content={EXTERNAL_ACTOR} position="bottom">
+              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
+          </div>
         </div>
 
         {/* Connected User Needs */}
@@ -919,11 +924,16 @@ export function InspectorPanel() {
 
       {/* Attributes - toggle switches */}
       <div className="flex flex-col gap-2">
-        <Switch
-          label="Legacy"
-          checked={context.isLegacy || false}
-          onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
-        />
+        <div className="flex items-center gap-2">
+          <Switch
+            label="Legacy"
+            checked={context.isLegacy || false}
+            onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
+          />
+          <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+            <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+          </InfoTooltip>
+        </div>
         <div className="flex items-center gap-2">
           <Switch
             label="External"
