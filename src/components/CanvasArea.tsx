@@ -1548,6 +1548,7 @@ function RelationshipEdge({
             selectedContextIds: [],
             selectedGroupId: null,
             selectedActorId: null,
+            selectedUserNeedId: null,
           })
         }}
       >
