@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle, BookOpen } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, ArrowLeftRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle, BookOpen } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 import { PatternsGuideModal } from './PatternsGuideModal'
 import { Switch } from './Switch'
@@ -449,6 +449,7 @@ export function InspectorPanel() {
 
     const fromContext = project.contexts.find(c => c.id === relationship.fromContextId)
     const toContext = project.contexts.find(c => c.id === relationship.toContextId)
+    const patternDef = getPatternDefinition(relationship.pattern)
 
     const handleDeleteRelationship = () => {
       if (window.confirm(`Delete relationship from "${fromContext?.name}" to "${toContext?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
@@ -482,7 +483,7 @@ export function InspectorPanel() {
         </div>
 
         {/* From/To Contexts */}
-        <Section label="Direction">
+        <Section label={patternDef && (patternDef.powerDynamics === 'mutual' || patternDef.powerDynamics === 'none') ? "Contexts" : "Direction"}>
           <div className="flex items-center gap-2 text-sm">
             <button
               onClick={() => useEditorStore.setState({ selectedContextId: fromContext?.id, selectedRelationshipId: null })}
@@ -490,7 +491,11 @@ export function InspectorPanel() {
             >
               {fromContext?.name || 'Unknown'}
             </button>
-            <ArrowRight size={14} className="text-slate-400" />
+            {patternDef && (patternDef.powerDynamics === 'mutual' || patternDef.powerDynamics === 'none') ? (
+              <ArrowLeftRight size={14} className="text-slate-400" />
+            ) : (
+              <ArrowRight size={14} className="text-slate-400" />
+            )}
             <button
               onClick={() => useEditorStore.setState({ selectedContextId: toContext?.id, selectedRelationshipId: null })}
               className="text-blue-600 dark:text-blue-400 hover:underline"

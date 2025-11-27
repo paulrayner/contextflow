@@ -2,10 +2,11 @@
 
 ## In Progress
 
+- [ ] Enable reversing context relationships (swap upstream<--downstream contexts)
+
 ## Backlog
 - [ ] Add grouping of elements and bulk-move
 - [ ] Display helpful message when someone tries to connect actor<->context without user need
-- [ ] Enable reversing context relationships (swap upstream<--downstream contexts)
 - [ ] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views
 - [ ] When switching to distillation view, all contexts are initially placed overlapping in the middle - confusing. They should **not** overlap.
