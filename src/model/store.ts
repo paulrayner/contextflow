@@ -26,7 +26,8 @@ import {
 import {
   addRelationshipAction,
   deleteRelationshipAction,
-  updateRelationshipAction
+  updateRelationshipAction,
+  swapRelationshipDirectionAction
 } from './actions/relationshipActions'
 import {
   addActorAction,
@@ -353,6 +354,13 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   updateRelationship: (relationshipId, updates) => set((state) => {
     const result = updateRelationshipAction(state, relationshipId, updates)
+
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  swapRelationshipDirection: (relationshipId) => set((state) => {
+    const result = swapRelationshipDirectionAction(state, relationshipId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result

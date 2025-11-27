@@ -42,6 +42,7 @@ export function InspectorPanel() {
   const addRelationship = useEditorStore(s => s.addRelationship)
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
   const updateRelationship = useEditorStore(s => s.updateRelationship)
+  const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
   const updateActor = useEditorStore(s => s.updateActor)
   const setViewMode = useEditorStore(s => s.setViewMode)
   const deleteActor = useEditorStore(s => s.deleteActor)

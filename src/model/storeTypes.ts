@@ -114,6 +114,7 @@ export interface EditorState {
   addRelationship: (fromContextId: string, toContextId: string, pattern: string, description?: string) => void
   deleteRelationship: (relationshipId: string) => void
   updateRelationship: (relationshipId: string, updates: Partial<{ pattern: string; communicationMode: string; description: string }>) => void
+  swapRelationshipDirection: (relationshipId: string) => void
   setSelectedRelationship: (relationshipId: string | null) => void
   addActor: (name: string) => void
   deleteActor: (actorId: string) => void

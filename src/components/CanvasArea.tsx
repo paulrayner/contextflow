@@ -1581,7 +1581,7 @@ function RelationshipEdge({
           y={labelY - 14}
           width={160}
           height={28}
-          style={{ overflow: 'visible' }}
+          style={{ overflow: 'visible', pointerEvents: 'none' }}
         >
           <div
             style={{
@@ -1594,8 +1594,7 @@ function RelationshipEdge({
           >
             <span
               style={{
-                background: '#0f172a',
-                opacity: 0.92,
+                background: 'rgba(15, 23, 42, 0.92)',
                 color: 'white',
                 fontSize: '11.5px',
                 fontWeight: 500,

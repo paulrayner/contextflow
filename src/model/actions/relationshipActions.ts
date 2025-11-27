@@ -105,6 +105,64 @@ export function deleteRelationshipAction(
   }
 }
 
+export function swapRelationshipDirectionAction(
+  state: EditorState,
+  relationshipId: string
+): Partial<EditorState> & { command?: EditorCommand } {
+  const projectId = state.activeProjectId
+  if (!projectId) return state
+
+  const project = state.projects[projectId]
+  if (!project) return state
+
+  const relationshipIndex = project.relationships.findIndex(r => r.id === relationshipId)
+  if (relationshipIndex === -1) return state
+
+  const oldRelationship = project.relationships[relationshipIndex]
+
+  const newRelationship = {
+    ...oldRelationship,
+    fromContextId: oldRelationship.toContextId,
+    toContextId: oldRelationship.fromContextId,
+  }
+
+  const updatedRelationships = [...project.relationships]
+  updatedRelationships[relationshipIndex] = newRelationship
+
+  const updatedProject = {
+    ...project,
+    relationships: updatedRelationships,
+  }
+
+  trackEvent('relationship_direction_swapped', updatedProject, {
+    entity_type: 'relationship',
+    entity_id: relationshipId,
+    metadata: {
+      pattern: newRelationship.pattern,
+      old_from_context_id: oldRelationship.fromContextId,
+      old_to_context_id: oldRelationship.toContextId,
+    }
+  })
+
+  const command: EditorCommand = {
+    type: 'updateRelationship',
+    payload: {
+      relationshipId,
+      oldRelationship,
+      newRelationship,
+    },
+  }
+
+  return {
+    projects: {
+      ...state.projects,
+      [projectId]: updatedProject,
+    },
+    undoStack: [...state.undoStack, command],
+    redoStack: [],
+  }
+}
+
 export function updateRelationshipAction(
   state: EditorState,
   relationshipId: string,
