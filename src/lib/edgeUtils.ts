@@ -83,3 +83,44 @@ export function getEdgeStrokeWidth(
       return strokeWidths.default
   }
 }
+
+const INDICATOR_BOX_GAP = 6
+
+export function getIndicatorBoxPosition(
+  node: NodeRect | undefined,
+  edgePosition: Position,
+  boxWidth: number,
+  boxHeight: number
+): { x: number; y: number } | null {
+  if (!node || !node.width || !node.height) return null
+
+  const nodeX = node.position.x
+  const nodeY = node.position.y
+  const nodeW = node.width
+  const nodeH = node.height
+
+  switch (edgePosition) {
+    case Position.Top:
+      return {
+        x: nodeX + nodeW / 2,
+        y: nodeY - INDICATOR_BOX_GAP - boxHeight / 2
+      }
+    case Position.Bottom:
+      return {
+        x: nodeX + nodeW / 2,
+        y: nodeY + nodeH + INDICATOR_BOX_GAP + boxHeight / 2
+      }
+    case Position.Left:
+      return {
+        x: nodeX - INDICATOR_BOX_GAP - boxWidth / 2,
+        y: nodeY + nodeH / 2
+      }
+    case Position.Right:
+      return {
+        x: nodeX + nodeW + INDICATOR_BOX_GAP + boxWidth / 2,
+        y: nodeY + nodeH / 2
+      }
+    default:
+      return null
+  }
+}

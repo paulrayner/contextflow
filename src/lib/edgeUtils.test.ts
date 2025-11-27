@@ -4,6 +4,7 @@ import {
   getVerticalEdgeEndpoints,
   getEdgeState,
   getEdgeStrokeWidth,
+  getIndicatorBoxPosition,
   NodeRect,
 } from './edgeUtils'
 
@@ -99,5 +100,98 @@ describe('getEdgeStrokeWidth', () => {
 
   it('returns default width for default state', () => {
     expect(getEdgeStrokeWidth('default', strokeWidths)).toBe(1.5)
+  })
+})
+
+describe('getIndicatorBoxPosition', () => {
+  const node: NodeRect = {
+    position: { x: 100, y: 200 },
+    width: 160,
+    height: 100,
+  }
+  const boxWidth = 28
+  const boxHeight = 18
+  const gap = 6
+
+  it('positions box above node center when edge is at top', () => {
+    const result = getIndicatorBoxPosition(node, Position.Top, boxWidth, boxHeight)
+
+    expect(result).toEqual({
+      x: 100 + 160 / 2,
+      y: 200 - gap - boxHeight / 2
+    })
+  })
+
+  it('positions box below node center when edge is at bottom', () => {
+    const result = getIndicatorBoxPosition(node, Position.Bottom, boxWidth, boxHeight)
+
+    expect(result).toEqual({
+      x: 100 + 160 / 2,
+      y: 200 + 100 + gap + boxHeight / 2
+    })
+  })
+
+  it('positions box left of node center when edge is at left', () => {
+    const result = getIndicatorBoxPosition(node, Position.Left, boxWidth, boxHeight)
+
+    expect(result).toEqual({
+      x: 100 - gap - boxWidth / 2,
+      y: 200 + 100 / 2
+    })
+  })
+
+  it('positions box right of node center when edge is at right', () => {
+    const result = getIndicatorBoxPosition(node, Position.Right, boxWidth, boxHeight)
+
+    expect(result).toEqual({
+      x: 100 + 160 + gap + boxWidth / 2,
+      y: 200 + 100 / 2
+    })
+  })
+
+  it('returns null when node is undefined', () => {
+    expect(getIndicatorBoxPosition(undefined, Position.Top, boxWidth, boxHeight)).toBeNull()
+  })
+
+  it('returns null when node has no width', () => {
+    const invalidNode = { ...node, width: null }
+    expect(getIndicatorBoxPosition(invalidNode, Position.Top, boxWidth, boxHeight)).toBeNull()
+  })
+
+  it('returns null when node has no height', () => {
+    const invalidNode = { ...node, height: undefined }
+    expect(getIndicatorBoxPosition(invalidNode, Position.Top, boxWidth, boxHeight)).toBeNull()
+  })
+
+  it('ensures box is completely outside node boundary (top)', () => {
+    const result = getIndicatorBoxPosition(node, Position.Top, boxWidth, boxHeight)!
+    const boxBottom = result.y + boxHeight / 2
+    const nodeTop = node.position.y
+
+    expect(boxBottom).toBeLessThan(nodeTop)
+  })
+
+  it('ensures box is completely outside node boundary (bottom)', () => {
+    const result = getIndicatorBoxPosition(node, Position.Bottom, boxWidth, boxHeight)!
+    const boxTop = result.y - boxHeight / 2
+    const nodeBottom = node.position.y + node.height!
+
+    expect(boxTop).toBeGreaterThan(nodeBottom)
+  })
+
+  it('ensures box is completely outside node boundary (left)', () => {
+    const result = getIndicatorBoxPosition(node, Position.Left, boxWidth, boxHeight)!
+    const boxRight = result.x + boxWidth / 2
+    const nodeLeft = node.position.x
+
+    expect(boxRight).toBeLessThan(nodeLeft)
+  })
+
+  it('ensures box is completely outside node boundary (right)', () => {
+    const result = getIndicatorBoxPosition(node, Position.Right, boxWidth, boxHeight)!
+    const boxLeft = result.x - boxWidth / 2
+    const nodeRight = node.position.x + node.width!
+
+    expect(boxLeft).toBeGreaterThan(nodeRight)
   })
 })

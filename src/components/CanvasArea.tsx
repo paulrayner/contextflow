@@ -28,6 +28,7 @@ import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
+import { getIndicatorBoxPosition } from '../lib/edgeUtils'
 import { generateBlobPath } from '../lib/blobShape'
 import { calculateBoundingBox, translateContextsToRelative, calculateBlobPosition } from '../lib/blobPositioning'
 import { DISTILLATION_GENERIC_MAX_X, DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y } from '../model/classification'
@@ -95,39 +96,6 @@ const PATTERN_EDGE_INDICATORS: Partial<Record<Relationship['pattern'], PatternIn
   },
 }
 
-// Calculate box center position along edge
-// For 'source' position: box is near the source (downstream) end, offset toward target
-// For 'target' position: box is near the target (upstream) end, offset toward source
-function getIndicatorBoxPosition(
-  sx: number,
-  sy: number,
-  tx: number,
-  ty: number,
-  position: 'source' | 'target',
-  offset = 35
-): { x: number; y: number } {
-  const dx = tx - sx
-  const dy = ty - sy
-  const length = Math.sqrt(dx * dx + dy * dy)
-
-  if (length === 0) {
-    return position === 'source' ? { x: sx, y: sy } : { x: tx, y: ty }
-  }
-
-  // Normalized direction from source to target
-  const nx = dx / length
-  const ny = dy / length
-
-  if (position === 'source') {
-    // Move from source point toward target by offset
-    return { x: sx + nx * offset, y: sy + ny * offset }
-  } else {
-    // Move from target point toward source by offset (subtract direction)
-    return { x: tx - nx * offset, y: ty - ny * offset }
-  }
-}
-
-// Get the edge of the box where the line should connect
 function getBoxEdgePoint(
   boxCenter: { x: number; y: number },
   boxWidth: number,
@@ -146,16 +114,13 @@ function getBoxEdgePoint(
   const halfW = boxWidth / 2
   const halfH = boxHeight / 2
 
-  // Determine which edge the line intersects
   if (Math.abs(nx) * halfH > Math.abs(ny) * halfW) {
-    // Hits left or right edge
     const edgeX = nx > 0 ? halfW : -halfW
     return {
       x: boxCenter.x + edgeX,
       y: boxCenter.y + (ny / Math.abs(nx)) * Math.abs(edgeX),
     }
   } else {
-    // Hits top or bottom edge
     const edgeY = ny > 0 ? halfH : -halfH
     return {
       x: boxCenter.x + (nx / Math.abs(ny)) * Math.abs(edgeY),
@@ -163,8 +128,6 @@ function getBoxEdgePoint(
     }
   }
 }
-
-// Helper functions for dynamic edge positioning (floating edges pattern)
 function getNodeIntersection(intersectionNode: Node, targetNode: Node) {
   const w = intersectionNode.width ?? 0
   const h = intersectionNode.height ?? 0
@@ -1663,17 +1626,17 @@ function RelationshipEdge({
   // Use ReactFlow's built-in marker system (automatically handles rotation)
   const markerId = isSelected ? 'arrow-selected' : isHovered ? 'arrow-hover' : 'arrow-default'
 
-  // Pattern indicator (ACL/OHS) configuration
   const indicatorConfig = PATTERN_EDGE_INDICATORS[pattern as Relationship['pattern']]
   const isACL = pattern === 'anti-corruption-layer'
   const isOHS = pattern === 'open-host-service'
 
-  // Calculate box position if ACL or OHS
+  const indicatorNode = indicatorConfig?.position === 'source' ? sourceNode : targetNode
+  const indicatorEdgePos = indicatorConfig?.position === 'source' ? sourcePos : targetPos
+
   const boxPos = indicatorConfig
-    ? getIndicatorBoxPosition(sx, sy, tx, ty, indicatorConfig.position)
+    ? getIndicatorBoxPosition(indicatorNode, indicatorEdgePos, indicatorConfig.boxWidth, indicatorConfig.boxHeight)
     : null
 
-  // Calculate modified bezier path for ACL/OHS (curved line terminating at box edge)
   const boxEdgePoint = boxPos && indicatorConfig
     ? getBoxEdgePoint(
         boxPos,
@@ -1683,8 +1646,6 @@ function RelationshipEdge({
       )
     : null
 
-  // For ACL: curve from box edge (source side) to target
-  // For OHS: curve from source to box edge (target side)
   const [aclOhsPath] = boxEdgePoint
     ? getBezierPath({
         sourceX: isACL ? boxEdgePoint.x : sx,
@@ -1718,7 +1679,6 @@ function RelationshipEdge({
         />
       )}
 
-      {/* OHS: curved line from source (downstream) to box edge - no arrow */}
       {isOHS && aclOhsPath && (
         <path
           id={id}
@@ -1730,7 +1690,7 @@ function RelationshipEdge({
             fill: 'none',
             transition: EDGE_TRANSITION,
           }}
-          // No markerEnd - the API box is the visual endpoint
+          markerEnd={`url(#${markerId})`}
         />
       )}
 
