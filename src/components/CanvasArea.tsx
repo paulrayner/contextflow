@@ -1673,6 +1673,7 @@ function CanvasContent() {
   const selectedActorId = useEditorStore(s => s.selectedActorId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
+  const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const showGroups = useEditorStore(s => s.showGroups)
   const showRelationships = useEditorStore(s => s.showRelationships)
@@ -1741,6 +1742,13 @@ function CanvasContent() {
     const actorNeedConnectionActorId = selectedActorNeedConnection?.actorId || null
     const actorNeedConnectionUserNeedId = selectedActorNeedConnection?.userNeedId || null
 
+    // Find connected user need and context for selected need-context connection
+    const selectedNeedContextConnection = selectedNeedContextConnectionId
+      ? project.needContextConnections?.find(c => c.id === selectedNeedContextConnectionId)
+      : null
+    const needContextConnectionUserNeedId = selectedNeedContextConnection?.userNeedId || null
+    const needContextConnectionContextId = selectedNeedContextConnection?.contextId || null
+
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
@@ -1779,10 +1787,11 @@ function CanvasContent() {
         y = (yPos / 100) * 1000
       }
 
-      // Check if this context is highlighted (by group, actor, or relationship selection)
+      // Check if this context is highlighted (by group, actor, relationship, or need-context connection selection)
       const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id)
         || connectedContextIds.has(context.id)
         || relationshipConnectedContextIds.has(context.id)
+        || context.id === needContextConnectionContextId
         || false
 
       // Calculate opacity based on temporal visibility (Strategic View only)
@@ -1927,7 +1936,7 @@ function CanvasContent() {
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
             const y = 90 // Fixed y position below actors, inside boundary
-            const isHighlightedByConnection = userNeed.id === actorNeedConnectionUserNeedId
+            const isHighlightedByConnection = userNeed.id === actorNeedConnectionUserNeedId || userNeed.id === needContextConnectionUserNeedId
 
             return {
               id: userNeed.id,
@@ -1954,7 +1963,7 @@ function CanvasContent() {
 
     // Return groups first (with selected on top), then contexts, then user needs, then actors
     return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...actorNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, selectedActorNeedConnectionId, viewMode, showGroups, currentDate])
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, selectedActorNeedConnectionId, selectedNeedContextConnectionId, viewMode, showGroups, currentDate])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)
