@@ -2,11 +2,9 @@
 
 ## In Progress
 
-## Backlog
-
+## Backlog 
 - [ ] Highlight actors and needs in light/opaque blue and green
-- [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. This will require a schema change, which will break existing projects
-- [ ] Should be able to select and delete user->need line
+- [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
 - [ ] Should be able to select and delete need->context line
 - [ ] Add explanation for each context relationship type
 - [ ] Add grouping of elements and bulk-move
@@ -123,3 +121,4 @@
 - [x] Filter toggles for groups/relationships
 - [x] Highlight connected contexts when selecting relationships or actors
 - [x] Collapsible repo info with live statistics
+- [x] Should be able to select a user->need line. Should highlight similar to a context relationship line (line and connected actor and need highlight)

@@ -78,6 +78,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedGroupId: null,
   selectedActorId: null,
   selectedUserNeedId: null,
+  selectedActorNeedConnectionId: null,
   selectedContextIds: [],
 
   canvasView: {
@@ -185,6 +186,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedGroupId: null,
       selectedActorId: null,
       selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
       selectedContextIds: [],
       undoStack: [],
       redoStack: [],
@@ -361,6 +363,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedGroupId: null,
     selectedActorId: null,
     selectedUserNeedId: null,
+    selectedActorNeedConnectionId: null,
   }),
 
   addActor: (name) => set((state) => {
@@ -398,6 +401,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedGroupId: null,
     selectedRelationshipId: null,
     selectedUserNeedId: null,
+    selectedActorNeedConnectionId: null,
   }),
 
   createActorConnection: (actorId, contextId) => set((state) => {
@@ -457,6 +461,17 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedGroupId: null,
     selectedRelationshipId: null,
     selectedActorId: null,
+    selectedActorNeedConnectionId: null,
+  }),
+
+  setSelectedActorNeedConnection: (connectionId) => set({
+    selectedActorNeedConnectionId: connectionId,
+    selectedContextId: null,
+    selectedContextIds: [],
+    selectedGroupId: null,
+    selectedRelationshipId: null,
+    selectedActorId: null,
+    selectedUserNeedId: null,
   }),
 
   createActorNeedConnection: (actorId, userNeedId) => {
@@ -787,6 +802,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedContextId: null,
       selectedActorId: null,
       selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
     }
   }),
 
@@ -802,6 +818,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedGroupId: null,
     selectedActorId: null,
     selectedUserNeedId: null,
+    selectedActorNeedConnectionId: null,
     selectedContextIds: [],
     undoStack: [],
     redoStack: [],

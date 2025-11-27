@@ -764,7 +764,10 @@ function GroupNode({ data }: NodeProps) {
 function ActorNode({ data }: NodeProps) {
   const actor = data.actor as Actor
   const isSelected = data.isSelected as boolean
+  const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
+
+  const isHighlighted = isSelected || isHighlightedByConnection
 
   return (
     <>
@@ -776,13 +779,13 @@ function ActorNode({ data }: NodeProps) {
         style={{
           width: 100,
           height: 50,
-          backgroundColor: isSelected || isHovered ? '#eff6ff' : '#f8fafc',
+          backgroundColor: isHighlighted || isHovered ? '#eff6ff' : '#f8fafc',
           borderWidth: '2px',
           borderStyle: actor.isExternal ? 'dashed' : 'solid',
-          borderColor: isSelected ? '#3b82f6' : '#cbd5e1',
+          borderColor: isHighlighted ? '#3b82f6' : '#cbd5e1',
           borderRadius: '8px',
           padding: '8px',
-          boxShadow: isSelected
+          boxShadow: isHighlighted
             ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
             : isHovered
             ? actor.isExternal
@@ -825,7 +828,10 @@ function ActorNode({ data }: NodeProps) {
 function UserNeedNode({ data }: NodeProps) {
   const userNeed = data.userNeed as UserNeed
   const isSelected = data.isSelected as boolean
+  const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
+
+  const isHighlighted = isSelected || isHighlightedByConnection
 
   return (
     <>
@@ -838,12 +844,12 @@ function UserNeedNode({ data }: NodeProps) {
         style={{
           width: 100,
           height: 50,
-          backgroundColor: isSelected || isHovered ? '#f0fdf4' : '#f8fafc',
-          border: isSelected ? '2px solid #10b981' : '2px solid #cbd5e1',
+          backgroundColor: isHighlighted || isHovered ? '#f0fdf4' : '#f8fafc',
+          border: isHighlighted ? '2px solid #3b82f6' : '2px solid #cbd5e1',
           borderRadius: '8px',
           padding: '8px',
-          boxShadow: isSelected
-            ? '0 0 0 3px rgba(16, 185, 129, 0.3), 0 4px 12px -2px rgba(16, 185, 129, 0.25)'
+          boxShadow: isHighlighted
+            ? '0 0 0 3px rgba(59, 130, 246, 0.3), 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
             : isHovered
             ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
             : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
@@ -979,9 +985,11 @@ function ActorNeedConnectionEdge({
   const [isHovered, setIsHovered] = React.useState(false)
   const selectedActorId = useEditorStore(s => s.selectedActorId)
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
+  const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
   const connection = data?.connection as ActorNeedConnection | undefined
 
-  const isHighlighted = source === selectedActorId || target === selectedUserNeedId
+  const isSelected = id === selectedActorNeedConnectionId
+  const isHighlighted = isSelected || source === selectedActorId || target === selectedUserNeedId
 
   const { getNode } = useReactFlow()
   const sourceNode = getNode(source)
@@ -1019,14 +1027,15 @@ function ActorNeedConnectionEdge({
         className="react-flow__edge-path"
         d={edgePath}
         style={{
-          stroke: isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
-          strokeWidth: isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
+          stroke: isSelected ? '#3b82f6' : isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
+          strokeWidth: isSelected ? 2.5 : isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
           strokeDasharray: '5,5',
           fill: 'none',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         markerEnd="url(#actor-arrow)"
       />
+      {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
         style={{
@@ -1034,9 +1043,22 @@ function ActorNeedConnectionEdge({
           strokeWidth: 20,
           fill: 'none',
           cursor: 'pointer',
+          pointerEvents: 'all',
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={(e) => {
+          e.stopPropagation()
+          useEditorStore.setState({
+            selectedActorNeedConnectionId: id,
+            selectedContextId: null,
+            selectedContextIds: [],
+            selectedGroupId: null,
+            selectedRelationshipId: null,
+            selectedActorId: null,
+            selectedUserNeedId: null,
+          })
+        }}
       >
         <title>Actor-Need connection{connection?.notes ? `: ${connection.notes}` : ''}</title>
       </path>
@@ -1624,6 +1646,7 @@ function CanvasContent() {
   const selectedGroupId = useEditorStore(s => s.selectedGroupId)
   const selectedActorId = useEditorStore(s => s.selectedActorId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
+  const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const showGroups = useEditorStore(s => s.showGroups)
   const showRelationships = useEditorStore(s => s.showRelationships)
@@ -1684,6 +1707,13 @@ function CanvasContent() {
     const relationshipConnectedContextIds = new Set(
       selectedRelationship ? [selectedRelationship.fromContextId, selectedRelationship.toContextId] : []
     )
+
+    // Find connected actor and user need for selected actor-need connection
+    const selectedActorNeedConnection = selectedActorNeedConnectionId
+      ? project.actorNeedConnections?.find(c => c.id === selectedActorNeedConnectionId)
+      : null
+    const actorNeedConnectionActorId = selectedActorNeedConnection?.actorId || null
+    const actorNeedConnectionUserNeedId = selectedActorNeedConnection?.userNeedId || null
 
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
@@ -1839,6 +1869,7 @@ function CanvasContent() {
       ? project.actors.map((actor) => {
           const x = (actor.position / 100) * 2000
           const y = 10 // Fixed y position at top inside boundary
+          const isHighlightedByConnection = actor.id === actorNeedConnectionActorId
 
           return {
             id: actor.id,
@@ -1847,6 +1878,7 @@ function CanvasContent() {
             data: {
               actor,
               isSelected: actor.id === selectedActorId,
+              isHighlightedByConnection,
             },
             style: {
               width: 100,
@@ -1869,6 +1901,7 @@ function CanvasContent() {
           .map((userNeed) => {
             const x = (userNeed.position / 100) * 2000
             const y = 90 // Fixed y position below actors, inside boundary
+            const isHighlightedByConnection = userNeed.id === actorNeedConnectionUserNeedId
 
             return {
               id: userNeed.id,
@@ -1877,6 +1910,7 @@ function CanvasContent() {
               data: {
                 userNeed,
                 isSelected: userNeed.id === useEditorStore.getState().selectedUserNeedId,
+                isHighlightedByConnection,
               },
               style: {
                 width: 100,
@@ -1894,7 +1928,7 @@ function CanvasContent() {
 
     // Return groups first (with selected on top), then contexts, then user needs, then actors
     return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...actorNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, viewMode, showGroups, currentDate])
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedActorId, selectedRelationshipId, selectedActorNeedConnectionId, viewMode, showGroups, currentDate])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)

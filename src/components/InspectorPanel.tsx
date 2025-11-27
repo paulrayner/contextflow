@@ -33,6 +33,7 @@ export function InspectorPanel() {
   const selectedActorId = useEditorStore(s => s.selectedActorId)
   const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
+  const selectedActorNeedConnectionId = useEditorStore(s => s.selectedActorNeedConnectionId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContext = useEditorStore(s => s.updateContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
@@ -54,6 +55,7 @@ export function InspectorPanel() {
   const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
   const createActorNeedConnection = useEditorStore(s => s.createActorNeedConnection)
   const deleteActorNeedConnection = useEditorStore(s => s.deleteActorNeedConnection)
+  const updateActorNeedConnection = useEditorStore(s => s.updateActorNeedConnection)
   const createNeedContextConnection = useEditorStore(s => s.createNeedContextConnection)
   const deleteNeedContextConnection = useEditorStore(s => s.deleteNeedContextConnection)
 
@@ -547,6 +549,84 @@ export function InspectorPanel() {
           >
             <Trash2 size={14} />
             Delete Relationship
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show actor-need connection details if connection is selected
+  if (selectedActorNeedConnectionId) {
+    const connection = project.actorNeedConnections?.find(c => c.id === selectedActorNeedConnectionId)
+    if (!connection) {
+      return (
+        <div className="text-neutral-500 dark:text-neutral-400">
+          Connection not found.
+        </div>
+      )
+    }
+
+    const actor = project.actors?.find(a => a.id === connection.actorId)
+    const userNeed = project.userNeeds?.find(n => n.id === connection.userNeedId)
+
+    const handleDeleteConnection = () => {
+      if (window.confirm(`Delete connection from "${actor?.name}" to "${userNeed?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
+        deleteActorNeedConnection(connection.id)
+      }
+    }
+
+    const handleNotesChange = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value.trim()
+      if (newValue !== connection.notes) {
+        updateActorNeedConnection(connection.id, { notes: newValue || undefined })
+      }
+    }
+
+    return (
+      <div className="space-y-5">
+        {/* Connection Title */}
+        <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+          Actor → Need Connection
+        </div>
+
+        {/* From/To - Actor and User Need */}
+        <Section label="Connection">
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => useEditorStore.setState({ selectedActorId: actor?.id, selectedActorNeedConnectionId: null })}
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {actor?.name || 'Unknown'}
+            </button>
+            <ArrowRight size={14} className="text-slate-400" />
+            <button
+              onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed?.id, selectedActorNeedConnectionId: null })}
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {userNeed?.name || 'Unknown'}
+            </button>
+          </div>
+        </Section>
+
+        {/* Notes (autosaves) */}
+        <Section label="Notes">
+          <textarea
+            defaultValue={connection.notes || ''}
+            onBlur={handleNotesChange}
+            placeholder="Additional details about this connection..."
+            rows={3}
+            className={TEXTAREA_CLASS}
+          />
+        </Section>
+
+        {/* Delete Connection */}
+        <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
+          <button
+            onClick={handleDeleteConnection}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+          >
+            <Trash2 size={14} />
+            Delete Connection
           </button>
         </div>
       </div>

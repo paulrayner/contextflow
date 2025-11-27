@@ -55,6 +55,7 @@ export interface EditorState {
   selectedGroupId: string | null
   selectedActorId: string | null
   selectedUserNeedId: string | null
+  selectedActorNeedConnectionId: string | null
   selectedContextIds: string[] // for multi-select
 
   canvasView: {
@@ -126,6 +127,7 @@ export interface EditorState {
   updateUserNeed: (userNeedId: string, updates: Partial<UserNeed>) => void
   updateUserNeedPosition: (userNeedId: string, newPosition: number) => void
   setSelectedUserNeed: (userNeedId: string | null) => void
+  setSelectedActorNeedConnection: (connectionId: string | null) => void
   createActorNeedConnection: (actorId: string, userNeedId: string) => string | null
   deleteActorNeedConnection: (connectionId: string) => void
   updateActorNeedConnection: (connectionId: string, updates: Partial<ActorNeedConnection>) => void

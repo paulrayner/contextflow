@@ -64,6 +64,7 @@ describe('createSelectionState', () => {
       selectedGroupId: null,
       selectedActorId: null,
       selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -77,6 +78,7 @@ describe('createSelectionState', () => {
       selectedGroupId: null,
       selectedActorId: null,
       selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -90,6 +92,7 @@ describe('createSelectionState', () => {
       selectedGroupId: 'grp1',
       selectedActorId: null,
       selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -103,6 +106,7 @@ describe('createSelectionState', () => {
       selectedGroupId: null,
       selectedActorId: 'act1',
       selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -116,6 +120,21 @@ describe('createSelectionState', () => {
       selectedGroupId: null,
       selectedActorId: null,
       selectedUserNeedId: 'need1',
+      selectedActorNeedConnectionId: null,
+      selectedContextIds: [],
+    })
+  })
+
+  it('creates actorNeedConnection selection state', () => {
+    const result = createSelectionState('conn1', 'actorNeedConnection')
+
+    expect(result).toEqual({
+      selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
+      selectedActorId: null,
+      selectedUserNeedId: null,
+      selectedActorNeedConnectionId: 'conn1',
       selectedContextIds: [],
     })
   })
@@ -129,6 +148,7 @@ describe('createSelectionState', () => {
       selectedGroupId: null,
       selectedActorId: null,
       selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
       selectedContextIds: [],
     })
   })
