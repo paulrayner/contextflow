@@ -29,6 +29,7 @@ import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '
 import { generateBlobPath } from '../lib/blobShape'
 import { calculateBoundingBox, translateContextsToRelative, calculateBlobPosition } from '../lib/blobPositioning'
 import { DISTILLATION_GENERIC_MAX_X, DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y } from '../model/classification'
+import { getVerticalEdgeEndpoints, getEdgeState, getEdgeStrokeWidth } from '../lib/edgeUtils'
 
 // Node size mapping
 const NODE_SIZES = {
@@ -917,6 +918,7 @@ function ActorConnectionEdge({
 
   // Highlight if this connection belongs to the selected actor
   const isHighlighted = source === selectedActorId
+  const edgeState = getEdgeState(false, isHighlighted, isHovered)
 
   // Get node objects from React Flow to calculate dynamic positions
   const { getNode } = useReactFlow()
@@ -924,25 +926,11 @@ function ActorConnectionEdge({
   const targetNode = getNode(target)
 
   // Calculate dynamic edge positions if nodes are available with valid dimensions
-  let sx = sourceX
-  let sy = sourceY
-  let tx = targetX
-  let ty = targetY
-  let sourcePos = sourcePosition
-  let targetPos = targetPosition
-
-  if (sourceNode && targetNode &&
-      sourceNode.width && sourceNode.height &&
-      targetNode.width && targetNode.height) {
-    // Actor is source (top), context is target (below)
-    // Calculate connection from bottom center of actor to top center of context
-    sx = sourceNode.position.x + (sourceNode.width / 2)
-    sy = sourceNode.position.y + sourceNode.height
-    tx = targetNode.position.x + (targetNode.width / 2)
-    ty = targetNode.position.y
-    sourcePos = Position.Bottom
-    targetPos = Position.Top
-  }
+  const endpoints = getVerticalEdgeEndpoints(sourceNode, targetNode)
+  const sx = endpoints?.sourceX ?? sourceX
+  const sy = endpoints?.sourceY ?? sourceY
+  const tx = endpoints?.targetX ?? targetX
+  const ty = endpoints?.targetY ?? targetY
 
   const [edgePath] = getStraightPath({
     sourceX: sx,
@@ -959,7 +947,7 @@ function ActorConnectionEdge({
         d={edgePath}
         style={{
           stroke: isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
-          strokeWidth: isHighlighted ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.hover : EDGE_STROKE_WIDTH.default,
+          strokeWidth: getEdgeStrokeWidth(edgeState, EDGE_STROKE_WIDTH),
           strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',
           transition: EDGE_TRANSITION,
@@ -1005,28 +993,17 @@ function ActorNeedConnectionEdge({
 
   const isSelected = id === selectedActorNeedConnectionId
   const isHighlighted = isSelected || source === selectedActorId || target === selectedUserNeedId
+  const edgeState = getEdgeState(isSelected, isHighlighted, isHovered)
 
   const { getNode } = useReactFlow()
   const sourceNode = getNode(source)
   const targetNode = getNode(target)
 
-  let sx = sourceX
-  let sy = sourceY
-  let tx = targetX
-  let ty = targetY
-  let sourcePos = sourcePosition
-  let targetPos = targetPosition
-
-  if (sourceNode && targetNode &&
-      sourceNode.width && sourceNode.height &&
-      targetNode.width && targetNode.height) {
-    sx = sourceNode.position.x + (sourceNode.width / 2)
-    sy = sourceNode.position.y + sourceNode.height
-    tx = targetNode.position.x + (targetNode.width / 2)
-    ty = targetNode.position.y
-    sourcePos = Position.Bottom
-    targetPos = Position.Top
-  }
+  const endpoints = getVerticalEdgeEndpoints(sourceNode, targetNode)
+  const sx = endpoints?.sourceX ?? sourceX
+  const sy = endpoints?.sourceY ?? sourceY
+  const tx = endpoints?.targetX ?? targetX
+  const ty = endpoints?.targetY ?? targetY
 
   const [edgePath] = getStraightPath({
     sourceX: sx,
@@ -1043,7 +1020,7 @@ function ActorNeedConnectionEdge({
         d={edgePath}
         style={{
           stroke: isSelected ? '#3b82f6' : isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
-          strokeWidth: isSelected ? EDGE_STROKE_WIDTH.selected : isHighlighted ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.hover : EDGE_STROKE_WIDTH.default,
+          strokeWidth: getEdgeStrokeWidth(edgeState, EDGE_STROKE_WIDTH),
           strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',
           transition: EDGE_TRANSITION,
@@ -1102,28 +1079,17 @@ function NeedContextConnectionEdge({
 
   const isSelected = id === selectedNeedContextConnectionId
   const isHighlighted = isSelected || source === selectedUserNeedId || target === selectedContextId
+  const edgeState = getEdgeState(isSelected, isHighlighted, isHovered)
 
   const { getNode } = useReactFlow()
   const sourceNode = getNode(source)
   const targetNode = getNode(target)
 
-  let sx = sourceX
-  let sy = sourceY
-  let tx = targetX
-  let ty = targetY
-  let sourcePos = sourcePosition
-  let targetPos = targetPosition
-
-  if (sourceNode && targetNode &&
-      sourceNode.width && sourceNode.height &&
-      targetNode.width && targetNode.height) {
-    sx = sourceNode.position.x + (sourceNode.width / 2)
-    sy = sourceNode.position.y + sourceNode.height
-    tx = targetNode.position.x + (targetNode.width / 2)
-    ty = targetNode.position.y
-    sourcePos = Position.Bottom
-    targetPos = Position.Top
-  }
+  const endpoints = getVerticalEdgeEndpoints(sourceNode, targetNode)
+  const sx = endpoints?.sourceX ?? sourceX
+  const sy = endpoints?.sourceY ?? sourceY
+  const tx = endpoints?.targetX ?? targetX
+  const ty = endpoints?.targetY ?? targetY
 
   const [edgePath] = getStraightPath({
     sourceX: sx,
@@ -1140,7 +1106,7 @@ function NeedContextConnectionEdge({
         d={edgePath}
         style={{
           stroke: isSelected ? '#10b981' : isHighlighted ? '#10b981' : isHovered ? '#34d399' : '#94a3b8',
-          strokeWidth: isSelected ? EDGE_STROKE_WIDTH.selected : isHighlighted ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.hover : EDGE_STROKE_WIDTH.default,
+          strokeWidth: getEdgeStrokeWidth(edgeState, EDGE_STROKE_WIDTH),
           strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',
           transition: EDGE_TRANSITION,
