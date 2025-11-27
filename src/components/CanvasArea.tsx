@@ -25,6 +25,8 @@ import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedCon
 import { User, Target, X, ArrowRight, ArrowLeftRight, Trash2 } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { TimeSlider } from './TimeSlider'
+import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
+import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
 import { calculateBoundingBox, translateContextsToRelative, calculateBlobPosition } from '../lib/blobPositioning'
@@ -1734,6 +1736,18 @@ function CanvasContent() {
   // Pending connection state for context→context relationships (needs pattern selection)
   const [pendingConnection, setPendingConnection] = React.useState<{ sourceId: string; targetId: string } | null>(null)
 
+  // Invalid connection state (for showing guidance tooltip)
+  const [invalidConnectionAttempt, setInvalidConnectionAttempt] = React.useState<{
+    sourceType: 'actor' | 'userNeed' | 'context'
+    targetType: 'actor' | 'userNeed' | 'context'
+    sourceId: string
+    targetId: string
+    position: { x: number; y: number }
+  } | null>(null)
+
+  // Value chain guide modal
+  const [showValueChainGuide, setShowValueChainGuide] = React.useState(false)
+
   const { fitBounds } = useReactFlow()
 
   const getBounds = useCallback(() => {
@@ -2165,8 +2179,19 @@ function CanvasContent() {
       return
     }
 
-    // Invalid connection - show message
-    console.log('Invalid connection:', sourceNode.type, '→', targetNode.type)
+    // Invalid connection - show guidance tooltip
+    const targetNodeElement = document.querySelector(`[data-id="${target}"]`)
+    const rect = targetNodeElement?.getBoundingClientRect()
+
+    setInvalidConnectionAttempt({
+      sourceType: sourceNode.type as 'actor' | 'userNeed' | 'context',
+      targetType: targetNode.type as 'actor' | 'userNeed' | 'context',
+      sourceId: source,
+      targetId: target,
+      position: rect
+        ? { x: rect.x + rect.width / 2, y: rect.y }
+        : { x: window.innerWidth / 2, y: window.innerHeight / 3 },
+    })
   }, [nodes])
 
   // Wrap onNodesChange to handle multi-select drag
@@ -2663,6 +2688,55 @@ function CanvasContent() {
           </div>
         )
       })()}
+
+      {/* Connection Guidance Tooltip for invalid connections */}
+      {invalidConnectionAttempt && (
+        <ConnectionGuidanceTooltip
+          sourceType={invalidConnectionAttempt.sourceType}
+          targetType={invalidConnectionAttempt.targetType}
+          position={invalidConnectionAttempt.position}
+          onDismiss={() => setInvalidConnectionAttempt(null)}
+          onCreateUserNeed={() => {
+            // Only handle Actor → Context case
+            if (invalidConnectionAttempt.sourceType === 'actor' && invalidConnectionAttempt.targetType === 'context') {
+              const name = prompt('User need name:')
+              if (name) {
+                const store = useEditorStore.getState()
+                const actorId = invalidConnectionAttempt.sourceId
+                const contextId = invalidConnectionAttempt.targetId
+
+                // Get actor position to place user need nearby
+                const actor = project?.actors?.find(a => a.id === actorId)
+                const actorPosition = actor?.position ?? 50
+
+                // Create the user need
+                const newUserNeedId = store.addUserNeed(name)
+
+                if (newUserNeedId) {
+                  // Position user need at same horizontal position as actor
+                  store.updateUserNeed(newUserNeedId, { position: actorPosition })
+
+                  // Create Actor → UserNeed connection
+                  store.createActorNeedConnection(actorId, newUserNeedId)
+
+                  // Create UserNeed → Context connection
+                  store.createNeedContextConnection(newUserNeedId, contextId)
+                }
+              }
+            }
+            setInvalidConnectionAttempt(null)
+          }}
+          onLearnMore={() => {
+            setShowValueChainGuide(true)
+            setInvalidConnectionAttempt(null)
+          }}
+        />
+      )}
+
+      {/* Value Chain Guide Modal */}
+      {showValueChainGuide && (
+        <ValueChainGuideModal onClose={() => setShowValueChainGuide(false)} />
+      )}
     </div>
   )
 }

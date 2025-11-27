@@ -2,14 +2,13 @@
 
 ## In Progress
 
+
 ## Backlog
+- [ ] When switching to distillation view, all contexts are initially placed overlapping in the middle - confusing. They should **not** overlap.
 - [ ] Add grouping of elements and bulk-move
-- [ ] Display helpful message when someone tries to connect actor<->context without user need
 - [ ] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views
-- [ ] When switching to distillation view, all contexts are initially placed overlapping in the middle - confusing. They should **not** overlap.
 - [ ] When adding contexts, they overlap the existing context by default - confusing.  They should **not** overlap.
-- [ ] Fix overrunning of labels by relationship names
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Highlight actors and needs in light/opaque blue and green
 - [ ] Mark out "Problem Space" + "Solution Space" (or maybe use "Problem Domain") areas
@@ -61,8 +60,10 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Display helpful message when someone tries to connect actor<->context without user need
 - [x] Enable reversing context relationships (swap button in Inspector Direction section + right-click context menu on relationship edges)
 - [x] Add explanation for each context relationship type (power dynamics icons, collapsible "About" section, comprehensive Patterns Guide modal with SVG diagrams, upstream/downstream clarification note)
+- [x] Fix overrunning of labels by relationship names
 - [x] Should be able to select a Need->Context line. Should highlight similar to the actor-need line highlighting we just implemented (line and connected user need and context highlight)
 - [x] Should be able to select and delete need->context line
 - [x] Should be able to select a user->need line. Should highlight similar to a context relationship line (line and connected actor and need highlight)
