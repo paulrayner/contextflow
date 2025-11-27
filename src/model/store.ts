@@ -63,6 +63,13 @@ import { validateStageLabel, validateStagePosition, createSelectionState } from 
 
 export type { ViewMode, EditorCommand, EditorState }
 
+function getAllSelectedContextIds(state: EditorState): string[] {
+  const singleSelection = state.selectedContextId && !state.selectedContextIds.includes(state.selectedContextId)
+    ? [state.selectedContextId]
+    : []
+  return [...singleSelection, ...state.selectedContextIds]
+}
+
 let globalFitViewCallback: (() => void) | null = null
 
 export function setFitViewCallback(callback: () => void) {
@@ -144,12 +151,14 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   toggleContextSelection: (contextId) => set((state) => {
-    const isSelected = state.selectedContextIds.includes(contextId)
+    const currentSelection = getAllSelectedContextIds(state)
+    const isSelected = currentSelection.includes(contextId)
+
     return {
       ...createSelectionState(null, 'context'),
       selectedContextIds: isSelected
-        ? state.selectedContextIds.filter(id => id !== contextId)
-        : [...state.selectedContextIds, contextId],
+        ? currentSelection.filter(id => id !== contextId)
+        : [...currentSelection, contextId],
     }
   }),
 

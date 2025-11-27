@@ -1841,7 +1841,7 @@ function RelationshipEdge({
           useEditorStore.setState({
             selectedRelationshipId: id,
             selectedContextId: null,
-            selectedContextIds: [],
+            selectedContextIds: [source, target],
             selectedGroupId: null,
             selectedActorId: null,
             selectedUserNeedId: null,
@@ -2362,10 +2362,15 @@ function CanvasContent() {
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
     // Only handle relationship edges, not actor connections
     if (edge.type === 'relationship') {
+      const relationship = project?.relationships.find(r => r.id === edge.id)
+      const connectedContextIds = relationship
+        ? [relationship.fromContextId, relationship.toContextId]
+        : []
+
       useEditorStore.setState({
         selectedRelationshipId: edge.id,
         selectedContextId: null,
-        selectedContextIds: [],
+        selectedContextIds: connectedContextIds,
         selectedGroupId: null,
         selectedActorId: null,
         selectedUserNeedId: null,
@@ -2373,7 +2378,7 @@ function CanvasContent() {
         selectedNeedContextConnectionId: null,
       })
     }
-  }, [])
+  }, [project])
 
   // Handle node click
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {

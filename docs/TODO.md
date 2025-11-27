@@ -2,7 +2,6 @@
 
 ## In Progress
 
-- [ ] Add grouping of elements and bulk-move
 
 ## Backlog
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
@@ -49,6 +48,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Add grouping of elements and bulk-move
 - [x] Context boundary width should more obviously reflect boundary strength (weak=dotted thin, external=dashed)
 - [x] Add informational overlays/help throughout app by default (can turn off in settings) - hover tooltips for evolution stages, strategic classifications, and view tabs with educational content
 - [x] Hide context description in box when code size is tiny or small, and add hover
