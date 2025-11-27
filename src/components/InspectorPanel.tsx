@@ -6,17 +6,11 @@ import { Switch } from './Switch'
 import { config } from '../config'
 import { interpolatePosition, classifyFromStrategicPosition } from '../lib/temporal'
 import { classifyFromStrategicPosition as getEvolutionStage } from '../model/classification'
-
-const DDD_PATTERNS = [
-  { value: 'customer-supplier', label: 'Customer-Supplier', description: 'Downstream depends on upstream' },
-  { value: 'conformist', label: 'Conformist', description: 'Downstream conforms to upstream model' },
-  { value: 'anti-corruption-layer', label: 'Anti-Corruption Layer', description: 'Downstream uses translation layer' },
-  { value: 'open-host-service', label: 'Open Host Service', description: 'Upstream provides public API' },
-  { value: 'published-language', label: 'Published Language', description: 'Shared, well-documented format' },
-  { value: 'shared-kernel', label: 'Shared Kernel', description: 'Shared code/model (symmetric)' },
-  { value: 'partnership', label: 'Partnership', description: 'Mutual dependency (symmetric)' },
-  { value: 'separate-ways', label: 'Separate Ways', description: 'No integration' },
-]
+import {
+  PATTERN_DEFINITIONS,
+  POWER_DYNAMICS_ICONS,
+  getPatternDefinition,
+} from '../model/patternDefinitions'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -510,14 +504,14 @@ export function InspectorPanel() {
             onChange={(e) => handlePatternChange(e.target.value)}
             className="w-full text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
           >
-            {DDD_PATTERNS.map(p => (
+            {PATTERN_DEFINITIONS.map(p => (
               <option key={p.value} value={p.value}>
-                {p.label}
+                {POWER_DYNAMICS_ICONS[p.powerDynamics]} {p.label}
               </option>
             ))}
           </select>
           <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
-            {DDD_PATTERNS.find(p => p.value === relationship.pattern)?.description}
+            {getPatternDefinition(relationship.pattern)?.shortDescription}
           </div>
         </Section>
 

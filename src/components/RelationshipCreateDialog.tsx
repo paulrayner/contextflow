@@ -1,6 +1,11 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import type { BoundedContext } from '../model/types'
+import {
+  PATTERN_DEFINITIONS,
+  POWER_DYNAMICS_ICONS,
+  getPatternDefinition,
+} from '../model/patternDefinitions'
 
 interface RelationshipCreateDialogProps {
   fromContext: BoundedContext
@@ -8,17 +13,6 @@ interface RelationshipCreateDialogProps {
   onConfirm: (toContextId: string, pattern: string, description?: string) => void
   onCancel: () => void
 }
-
-export const DDD_PATTERNS = [
-  { value: 'customer-supplier', label: 'Customer-Supplier', description: 'Downstream depends on upstream' },
-  { value: 'conformist', label: 'Conformist', description: 'Downstream conforms to upstream model' },
-  { value: 'anti-corruption-layer', label: 'Anti-Corruption Layer', description: 'Downstream uses translation layer' },
-  { value: 'open-host-service', label: 'Open Host Service', description: 'Upstream provides public API' },
-  { value: 'published-language', label: 'Published Language', description: 'Shared, well-documented format' },
-  { value: 'shared-kernel', label: 'Shared Kernel', description: 'Shared code/model (symmetric)' },
-  { value: 'partnership', label: 'Partnership', description: 'Mutual dependency (symmetric)' },
-  { value: 'separate-ways', label: 'Separate Ways', description: 'No integration' },
-]
 
 export function RelationshipCreateDialog({
   fromContext,
@@ -95,15 +89,15 @@ export function RelationshipCreateDialog({
               onChange={(e) => setPattern(e.target.value)}
               className="w-full text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
             >
-              {DDD_PATTERNS.map(p => (
+              {PATTERN_DEFINITIONS.map(p => (
                 <option key={p.value} value={p.value}>
-                  {p.label}
+                  {POWER_DYNAMICS_ICONS[p.powerDynamics]} {p.label}
                 </option>
               ))}
             </select>
             {/* Pattern description */}
             <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
-              {DDD_PATTERNS.find(p => p.value === pattern)?.description}
+              {getPatternDefinition(pattern as any)?.shortDescription}
             </div>
           </div>
 

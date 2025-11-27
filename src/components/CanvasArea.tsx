@@ -23,7 +23,7 @@ import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedConnection, NeedContextConnection } from '../model/types'
 import { User, Target, X, ArrowRight } from 'lucide-react'
-import { DDD_PATTERNS } from './RelationshipCreateDialog'
+import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
@@ -2562,7 +2562,7 @@ function CanvasContent() {
 
               {/* Pattern Selection */}
               <div className="px-4 py-3 space-y-2 max-h-[400px] overflow-y-auto">
-                {DDD_PATTERNS.map(p => (
+                {PATTERN_DEFINITIONS.map(p => (
                   <button
                     key={p.value}
                     onClick={() => {
@@ -2575,8 +2575,11 @@ function CanvasContent() {
                     }}
                     className="w-full text-left px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
                   >
-                    <div className="font-medium text-sm text-slate-900 dark:text-slate-100">{p.label}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">{p.description}</div>
+                    <div className="font-medium text-sm text-slate-900 dark:text-slate-100">
+                      <span className="mr-1.5 text-slate-400">{POWER_DYNAMICS_ICONS[p.powerDynamics]}</span>
+                      {p.label}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{p.shortDescription}</div>
                   </button>
                 ))}
               </div>

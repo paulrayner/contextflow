@@ -3,6 +3,9 @@
 ## In Progress
 
 - [ ] Add explanation for each context relationship type
+  - [x] Slice 1: Power dynamics icons in pattern dropdowns (↑↓↔○)
+  - [ ] Slice 2: Collapsible "About this pattern" section in Inspector
+  - [ ] Slice 3: Patterns Reference Modal (comprehensive guide)
 
 ## Backlog
 - [ ] Highlight actors and needs in light/opaque blue and green
