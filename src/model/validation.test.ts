@@ -65,6 +65,7 @@ describe('createSelectionState', () => {
       selectedActorId: null,
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -79,6 +80,7 @@ describe('createSelectionState', () => {
       selectedActorId: null,
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -93,6 +95,7 @@ describe('createSelectionState', () => {
       selectedActorId: null,
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -107,6 +110,7 @@ describe('createSelectionState', () => {
       selectedActorId: 'act1',
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -121,6 +125,7 @@ describe('createSelectionState', () => {
       selectedActorId: null,
       selectedUserNeedId: 'need1',
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -135,6 +140,22 @@ describe('createSelectionState', () => {
       selectedActorId: null,
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: 'conn1',
+      selectedNeedContextConnectionId: null,
+      selectedContextIds: [],
+    })
+  })
+
+  it('creates needContextConnection selection state', () => {
+    const result = createSelectionState('conn2', 'needContextConnection')
+
+    expect(result).toEqual({
+      selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
+      selectedActorId: null,
+      selectedUserNeedId: null,
+      selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: 'conn2',
       selectedContextIds: [],
     })
   })
@@ -149,6 +170,7 @@ describe('createSelectionState', () => {
       selectedActorId: null,
       selectedUserNeedId: null,
       selectedActorNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       selectedContextIds: [],
     })
   })
