@@ -134,6 +134,45 @@ export const STAGE_DEFINITION: ConceptDefinition = {
   ],
 }
 
+// Actor Definition (Value Stream / Strategic View)
+export const ACTOR_DEFINITION: ConceptDefinition = {
+  title: 'Actor',
+  description:
+    'A person or system that interacts with your product to satisfy their needs.',
+  characteristics: [
+    'Represents a user role or external system',
+    'Has specific needs your system fulfills',
+    'Positioned at the top of the value chain (most visible)',
+    'Multiple actors may share the same underlying needs',
+  ],
+}
+
+// User Need Definition
+export const USER_NEED_DEFINITION: ConceptDefinition = {
+  title: 'User Need',
+  description:
+    'A capability or outcome that an actor requires from your system.',
+  characteristics: [
+    'Describes what the user wants to accomplish',
+    'Connected to actors who have this need',
+    'Fulfilled by one or more bounded contexts',
+    'Drives the value chain from user to implementation',
+  ],
+}
+
+// Bounded Context Definition
+export const BOUNDED_CONTEXT_DEFINITION: ConceptDefinition = {
+  title: 'Bounded Context',
+  description:
+    'A boundary within which a particular domain model applies consistently.',
+  characteristics: [
+    'Defines clear ownership and language boundaries',
+    'Contains a cohesive set of domain concepts',
+    'Communicates with other contexts via defined interfaces',
+    'Often maps to team boundaries or microservices',
+  ],
+}
+
 // Relationship Edge Indicators
 export const EDGE_INDICATORS: Record<string, ConceptDefinition> = {
   acl: {

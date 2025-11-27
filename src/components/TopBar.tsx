@@ -3,7 +3,7 @@ import { useEditorStore } from '../model/store'
 import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
-import { VIEW_DESCRIPTIONS, STAGE_DEFINITION } from '../model/conceptDefinitions'
+import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, ACTOR_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION } from '../model/conceptDefinitions'
 
 export function TopBar() {
   const settingsRef = useRef<HTMLDivElement>(null)
@@ -207,27 +207,30 @@ export function TopBar() {
           {/* Actor/Need buttons: Strategic and Value Stream views (not Distillation) */}
           {viewMode !== 'distillation' && (
             <>
-              <AddButton
-                onClick={handleAddActor}
-                icon={<User size={14} />}
-                label="Actor"
-                tooltip="Add new actor"
-              />
-              <AddButton
-                onClick={handleAddUserNeed}
-                icon={<Target size={14} />}
-                label="Need"
-                tooltip="Add new user need"
-              />
+              <InfoTooltip content={ACTOR_DEFINITION} position="bottom">
+                <AddButton
+                  onClick={handleAddActor}
+                  icon={<User size={14} />}
+                  label="Actor"
+                />
+              </InfoTooltip>
+              <InfoTooltip content={USER_NEED_DEFINITION} position="bottom">
+                <AddButton
+                  onClick={handleAddUserNeed}
+                  icon={<Target size={14} />}
+                  label="Need"
+                />
+              </InfoTooltip>
             </>
           )}
 
-          <AddButton
-            onClick={handleAddContext}
-            icon={<Box size={14} />}
-            label="Context"
-            tooltip="Add new bounded context"
-          />
+          <InfoTooltip content={BOUNDED_CONTEXT_DEFINITION} position="bottom">
+            <AddButton
+              onClick={handleAddContext}
+              icon={<Box size={14} />}
+              label="Context"
+            />
+          </InfoTooltip>
         </div>
 
         {/* Temporal Mode toggle - only visible in Strategic View */}
@@ -463,14 +466,12 @@ interface AddButtonProps {
   onClick: () => void
   icon: React.ReactNode
   label: string
-  tooltip?: string
 }
 
-function AddButton({ onClick, icon, label, tooltip }: AddButtonProps) {
+function AddButton({ onClick, icon, label }: AddButtonProps) {
   return (
     <button
       onClick={onClick}
-      title={tooltip}
       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-slate-100 hover:shadow-sm"
     >
       <Plus size={12} className="text-slate-400 dark:text-slate-500" />
