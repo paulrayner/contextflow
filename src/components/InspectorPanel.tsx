@@ -965,7 +965,7 @@ export function InspectorPanel() {
       {/* Domain Classification - position-based, no section header */}
       <div>
         {context.strategicClassification && STRATEGIC_CLASSIFICATIONS[context.strategicClassification] ? (
-          <InfoTooltip content={STRATEGIC_CLASSIFICATIONS[context.strategicClassification]} position="left">
+          <InfoTooltip content={STRATEGIC_CLASSIFICATIONS[context.strategicClassification]} position="bottom">
             <span
               className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md cursor-help ${
                 context.strategicClassification === 'core'
@@ -990,7 +990,7 @@ export function InspectorPanel() {
       {/* Evolution Stage - position-based, no section header */}
       <div>
         {context.evolutionStage && EVOLUTION_STAGES[context.evolutionStage] ? (
-          <InfoTooltip content={EVOLUTION_STAGES[context.evolutionStage]} position="left">
+          <InfoTooltip content={EVOLUTION_STAGES[context.evolutionStage]} position="bottom">
             <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300 cursor-help">
               {context.evolutionStage === 'genesis' && '🌱 Genesis'}
               {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
