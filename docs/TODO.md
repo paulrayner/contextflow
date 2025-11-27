@@ -4,14 +4,13 @@
 
 - [ ] Add explanation for each context relationship type
   - [x] Slice 1: Power dynamics icons in pattern dropdowns (↑↓↔○)
-  - [ ] Slice 2: Collapsible "About this pattern" section in Inspector
+  - [x] Slice 2: Collapsible "About this pattern" section in Inspector
   - [ ] Slice 3: Patterns Reference Modal (comprehensive guide)
 
 ## Backlog
+- [ ] Add grouping of elements and bulk-move
 - [ ] Highlight actors and needs in light/opaque blue and green
 - [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
-- [ ] Add grouping of elements and bulk-move
-- [ ] Figure out what the canvas lock icon does
 - [ ] Enable reversing context relationships (swap upstream<--downstream contexts)
 - [ ] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views

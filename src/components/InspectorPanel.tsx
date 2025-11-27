@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 import { Switch } from './Switch'
 import { config } from '../config'
@@ -62,6 +62,7 @@ export function InspectorPanel() {
   const [expandedTeamId, setExpandedTeamId] = React.useState<string | null>(null)
   const [expandedRepoId, setExpandedRepoId] = React.useState<string | null>(null)
   const [showRelationshipDialog, setShowRelationshipDialog] = React.useState(false)
+  const [showPatternDetails, setShowPatternDetails] = React.useState(false)
   const [useCodeCohesionAPI, setUseCodeCohesionAPI] = React.useState(() => {
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
     return stored === null ? true : stored === 'true' // Default to true if not set
@@ -513,6 +514,74 @@ export function InspectorPanel() {
           <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
             {getPatternDefinition(relationship.pattern)?.shortDescription}
           </div>
+
+          {/* Collapsible pattern details */}
+          {(() => {
+            const patternDef = getPatternDefinition(relationship.pattern)
+            if (!patternDef) return null
+            return (
+              <div className="mt-3">
+                <button
+                  onClick={() => setShowPatternDetails(!showPatternDetails)}
+                  className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                >
+                  {showPatternDetails ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  <HelpCircle size={12} />
+                  <span>About this pattern</span>
+                </button>
+
+                {showPatternDetails && (
+                  <div className="mt-2 p-3 bg-slate-50 dark:bg-neutral-800 rounded-md border border-slate-200 dark:border-neutral-700 space-y-3">
+                    {/* Power dynamics */}
+                    <div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Power Dynamics
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                        <span className="text-base">{POWER_DYNAMICS_ICONS[patternDef.powerDynamics]}</span>
+                        {patternDef.powerDynamics === 'upstream' && 'Upstream team has control'}
+                        {patternDef.powerDynamics === 'downstream' && 'Downstream team protects itself'}
+                        {patternDef.powerDynamics === 'mutual' && 'Shared control between teams'}
+                        {patternDef.powerDynamics === 'none' && 'No integration or dependency'}
+                      </div>
+                    </div>
+
+                    {/* Detailed description */}
+                    <div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Description
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        {patternDef.detailedDescription}
+                      </div>
+                    </div>
+
+                    {/* When to use */}
+                    <div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        When to Use
+                      </div>
+                      <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 ml-3">
+                        {patternDef.whenToUse.map((item, i) => (
+                          <li key={i} className="list-disc">{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Example */}
+                    <div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Example
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 italic leading-relaxed">
+                        {patternDef.example}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
         </Section>
 
         {/* Communication Mode (autosaves) */}

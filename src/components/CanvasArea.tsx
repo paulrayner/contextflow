@@ -1632,7 +1632,7 @@ function CustomControls() {
     })
   }, [fitBounds, viewMode])
 
-  return <Controls position="bottom-right" onFitView={handleFitView} />
+  return <Controls position="bottom-right" onFitView={handleFitView} showInteractive={false} />
 }
 
 // Inner component that has access to React Flow context
