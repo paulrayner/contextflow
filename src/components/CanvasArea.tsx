@@ -1576,28 +1576,39 @@ function RelationshipEdge({
       </path>
       {/* Tooltip label on hover or when selected */}
       {(isHovered || isSelected) && (
-        <g>
-          <rect
-            x={labelX - 50}
-            y={labelY - 14}
-            width={100}
-            height={28}
-            fill="#0f172a"
-            rx="6"
-            opacity="0.92"
-          />
-          <text
-            x={labelX}
-            y={labelY + 5}
-            textAnchor="middle"
-            fill="white"
-            fontSize="11.5"
-            fontWeight="500"
-            letterSpacing="0.01em"
+        <foreignObject
+          x={labelX - 80}
+          y={labelY - 14}
+          width={160}
+          height={28}
+          style={{ overflow: 'visible' }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              height: '100%',
+            }}
           >
-            {pattern}
-          </text>
-        </g>
+            <span
+              style={{
+                background: '#0f172a',
+                opacity: 0.92,
+                color: 'white',
+                fontSize: '11.5px',
+                fontWeight: 500,
+                letterSpacing: '0.01em',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {pattern}
+            </span>
+          </div>
+        </foreignObject>
       )}
     </>
   )
