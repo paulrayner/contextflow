@@ -265,12 +265,12 @@ export const POWER_DYNAMICS: ConceptDefinition = {
 export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
   flow: {
     title: 'Value Stream View',
-    description: 'Map how value flows from users through your system. Based on User Needs Mapping.',
+    description: 'Map bounded contexts within your value stream stages to visualize how capabilities support value delivery.',
     characteristics: [
-      'Shows Actor → Need → Context flow',
+      'Organize contexts by value stream stages',
+      'See which contexts support each phase',
       'Visualizes the value chain',
-      'Identifies user-facing vs invisible work',
-      'Based on userneedsmapping.com methodology',
+      'Identify handoffs and dependencies',
     ],
   },
   distillation: {

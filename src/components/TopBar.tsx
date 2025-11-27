@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target, HelpCircle } from 'lucide-react'
+import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -241,23 +241,21 @@ export function TopBar() {
         {viewMode === 'strategic' && (
           <>
             <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-600 dark:text-slate-400">Temporal</span>
-              <button
-                onClick={toggleTemporalMode}
-                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                style={{ backgroundColor: temporalEnabled ? '#3b82f6' : '#cbd5e1' }}
-                title="Enable temporal mode"
-              >
-                <span
-                  className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  style={{ transform: temporalEnabled ? 'translateX(18px)' : 'translateX(2px)' }}
-                />
-              </button>
-              <InfoTooltip content={TEMPORAL_MODE} position="bottom">
-                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-              </InfoTooltip>
-            </div>
+            <InfoTooltip content={TEMPORAL_MODE} position="bottom">
+              <div className="flex items-center gap-2 cursor-help">
+                <span className="text-xs text-slate-600 dark:text-slate-400">Temporal</span>
+                <button
+                  onClick={toggleTemporalMode}
+                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                  style={{ backgroundColor: temporalEnabled ? '#3b82f6' : '#cbd5e1' }}
+                >
+                  <span
+                    className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                    style={{ transform: temporalEnabled ? 'translateX(18px)' : 'translateX(2px)' }}
+                  />
+                </button>
+              </div>
+            </InfoTooltip>
           </>
         )}
 
