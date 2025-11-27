@@ -12,10 +12,11 @@ interface PatternsGuideModalProps {
   onClose: () => void
 }
 
-const CATEGORY_LABELS: Record<PatternCategory, { title: string; description: string }> = {
+const CATEGORY_LABELS: Record<PatternCategory, { title: string; description: string; note?: string }> = {
   'upstream-downstream': {
     title: 'Upstream/Downstream Patterns',
     description: 'One team has more control or influence over the integration.',
+    note: '"Upstream/downstream" refers to control, not data flow direction.',
   },
   'mutual': {
     title: 'Mutual Patterns',
@@ -307,6 +308,11 @@ export function PatternsGuideModal({ onClose }: PatternsGuideModalProps) {
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {CATEGORY_LABELS[category].description}
                 </p>
+                {CATEGORY_LABELS[category].note && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">
+                    ⚠️ {CATEGORY_LABELS[category].note}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 {patternsByCategory[category].map(pattern => (

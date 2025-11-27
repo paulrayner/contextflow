@@ -27,6 +27,10 @@ export const POWER_DYNAMICS_ICONS: Record<PowerDynamics, string> = {
 /**
  * Comprehensive DDD relationship pattern definitions.
  * Single source of truth for all pattern metadata.
+ *
+ * IMPORTANT: "Upstream" and "Downstream" refer to CONTROL and INFLUENCE over the integration,
+ * NOT the direction of data flow. The upstream team has more power to dictate the model and
+ * terms of integration. Data can flow in either direction regardless of upstream/downstream status.
  */
 export const PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
@@ -36,7 +40,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
     category: 'upstream-downstream',
     shortDescription: 'Upstream delivers what downstream needs',
     detailedDescription:
-      'The upstream team (supplier) provides data or services that the downstream team (customer) depends on. The upstream team should consider downstream needs when planning, but ultimately controls the delivery schedule and model.',
+      'The upstream team (supplier) provides data or services that the downstream team (customer) depends on. The upstream team should consider downstream needs when planning, but ultimately controls the delivery schedule and model. Note: "upstream/downstream" refers to control over the integration, not data flow direction—data can flow either way.',
     whenToUse: [
       'Clear dependency where one team provides data/services to another',
       'Upstream team is willing to accommodate downstream requests',
