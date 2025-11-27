@@ -99,9 +99,9 @@ function PatternDiagram({ pattern }: { pattern: PatternDefinition['value'] }) {
       <svg viewBox="0 0 200 60" className="w-full h-14">
         <DownstreamBox highlight />
         {/* ACL shield/barrier */}
-        <rect x={78} y={12} width={12} height={36} rx={2} className="fill-amber-100 dark:fill-amber-900/40 stroke-amber-500 dark:stroke-amber-400" strokeWidth={1.5} />
-        <text x={84} y={34} textAnchor="middle" className="fill-amber-600 dark:fill-amber-400 text-[8px] font-bold">A</text>
-        <Arrow fromX={90} />
+        <rect x={75} y={12} width={20} height={36} rx={2} className="fill-amber-100 dark:fill-amber-900/40 stroke-amber-500 dark:stroke-amber-400" strokeWidth={1.5} />
+        <text x={85} y={34} textAnchor="middle" className="fill-amber-600 dark:fill-amber-400 text-[7px] font-bold">ACL</text>
+        <Arrow fromX={95} />
         <UpstreamBox />
         <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
           translation layer
@@ -111,11 +111,11 @@ function PatternDiagram({ pattern }: { pattern: PatternDefinition['value'] }) {
     'open-host-service': (
       <svg viewBox="0 0 200 60" className="w-full h-14">
         <DownstreamBox />
-        <Arrow />
-        {/* API symbol on upstream */}
+        {/* API symbol on upstream side where arrow connects */}
+        <rect x={110} y={22} width={16} height={16} rx={2} className="fill-green-100 dark:fill-green-900/40 stroke-green-500 dark:stroke-green-400" strokeWidth={1} />
+        <text x={118} y={33} textAnchor="middle" className="fill-green-600 dark:fill-green-400 text-[7px] font-bold">API</text>
+        <Arrow fromX={70} toX={110} />
         <UpstreamBox highlight />
-        <rect x={172} y={22} width={16} height={16} rx={2} className="fill-green-100 dark:fill-green-900/40 stroke-green-500 dark:stroke-green-400" strokeWidth={1} />
-        <text x={180} y={33} textAnchor="middle" className="fill-green-600 dark:fill-green-400 text-[7px] font-bold">API</text>
         <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
           public interface
         </text>
@@ -125,11 +125,11 @@ function PatternDiagram({ pattern }: { pattern: PatternDefinition['value'] }) {
       <svg viewBox="0 0 200 60" className="w-full h-14">
         <DownstreamBox />
         {/* Shared schema symbol */}
-        <rect x={85} y={20} width={30} height={20} rx={2} className="fill-purple-100 dark:fill-purple-900/40 stroke-purple-500 dark:stroke-purple-400" strokeWidth={1.5} />
-        <text x={100} y={33} textAnchor="middle" className="fill-purple-600 dark:fill-purple-400 text-[7px] font-bold">JSON</text>
+        <rect x={82} y={18} width={36} height={24} rx={2} className="fill-purple-100 dark:fill-purple-900/40 stroke-purple-500 dark:stroke-purple-400" strokeWidth={1.5} />
+        <text x={100} y={34} textAnchor="middle" className="fill-purple-600 dark:fill-purple-400 text-[7px] font-bold">Schema</text>
         <UpstreamBox highlight />
-        <line x1={70} y1={30} x2={85} y2={30} className={arrowStyle} strokeWidth={1.5} />
-        <line x1={115} y1={30} x2={130} y2={30} className={arrowStyle} strokeWidth={1.5} />
+        <line x1={70} y1={30} x2={82} y2={30} className={arrowStyle} strokeWidth={1.5} />
+        <line x1={118} y1={30} x2={130} y2={30} className={arrowStyle} strokeWidth={1.5} />
         <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
           shared format
         </text>
@@ -152,11 +152,13 @@ function PatternDiagram({ pattern }: { pattern: PatternDefinition['value'] }) {
     ),
     'partnership': (
       <svg viewBox="0 0 200 60" className="w-full h-14">
-        <DownstreamBox x={20} highlight />
-        <BidirectionalArrow />
-        <UpstreamBox x={120} highlight />
-        <text x={20 + 30} y={33} textAnchor="middle" className={textStyle}>Team A</text>
-        <text x={120 + 30} y={33} textAnchor="middle" className={textStyle}>Team B</text>
+        {/* Custom boxes with Team A/B labels instead of Upstream/Downstream */}
+        <rect x={20} y={15} width={60} height={30} rx={3} className={highlightStyle} strokeWidth={1.5} />
+        <text x={50} y={33} textAnchor="middle" className={textStyle}>Team A</text>
+        {/* Simple line - no arrows since partnership is mutual with no directionality */}
+        <line x1={80} y1={30} x2={120} y2={30} className={arrowStyle} strokeWidth={1.5} />
+        <rect x={120} y={15} width={60} height={30} rx={3} className={highlightStyle} strokeWidth={1.5} />
+        <text x={150} y={33} textAnchor="middle" className={textStyle}>Team B</text>
         <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
           mutual dependency
         </text>
