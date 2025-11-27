@@ -56,6 +56,7 @@
 
 ## Done
 - [x] Fix flickering labels on relationship names
+- [x] New context added should not overlap an existing context
 - [x] Fix context overlap in distillation view (grid distribution on view switch + grid-based positioning for new contexts)
 - [x] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [x] Display helpful message when someone tries to connect actor<->context without user need

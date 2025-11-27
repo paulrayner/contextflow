@@ -80,7 +80,7 @@ const PATTERN_EDGE_INDICATORS: Partial<Record<Relationship['pattern'], PatternIn
     },
   },
   'open-host-service': {
-    label: 'API',
+    label: 'OHS',
     position: 'target', // upstream end
     boxWidth: 28,
     boxHeight: 18,
@@ -1673,10 +1673,28 @@ function RelationshipEdge({
     ? getIndicatorBoxPosition(sx, sy, tx, ty, indicatorConfig.position)
     : null
 
-  // Debug OHS positioning
-  if (isOHS && boxPos) {
-    console.log('OHS edge:', id, { sx, sy, tx, ty, boxPos, pattern })
-  }
+  // Calculate modified bezier path for ACL/OHS (curved line terminating at box edge)
+  const boxEdgePoint = boxPos && indicatorConfig
+    ? getBoxEdgePoint(
+        boxPos,
+        indicatorConfig.boxWidth,
+        indicatorConfig.boxHeight,
+        indicatorConfig.position === 'source' ? { x: tx, y: ty } : { x: sx, y: sy }
+      )
+    : null
+
+  // For ACL: curve from box edge (source side) to target
+  // For OHS: curve from source to box edge (target side)
+  const [aclOhsPath] = boxEdgePoint
+    ? getBezierPath({
+        sourceX: isACL ? boxEdgePoint.x : sx,
+        sourceY: isACL ? boxEdgePoint.y : sy,
+        sourcePosition: sourcePos,
+        targetX: isOHS ? boxEdgePoint.x : tx,
+        targetY: isOHS ? boxEdgePoint.y : ty,
+        targetPosition: targetPos,
+      })
+    : [null]
 
   // Edge color based on state
   const edgeColor = isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1'
@@ -1684,12 +1702,12 @@ function RelationshipEdge({
 
   return (
     <>
-      {/* ACL: line from box edge to target (upstream) */}
-      {isACL && boxPos && indicatorConfig && (
+      {/* ACL: curved line from box edge to target (upstream) with arrow */}
+      {isACL && aclOhsPath && (
         <path
           id={id}
           className="react-flow__edge-path"
-          d={`M ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: tx, y: ty }).x} ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: tx, y: ty }).y} L ${tx} ${ty}`}
+          d={aclOhsPath}
           style={{
             stroke: edgeColor,
             strokeWidth: strokeWidth,
@@ -1700,12 +1718,12 @@ function RelationshipEdge({
         />
       )}
 
-      {/* OHS: line from source (downstream) to box edge */}
-      {isOHS && boxPos && indicatorConfig && (
+      {/* OHS: curved line from source (downstream) to box edge - no arrow */}
+      {isOHS && aclOhsPath && (
         <path
           id={id}
           className="react-flow__edge-path"
-          d={`M ${sx} ${sy} L ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: sx, y: sy }).x} ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: sx, y: sy }).y}`}
+          d={aclOhsPath}
           style={{
             stroke: edgeColor,
             strokeWidth: strokeWidth,
