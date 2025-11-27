@@ -22,7 +22,7 @@ import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, Actor, UserNeed, ActorNeedConnection, NeedContextConnection } from '../model/types'
-import { User, Target, X, ArrowRight } from 'lucide-react'
+import { User, Target, X, ArrowRight, ArrowLeftRight, Trash2 } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { TimeSlider } from './TimeSlider'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
@@ -1489,10 +1489,21 @@ function RelationshipEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
+  const deleteRelationship = useEditorStore(s => s.deleteRelationship)
+  const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
   const isSelected = id === selectedRelationshipId
+
+  // Close context menu on outside click
+  React.useEffect(() => {
+    if (!contextMenu) return
+    const handleClick = () => setContextMenu(null)
+    window.addEventListener('click', handleClick)
+    return () => window.removeEventListener('click', handleClick)
+  }, [contextMenu])
 
   // Get node objects from React Flow to calculate dynamic positions
   const { getNode } = useReactFlow()
@@ -1571,6 +1582,11 @@ function RelationshipEdge({
             selectedUserNeedId: null,
           })
         }}
+        onContextMenu={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setContextMenu({ x: e.clientX, y: e.clientY })
+        }}
       >
         <title>{pattern}</title>
       </path>
@@ -1606,6 +1622,44 @@ function RelationshipEdge({
             >
               {pattern}
             </span>
+          </div>
+        </foreignObject>
+      )}
+      {/* Context Menu */}
+      {contextMenu && (
+        <foreignObject x={0} y={0} width={1} height={1} style={{ overflow: 'visible' }}>
+          <div
+            style={{
+              position: 'fixed',
+              left: contextMenu.x,
+              top: contextMenu.y,
+              zIndex: 1000,
+            }}
+            className="bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-xl py-1 min-w-[160px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!isSymmetric && (
+              <button
+                onClick={() => {
+                  swapRelationshipDirection(id)
+                  setContextMenu(null)
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700 transition-colors flex items-center gap-2"
+              >
+                <ArrowLeftRight size={14} />
+                Swap Direction
+              </button>
+            )}
+            <button
+              onClick={() => {
+                deleteRelationship(id)
+                setContextMenu(null)
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
+            >
+              <Trash2 size={14} />
+              Delete Relationship
+            </button>
           </div>
         </foreignObject>
       )}

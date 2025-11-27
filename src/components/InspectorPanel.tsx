@@ -505,6 +505,15 @@ export function InspectorPanel() {
             >
               {toContext?.name || 'Unknown'}
             </button>
+            {patternDef?.powerDynamics !== 'mutual' && patternDef?.powerDynamics !== 'none' && (
+              <button
+                onClick={() => swapRelationshipDirection(relationship.id)}
+                className="ml-auto p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                title="Swap direction"
+              >
+                <ArrowLeftRight size={14} />
+              </button>
+            )}
           </div>
         </Section>
 

@@ -2,8 +2,6 @@
 
 ## In Progress
 
-- [ ] Enable reversing context relationships (swap upstream<--downstream contexts)
-
 ## Backlog
 - [ ] Add grouping of elements and bulk-move
 - [ ] Display helpful message when someone tries to connect actor<->context without user need
@@ -63,6 +61,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Enable reversing context relationships (swap button in Inspector Direction section + right-click context menu on relationship edges)
 - [x] Add explanation for each context relationship type (power dynamics icons, collapsible "About" section, comprehensive Patterns Guide modal with SVG diagrams, upstream/downstream clarification note)
 - [x] Should be able to select a Need->Context line. Should highlight similar to the actor-need line highlighting we just implemented (line and connected user need and context highlight)
 - [x] Should be able to select and delete need->context line

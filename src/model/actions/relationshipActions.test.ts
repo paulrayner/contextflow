@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   addRelationshipAction,
   deleteRelationshipAction,
-  updateRelationshipAction
+  updateRelationshipAction,
+  swapRelationshipDirectionAction
 } from './relationshipActions'
 import { createMockState, createMockContext, createMockRelationship } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
+import type { Relationship } from '../types'
 
 // Mock analytics
 vi.mock('../../utils/analytics', () => ({
@@ -223,6 +225,84 @@ describe('relationshipActions', () => {
       mockState.projects['project-1'].relationships.push(relationship2)
 
       const result = updateRelationshipAction(mockState, 'rel-1', { pattern: 'partnership' })
+
+      expect(result.projects?.['project-1'].relationships).toHaveLength(2)
+      expect(result.projects?.['project-1'].relationships[1]).toEqual(relationship2)
+    })
+  })
+
+  describe('swapRelationshipDirectionAction', () => {
+    it('should swap fromContextId and toContextId', () => {
+      const result = swapRelationshipDirectionAction(mockState, 'rel-1')
+
+      const relationship = result.projects?.['project-1'].relationships[0]
+      expect(relationship?.fromContextId).toBe('context-2')
+      expect(relationship?.toContextId).toBe('context-1')
+    })
+
+    it('should preserve other relationship properties', () => {
+      mockState.projects['project-1'].relationships[0] = {
+        ...mockState.projects['project-1'].relationships[0],
+        description: 'Test description',
+        communicationMode: 'REST API',
+      }
+
+      const result = swapRelationshipDirectionAction(mockState, 'rel-1')
+
+      const relationship = result.projects?.['project-1'].relationships[0]
+      expect(relationship?.pattern).toBe('customer-supplier')
+      expect(relationship?.description).toBe('Test description')
+      expect(relationship?.communicationMode).toBe('REST API')
+    })
+
+    it('should add command to undo stack', () => {
+      const result = swapRelationshipDirectionAction(mockState, 'rel-1')
+
+      expect(result.undoStack).toHaveLength(1)
+      expect(result.undoStack?.[0].type).toBe('updateRelationship')
+    })
+
+    it('should store old and new relationship in undo command', () => {
+      const result = swapRelationshipDirectionAction(mockState, 'rel-1')
+
+      const command = result.undoStack?.[0]
+      expect(command?.payload.oldRelationship.fromContextId).toBe('context-1')
+      expect(command?.payload.oldRelationship.toContextId).toBe('context-2')
+      expect(command?.payload.newRelationship.fromContextId).toBe('context-2')
+      expect(command?.payload.newRelationship.toContextId).toBe('context-1')
+    })
+
+    it('should clear redo stack', () => {
+      mockState.redoStack = [{ type: 'addRelationship', payload: { relationship: createMockRelationship() } }]
+
+      const result = swapRelationshipDirectionAction(mockState, 'rel-1')
+
+      expect(result.redoStack).toHaveLength(0)
+    })
+
+    it('should return unchanged state if relationship not found', () => {
+      const result = swapRelationshipDirectionAction(mockState, 'nonexistent')
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should return unchanged state if no active project', () => {
+      const state = { ...mockState, activeProjectId: null }
+      const result = swapRelationshipDirectionAction(state, 'rel-1')
+
+      expect(result).toBe(state)
+    })
+
+    it('should preserve other relationships', () => {
+      const relationship2: Relationship = {
+        id: 'rel-2',
+        fromContextId: 'context-2',
+        toContextId: 'context-1',
+        pattern: 'anti-corruption-layer',
+      }
+      mockState.projects['project-1'].relationships.push(relationship2)
+
+      const result = swapRelationshipDirectionAction(mockState, 'rel-1')
 
       expect(result.projects?.['project-1'].relationships).toHaveLength(2)
       expect(result.projects?.['project-1'].relationships[1]).toEqual(relationship2)
