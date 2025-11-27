@@ -4,6 +4,7 @@ import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, H
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
+import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, ACTOR_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
 import { version } from '../../package.json'
 
@@ -39,6 +40,7 @@ export function TopBar() {
 
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
+  const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
   const [useCodeCohesionAPI, setUseCodeCohesionAPI] = useState(() => {
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
     return stored === 'true'
@@ -350,13 +352,24 @@ export function TopBar() {
                     Hover explanations for DDD & Wardley concepts
                   </p>
 
+                  {/* Getting Started Guide */}
+                  <button
+                    onClick={() => {
+                      setShowGettingStartedGuide(true)
+                      setShowSettings(false)
+                    }}
+                    className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    Getting Started Guide
+                  </button>
+
                   {/* Restart Welcome */}
                   <button
                     onClick={() => {
                       resetWelcome()
                       setShowSettings(false)
                     }}
-                    className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                    className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                   >
                     Restart Welcome
                   </button>
@@ -454,6 +467,17 @@ export function TopBar() {
           )}
         </div>
       </div>
+
+      {/* Getting Started Guide Modal */}
+      {showGettingStartedGuide && (
+        <GettingStartedGuideModal
+          onClose={() => setShowGettingStartedGuide(false)}
+          onViewSample={() => {
+            setActiveProject('acme-ecommerce')
+            setShowGettingStartedGuide(false)
+          }}
+        />
+      )}
     </header>
   )
 }

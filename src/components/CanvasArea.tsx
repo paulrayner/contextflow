@@ -27,6 +27,7 @@ import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefin
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
+import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { InfoTooltip } from './InfoTooltip'
 import { EVOLUTION_STAGES, EDGE_INDICATORS, VALUE_CHAIN_VISIBILITY, DISTILLATION_AXES, DISTILLATION_REGIONS } from '../model/conceptDefinitions'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
@@ -2014,6 +2015,11 @@ function CanvasContent() {
   // Value chain guide modal
   const [showValueChainGuide, setShowValueChainGuide] = React.useState(false)
 
+  // Getting started guide modal
+  const [showGettingStartedGuide, setShowGettingStartedGuide] = React.useState(false)
+  const [hideEmptyStatePanel, setHideEmptyStatePanel] = React.useState(false)
+  const setActiveProject = useEditorStore(s => s.setActiveProject)
+
   const { fitBounds } = useReactFlow()
 
   const getBounds = useCallback(() => {
@@ -2857,20 +2863,69 @@ function CanvasContent() {
         <CustomControls />
 
         {/* Empty state welcome message */}
-        {project && project.contexts.length === 0 && (!project.actors || project.actors.length === 0) && (
-          <Panel position="top-center" className="mt-32">
-            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-slate-200 dark:border-neutral-700 p-8 max-w-md text-center">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-3">
-                Welcome to ContextFlow
+        {project && project.contexts.length === 0 && (!project.actors || project.actors.length === 0) && !hideEmptyStatePanel && (
+          <Panel position="top-center" className="mt-24">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-slate-200 dark:border-neutral-700 p-6 max-w-lg relative">
+              <button
+                onClick={() => setHideEmptyStatePanel(true)}
+                className="absolute top-3 right-3 p-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2 text-center">
+                Get Started with Context Mapping
               </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Start mapping your domain by adding your first Bounded Context using the <strong>+ Context</strong> button above, or explore the sample project to see how it works.
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 text-center">
+                Think of a user journey in your domain — like a customer making a purchase or a user submitting a request. Then map it step by step.
               </p>
-              <div className="text-xs text-slate-500 dark:text-slate-500 bg-slate-50 dark:bg-neutral-900 rounded p-3">
-                <strong>What is a Bounded Context?</strong>
-                <p className="mt-1">
-                  A boundary within which a particular domain model applies. It's where your ubiquitous language is consistent and your team has ownership.
-                </p>
+
+              <div className="space-y-2">
+                <div className="flex items-start gap-3 bg-slate-50 dark:bg-neutral-900 rounded-md p-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-semibold shrink-0">
+                    1
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200">Add an Actor</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Who uses your system? Click <strong>+ Actor</strong> above</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 bg-slate-50 dark:bg-neutral-900 rounded-md p-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-semibold shrink-0">
+                    2
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200">Add Their Need</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">What are they trying to do? Click <strong>+ Need</strong> above</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 bg-slate-50 dark:bg-neutral-900 rounded-md p-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-semibold shrink-0">
+                    3
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200">Add Contexts</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">What systems handle each step? Click <strong>+ Context</strong> above</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-center gap-3 text-sm">
+                <button
+                  onClick={() => setShowGettingStartedGuide(true)}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
+                >
+                  View Full Guide
+                </button>
+                <span className="text-slate-300 dark:text-slate-600">·</span>
+                <button
+                  onClick={() => setActiveProject('acme-ecommerce')}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
+                >
+                  Explore Sample Project →
+                </button>
               </div>
             </div>
           </Panel>
@@ -3091,6 +3146,17 @@ function CanvasContent() {
       {/* Value Chain Guide Modal */}
       {showValueChainGuide && (
         <ValueChainGuideModal onClose={() => setShowValueChainGuide(false)} />
+      )}
+
+      {/* Getting Started Guide Modal */}
+      {showGettingStartedGuide && (
+        <GettingStartedGuideModal
+          onClose={() => setShowGettingStartedGuide(false)}
+          onViewSample={() => {
+            setActiveProject('acme-ecommerce')
+            setShowGettingStartedGuide(false)
+          }}
+        />
       )}
     </div>
   )

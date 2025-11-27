@@ -2,21 +2,21 @@
 
 ## In Progress
 
-- [ ] Add onboarding/tutorial for first-time users
+- [ ] Change "actor" -> "user" everywhere. This will make it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**. need to think hard about how to deal with that for any existing users (not sure if there are any)
+
 
 ## Backlog
+- [ ] Update virtualgenius.com with fresh images
+- [ ] Need some way to mark concerns or problems on the canvas (e.g. core domain is inside BBOM, or )
+- [ ] Add teams to contexts
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
-- [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
 - [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
 - [ ] Update ARCHITECTURE.md, UX_GUIDELINES.md
 - [ ] Incorporate VISION.md into README.md as appropriate
 - [ ] Update README.md with fresh images
-- [ ] Update virtualgenius.com with fresh images
 - [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
-- [ ] Need some way to mark concerns or problems on the canvas (e.g. core domain is inside BBOM, or )
-- [ ] Add teams to contexts
 - [ ] Implement ANALYTICS_PLAN.doc
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
 - [ ] Add optional actor attributes: goal(s), challenges
@@ -47,6 +47,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Add onboarding/tutorial for first-time users
 - [x] Add grouping of elements and bulk-move
 - [x] Context boundary width should more obviously reflect boundary strength (weak=dotted thin, external=dashed)
 - [x] Add informational overlays/help throughout app by default (can turn off in settings) - hover tooltips for evolution stages, strategic classifications, and view tabs with educational content
