@@ -2174,6 +2174,7 @@ function CanvasContent() {
             height: 50,
             draggable: true,
             selectable: true,
+            selected: false,
             connectable: false,
           }
         })
@@ -2206,6 +2207,7 @@ function CanvasContent() {
               height: 50,
               draggable: true,
               selectable: true,
+              selected: false,
               connectable: false,
             }
           })
