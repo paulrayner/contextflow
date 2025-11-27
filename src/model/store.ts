@@ -84,6 +84,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedNeedContextConnectionId: null,
   selectedContextIds: [],
 
+  isDragging: false,
+
   canvasView: {
     flow: { zoom: 1, panX: 0, panY: 0 },
     strategic: { zoom: 1, panX: 0, panY: 0 },
@@ -595,6 +597,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     localStorage.setItem('contextflow.groupOpacity', String(opacity))
     set({ groupOpacity: opacity })
   },
+
+  setDragging: (isDragging) => set({ isDragging }),
 
   updateFlowStage: (index, updates) => set((state) => {
     const projectId = state.activeProjectId

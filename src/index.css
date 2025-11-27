@@ -4,6 +4,12 @@
 
 :root {
   color-scheme: light dark;
+  --edge-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable edge transitions during drag for smooth movement */
+.react-flow-wrapper.dragging {
+  --edge-transition: none;
 }
 
 .badge {

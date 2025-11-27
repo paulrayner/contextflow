@@ -48,7 +48,7 @@ const NODE_SIZES = {
 // Edge styling constants
 const EDGE_HIT_AREA_WIDTH = 20
 const EDGE_STROKE_WIDTH = { default: 1.5, hover: 2, selected: 2.5 }
-const EDGE_TRANSITION = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+const EDGE_TRANSITION = 'var(--edge-transition)' // CSS variable toggled during drag
 const EDGE_DASH_ARRAY = '5,5'
 
 // Pattern indicator configuration for ACL/OHS boxes on edges
@@ -1996,6 +1996,9 @@ function CanvasContent() {
   const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
   const updateKeyframeContextPosition = useEditorStore(s => s.updateKeyframeContextPosition)
 
+  const isDragging = useEditorStore(s => s.isDragging)
+  const setDragging = useEditorStore(s => s.setDragging)
+
   // Pending connection state for context→context relationships (needs pattern selection)
   const [pendingConnection, setPendingConnection] = React.useState<{ sourceId: string; targetId: string } | null>(null)
 
@@ -2541,11 +2544,41 @@ function CanvasContent() {
         return
       }
 
-      // Calculate delta
-      const deltaX = positionChange.position.x - draggedNode.position.x
-      const deltaY = positionChange.position.y - draggedNode.position.y
+      // Calculate proposed delta
+      let deltaX = positionChange.position.x - draggedNode.position.x
+      let deltaY = positionChange.position.y - draggedNode.position.y
 
-      // Create position changes for all other selected nodes
+      // Clamp delta so no selected node exceeds boundaries
+      const CANVAS_WIDTH = 2000
+      const CANVAS_HEIGHT = 1000
+      const PROBLEM_SPACE_HEIGHT = 150
+
+      let maxDeltaLeft = Infinity
+      let maxDeltaRight = Infinity
+      let maxDeltaUp = Infinity
+      let maxDeltaDown = Infinity
+
+      for (const id of allSelectedIds) {
+        const n = nodes.find(node => node.id === id)
+        if (!n || n.type !== 'context') continue
+        const w = n.width ?? 170
+        const h = n.height ?? 100
+        maxDeltaLeft = Math.min(maxDeltaLeft, n.position.x)
+        maxDeltaRight = Math.min(maxDeltaRight, CANVAS_WIDTH - w - n.position.x)
+        maxDeltaUp = Math.min(maxDeltaUp, n.position.y - PROBLEM_SPACE_HEIGHT)
+        maxDeltaDown = Math.min(maxDeltaDown, CANVAS_HEIGHT - h - n.position.y)
+      }
+
+      deltaX = Math.max(-maxDeltaLeft, Math.min(maxDeltaRight, deltaX))
+      deltaY = Math.max(-maxDeltaUp, Math.min(maxDeltaDown, deltaY))
+
+      // Update the original position change with clamped delta
+      positionChange.position = {
+        x: draggedNode.position.x + deltaX,
+        y: draggedNode.position.y + deltaY,
+      }
+
+      // Create position changes for all other selected nodes with clamped delta
       const additionalChanges = allSelectedIds
         .filter(id => id !== positionChange.id)
         .map(id => {
@@ -2575,22 +2608,30 @@ function CanvasContent() {
   const constrainNodePosition: NodeDragHandler = useCallback((event, node) => {
     if (node.type === 'actor') {
       node.position.y = 10
-    } else if (node.type === 'userNeed') {
-      node.position.y = 90
-    } else if (node.type === 'context') {
-      const CANVAS_WIDTH = 2000
-      const CANVAS_HEIGHT = 1000
-      const PROBLEM_SPACE_HEIGHT = 150
-
-      const nodeWidth = node.width ?? 170
-      const nodeHeight = node.height ?? 100
-
-      node.position.x = Math.max(0, Math.min(CANVAS_WIDTH - nodeWidth, node.position.x))
-      node.position.y = Math.max(PROBLEM_SPACE_HEIGHT, Math.min(CANVAS_HEIGHT - nodeHeight, node.position.y))
+      return
     }
+
+    if (node.type === 'userNeed') {
+      node.position.y = 90
+      return
+    }
+
+    if (node.type !== 'context') return
+
+    // Single node constraint (multi-select constraints are handled in onNodesChange)
+    const CANVAS_WIDTH = 2000
+    const CANVAS_HEIGHT = 1000
+    const PROBLEM_SPACE_HEIGHT = 150
+
+    const w = node.width ?? 170
+    const h = node.height ?? 100
+    node.position.x = Math.max(0, Math.min(CANVAS_WIDTH - w, node.position.x))
+    node.position.y = Math.max(PROBLEM_SPACE_HEIGHT, Math.min(CANVAS_HEIGHT - h, node.position.y))
   }, [])
 
   const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
+    setDragging(false)
+
     if (!project) return
 
     // Handle actor drag (horizontal only)
@@ -2718,7 +2759,7 @@ function CanvasContent() {
         }
       }
     }
-  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, updateUserNeedPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId])
+  }, [viewMode, updateContextPosition, updateMultipleContextPositions, updateActorPosition, updateUserNeedPosition, updateKeyframeContextPosition, project, selectedContextIds, nodes, activeKeyframeId, setDragging])
 
   // Handle node deletion via keyboard (Delete/Backspace key)
   const onNodesDelete = useCallback((deletedNodes: Node[]) => {
@@ -2780,26 +2821,28 @@ function CanvasContent() {
   return (
     <div className="relative w-full h-full">
       <TimeSlider />
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onNodesDelete={onNodesDelete}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        onNodeClick={onNodeClick}
-        onEdgeClick={onEdgeClick}
-        onPaneClick={onPaneClick}
-        onNodeDrag={constrainNodePosition}
-        onNodeDragStop={onNodeDragStop}
-        onInit={onInit}
-        elementsSelectable
-        deleteKeyCode={['Backspace', 'Delete']}
-        minZoom={0.1}
-        maxZoom={2}
-        proOptions={{ hideAttribution: true }}
-      >
+      <div className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''}`}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onNodesDelete={onNodesDelete}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          onNodeClick={onNodeClick}
+          onEdgeClick={onEdgeClick}
+          onPaneClick={onPaneClick}
+          onNodeDragStart={() => setDragging(true)}
+          onNodeDrag={constrainNodePosition}
+          onNodeDragStop={onNodeDragStop}
+          onInit={onInit}
+          elementsSelectable
+          deleteKeyCode={['Backspace', 'Delete']}
+          minZoom={0.1}
+          maxZoom={2}
+          proOptions={{ hideAttribution: true }}
+        >
         {/* Wardley-style background with very subtle dots */}
         <Background gap={24} size={0.4} color="#e5e7eb" />
 
@@ -2924,7 +2967,8 @@ function CanvasContent() {
             </marker>
           </defs>
         </svg>
-      </ReactFlow>
+        </ReactFlow>
+      </div>
 
       {/* Pattern Picker Dialog for context→context relationships */}
       {pendingConnection && project && (() => {

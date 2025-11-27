@@ -57,7 +57,8 @@ export interface EditorState {
   selectedUserNeedId: string | null
   selectedActorNeedConnectionId: string | null
   selectedNeedContextConnectionId: string | null
-  selectedContextIds: string[] // for multi-select
+  selectedContextIds: string[]
+  isDragging: boolean
 
   canvasView: {
     flow: { zoom: number; panX: number; panY: number }
@@ -147,6 +148,7 @@ export interface EditorState {
   updateFlowStage: (index: number, updates: Partial<{ label: string; position: number }>) => void
   addFlowStage: (label: string, position?: number) => void
   deleteFlowStage: (index: number) => void
+  setDragging: (isDragging: boolean) => void
   undo: () => void
   redo: () => void
   fitToMap: () => void
