@@ -376,3 +376,42 @@ export const DISTILLATION_REGIONS: Record<string, ConceptDefinition> = {
     ],
   },
 }
+
+// Temporal Mode
+export const TEMPORAL_MODE: ConceptDefinition = {
+  title: 'Temporal Mode',
+  description:
+    'Track how your architecture evolves over time using keyframes - snapshots of context positions at specific dates.',
+  characteristics: [
+    'Create keyframes to capture architecture at points in time',
+    'Visualize planned migrations and transformations',
+    'Animate between keyframes to see evolution',
+    'Useful for roadmap planning and stakeholder communication',
+  ],
+}
+
+// Keyframe
+export const KEYFRAME_DEFINITION: ConceptDefinition = {
+  title: 'Keyframe',
+  description:
+    'A snapshot of your architecture at a specific point in time, capturing where contexts are positioned.',
+  characteristics: [
+    'Use YYYY or YYYY-Q2 format for dates',
+    'Drag contexts to set their positions for each keyframe',
+    'The timeline interpolates between keyframes',
+    'Hide or show contexts at different time periods',
+  ],
+}
+
+// Communication Mode
+export const COMMUNICATION_MODE: ConceptDefinition = {
+  title: 'Communication Mode',
+  description:
+    'How two bounded contexts technically communicate with each other.',
+  characteristics: [
+    'REST API - synchronous HTTP calls',
+    'gRPC - high-performance RPC framework',
+    'Event Bus - asynchronous messaging',
+    'Shared Database - direct data access (often a smell)',
+  ],
+}

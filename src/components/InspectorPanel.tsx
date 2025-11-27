@@ -13,7 +13,7 @@ import {
   getPatternDefinition,
 } from '../model/patternDefinitions'
 import { InfoTooltip } from './InfoTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_ACTOR, POWER_DYNAMICS } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_ACTOR, POWER_DYNAMICS, COMMUNICATION_MODE } from '../model/conceptDefinitions'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -620,7 +620,14 @@ export function InspectorPanel() {
         </Section>
 
         {/* Communication Mode (autosaves) */}
-        <Section label="Communication Mode">
+        <Section label={
+          <div className="flex items-center gap-1.5">
+            <span>Communication Mode</span>
+            <InfoTooltip content={COMMUNICATION_MODE} position="bottom">
+              <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
+          </div>
+        }>
           <input
             type="text"
             defaultValue={relationship.communicationMode || ''}

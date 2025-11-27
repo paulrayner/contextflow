@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
+import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target, HelpCircle } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
-import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, ACTOR_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION } from '../model/conceptDefinitions'
+import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, ACTOR_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -254,6 +254,9 @@ export function TopBar() {
                   style={{ transform: temporalEnabled ? 'translateX(18px)' : 'translateX(2px)' }}
                 />
               </button>
+              <InfoTooltip content={TEMPORAL_MODE} position="bottom">
+                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
             </div>
           </>
         )}

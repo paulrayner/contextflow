@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { useEditorStore } from '../model/store'
 import type { TemporalKeyframe } from '../model/types'
 import { dateToNumeric, findNearestKeyframe, shouldSnapToKeyframe } from '../lib/temporal'
-import { Copy, Trash2, X, Calendar, Play, Pause } from 'lucide-react'
+import { Copy, Trash2, X, Calendar, Play, Pause, HelpCircle } from 'lucide-react'
+import { InfoTooltip } from './InfoTooltip'
+import { KEYFRAME_DEFINITION } from '../model/conceptDefinitions'
 
 const PLAYBACK_UPDATE_INTERVAL_MS = 200
 const PLAYBACK_INCREMENT_QUARTERS = 0.25
@@ -407,8 +409,11 @@ export function TimeSlider() {
         {/* Status text and Exit button */}
         <div className="absolute top-14 left-1/2 -translate-x-1/2 text-center">
           {keyframes.length === 0 ? (
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              Double-click on timeline to add a keyframe
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <span>Double-click on timeline to add a keyframe</span>
+              <InfoTooltip content={KEYFRAME_DEFINITION} position="bottom">
+                <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
             </div>
           ) : activeKeyframeId ? (
             <div className="flex items-center gap-3">

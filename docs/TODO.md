@@ -4,7 +4,7 @@
 
 ## Backlog
 - [ ] Add grouping of elements and bulk-move
-- [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views
+- [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
 - [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
