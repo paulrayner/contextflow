@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition } from './distillationGrid'
+import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition, findFirstUnoccupiedFlowPosition } from './distillationGrid'
 import type { BoundedContext } from '../model/types'
 
-function makeContext(distillation: { x: number; y: number }): BoundedContext {
+function makeContext(distillation: { x: number; y: number }, flow?: { x: number }, sharedY?: number): BoundedContext {
   return {
     id: `ctx-${Math.random()}`,
     name: 'Test',
     positions: {
-      flow: { x: 50 },
+      flow: flow ?? { x: 50 },
       strategic: { x: 50 },
       distillation,
-      shared: { y: 50 },
+      shared: { y: sharedY ?? 50 },
     },
     evolutionStage: 'custom-built',
   }
@@ -91,5 +91,30 @@ describe('findFirstUnoccupiedGridPosition', () => {
     const contexts = [makeContext(pos0), makeContext(pos1), makeContext(pos2)]
     const result = findFirstUnoccupiedGridPosition(contexts)
     expect(result).toEqual(getGridPosition(3))
+  })
+})
+
+describe('findFirstUnoccupiedFlowPosition', () => {
+  it('returns center position when no contexts exist', () => {
+    expect(findFirstUnoccupiedFlowPosition([])).toEqual({ x: 50, y: 50 })
+  })
+
+  it('returns next position when center is occupied', () => {
+    const contexts = [makeContext({ x: 0, y: 0 }, { x: 50 }, 50)]
+    const result = findFirstUnoccupiedFlowPosition(contexts)
+    expect(result).not.toEqual({ x: 50, y: 50 })
+  })
+
+  it('finds unoccupied position based on flow.x and shared.y', () => {
+    // Occupy first two grid positions (50,50) and (37,30)
+    const contexts = [
+      makeContext({ x: 0, y: 0 }, { x: 50 }, 50),
+      makeContext({ x: 0, y: 0 }, { x: 37 }, 30),
+    ]
+    const result = findFirstUnoccupiedFlowPosition(contexts)
+    // Should return a position different from the occupied ones
+    const isNotFirst = result.x !== 50 || result.y !== 50
+    const isNotSecond = result.x !== 37 || result.y !== 30
+    expect(isNotFirst && isNotSecond).toBe(true)
   })
 })

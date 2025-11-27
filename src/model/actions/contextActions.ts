@@ -2,7 +2,7 @@ import type { Project, BoundedContext } from '../types'
 import type { EditorState, EditorCommand } from '../storeTypes'
 import { classifyFromDistillationPosition, classifyFromStrategicPosition } from '../classification'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../../utils/analytics'
-import { findFirstUnoccupiedGridPosition } from '../../lib/distillationGrid'
+import { findFirstUnoccupiedGridPosition, findFirstUnoccupiedFlowPosition } from '../../lib/distillationGrid'
 
 export function updateContextAction(
   state: EditorState,
@@ -222,14 +222,16 @@ export function addContextAction(
   const project = state.projects[projectId]
   if (!project) return state
 
+  const flowPos = findFirstUnoccupiedFlowPosition(project.contexts)
+
   const newContext: BoundedContext = {
     id: `context-${Date.now()}`,
     name,
     positions: {
-      flow: { x: 50 },
-      strategic: { x: 50 },
+      flow: { x: flowPos.x },
+      strategic: { x: flowPos.x },
       distillation: findFirstUnoccupiedGridPosition(project.contexts),
-      shared: { y: 50 },
+      shared: { y: flowPos.y },
     },
     strategicClassification: 'supporting',
     evolutionStage: 'custom-built',

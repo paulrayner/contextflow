@@ -50,6 +50,40 @@ export function findFirstUnoccupiedGridPosition(contexts: BoundedContext[]): { x
     }
   }
 
-  // Fallback: return center with small offset
+  return { x: 50, y: 50 }
+}
+
+// Grid for flow/strategic views (uses x + shared.y)
+const FLOW_GRID = { xMin: 30, xMax: 70, yMin: 30, yMax: 70, cols: 3, rowSpacing: 15 }
+
+function getFlowGridPosition(index: number): { x: number; y: number } {
+  if (index === 0) return { x: 50, y: 50 }
+
+  const col = (index - 1) % FLOW_GRID.cols
+  const row = Math.floor((index - 1) / FLOW_GRID.cols)
+  const colWidth = (FLOW_GRID.xMax - FLOW_GRID.xMin) / FLOW_GRID.cols
+
+  return {
+    x: Math.round(FLOW_GRID.xMin + (col + 0.5) * colWidth),
+    y: Math.min(FLOW_GRID.yMin + row * FLOW_GRID.rowSpacing, FLOW_GRID.yMax),
+  }
+}
+
+export function findFirstUnoccupiedFlowPosition(contexts: BoundedContext[]): { x: number; y: number } {
+  const MAX_ITERATIONS = 50
+
+  for (let index = 0; index < MAX_ITERATIONS; index++) {
+    const gridPos = getFlowGridPosition(index)
+    const isOccupied = contexts.some(ctx => {
+      const dx = Math.abs(ctx.positions.flow.x - gridPos.x)
+      const dy = Math.abs(ctx.positions.shared.y - gridPos.y)
+      return dx < OCCUPIED_THRESHOLD && dy < OCCUPIED_THRESHOLD
+    })
+
+    if (!isOccupied) {
+      return gridPos
+    }
+  }
+
   return { x: 50, y: 50 }
 }
