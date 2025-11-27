@@ -1580,6 +1580,8 @@ function RelationshipEdge({
             selectedGroupId: null,
             selectedActorId: null,
             selectedUserNeedId: null,
+            selectedNeedContextConnectionId: null,
+            selectedActorNeedConnectionId: null,
           })
         }}
         onContextMenu={(e) => {
