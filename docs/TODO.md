@@ -2,11 +2,10 @@
 
 ## In Progress
 
+- [ ] When switching to distillation view, all contexts are initially placed overlapping in the middle - confusing. They can be clustered near each other in the middle, but they should **not** overlap in any way.
 
 ## Backlog
-- [ ] When switching to distillation view, all contexts are initially placed overlapping in the middle - confusing. They should **not** overlap.
 - [ ] Add grouping of elements and bulk-move
-- [ ] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views
 - [ ] When adding contexts, they overlap the existing context by default - confusing.  They should **not** overlap.
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
@@ -60,6 +59,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [x] Display helpful message when someone tries to connect actor<->context without user need
 - [x] Enable reversing context relationships (swap button in Inspector Direction section + right-click context menu on relationship edges)
 - [x] Add explanation for each context relationship type (power dynamics icons, collapsible "About" section, comprehensive Patterns Guide modal with SVG diagrams, upstream/downstream clarification note)

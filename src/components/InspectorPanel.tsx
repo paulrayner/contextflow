@@ -961,7 +961,7 @@ export function InspectorPanel() {
       )}
 
       {/* Domain Classification - position-based, no section header */}
-      <div className="flex items-center justify-between gap-2">
+      <div>
         <span
           className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${
             context.strategicClassification === 'core'
@@ -976,28 +976,16 @@ export function InspectorPanel() {
           {context.strategicClassification === 'generic' && '📦 Generic'}
           {!context.strategicClassification && 'Not classified'}
         </span>
-        <button
-          onClick={() => setViewMode('distillation')}
-          className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
-        >
-          Update
-        </button>
       </div>
 
       {/* Evolution Stage - position-based, no section header */}
-      <div className="flex items-center justify-between gap-2">
+      <div>
         <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
           {context.evolutionStage === 'genesis' && '🌱 Genesis'}
           {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
           {context.evolutionStage === 'product/rental' && '📦 Product'}
           {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
         </span>
-        <button
-          onClick={() => setViewMode('strategic')}
-          className="text-xs px-2 py-1 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
-        >
-          Update
-        </button>
       </div>
 
       {/* Temporal Position (only in Strategic View with temporal mode enabled) */}
