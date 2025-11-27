@@ -24,14 +24,6 @@ export const POWER_DYNAMICS_ICONS: Record<PowerDynamics, string> = {
   none: '○',        // No integration
 }
 
-/**
- * Comprehensive DDD relationship pattern definitions.
- * Single source of truth for all pattern metadata.
- *
- * IMPORTANT: "Upstream" and "Downstream" refer to CONTROL and INFLUENCE over the integration,
- * NOT the direction of data flow. The upstream team has more power to dictate the model and
- * terms of integration. Data can flow in either direction regardless of upstream/downstream status.
- */
 export const PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     value: 'customer-supplier',
