@@ -48,6 +48,122 @@ const EDGE_STROKE_WIDTH = { default: 1.5, hover: 2, selected: 2.5 }
 const EDGE_TRANSITION = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
 const EDGE_DASH_ARRAY = '5,5'
 
+// Pattern indicator configuration for ACL/OHS boxes on edges
+type PatternIndicatorConfig = {
+  label: string
+  position: 'source' | 'target' // source = downstream, target = upstream
+  boxWidth: number
+  boxHeight: number
+  colors: {
+    bg: string
+    border: string
+    text: string
+    bgDark: string
+    borderDark: string
+    textDark: string
+  }
+}
+
+const PATTERN_EDGE_INDICATORS: Partial<Record<Relationship['pattern'], PatternIndicatorConfig>> = {
+  'anti-corruption-layer': {
+    label: 'ACL',
+    position: 'source', // downstream end
+    boxWidth: 28,
+    boxHeight: 18,
+    colors: {
+      bg: '#fef3c7',     // amber-100
+      border: '#f59e0b', // amber-500
+      text: '#d97706',   // amber-600
+      bgDark: 'rgba(146, 64, 14, 0.4)',
+      borderDark: '#fbbf24',
+      textDark: '#fbbf24',
+    },
+  },
+  'open-host-service': {
+    label: 'API',
+    position: 'target', // upstream end
+    boxWidth: 28,
+    boxHeight: 18,
+    colors: {
+      bg: '#dcfce7',     // green-100
+      border: '#22c55e', // green-500
+      text: '#16a34a',   // green-600
+      bgDark: 'rgba(20, 83, 45, 0.4)',
+      borderDark: '#4ade80',
+      textDark: '#4ade80',
+    },
+  },
+}
+
+// Calculate box center position along edge
+// For 'source' position: box is near the source (downstream) end, offset toward target
+// For 'target' position: box is near the target (upstream) end, offset toward source
+function getIndicatorBoxPosition(
+  sx: number,
+  sy: number,
+  tx: number,
+  ty: number,
+  position: 'source' | 'target',
+  offset = 35
+): { x: number; y: number } {
+  const dx = tx - sx
+  const dy = ty - sy
+  const length = Math.sqrt(dx * dx + dy * dy)
+
+  if (length === 0) {
+    return position === 'source' ? { x: sx, y: sy } : { x: tx, y: ty }
+  }
+
+  // Normalized direction from source to target
+  const nx = dx / length
+  const ny = dy / length
+
+  if (position === 'source') {
+    // Move from source point toward target by offset
+    return { x: sx + nx * offset, y: sy + ny * offset }
+  } else {
+    // Move from target point toward source by offset (subtract direction)
+    return { x: tx - nx * offset, y: ty - ny * offset }
+  }
+}
+
+// Get the edge of the box where the line should connect
+function getBoxEdgePoint(
+  boxCenter: { x: number; y: number },
+  boxWidth: number,
+  boxHeight: number,
+  towardPoint: { x: number; y: number }
+): { x: number; y: number } {
+  const dx = towardPoint.x - boxCenter.x
+  const dy = towardPoint.y - boxCenter.y
+  const length = Math.sqrt(dx * dx + dy * dy)
+
+  if (length === 0) return boxCenter
+
+  const nx = dx / length
+  const ny = dy / length
+
+  const halfW = boxWidth / 2
+  const halfH = boxHeight / 2
+
+  // Determine which edge the line intersects
+  if (Math.abs(nx) * halfH > Math.abs(ny) * halfW) {
+    // Hits left or right edge
+    const edgeX = nx > 0 ? halfW : -halfW
+    return {
+      x: boxCenter.x + edgeX,
+      y: boxCenter.y + (ny / Math.abs(nx)) * Math.abs(edgeX),
+    }
+  } else {
+    // Hits top or bottom edge
+    const edgeY = ny > 0 ? halfH : -halfH
+    return {
+      x: boxCenter.x + (nx / Math.abs(ny)) * Math.abs(edgeY),
+      y: boxCenter.y + edgeY,
+    }
+  }
+}
+
 // Helper functions for dynamic edge positioning (floating edges pattern)
 function getNodeIntersection(intersectionNode: Node, targetNode: Node) {
   const w = intersectionNode.width ?? 0
@@ -1547,20 +1663,102 @@ function RelationshipEdge({
   // Use ReactFlow's built-in marker system (automatically handles rotation)
   const markerId = isSelected ? 'arrow-selected' : isHovered ? 'arrow-hover' : 'arrow-default'
 
+  // Pattern indicator (ACL/OHS) configuration
+  const indicatorConfig = PATTERN_EDGE_INDICATORS[pattern as Relationship['pattern']]
+  const isACL = pattern === 'anti-corruption-layer'
+  const isOHS = pattern === 'open-host-service'
+
+  // Calculate box position if ACL or OHS
+  const boxPos = indicatorConfig
+    ? getIndicatorBoxPosition(sx, sy, tx, ty, indicatorConfig.position)
+    : null
+
+  // Debug OHS positioning
+  if (isOHS && boxPos) {
+    console.log('OHS edge:', id, { sx, sy, tx, ty, boxPos, pattern })
+  }
+
+  // Edge color based on state
+  const edgeColor = isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1'
+  const strokeWidth = isSelected ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default
+
   return (
     <>
-      <path
-        id={id}
-        className="react-flow__edge-path"
-        d={edgePath}
-        style={{
-          stroke: isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1',
-          strokeWidth: isSelected ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default,
-          fill: 'none',
-          transition: EDGE_TRANSITION,
-        }}
-        markerEnd={isSymmetric ? undefined : `url(#${markerId})`}
-      />
+      {/* ACL: line from box edge to target (upstream) */}
+      {isACL && boxPos && indicatorConfig && (
+        <path
+          id={id}
+          className="react-flow__edge-path"
+          d={`M ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: tx, y: ty }).x} ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: tx, y: ty }).y} L ${tx} ${ty}`}
+          style={{
+            stroke: edgeColor,
+            strokeWidth: strokeWidth,
+            fill: 'none',
+            transition: EDGE_TRANSITION,
+          }}
+          markerEnd={`url(#${markerId})`}
+        />
+      )}
+
+      {/* OHS: line from source (downstream) to box edge */}
+      {isOHS && boxPos && indicatorConfig && (
+        <path
+          id={id}
+          className="react-flow__edge-path"
+          d={`M ${sx} ${sy} L ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: sx, y: sy }).x} ${getBoxEdgePoint(boxPos, indicatorConfig.boxWidth, indicatorConfig.boxHeight, { x: sx, y: sy }).y}`}
+          style={{
+            stroke: edgeColor,
+            strokeWidth: strokeWidth,
+            fill: 'none',
+            transition: EDGE_TRANSITION,
+          }}
+          // No markerEnd - the API box is the visual endpoint
+        />
+      )}
+
+      {/* Default: normal bezier path for other patterns */}
+      {!isACL && !isOHS && (
+        <path
+          id={id}
+          className="react-flow__edge-path"
+          d={edgePath}
+          style={{
+            stroke: edgeColor,
+            strokeWidth: strokeWidth,
+            fill: 'none',
+            transition: EDGE_TRANSITION,
+          }}
+          markerEnd={isSymmetric ? undefined : `url(#${markerId})`}
+        />
+      )}
+
+      {/* Pattern indicator box (ACL/OHS) */}
+      {indicatorConfig && boxPos && (
+        <g>
+          <rect
+            x={boxPos.x - indicatorConfig.boxWidth / 2}
+            y={boxPos.y - indicatorConfig.boxHeight / 2}
+            width={indicatorConfig.boxWidth}
+            height={indicatorConfig.boxHeight}
+            rx={3}
+            fill={indicatorConfig.colors.bg}
+            stroke={indicatorConfig.colors.border}
+            strokeWidth={1.5}
+            style={{ transition: EDGE_TRANSITION }}
+          />
+          <text
+            x={boxPos.x}
+            y={boxPos.y + 4}
+            textAnchor="middle"
+            fontSize={9}
+            fontWeight="bold"
+            fill={indicatorConfig.colors.text}
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {indicatorConfig.label}
+          </text>
+        </g>
+      )}
       {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}

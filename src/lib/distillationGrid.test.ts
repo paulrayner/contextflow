@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getGridPosition, needsRedistribution } from './distillationGrid'
+import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition } from './distillationGrid'
 import type { BoundedContext } from '../model/types'
 
 function makeContext(distillation: { x: number; y: number }): BoundedContext {
@@ -62,5 +62,34 @@ describe('needsRedistribution', () => {
       makeContext({ x: 60, y: 40 }),
     ]
     expect(needsRedistribution(contexts)).toBe(false)
+  })
+})
+
+describe('findFirstUnoccupiedGridPosition', () => {
+  it('returns position 0 when no contexts exist', () => {
+    expect(findFirstUnoccupiedGridPosition([])).toEqual({ x: 50, y: 50 })
+  })
+
+  it('returns position 1 when position 0 is occupied', () => {
+    const contexts = [makeContext({ x: 50, y: 50 })]
+    const result = findFirstUnoccupiedGridPosition(contexts)
+    expect(result).toEqual(getGridPosition(1))
+  })
+
+  it('finds gap when earlier positions are occupied', () => {
+    const pos0 = getGridPosition(0)
+    const pos2 = getGridPosition(2)
+    const contexts = [makeContext(pos0), makeContext(pos2)]
+    const result = findFirstUnoccupiedGridPosition(contexts)
+    expect(result).toEqual(getGridPosition(1))
+  })
+
+  it('skips occupied positions regardless of context order', () => {
+    const pos0 = getGridPosition(0)
+    const pos1 = getGridPosition(1)
+    const pos2 = getGridPosition(2)
+    const contexts = [makeContext(pos0), makeContext(pos1), makeContext(pos2)]
+    const result = findFirstUnoccupiedGridPosition(contexts)
+    expect(result).toEqual(getGridPosition(3))
   })
 })

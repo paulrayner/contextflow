@@ -19,12 +19,11 @@
 - [ ] Hide context description in box when code size is tiny or small, and add hover
 - [ ] Context boundary width should more obviously reflect boundary strength (dotted line might be confused with external context?)
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
+- [ ] Need some way to mark concerns or problems on the canvas (e.g. core domain is inside BBOM, or )
 - [ ] Add teams to contexts
 - [ ] Implement ANALYTICS_PLAN.doc
 - [ ] Seems to be a delay on connections when dragging contexts
-- [ ] Fix flickering labels on relationship names
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
-- [ ] How to avoid confusion between user, need, and context? Icons? Maybe not have boxes for users?
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] Not clear how to add a context to a group
 - [ ] Don't allow context to be dragged outside of canvas boundary
@@ -56,6 +55,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Fix flickering labels on relationship names
 - [x] Fix context overlap in distillation view (grid distribution on view switch + grid-based positioning for new contexts)
 - [x] Remove UPDATE buttons next to context strategic classification and evolution stage in inspector
 - [x] Display helpful message when someone tries to connect actor<->context without user need
