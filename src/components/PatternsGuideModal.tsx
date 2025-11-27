@@ -34,6 +34,154 @@ const POWER_DYNAMICS_LABELS: Record<string, string> = {
   none: 'No dependency',
 }
 
+/**
+ * SVG diagram showing the relationship pattern visually
+ */
+function PatternDiagram({ pattern }: { pattern: PatternDefinition['value'] }) {
+  const boxStyle = "fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500"
+  const textStyle = "fill-slate-700 dark:fill-slate-300 text-[9px] font-medium"
+  const arrowStyle = "stroke-slate-500 dark:stroke-slate-400"
+  const highlightStyle = "fill-blue-100 dark:fill-blue-900/30 stroke-blue-400 dark:stroke-blue-500"
+
+  // Common elements
+  const DownstreamBox = ({ x = 10, highlight = false }: { x?: number; highlight?: boolean }) => (
+    <g>
+      <rect x={x} y={15} width={60} height={30} rx={3} className={highlight ? highlightStyle : boxStyle} strokeWidth={1.5} />
+      <text x={x + 30} y={33} textAnchor="middle" className={textStyle}>Downstream</text>
+    </g>
+  )
+
+  const UpstreamBox = ({ x = 130, highlight = false }: { x?: number; highlight?: boolean }) => (
+    <g>
+      <rect x={x} y={15} width={60} height={30} rx={3} className={highlight ? highlightStyle : boxStyle} strokeWidth={1.5} />
+      <text x={x + 30} y={33} textAnchor="middle" className={textStyle}>Upstream</text>
+    </g>
+  )
+
+  const Arrow = ({ fromX = 70, toX = 130 }: { fromX?: number; toX?: number }) => (
+    <g className={arrowStyle}>
+      <line x1={fromX} y1={30} x2={toX - 6} y2={30} strokeWidth={1.5} />
+      <polygon points={`${toX},30 ${toX - 8},26 ${toX - 8},34`} className="fill-slate-500 dark:fill-slate-400" />
+    </g>
+  )
+
+  const BidirectionalArrow = () => (
+    <g className={arrowStyle}>
+      <line x1={76} y1={30} x2={124} y2={30} strokeWidth={1.5} />
+      <polygon points="70,30 78,26 78,34" className="fill-slate-500 dark:fill-slate-400" />
+      <polygon points="130,30 122,26 122,34" className="fill-slate-500 dark:fill-slate-400" />
+    </g>
+  )
+
+  const diagrams: Record<PatternDefinition['value'], React.ReactNode> = {
+    'customer-supplier': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        <DownstreamBox />
+        <Arrow />
+        <UpstreamBox highlight />
+        <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          negotiates priorities
+        </text>
+      </svg>
+    ),
+    'conformist': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        <DownstreamBox />
+        <Arrow />
+        <UpstreamBox highlight />
+        <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          adopts model as-is
+        </text>
+      </svg>
+    ),
+    'anti-corruption-layer': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        <DownstreamBox highlight />
+        {/* ACL shield/barrier */}
+        <rect x={78} y={12} width={12} height={36} rx={2} className="fill-amber-100 dark:fill-amber-900/40 stroke-amber-500 dark:stroke-amber-400" strokeWidth={1.5} />
+        <text x={84} y={34} textAnchor="middle" className="fill-amber-600 dark:fill-amber-400 text-[8px] font-bold">A</text>
+        <Arrow fromX={90} />
+        <UpstreamBox />
+        <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          translation layer
+        </text>
+      </svg>
+    ),
+    'open-host-service': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        <DownstreamBox />
+        <Arrow />
+        {/* API symbol on upstream */}
+        <UpstreamBox highlight />
+        <rect x={172} y={22} width={16} height={16} rx={2} className="fill-green-100 dark:fill-green-900/40 stroke-green-500 dark:stroke-green-400" strokeWidth={1} />
+        <text x={180} y={33} textAnchor="middle" className="fill-green-600 dark:fill-green-400 text-[7px] font-bold">API</text>
+        <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          public interface
+        </text>
+      </svg>
+    ),
+    'published-language': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        <DownstreamBox />
+        {/* Shared schema symbol */}
+        <rect x={85} y={20} width={30} height={20} rx={2} className="fill-purple-100 dark:fill-purple-900/40 stroke-purple-500 dark:stroke-purple-400" strokeWidth={1.5} />
+        <text x={100} y={33} textAnchor="middle" className="fill-purple-600 dark:fill-purple-400 text-[7px] font-bold">JSON</text>
+        <UpstreamBox highlight />
+        <line x1={70} y1={30} x2={85} y2={30} className={arrowStyle} strokeWidth={1.5} />
+        <line x1={115} y1={30} x2={130} y2={30} className={arrowStyle} strokeWidth={1.5} />
+        <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          shared format
+        </text>
+      </svg>
+    ),
+    'shared-kernel': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        {/* Overlapping contexts */}
+        <rect x={10} y={15} width={70} height={30} rx={3} className={boxStyle} strokeWidth={1.5} />
+        <rect x={120} y={15} width={70} height={30} rx={3} className={boxStyle} strokeWidth={1.5} />
+        {/* Shared kernel in middle */}
+        <rect x={65} y={10} width={70} height={40} rx={3} className="fill-orange-100 dark:fill-orange-900/30 stroke-orange-400 dark:stroke-orange-500" strokeWidth={1.5} strokeDasharray="4,2" />
+        <text x={45} y={33} textAnchor="middle" className={textStyle}>Team A</text>
+        <text x={155} y={33} textAnchor="middle" className={textStyle}>Team B</text>
+        <text x={100} y={35} textAnchor="middle" className="fill-orange-600 dark:fill-orange-400 text-[8px] font-medium">Shared</text>
+        <text x={100} y={55} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          joint ownership
+        </text>
+      </svg>
+    ),
+    'partnership': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        <DownstreamBox x={20} highlight />
+        <BidirectionalArrow />
+        <UpstreamBox x={120} highlight />
+        <text x={20 + 30} y={33} textAnchor="middle" className={textStyle}>Team A</text>
+        <text x={120 + 30} y={33} textAnchor="middle" className={textStyle}>Team B</text>
+        <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          mutual dependency
+        </text>
+      </svg>
+    ),
+    'separate-ways': (
+      <svg viewBox="0 0 200 60" className="w-full h-14">
+        <rect x={20} y={15} width={60} height={30} rx={3} className={boxStyle} strokeWidth={1.5} />
+        <rect x={120} y={15} width={60} height={30} rx={3} className={boxStyle} strokeWidth={1.5} />
+        <text x={50} y={33} textAnchor="middle" className={textStyle}>Context A</text>
+        <text x={150} y={33} textAnchor="middle" className={textStyle}>Context B</text>
+        {/* X mark indicating no connection */}
+        <g className="stroke-red-400 dark:stroke-red-500" strokeWidth={2}>
+          <line x1={92} y1={24} x2={108} y2={36} />
+          <line x1={108} y1={24} x2={92} y2={36} />
+        </g>
+        <text x={100} y={52} textAnchor="middle" className="fill-slate-500 dark:fill-slate-400 text-[8px]">
+          no integration
+        </text>
+      </svg>
+    ),
+  }
+
+  return diagrams[pattern] || null
+}
+
 function PatternCard({ pattern }: { pattern: PatternDefinition }) {
   const [expanded, setExpanded] = React.useState(false)
 
@@ -61,6 +209,11 @@ function PatternCard({ pattern }: { pattern: PatternDefinition }) {
 
       {expanded && (
         <div className="px-4 py-3 space-y-3 bg-white dark:bg-neutral-900 border-t border-slate-200 dark:border-neutral-700">
+          {/* Diagram */}
+          <div className="bg-slate-50 dark:bg-neutral-800 rounded-md p-2 border border-slate-200 dark:border-neutral-700">
+            <PatternDiagram pattern={pattern.value} />
+          </div>
+
           {/* Power dynamics */}
           <div className="flex items-center gap-2 text-xs">
             <span className="font-medium text-slate-700 dark:text-slate-300">Power:</span>
