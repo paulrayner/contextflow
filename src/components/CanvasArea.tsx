@@ -621,7 +621,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
               />
             ) : (
               <>
-                <span title="Stage: A phase in your value stream, like sections between pivotal events in EventStorming">{stage.label}</span>
+                <span>{stage.label}</span>
                 {isHovered && stages.length > 1 && (
                   <button
                     onClick={(e) => {
