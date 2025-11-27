@@ -2,6 +2,7 @@
 
 ## In Progress
 
+- [ ] Add onboarding/tutorial for first-time users
 
 ## Backlog
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
@@ -17,13 +18,11 @@
 - [ ] Need some way to mark concerns or problems on the canvas (e.g. core domain is inside BBOM, or )
 - [ ] Add teams to contexts
 - [ ] Implement ANALYTICS_PLAN.doc
-- [ ] Seems to be a delay on connections when dragging contexts
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] Not clear how to add a context to a group
 - [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
 - [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
-- [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/) - see case study for example steps
 - [ ] Accessibility checks
 - [ ] Responsive design
 - [ ] Distillation - can a context overlap subdomain boundaries? what would this tell us if it did?

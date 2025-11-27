@@ -73,6 +73,9 @@ export interface EditorState {
   // Help preferences
   showHelpTooltips: boolean
 
+  // Onboarding
+  hasSeenWelcome: boolean
+
   // UI preferences
   groupOpacity: number
 
@@ -144,6 +147,8 @@ export interface EditorState {
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
   toggleHelpTooltips: () => void
+  dismissWelcome: () => void
+  resetWelcome: () => void
   setGroupOpacity: (opacity: number) => void
   updateFlowStage: (index: number, updates: Partial<{ label: string; position: number }>) => void
   addFlowStage: (label: string, position?: number) => void

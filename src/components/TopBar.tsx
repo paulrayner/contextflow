@@ -31,6 +31,7 @@ export function TopBar() {
   const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
   const toggleHelpTooltips = useEditorStore(s => s.toggleHelpTooltips)
+  const resetWelcome = useEditorStore(s => s.resetWelcome)
   const groupOpacity = useEditorStore(s => s.groupOpacity)
   const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
   const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
@@ -348,6 +349,17 @@ export function TopBar() {
                   <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
                     Hover explanations for DDD & Wardley concepts
                   </p>
+
+                  {/* Restart Welcome */}
+                  <button
+                    onClick={() => {
+                      resetWelcome()
+                      setShowSettings(false)
+                    }}
+                    className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    Restart Welcome
+                  </button>
                 </div>
 
                 <div className="border-t border-slate-200 dark:border-neutral-700" />

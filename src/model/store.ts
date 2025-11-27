@@ -114,6 +114,11 @@ export const useEditorStore = create<EditorState>((set) => ({
     return stored !== null ? stored === 'true' : true
   })(),
 
+  hasSeenWelcome: (() => {
+    const stored = localStorage.getItem('contextflow.hasSeenWelcome')
+    return stored === 'true'
+  })(),
+
   groupOpacity: (() => {
     const stored = localStorage.getItem('contextflow.groupOpacity')
     return stored !== null ? parseFloat(stored) : config.ui.groupOpacity
@@ -600,6 +605,16 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newValue = !state.showHelpTooltips
     localStorage.setItem('contextflow.showHelpTooltips', String(newValue))
     return { showHelpTooltips: newValue }
+  }),
+
+  dismissWelcome: () => set(() => {
+    localStorage.setItem('contextflow.hasSeenWelcome', 'true')
+    return { hasSeenWelcome: true }
+  }),
+
+  resetWelcome: () => set(() => {
+    localStorage.setItem('contextflow.hasSeenWelcome', 'false')
+    return { hasSeenWelcome: false }
   }),
 
   setGroupOpacity: (opacity) => {

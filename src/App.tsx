@@ -5,6 +5,7 @@ import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
+import { WelcomeModal } from './components/WelcomeModal'
 import { Users, X } from 'lucide-react'
 import { trackEvent } from './utils/analytics'
 
@@ -23,8 +24,12 @@ function App() {
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const clearContextSelection = useEditorStore(s => s.clearContextSelection)
   const createGroup = useEditorStore(s => s.createGroup)
+  const hasSeenWelcome = useEditorStore(s => s.hasSeenWelcome)
+  const dismissWelcome = useEditorStore(s => s.dismissWelcome)
+  const setActiveProject = useEditorStore(s => s.setActiveProject)
 
   const [showGroupDialog, setShowGroupDialog] = React.useState(false)
+  const showWelcomeModal = !hasSeenWelcome
 
   // Track project lifecycle (project_closed event)
   React.useEffect(() => {
@@ -108,6 +113,21 @@ function App() {
             setShowGroupDialog(false)
           }}
           onCancel={() => setShowGroupDialog(false)}
+        />
+      )}
+
+      {/* Welcome modal for first-time users */}
+      {showWelcomeModal && (
+        <WelcomeModal
+          onSelectProject={(projectId) => {
+            setActiveProject(projectId)
+            dismissWelcome()
+          }}
+          onStartEmpty={() => {
+            setActiveProject('empty-project')
+            dismissWelcome()
+          }}
+          onClose={dismissWelcome}
         />
       )}
 
