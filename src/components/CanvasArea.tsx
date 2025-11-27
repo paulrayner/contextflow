@@ -783,7 +783,7 @@ function ProblemSpaceBand() {
         top: y,
         width: CANVAS_WIDTH * zoom,
         height: BAND_HEIGHT * zoom,
-        backgroundColor: 'rgba(251, 191, 36, 0.05)',
+        backgroundColor: 'rgba(94, 234, 212, 0.12)',
         pointerEvents: 'none',
         zIndex: 0,
       }}
