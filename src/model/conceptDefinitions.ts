@@ -125,7 +125,7 @@ export const BOUNDARY_INTEGRITY: Record<string, ConceptDefinition> = {
 export const STAGE_DEFINITION: ConceptDefinition = {
   title: 'Stage (Value Stream Phase)',
   description:
-    'A stage represents a distinct phase in your value stream - similar to the sections between pivotal events in an EventStorming Big Picture timeline.',
+    'A stage represents a distinct phase in your value stream.',
   characteristics: [
     'Maps to subprocess boundaries in EventStorming',
     'Groups related user needs and contexts',
