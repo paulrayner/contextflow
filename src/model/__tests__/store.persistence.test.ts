@@ -30,18 +30,19 @@ describe('Store - Built-in Project Persistence', () => {
     const saveProjectSpy = vi.spyOn(persistenceModule, 'saveProject')
     const loadProjectSpy = vi.spyOn(persistenceModule, 'loadProject')
 
-    const mockSavedProject = {
-      id: 'sample',
-      name: 'User Modified Sample',
+    // Return a saved project with version high enough to prevent overwrite
+    // Built-in projects have version 2-3, so version 99 ensures no overwrites
+    loadProjectSpy.mockImplementation(async (id: string) => ({
+      id,
+      name: 'User Modified Project',
+      version: 99,
       contexts: [],
       groups: [],
       relationships: [],
       repos: [],
       flowStages: [],
       userNeeds: []
-    }
-
-    loadProjectSpy.mockResolvedValue(mockSavedProject)
+    }))
     saveProjectSpy.mockResolvedValue(undefined)
 
     await import('../store')
