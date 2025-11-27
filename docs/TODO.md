@@ -2,8 +2,6 @@
 
 ## In Progress
 
-- [x] Should be able to select a Need->Context line. Should highlight similar to the actor-need line highlighting we just implemented (line and connected user need and context highlight)
-- [x] Should be able to select and delete need->context line
 
 ## Backlog
 - [ ] Highlight actors and needs in light/opaque blue and green
@@ -66,6 +64,9 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Should be able to select a Need->Context line. Should highlight similar to the actor-need line highlighting we just implemented (line and connected user need and context highlight)
+- [x] Should be able to select and delete need->context line
+- [x] Should be able to select a user->need line. Should highlight similar to a context relationship line (line and connected actor and need highlight)
 - [x] Change Y-axis labels for value chain to "Visible" / "Invisible"
 - [x] Make huge node size YUGE (240x240 square dimensions)
 - [x] Fix Delete key not working on Mac/Firefox (added onNodesDelete handler and deleteKeyCode=['Backspace', 'Delete'] to React Flow)
@@ -123,4 +124,3 @@
 - [x] Filter toggles for groups/relationships
 - [x] Highlight connected contexts when selecting relationships or actors
 - [x] Collapsible repo info with live statistics
-- [x] Should be able to select a user->need line. Should highlight similar to a context relationship line (line and connected actor and need highlight)
