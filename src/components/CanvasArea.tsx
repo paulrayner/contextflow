@@ -2505,7 +2505,14 @@ function CanvasContent() {
     }
   }, [nodes, selectedContextIds, onNodesChangeOriginal])
 
-  // Handle node drag stop - update positions in store
+  const constrainActorAndNeedToHorizontal: NodeDragHandler = useCallback((event, node) => {
+    if (node.type === 'actor') {
+      node.position.y = 10
+    } else if (node.type === 'userNeed') {
+      node.position.y = 90
+    }
+  }, [])
+
   const onNodeDragStop: NodeDragHandler = useCallback((event, node) => {
     if (!project) return
 
@@ -2707,6 +2714,7 @@ function CanvasContent() {
         onNodeClick={onNodeClick}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
+        onNodeDrag={constrainActorAndNeedToHorizontal}
         onNodeDragStop={onNodeDragStop}
         onInit={onInit}
         elementsSelectable

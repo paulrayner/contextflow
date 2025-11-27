@@ -2,21 +2,20 @@
 
 ## In Progress
 
+
 ## Backlog
+- [ ] Don't allow context to be dragged outside of canvas boundary
+- [ ] Hide context description in box when code size is tiny or small, and add hover
 - [ ] Add grouping of elements and bulk-move
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
-- [ ] Highlight actors and needs in light/opaque blue and green
-- [ ] Mark out "Problem Space" + "Solution Space" (or maybe use "Problem Domain") areas
 - [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
 - [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
 - [ ] Update ARCHITECTURE.md, UX_GUIDELINES.md
 - [ ] Incorporate VISION.md into README.md as appropriate
 - [ ] Update README.md with fresh images
 - [ ] Update virtualgenius.com with fresh images
-- [ ] Improve graphical representation of ACL and OHS (check what DDD Crew do in their context mapping template, and in contextmapper.org)
 - [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
-- [ ] Hide context description in box when code size is tiny or small, and add hover
 - [ ] Context boundary width should more obviously reflect boundary strength (dotted line might be confused with external context?)
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
 - [ ] Need some way to mark concerns or problems on the canvas (e.g. core domain is inside BBOM, or )
@@ -26,7 +25,6 @@
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] Not clear how to add a context to a group
-- [ ] Don't allow context to be dragged outside of canvas boundary
 - [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
 - [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
 - [ ] Add onboarding/tutorial for first-time users (e.g. user needs guidelines: https://userneedsmapping.com/docs/step-3-defining-user-needs/) - see case study for example steps
@@ -55,6 +53,8 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Mark out "Problem Space" + "Solution Space" (or maybe use "Problem Domain") areas
+- [x] Improve graphical representation of ACL and OHS (check what DDD Crew do in their context mapping template, and in contextmapper.org)
 - [x] Fix flickering labels on relationship names
 - [x] New context added should not overlap an existing context
 - [x] Fix context overlap in distillation view (grid distribution on view switch + grid-based positioning for new contexts)
