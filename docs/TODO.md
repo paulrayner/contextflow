@@ -2,11 +2,11 @@
 
 ## In Progress
 
+- [ ] Add explanation for each context relationship type
 
 ## Backlog
 - [ ] Highlight actors and needs in light/opaque blue and green
 - [ ] Change "actor" -> "user" everywhere. Makes it consistent with Susanne's article and user needs mapping. **This will require a schema change, which will break existing projects**
-- [ ] Add explanation for each context relationship type
 - [ ] Add grouping of elements and bulk-move
 - [ ] Figure out what the canvas lock icon does
 - [ ] Enable reversing context relationships (swap upstream<--downstream contexts)

@@ -39,6 +39,12 @@ const NODE_SIZES = {
   huge: { width: 240, height: 240 },
 }
 
+// Edge styling constants
+const EDGE_HIT_AREA_WIDTH = 20
+const EDGE_STROKE_WIDTH = { default: 1.5, hover: 2, selected: 2.5 }
+const EDGE_TRANSITION = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+const EDGE_DASH_ARRAY = '5,5'
+
 // Helper functions for dynamic edge positioning (floating edges pattern)
 function getNodeIntersection(intersectionNode: Node, targetNode: Node) {
   const w = intersectionNode.width ?? 0
@@ -953,10 +959,10 @@ function ActorConnectionEdge({
         d={edgePath}
         style={{
           stroke: isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
-          strokeWidth: isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
-          strokeDasharray: '5,5',
+          strokeWidth: isHighlighted ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.hover : EDGE_STROKE_WIDTH.default,
+          strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: EDGE_TRANSITION,
         }}
         markerEnd="url(#actor-arrow)"
       />
@@ -965,7 +971,7 @@ function ActorConnectionEdge({
         d={edgePath}
         style={{
           stroke: 'transparent',
-          strokeWidth: 20,
+          strokeWidth: EDGE_HIT_AREA_WIDTH,
           fill: 'none',
           cursor: 'pointer',
         }}
@@ -1037,10 +1043,10 @@ function ActorNeedConnectionEdge({
         d={edgePath}
         style={{
           stroke: isSelected ? '#3b82f6' : isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
-          strokeWidth: isSelected ? 2.5 : isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
-          strokeDasharray: '5,5',
+          strokeWidth: isSelected ? EDGE_STROKE_WIDTH.selected : isHighlighted ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.hover : EDGE_STROKE_WIDTH.default,
+          strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: EDGE_TRANSITION,
         }}
         markerEnd="url(#actor-arrow)"
       />
@@ -1049,7 +1055,7 @@ function ActorNeedConnectionEdge({
         d={edgePath}
         style={{
           stroke: 'transparent',
-          strokeWidth: 20,
+          strokeWidth: EDGE_HIT_AREA_WIDTH,
           fill: 'none',
           cursor: 'pointer',
           pointerEvents: 'all',
@@ -1134,10 +1140,10 @@ function NeedContextConnectionEdge({
         d={edgePath}
         style={{
           stroke: isSelected ? '#10b981' : isHighlighted ? '#10b981' : isHovered ? '#34d399' : '#94a3b8',
-          strokeWidth: isSelected ? 2.5 : isHighlighted ? 2.5 : isHovered ? 2 : 1.5,
-          strokeDasharray: '5,5',
+          strokeWidth: isSelected ? EDGE_STROKE_WIDTH.selected : isHighlighted ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.hover : EDGE_STROKE_WIDTH.default,
+          strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: EDGE_TRANSITION,
         }}
         markerEnd="url(#need-arrow)"
       />
@@ -1146,7 +1152,7 @@ function NeedContextConnectionEdge({
         d={edgePath}
         style={{
           stroke: 'transparent',
-          strokeWidth: 20,
+          strokeWidth: EDGE_HIT_AREA_WIDTH,
           fill: 'none',
           cursor: 'pointer',
           pointerEvents: 'all',
@@ -1570,9 +1576,9 @@ function RelationshipEdge({
         d={edgePath}
         style={{
           stroke: isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1',
-          strokeWidth: isSelected ? 2.5 : isHovered ? 2.5 : 1.5,
+          strokeWidth: isSelected ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default,
           fill: 'none',
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: EDGE_TRANSITION,
         }}
         markerEnd={isSymmetric ? undefined : `url(#${markerId})`}
       />
@@ -1581,7 +1587,7 @@ function RelationshipEdge({
         d={edgePath}
         style={{
           stroke: 'transparent',
-          strokeWidth: 20,
+          strokeWidth: EDGE_HIT_AREA_WIDTH,
           fill: 'none',
           cursor: 'pointer',
           pointerEvents: 'all',
