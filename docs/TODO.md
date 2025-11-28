@@ -2,7 +2,6 @@
 
 ## In Progress
 
-- [ ] Change "actor" -> "user" everywhere in the app where appropriate. This will make it consistent with Susanne's article and user needs mapping. **This renaming will require a schema change, which will break existing projects**. need to think hard about how to deal with that for any existing users (not sure if there are any)
 
 ## Backlog
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
@@ -47,6 +46,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Change "actor" -> "user" everywhere in the app where appropriate. This will make it consistent with Susanne's article and user needs mapping.
 - [x] Add onboarding/tutorial for first-time users
 - [x] Add grouping of elements and bulk-move
 - [x] Context boundary width should more obviously reflect boundary strength (weak=dotted thin, external=dashed)
