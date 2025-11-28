@@ -3097,13 +3097,6 @@ function CanvasContent() {
               setSeenSampleProjects(prev => new Set(prev).add(project.id))
             }
           }}
-          onViewSample={() => {
-            setActiveProject('acme-ecommerce')
-            setShowGettingStartedGuide(false)
-            if (isSampleProject(project.id)) {
-              setSeenSampleProjects(prev => new Set(prev).add(project.id))
-            }
-          }}
         />
       )}
     </div>
