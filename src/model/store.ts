@@ -86,6 +86,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedUserNeedId: null,
   selectedUserNeedConnectionId: null,
   selectedNeedContextConnectionId: null,
+  selectedStageIndex: null,
   selectedContextIds: [],
 
   isDragging: false,
@@ -231,6 +232,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
       selectedContextIds: [],
       undoStack: [],
       redoStack: [],
@@ -416,6 +418,19 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
+    selectedStageIndex: null,
+  }),
+
+  setSelectedStage: (stageIndex) => set({
+    selectedStageIndex: stageIndex,
+    selectedContextId: null,
+    selectedContextIds: [],
+    selectedGroupId: null,
+    selectedRelationshipId: null,
+    selectedUserId: null,
+    selectedUserNeedId: null,
+    selectedUserNeedConnectionId: null,
+    selectedNeedContextConnectionId: null,
   }),
 
   addUser: (name) => set((state) => {
@@ -455,6 +470,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
+    selectedStageIndex: null,
   }),
 
   addUserNeed: (name) => {
@@ -495,6 +511,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedUserId: null,
     selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
+    selectedStageIndex: null,
   }),
 
   setSelectedUserNeedConnection: (connectionId) => set({
@@ -506,6 +523,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedUserId: null,
     selectedUserNeedId: null,
     selectedNeedContextConnectionId: null,
+    selectedStageIndex: null,
   }),
 
   setSelectedNeedContextConnection: (connectionId) => set({
@@ -517,6 +535,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedUserId: null,
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
+    selectedStageIndex: null,
   }),
 
   createUserNeedConnection: (userId, userNeedId) => {
@@ -716,11 +735,23 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
+    // Auto-select the new stage (it's added at the end, so index is length - 1)
+    const newStageIndex = updatedStages.length - 1
+
     return {
       projects: {
         ...state.projects,
         [projectId]: updatedProject,
       },
+      selectedStageIndex: newStageIndex,
+      selectedContextId: null,
+      selectedContextIds: [],
+      selectedGroupId: null,
+      selectedRelationshipId: null,
+      selectedUserId: null,
+      selectedUserNeedId: null,
+      selectedUserNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
       undoStack: [...state.undoStack, command],
       redoStack: [],
     }
@@ -765,11 +796,22 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     autosaveIfNeeded(projectId, { [projectId]: updatedProject })
 
+    // Clear selection if deleted stage was selected, or adjust index if needed
+    let newSelectedStageIndex = state.selectedStageIndex
+    if (state.selectedStageIndex !== null) {
+      if (state.selectedStageIndex === index) {
+        newSelectedStageIndex = null
+      } else if (state.selectedStageIndex > index) {
+        newSelectedStageIndex = state.selectedStageIndex - 1
+      }
+    }
+
     return {
       projects: {
         ...state.projects,
         [projectId]: updatedProject,
       },
+      selectedStageIndex: newSelectedStageIndex,
       undoStack: [...state.undoStack, command],
       redoStack: [],
     }
@@ -873,6 +915,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
     }
   }),
 
@@ -890,6 +933,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
+    selectedStageIndex: null,
     selectedContextIds: [],
     undoStack: [],
     redoStack: [],

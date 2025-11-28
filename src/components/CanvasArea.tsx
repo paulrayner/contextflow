@@ -450,43 +450,25 @@ function ContextNode({ data }: NodeProps) {
 }
 
 // Component to render stage labels that pan/zoom with canvas
-function StageLabels({ stages }: { stages: Array<{ name: string; position: number; description?: string }> }) {
+function StageLabels({ stages }: { stages: Array<{ name: string; position: number; description?: string; owner?: string; notes?: string }> }) {
   const { x, y, zoom } = useViewport()
   const updateFlowStage = useEditorStore(s => s.updateFlowStage)
   const deleteFlowStage = useEditorStore(s => s.deleteFlowStage)
-  const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
-  const [editValue, setEditValue] = React.useState('')
+  const setSelectedStage = useEditorStore(s => s.setSelectedStage)
+  const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
   const [draggingIndex, setDraggingIndex] = React.useState<number | null>(null)
   const [dragStartX, setDragStartX] = React.useState(0)
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
   const [contextMenuIndex, setContextMenuIndex] = React.useState<number | null>(null)
   const [contextMenuPos, setContextMenuPos] = React.useState({ x: 0, y: 0 })
-  const inputRef = React.useRef<HTMLInputElement>(null)
 
-  React.useEffect(() => {
-    if (editingIndex !== null && inputRef.current) {
-      inputRef.current.focus()
-    }
-  }, [editingIndex])
-
-  const handleStartEdit = (index: number, currentName: string) => {
-    setEditingIndex(index)
-    setEditValue(currentName)
-  }
-
-  const handleSaveEdit = (index: number) => {
-    if (editValue.trim() && editValue !== stages[index].name) {
-      try {
-        updateFlowStage(index, { name: editValue.trim() })
-      } catch (err) {
-        alert((err as Error).message)
-      }
-    }
-    setEditingIndex(null)
+  const handleClick = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation()
+    // Select stage to open inspector panel
+    setSelectedStage(index)
   }
 
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
-    if (editingIndex !== null) return
     setDraggingIndex(index)
     setDragStartX(e.clientX)
     e.preventDefault()
@@ -567,80 +549,77 @@ function StageLabels({ stages }: { stages: Array<{ name: string; position: numbe
         const transformedX = xPos * zoom + x
         const transformedY = yPos * zoom + y
 
-        const isEditing = editingIndex === index
         const isDragging = draggingIndex === index
         const isHovered = hoveredIndex === index
+        const isSelected = selectedStageIndex === index
 
         return (
           <div
             key={stage.name}
-            className={`text-slate-700 dark:text-slate-200 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} group`}
+            className={`relative ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'} group`}
             style={{
               position: 'absolute',
               left: transformedX,
               top: transformedY,
               transform: 'translate(-50%, -50%)',
-              whiteSpace: 'nowrap',
-              fontSize: `${22.5 * zoom}px`,
-              fontWeight: 600,
-              letterSpacing: '-0.01em',
               pointerEvents: 'auto',
               userSelect: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: `${4 * zoom}px`,
             }}
             onMouseDown={(e) => handleMouseDown(e, index)}
-            onClick={() => !isDragging && handleStartEdit(index, stage.name)}
+            onClick={(e) => !isDragging && handleClick(e, index)}
             onContextMenu={(e) => handleContextMenu(e, index)}
             onMouseEnter={() => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(null)}
           >
-            {isEditing ? (
-              <input
-                ref={inputRef}
-                type="text"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onBlur={() => handleSaveEdit(index)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSaveEdit(index)
-                  } else if (e.key === 'Escape') {
-                    setEditingIndex(null)
-                  }
-                }}
-                className="bg-transparent text-slate-700 dark:text-slate-200 border-2 border-blue-500 dark:border-blue-400 rounded px-2 py-1 outline-none selection:bg-blue-200 selection:text-slate-900 dark:selection:bg-blue-600 dark:selection:text-white"
+            {/* Stage name with selection highlight */}
+            <div
+              className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                isSelected
+                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                  : isHovered
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                  : 'text-slate-700 dark:text-slate-200'
+              }`}
+              style={{
+                whiteSpace: 'nowrap',
+                fontSize: `${22.5 * zoom}px`,
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              <span>{stage.name}</span>
+              {isHovered && stages.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeleteStage(index)
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
+                  style={{
+                    width: `${18 * zoom}px`,
+                    height: `${18 * zoom}px`,
+                    minWidth: `${18 * zoom}px`,
+                  }}
+                  title="Delete stage"
+                >
+                  <X size={12 * zoom} strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
+
+            {/* Description tooltip */}
+            {isHovered && stage.description && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs rounded shadow-lg whitespace-nowrap z-50"
                 style={{
-                  fontSize: `${22.5 * zoom}px`,
-                  fontWeight: 600,
-                  letterSpacing: '-0.01em',
+                  top: '100%',
+                  maxWidth: '300px',
+                  whiteSpace: 'normal',
                 }}
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-              />
-            ) : (
-              <>
-                <span>{stage.name}</span>
-                {isHovered && stages.length > 1 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDeleteStage(index)
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    className="flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
-                    style={{
-                      width: `${18 * zoom}px`,
-                      height: `${18 * zoom}px`,
-                      minWidth: `${18 * zoom}px`,
-                    }}
-                    title="Delete stage"
-                  >
-                    <X size={12 * zoom} strokeWidth={2.5} />
-                  </button>
-                )}
-              </>
+              >
+                {stage.description}
+              </div>
             )}
           </div>
         )
@@ -666,6 +645,57 @@ function StageLabels({ stages }: { stages: Array<{ name: string; position: numbe
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+// Component to render stage boundary lines in Flow View
+function StageBoundaryLines({ stages }: { stages: Array<{ name: string; position: number }> }) {
+  const { x, y, zoom } = useViewport()
+
+  // Sort stages by position
+  const sortedStages = [...stages].sort((a, b) => a.position - b.position)
+
+  // Calculate boundary positions (midpoints between adjacent stages)
+  const boundaries: number[] = []
+  for (let i = 0; i < sortedStages.length - 1; i++) {
+    const midpoint = (sortedStages[i].position + sortedStages[i + 1].position) / 2
+    boundaries.push(midpoint)
+  }
+
+  if (boundaries.length === 0) return null
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 3,
+      }}
+    >
+      {boundaries.map((position, index) => {
+        const xPos = (position / 100) * 2000
+        const transformedX = xPos * zoom + x
+
+        return (
+          <div
+            key={`stage-boundary-${index}`}
+            style={{
+              position: 'absolute',
+              left: transformedX,
+              top: 0,
+              width: '1px',
+              height: `${1000 * zoom}px`,
+              background: 'repeating-linear-gradient(to bottom, rgba(148, 163, 184, 0.3) 0px, rgba(148, 163, 184, 0.3) 5px, transparent 5px, transparent 10px)',
+              marginTop: `${y}px`,
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
@@ -2952,6 +2982,7 @@ function CanvasContent() {
         ) : viewMode === 'flow' ? (
           <>
             <ProblemSpaceBand />
+            <StageBoundaryLines stages={flowStages} />
             <StageLabels stages={flowStages} />
             <YAxisLabels />
           </>
