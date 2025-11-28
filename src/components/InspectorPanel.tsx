@@ -1312,24 +1312,23 @@ export function InspectorPanel() {
                       <Info size={14} className="text-blue-600 dark:text-blue-400" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 space-y-1.5">
                     <input
                       type="text"
                       value={issue.title}
                       onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
-                      className="w-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-1 py-0.5 -ml-1 outline-none"
+                      placeholder="Issue title..."
+                      className="w-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none"
                     />
-                    <div className="flex items-center gap-2 mt-1">
-                      <select
-                        value={issue.severity}
-                        onChange={(e) => updateContextIssue(context.id, issue.id, { severity: e.target.value as 'info' | 'warning' | 'critical' })}
-                        className="text-[10px] text-slate-500 dark:text-slate-400 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 rounded px-1 py-0.5 cursor-pointer outline-none"
-                      >
-                        <option value="info">info</option>
-                        <option value="warning">warning</option>
-                        <option value="critical">critical</option>
-                      </select>
-                    </div>
+                    <select
+                      value={issue.severity}
+                      onChange={(e) => updateContextIssue(context.id, issue.id, { severity: e.target.value as 'info' | 'warning' | 'critical' })}
+                      className="text-[10px] text-slate-500 dark:text-slate-400 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 rounded px-1.5 py-0.5 cursor-pointer outline-none"
+                    >
+                      <option value="info">info</option>
+                      <option value="warning">warning</option>
+                      <option value="critical">critical</option>
+                    </select>
                   </div>
                   <button
                     onClick={() => deleteContextIssue(context.id, issue.id)}
