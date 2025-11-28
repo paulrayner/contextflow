@@ -1037,7 +1037,7 @@ export function InspectorPanel() {
               className="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-neutral-500"
             />
             {team.jiraBoard && (
-              <SimpleTooltip content="Open Jira Board">
+              <SimpleTooltip text="Open Jira Board">
                 <a
                   href={team.jiraBoard}
                   target="_blank"
