@@ -30,11 +30,15 @@ export function calculateStageBoundaries(
     .sort((a, b) => a.position - b.position)
 
   return sorted.map((stage, idx) => {
-    const prevPosition = idx === 0 ? 0 : sorted[idx - 1].position
-    const nextPosition = idx === sorted.length - 1 ? 100 : sorted[idx + 1].position
+    // First stage starts at 0, otherwise midpoint to previous
+    const startBound = idx === 0
+      ? 0
+      : (sorted[idx - 1].position + stage.position) / 2
 
-    const startBound = (prevPosition + stage.position) / 2
-    const endBound = (stage.position + nextPosition) / 2
+    // Last stage ends at 100, otherwise midpoint to next
+    const endBound = idx === sorted.length - 1
+      ? 100
+      : (stage.position + sorted[idx + 1].position) / 2
 
     return {
       stageIndex: stage.originalIndex,

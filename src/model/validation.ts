@@ -1,16 +1,16 @@
 export interface FlowStage {
-  label: string
+  name: string
   position: number
 }
 
-export function validateStageLabel(
+export function validateStageName(
   stages: FlowStage[],
-  newLabel: string,
+  newName: string,
   excludeIndex?: number
 ): void {
-  const isDuplicate = stages.some((s, i) => i !== excludeIndex && s.label === newLabel)
+  const isDuplicate = stages.some((s, i) => i !== excludeIndex && s.name === newName)
   if (isDuplicate) {
-    throw new Error('Stage label must be unique')
+    throw new Error('Stage name must be unique')
   }
 }
 

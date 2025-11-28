@@ -34,9 +34,9 @@ export interface EditorCommand {
     oldKeyframeData?: Partial<TemporalKeyframe>
     newKeyframeData?: Partial<TemporalKeyframe>
     flowStageIndex?: number
-    flowStage?: { label: string; position: number }
-    oldFlowStage?: { label: string; position: number }
-    newFlowStage?: { label: string; position: number }
+    flowStage?: { name: string; position: number; description?: string; owner?: string; notes?: string }
+    oldFlowStage?: { name: string; position: number; description?: string; owner?: string; notes?: string }
+    newFlowStage?: { name: string; position: number; description?: string; owner?: string; notes?: string }
     oldRelationship?: any
     newRelationship?: any
   }
@@ -145,8 +145,8 @@ export interface EditorState {
   dismissWelcome: () => void
   resetWelcome: () => void
   setGroupOpacity: (opacity: number) => void
-  updateFlowStage: (index: number, updates: Partial<{ label: string; position: number }>) => void
-  addFlowStage: (label: string, position?: number) => void
+  updateFlowStage: (index: number, updates: Partial<{ name: string; position: number; description: string; owner: string; notes: string }>) => void
+  addFlowStage: (name: string, position?: number) => void
   deleteFlowStage: (index: number) => void
   setDragging: (isDragging: boolean) => void
   undo: () => void

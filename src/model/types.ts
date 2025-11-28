@@ -117,8 +117,11 @@ export interface Group {
 }
 
 export interface FlowStageMarker {
-  label: string    // e.g. "Data Ingestion"
-  position: number // 0..100 along Flow View X axis
+  name: string          // e.g. "Data Ingestion"
+  position: number      // 0..100 along Flow View X axis
+  description?: string  // shown in hover tooltip and inspector
+  owner?: string        // team/person responsible for this stage
+  notes?: string        // freeform notes
 }
 
 export interface User {

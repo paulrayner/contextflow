@@ -134,7 +134,7 @@ export function applyUndo(project: Project, command: EditorCommand): Project {
     newFlowStages = [...newFlowStages]
     newFlowStages[command.payload.flowStageIndex] = command.payload.oldFlowStage
   } else if (command.type === 'addFlowStage' && command.payload.flowStage) {
-    newFlowStages = newFlowStages.filter(s => s.label !== command.payload.flowStage?.label && s.position !== command.payload.flowStage?.position)
+    newFlowStages = newFlowStages.filter(s => s.name !== command.payload.flowStage?.name && s.position !== command.payload.flowStage?.position)
   } else if (command.type === 'deleteFlowStage' && command.payload.flowStageIndex !== undefined && command.payload.flowStage) {
     newFlowStages = [...newFlowStages]
     newFlowStages.splice(command.payload.flowStageIndex, 0, command.payload.flowStage)

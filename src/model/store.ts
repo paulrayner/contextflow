@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, FlowStageMarker } from './types'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../utils/analytics'
@@ -56,7 +56,7 @@ import {
 import { autosaveIfNeeded, migrateProject } from './persistence'
 import { determineProjectOrigin } from './builtInProjects'
 import { calculateKeyframeTransition } from './keyframes'
-import { validateStageLabel, validateStagePosition, createSelectionState } from './validation'
+import { validateStageName, validateStagePosition, createSelectionState } from './validation'
 
 export type { ViewMode, EditorCommand, EditorState }
 
@@ -611,18 +611,24 @@ export const useEditorStore = create<EditorState>((set) => ({
     if (index < 0 || index >= stages.length) return state
 
     const oldStage = stages[index]
-    const newLabel = updates.label !== undefined ? updates.label : oldStage.label
+    const newName = updates.name !== undefined ? updates.name : oldStage.name
     const newPosition = updates.position !== undefined ? updates.position : oldStage.position
 
-    if (newLabel !== oldStage.label) {
-      validateStageLabel(stages, newLabel, index)
+    if (newName !== oldStage.name) {
+      validateStageName(stages, newName, index)
     }
 
     if (newPosition !== oldStage.position) {
       validateStagePosition(stages, newPosition, index)
     }
 
-    const newStage = { label: newLabel, position: newPosition }
+    const newStage: FlowStageMarker = {
+      name: newName,
+      position: newPosition,
+      description: updates.description !== undefined ? updates.description : oldStage.description,
+      owner: updates.owner !== undefined ? updates.owner : oldStage.owner,
+      notes: updates.notes !== undefined ? updates.notes : oldStage.notes,
+    }
     const updatedStages = [...stages]
     updatedStages[index] = newStage
 
@@ -648,7 +654,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       trackEvent('flow_stage_moved', updatedProject, {
         entity_type: 'flow_stage',
         metadata: {
-          label: newStage.label,
+          name: newStage.name,
           old_position: oldStage.position,
           new_position: newPosition
         }
@@ -667,7 +673,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
-  addFlowStage: (label, position?) => set((state) => {
+  addFlowStage: (name, position?) => set((state) => {
     const projectId = state.activeProjectId
     if (!projectId) return state
 
@@ -679,10 +685,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     // Auto-calculate position if not provided
     const finalPosition = position ?? calculateNextStagePosition(stages)
 
-    validateStageLabel(stages, label)
+    validateStageName(stages, name)
     validateStagePosition(stages, finalPosition)
 
-    const newStage = { label, position: finalPosition }
+    const newStage: FlowStageMarker = { name, position: finalPosition }
     const updatedStages = [...stages, newStage]
 
     const updatedProject = {
@@ -703,7 +709,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     trackEvent('flow_stage_created', updatedProject, {
       entity_type: 'flow_stage',
       metadata: {
-        label: newStage.label,
+        name: newStage.name,
         position: newStage.position
       }
     })
@@ -752,7 +758,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     trackEvent('flow_stage_deleted', project, {
       entity_type: 'flow_stage',
       metadata: {
-        label: deletedStage.label,
+        name: deletedStage.name,
         position: deletedStage.position
       }
     })

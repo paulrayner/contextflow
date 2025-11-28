@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { X, Users, FileText, Box, GitBranch, LayoutGrid, Lightbulb } from 'lucide-react'
 
 interface GettingStartedGuideModalProps {
@@ -43,7 +43,172 @@ function TipBox({ children }: { children: React.ReactNode }) {
   )
 }
 
+type Approach = 'user-journey' | 'systems-first'
+
+function UserJourneySteps() {
+  return (
+    <>
+      <StepCard number={1} title="Choose a User Journey">
+        <p>Pick a specific scenario to map:</p>
+        <ul className="list-disc ml-5 space-y-1 text-slate-500 dark:text-slate-400">
+          <li>Customer making a purchase</li>
+          <li>User uploading and processing a file</li>
+          <li>Admin generating a report</li>
+          <li>Support rep handling a ticket</li>
+        </ul>
+        <TipBox>Start with something you know well. You can always add more journeys later.</TipBox>
+      </StepCard>
+
+      <StepCard number={2} title="Add the User">
+        <p>
+          Add the person or role at the center of this journey.
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <Users size={14} className="text-slate-400" />
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> in the toolbar</span>
+        </div>
+        <p className="mt-2">
+          Mark as <em>external</em> (customers, partners) or <em>internal</em> (employees) in the inspector panel.
+        </p>
+      </StepCard>
+
+      <StepCard number={3} title="Add Their Needs">
+        <p>
+          What is this user trying to accomplish? Add each need they have.
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <FileText size={14} className="text-slate-400" />
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g., "Browse products", "Make payment", "Track order"</span>
+        </div>
+      </StepCard>
+
+      <StepCard number={4} title="Map Needs to Systems">
+        <p>
+          For each need, add the system or service that fulfills it.
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <Box size={14} className="text-slate-400" />
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> — mark as external for third-party systems</span>
+        </div>
+        <p className="mt-3">
+          Connect needs to contexts by dragging between them.
+        </p>
+      </StepCard>
+
+      <StepCard number={5} title="Connect the Systems">
+        <div className="flex items-center gap-2">
+          <GitBranch size={14} className="text-slate-400" />
+          <span>Drag from one context to another to show how they integrate.</span>
+        </div>
+        <p className="mt-2">
+          Choose patterns like <em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>, or <em>Shared Kernel</em> to describe the relationship.
+        </p>
+        <TipBox>
+          Don't worry about getting patterns perfect at first. You can always change them later.
+        </TipBox>
+      </StepCard>
+
+      <StepCard number={6} title="Organize Your Map (Optional)">
+        <div className="flex items-center gap-2">
+          <LayoutGrid size={14} className="text-slate-400" />
+          <span>Add structure to make your map easier to read.</span>
+        </div>
+        <ul className="list-disc ml-5 space-y-1 mt-2 text-slate-500 dark:text-slate-400">
+          <li>
+            <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — organize contexts into flow stages
+          </li>
+          <li>
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — classify contexts as Core, Supporting, or Generic
+          </li>
+          <li>
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — position contexts by evolution stage
+          </li>
+        </ul>
+      </StepCard>
+    </>
+  )
+}
+
+function SystemsFirstSteps() {
+  return (
+    <>
+      <StepCard number={1} title="Add Your Known Contexts">
+        <p>
+          Map out the systems and services you already know about.
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <Box size={14} className="text-slate-400" />
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> for each system</span>
+        </div>
+        <p className="mt-2">
+          Mark contexts as <em>external</em> for third-party systems you don't own.
+        </p>
+        <TipBox>If you've done EventStorming, add each identified system as a context.</TipBox>
+      </StepCard>
+
+      <StepCard number={2} title="Connect the Systems">
+        <div className="flex items-center gap-2">
+          <GitBranch size={14} className="text-slate-400" />
+          <span>Drag from one context to another to show how they integrate.</span>
+        </div>
+        <p className="mt-2">
+          Choose patterns like <em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>, or <em>Shared Kernel</em> to describe the relationship.
+        </p>
+        <TipBox>
+          Don't worry about getting patterns perfect at first. You can always change them later.
+        </TipBox>
+      </StepCard>
+
+      <StepCard number={3} title="Add Users">
+        <p>
+          Now connect the problem space—who uses these systems?
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <Users size={14} className="text-slate-400" />
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> for each person or role</span>
+        </div>
+        <p className="mt-2">
+          Mark as <em>external</em> (customers, partners) or <em>internal</em> (employees).
+        </p>
+      </StepCard>
+
+      <StepCard number={4} title="Add Their Needs">
+        <p>
+          For each user, what are they trying to accomplish?
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <FileText size={14} className="text-slate-400" />
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g., "Browse products", "Make payment", "Track order"</span>
+        </div>
+        <p className="mt-3">
+          Connect needs to the contexts that fulfill them by dragging between them.
+        </p>
+      </StepCard>
+
+      <StepCard number={5} title="Organize Your Map (Optional)">
+        <div className="flex items-center gap-2">
+          <LayoutGrid size={14} className="text-slate-400" />
+          <span>Add structure to make your map easier to read.</span>
+        </div>
+        <ul className="list-disc ml-5 space-y-1 mt-2 text-slate-500 dark:text-slate-400">
+          <li>
+            <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — organize contexts into flow stages
+          </li>
+          <li>
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — classify contexts as Core, Supporting, or Generic
+          </li>
+          <li>
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — position contexts by evolution stage
+          </li>
+        </ul>
+      </StepCard>
+    </>
+  )
+}
+
 export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStartedGuideModalProps) {
+  const [approach, setApproach] = useState<Approach | null>(null)
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[600px] max-w-[90vw] max-h-[85vh] border border-slate-200 dark:border-neutral-700 flex flex-col">
@@ -87,102 +252,53 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
             </p>
           </div>
 
-          {/* Two approaches */}
-          <div className="text-sm text-slate-600 dark:text-slate-400">
-            <p className="font-medium text-slate-700 dark:text-slate-300 mb-2">Two ways to start:</p>
-            <ul className="list-disc ml-5 space-y-2">
-              <li>
-                <strong className="text-slate-700 dark:text-slate-300">User journey first</strong> —
-                Pick a specific scenario (like "customer makes a purchase") and trace it through your systems.
-                Great for discovery when you're still learning the landscape.
-              </li>
-              <li>
-                <strong className="text-slate-700 dark:text-slate-300">Systems first</strong> —
-                Map out all your known contexts upfront (e.g., from an EventStorming session), then add
-                users and their needs to connect the problem space. Great when the team already knows the systems.
-              </li>
-            </ul>
+          {/* Approach selector */}
+          <div>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Choose your approach:</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setApproach('user-journey')}
+                className={`text-left p-3 rounded-lg border-2 transition-colors ${
+                  approach === 'user-journey'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600'
+                }`}
+              >
+                <div className="font-medium text-sm text-slate-900 dark:text-slate-100 mb-1">
+                  User Journey First
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Trace a specific scenario through your systems. Great for discovery when you're still learning the landscape.
+                </p>
+              </button>
+              <button
+                onClick={() => setApproach('systems-first')}
+                className={`text-left p-3 rounded-lg border-2 transition-colors ${
+                  approach === 'systems-first'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600'
+                }`}
+              >
+                <div className="font-medium text-sm text-slate-900 dark:text-slate-100 mb-1">
+                  Systems First
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Map known contexts upfront (e.g., from EventStorming), then add users and needs. Great when the team already knows the systems.
+                </p>
+              </button>
+            </div>
           </div>
 
-          {/* Step 1 */}
-          <StepCard number={1} title="Add Your Starting Points">
-            <p>Depending on your approach:</p>
-            <ul className="list-disc ml-5 space-y-1 text-slate-500 dark:text-slate-400">
-              <li>
-                <strong className="text-slate-700 dark:text-slate-300">User journey:</strong> Add a user and a scenario they're trying to accomplish
-              </li>
-              <li>
-                <strong className="text-slate-700 dark:text-slate-300">Systems first:</strong> Add the contexts (systems/services) you already know about
-              </li>
-            </ul>
-            <TipBox>Start with what you know well. You can always expand later.</TipBox>
-          </StepCard>
+          {/* Steps based on selected approach */}
+          {approach === 'user-journey' && <UserJourneySteps />}
+          {approach === 'systems-first' && <SystemsFirstSteps />}
 
-          {/* Step 2 */}
-          <StepCard number={2} title="Add Users and Contexts">
-            <p>
-              <strong className="text-slate-700 dark:text-slate-300">Users</strong> represent people or roles interacting with your systems.
-              <strong className="text-slate-700 dark:text-slate-300"> Contexts</strong> are the systems or services that fulfill their needs.
-            </p>
-            <div className="flex flex-col gap-2 mt-2">
-              <div className="flex items-center gap-2">
-                <Users size={14} className="text-slate-400" />
-                <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> — mark as external (customers) or internal (employees)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Box size={14} className="text-slate-400" />
-                <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> — mark as external for third-party systems</span>
-              </div>
+          {/* Prompt to select if nothing selected */}
+          {!approach && (
+            <div className="text-center py-6 text-sm text-slate-500 dark:text-slate-400">
+              Select an approach above to see the steps
             </div>
-          </StepCard>
-
-          {/* Step 3 */}
-          <StepCard number={3} title="Add Needs">
-            <p>
-              For each user, add what they need to accomplish. This captures the problem space—what users are trying to do.
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <FileText size={14} className="text-slate-400" />
-              <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g., "Browse products", "Make payment", "Track order"</span>
-            </div>
-            <p className="mt-3">
-              Then connect needs to the contexts that fulfill them by dragging between them.
-            </p>
-          </StepCard>
-
-          {/* Step 4 */}
-          <StepCard number={4} title="Connect the Systems">
-            <div className="flex items-center gap-2">
-              <GitBranch size={14} className="text-slate-400" />
-              <span>Drag from one context to another to show how they integrate.</span>
-            </div>
-            <p className="mt-2">
-              Choose patterns like <em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>, or <em>Shared Kernel</em> to describe the relationship.
-            </p>
-            <TipBox>
-              Don't worry about getting patterns perfect at first. You can always change them later in the inspector panel.
-            </TipBox>
-          </StepCard>
-
-          {/* Step 5 */}
-          <StepCard number={5} title="Organize Your Map (Optional)">
-            <div className="flex items-center gap-2">
-              <LayoutGrid size={14} className="text-slate-400" />
-              <span>Add structure to make your map easier to read.</span>
-            </div>
-            <ul className="list-disc ml-5 space-y-1 mt-2 text-slate-500 dark:text-slate-400">
-              <li>
-                <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — organize contexts into flow stages
-                (e.g., Discovery → Selection → Transaction → Fulfillment)
-              </li>
-              <li>
-                <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — classify contexts as Core, Supporting, or Generic
-              </li>
-              <li>
-                <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — position contexts by evolution stage
-              </li>
-            </ul>
-          </StepCard>
+          )}
         </div>
 
         {/* Footer */}

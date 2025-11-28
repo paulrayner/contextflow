@@ -20,8 +20,8 @@ describe('calculateStageBoundaries', () => {
       stageIndex: 0,
       name: 'Middle',
       position: 50,
-      startBound: 25,  // midpoint of 0 and 50
-      endBound: 75,    // midpoint of 50 and 100
+      startBound: 0,   // first stage always starts at 0
+      endBound: 100,   // last stage always ends at 100
     })
   })
 
@@ -31,8 +31,8 @@ describe('calculateStageBoundaries', () => {
 
     expect(boundaries).toHaveLength(1)
     expect(boundaries[0]).toMatchObject({
-      startBound: 0,   // midpoint of 0 and 0
-      endBound: 50,    // midpoint of 0 and 100
+      startBound: 0,   // first stage starts at 0
+      endBound: 100,   // last stage ends at 100
     })
   })
 
@@ -42,8 +42,8 @@ describe('calculateStageBoundaries', () => {
 
     expect(boundaries).toHaveLength(1)
     expect(boundaries[0]).toMatchObject({
-      startBound: 50,  // midpoint of 0 and 100
-      endBound: 100,   // midpoint of 100 and 100
+      startBound: 0,   // first stage starts at 0
+      endBound: 100,   // last stage ends at 100
     })
   })
 
@@ -58,11 +58,11 @@ describe('calculateStageBoundaries', () => {
     const boundaries = calculateStageBoundaries(stages)
 
     expect(boundaries).toHaveLength(5)
-    expect(boundaries[0]).toMatchObject({ name: 'A', startBound: 5, endBound: 20 })
+    expect(boundaries[0]).toMatchObject({ name: 'A', startBound: 0, endBound: 20 })   // starts at 0
     expect(boundaries[1]).toMatchObject({ name: 'B', startBound: 20, endBound: 40 })
     expect(boundaries[2]).toMatchObject({ name: 'C', startBound: 40, endBound: 60 })
     expect(boundaries[3]).toMatchObject({ name: 'D', startBound: 60, endBound: 80 })
-    expect(boundaries[4]).toMatchObject({ name: 'E', startBound: 80, endBound: 95 })
+    expect(boundaries[4]).toMatchObject({ name: 'E', startBound: 80, endBound: 100 }) // ends at 100
   })
 
   it('handles unsorted stage input and preserves original indices', () => {
@@ -102,8 +102,8 @@ describe('calculateStageBoundaries', () => {
     ]
     const boundaries = calculateStageBoundaries(stages)
 
-    expect(boundaries[0]).toMatchObject({ startBound: 10, endBound: 50 })
-    expect(boundaries[1]).toMatchObject({ startBound: 50, endBound: 90 })
+    expect(boundaries[0]).toMatchObject({ startBound: 0, endBound: 50 })   // starts at 0
+    expect(boundaries[1]).toMatchObject({ startBound: 50, endBound: 100 }) // ends at 100
   })
 })
 
@@ -138,8 +138,9 @@ describe('findStageForPosition', () => {
   })
 
   it('finds correct stage for position in last stage', () => {
+    // With stages at [10, 30, 50], stage C (index 2) owns 40-100
     expect(findStageForPosition(75, boundaries)).toBe(2)
-    expect(findStageForPosition(74.9, boundaries)).toBe(2)
+    expect(findStageForPosition(99, boundaries)).toBe(2)
   })
 
   it('handles position exactly at 100 (belongs to last stage by position)', () => {
