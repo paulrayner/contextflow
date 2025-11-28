@@ -124,7 +124,7 @@ function UserJourneySteps() {
         </TipBox>
       </StepCard>
 
-      <StepCard number={7} title="Go Deeper with Strategic Views (Optional)">
+      <StepCard number={7} title="Go Deeper with Strategic Views">
         <p>
           Move beyond context mapping with two complementary strategic lenses:
         </p>
@@ -213,7 +213,7 @@ function SystemsFirstSteps() {
         </TipBox>
       </StepCard>
 
-      <StepCard number={6} title="Go Deeper with Strategic Views (Optional)">
+      <StepCard number={6} title="Go Deeper with Strategic Views">
         <p>
           Move beyond context mapping with two complementary strategic lenses:
         </p>
