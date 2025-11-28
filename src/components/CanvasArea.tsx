@@ -890,7 +890,7 @@ function TeamLabelsOverlay({
         return (
           <div
             key={`team-label-${context.id}`}
-            onClick={onTeamClick ? () => onTeamClick(team.id) : undefined}
+            onClick={onTeamClick ? (e) => { e.stopPropagation(); onTeamClick(team.id) } : undefined}
             style={{
               position: 'absolute',
               left: transformedX,
@@ -2700,7 +2700,7 @@ function CanvasContent() {
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null, selectedTeamId: null })
   }, [])
 
   // Handle edge connection (User → User Need → Context, or Context → Context)
