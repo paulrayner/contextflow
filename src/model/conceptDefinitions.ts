@@ -18,7 +18,7 @@ export const EVOLUTION_STAGES: Record<string, ConceptDefinition> = {
       'Chaotic and uncertain',
       'Requires constant experimentation',
       'High failure rate is acceptable',
-      'Source of competitive differentiation',
+      'Potential source of future differentiation',
     ],
   },
   'custom-built': {
@@ -70,8 +70,8 @@ export const STRATEGIC_CLASSIFICATIONS: Record<string, ConceptDefinition> = {
     description: 'Necessary for the business but not a differentiator.',
     characteristics: [
       'Supports core domain functionality',
-      'Could be custom or off-the-shelf',
-      'Consider outsourcing if complex',
+      'Custom-built but not a competitive advantage',
+      'Consider outsourcing development if complex',
       'Keep simple where possible',
     ],
   },
@@ -299,7 +299,7 @@ export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
 export const VALUE_CHAIN_VISIBILITY: Record<string, ConceptDefinition> = {
   visible: {
     title: 'Visible',
-    description: 'Components that users directly interact with or are aware of.',
+    description: 'Components that users directly interact with or are aware of. Users and their needs at the top represent the problem space—the anchor from which the entire map flows.',
     characteristics: [
       'User-facing functionality',
       'Directly creates perceived value',
@@ -352,16 +352,16 @@ export const DISTILLATION_REGIONS: Record<string, ConceptDefinition> = {
       'Invest your best talent here',
       'Build and maintain in-house',
       'Worth significant investment',
-      'Source of competitive moat',
+      'Source of competitive advantage (i.e. economic moat)',
     ],
   },
   supporting: {
     title: 'Supporting Subdomain',
-    description: 'High differentiation but lower complexity, or supporting core functionality.',
+    description: 'Low differentiation but necessary. Custom-built to support core functionality.',
     characteristics: [
       'Necessary for core to function',
-      'Could be custom or off-the-shelf',
-      'Consider outsourcing if complex',
+      'Custom-built but not a competitive advantage',
+      'Consider outsourcing development if complex',
       'Keep simple where possible',
     ],
   },

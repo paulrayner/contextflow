@@ -1410,7 +1410,7 @@ function DistillationRegions() {
 
   return (
     <>
-      {/* Background regions */}
+      {/* Background regions - behind everything */}
       <div
         style={{
           position: 'absolute',
@@ -1433,55 +1433,19 @@ function DistillationRegions() {
           const transformedWidth = width * zoom
           const transformedHeight = height * zoom
 
-          // Calculate label position
-          const labelX = (region.labelX / 100) * 2000
-          const labelY = (1 - region.labelY / 100) * 1000
-          const transformedLabelX = labelX * zoom + x
-          const transformedLabelY = labelY * zoom + y
-
           return (
-            <React.Fragment key={`region-${idx}`}>
-              <div
-                style={{
-                  position: 'absolute',
-                  left: transformedX,
-                  top: transformedY,
-                  width: transformedWidth,
-                  height: transformedHeight,
-                  backgroundColor: region.color,
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                }}
-              />
-              {/* Region label with tooltip (skip duplicate SUPPORTING label) */}
-              {!region.hideLabel && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: transformedLabelX,
-                    top: transformedLabelY,
-                    transform: 'translate(-50%, -50%)',
-                    pointerEvents: 'auto',
-                  }}
-                >
-                  <InfoTooltip content={DISTILLATION_REGIONS[region.key]} position="top">
-                    <span
-                      className="cursor-help"
-                      style={{
-                        color: region.textColor,
-                        fontSize: `${48 * zoom}px`,
-                        fontWeight: 700,
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        opacity: 0.85,
-                        textShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                      }}
-                    >
-                      {region.name}
-                    </span>
-                  </InfoTooltip>
-                </div>
-              )}
-            </React.Fragment>
+            <div
+              key={`region-bg-${idx}`}
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                width: transformedWidth,
+                height: transformedHeight,
+                backgroundColor: region.color,
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+              }}
+            />
           )
         })}
 
@@ -1522,6 +1486,58 @@ function DistillationRegions() {
               />
             )
           }
+        })}
+      </div>
+
+      {/* Region labels - in separate container with higher z-index for tooltip interactivity */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 15,
+        }}
+      >
+        {regions.map((region, idx) => {
+          if (region.hideLabel) return null
+
+          const labelX = (region.labelX / 100) * 2000
+          const labelY = (1 - region.labelY / 100) * 1000
+          const transformedLabelX = labelX * zoom + x
+          const transformedLabelY = labelY * zoom + y
+
+          return (
+            <div
+              key={`region-label-${idx}`}
+              style={{
+                position: 'absolute',
+                left: transformedLabelX,
+                top: transformedLabelY,
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: 'auto',
+              }}
+            >
+              <InfoTooltip content={DISTILLATION_REGIONS[region.key]} position="top">
+                <span
+                  className="cursor-help"
+                  style={{
+                    color: region.textColor,
+                    fontSize: `${48 * zoom}px`,
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    opacity: 0.85,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  }}
+                >
+                  {region.name}
+                </span>
+              </InfoTooltip>
+            </div>
+          )
         })}
       </div>
 
