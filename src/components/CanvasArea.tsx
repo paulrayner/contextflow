@@ -453,14 +453,11 @@ function ContextNode({ data }: NodeProps) {
 function StageLabels({ stages }: { stages: Array<{ name: string; position: number; description?: string; owner?: string; notes?: string }> }) {
   const { x, y, zoom } = useViewport()
   const updateFlowStage = useEditorStore(s => s.updateFlowStage)
-  const deleteFlowStage = useEditorStore(s => s.deleteFlowStage)
   const setSelectedStage = useEditorStore(s => s.setSelectedStage)
   const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
   const [draggingIndex, setDraggingIndex] = React.useState<number | null>(null)
   const [dragStartX, setDragStartX] = React.useState(0)
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
-  const [contextMenuIndex, setContextMenuIndex] = React.useState<number | null>(null)
-  const [contextMenuPos, setContextMenuPos] = React.useState({ x: 0, y: 0 })
 
   const handleClick = (e: React.MouseEvent, index: number) => {
     e.stopPropagation()
@@ -473,33 +470,6 @@ function StageLabels({ stages }: { stages: Array<{ name: string; position: numbe
     setDragStartX(e.clientX)
     e.preventDefault()
   }
-
-  const handleContextMenu = (e: React.MouseEvent, index: number) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setContextMenuIndex(index)
-    setContextMenuPos({ x: e.clientX, y: e.clientY })
-  }
-
-  const handleDeleteStage = (index: number) => {
-    if (stages.length <= 1) {
-      alert('Cannot delete the last stage')
-      return
-    }
-    if (window.confirm(`Delete stage "${stages[index].name}"? This can be undone with Cmd/Ctrl+Z.`)) {
-      deleteFlowStage(index)
-    }
-    setContextMenuIndex(null)
-  }
-
-  // Close context menu on click outside
-  React.useEffect(() => {
-    if (contextMenuIndex === null) return
-
-    const handleClick = () => setContextMenuIndex(null)
-    document.addEventListener('click', handleClick)
-    return () => document.removeEventListener('click', handleClick)
-  }, [contextMenuIndex])
 
   React.useEffect(() => {
     if (draggingIndex === null) return
@@ -556,62 +526,40 @@ function StageLabels({ stages }: { stages: Array<{ name: string; position: numbe
         return (
           <div
             key={stage.name}
-            className={`relative ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'} group`}
+            className={`text-slate-700 dark:text-slate-200 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} group`}
             style={{
               position: 'absolute',
               left: transformedX,
               top: transformedY,
               transform: 'translate(-50%, -50%)',
+              whiteSpace: 'nowrap',
+              fontSize: `${22.5 * zoom}px`,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
               pointerEvents: 'auto',
               userSelect: 'none',
             }}
             onMouseDown={(e) => handleMouseDown(e, index)}
             onClick={(e) => !isDragging && handleClick(e, index)}
-            onContextMenu={(e) => handleContextMenu(e, index)}
             onMouseEnter={() => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(null)}
           >
-            {/* Stage name with selection highlight */}
-            <div
-              className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
-                isSelected
-                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
-                  : isHovered
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
-                  : 'text-slate-700 dark:text-slate-200'
-              }`}
+            {/* Stage name with selection underline */}
+            <span
               style={{
-                whiteSpace: 'nowrap',
-                fontSize: `${22.5 * zoom}px`,
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
+                textDecoration: isSelected ? 'underline' : 'none',
+                textDecorationColor: isSelected ? '#3b82f6' : 'transparent',
+                textDecorationThickness: '2px',
+                textUnderlineOffset: '4px',
               }}
             >
-              <span>{stage.name}</span>
-              {isHovered && stages.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteStage(index)
-                  }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
-                  style={{
-                    width: `${18 * zoom}px`,
-                    height: `${18 * zoom}px`,
-                    minWidth: `${18 * zoom}px`,
-                  }}
-                  title="Delete stage"
-                >
-                  <X size={12 * zoom} strokeWidth={2.5} />
-                </button>
-              )}
-            </div>
+              {stage.name}
+            </span>
 
             {/* Description tooltip */}
             {isHovered && stage.description && (
               <div
-                className="absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs rounded shadow-lg whitespace-nowrap z-50"
+                className="absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs rounded shadow-lg z-50"
                 style={{
                   top: '100%',
                   maxWidth: '300px',
@@ -624,27 +572,6 @@ function StageLabels({ stages }: { stages: Array<{ name: string; position: numbe
           </div>
         )
       })}
-
-      {/* Context Menu */}
-      {contextMenuIndex !== null && (
-        <div
-          style={{
-            position: 'fixed',
-            left: contextMenuPos.x,
-            top: contextMenuPos.y,
-            zIndex: 1000,
-            pointerEvents: 'auto',
-          }}
-          className="bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-xl py-1 min-w-[160px]"
-        >
-          <button
-            onClick={() => handleDeleteStage(contextMenuIndex)}
-            className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-          >
-            Delete Stage
-          </button>
-        </div>
-      )}
     </div>
   )
 }
