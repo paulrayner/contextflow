@@ -352,26 +352,26 @@ export function TopBar() {
                     Hover explanations for DDD & Wardley concepts
                   </p>
 
+                  {/* Welcome Guide */}
+                  <button
+                    onClick={() => {
+                      resetWelcome()
+                      setShowSettings(false)
+                    }}
+                    className="block mt-3 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    Welcome Guide
+                  </button>
+
                   {/* Getting Started Guide */}
                   <button
                     onClick={() => {
                       setShowGettingStartedGuide(true)
                       setShowSettings(false)
                     }}
-                    className="block mt-3 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                  >
-                    Getting Started Guide
-                  </button>
-
-                  {/* Restart Welcome */}
-                  <button
-                    onClick={() => {
-                      resetWelcome()
-                      setShowSettings(false)
-                    }}
                     className="block mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                   >
-                    Restart Welcome
+                    Getting Started Guide
                   </button>
                 </div>
 
