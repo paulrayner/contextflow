@@ -1302,34 +1302,52 @@ export function InspectorPanel() {
           <div className="space-y-3">
             {context.issues.map((issue) => (
               <div key={issue.id} className="group/issue bg-slate-50 dark:bg-neutral-800 rounded-md p-2">
-                <div className="flex items-start gap-2">
-                  <div className="flex-shrink-0 mt-1">
-                    {issue.severity === 'critical' ? (
-                      <AlertTriangle size={14} className="text-red-600 dark:text-red-400" />
-                    ) : issue.severity === 'warning' ? (
-                      <AlertTriangle size={14} className="text-amber-600 dark:text-amber-400" />
-                    ) : (
-                      <Info size={14} className="text-blue-600 dark:text-blue-400" />
-                    )}
+                <div className="flex items-center gap-2">
+                  <div className="flex-shrink-0 flex items-center gap-0.5">
+                    <InfoTooltip content="Info: General note or observation" position="top">
+                      <button
+                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'info' })}
+                        className={`p-0.5 rounded transition-colors ${
+                          issue.severity === 'info'
+                            ? 'bg-blue-100 dark:bg-blue-900/40'
+                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        <Info size={14} className={issue.severity === 'info' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
+                      </button>
+                    </InfoTooltip>
+                    <InfoTooltip content="Warning: Needs attention" position="top">
+                      <button
+                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'warning' })}
+                        className={`p-0.5 rounded transition-colors ${
+                          issue.severity === 'warning'
+                            ? 'bg-amber-100 dark:bg-amber-900/40'
+                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        <AlertTriangle size={14} className={issue.severity === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'} />
+                      </button>
+                    </InfoTooltip>
+                    <InfoTooltip content="Critical: Urgent problem" position="top">
+                      <button
+                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'critical' })}
+                        className={`p-0.5 rounded transition-colors ${
+                          issue.severity === 'critical'
+                            ? 'bg-red-100 dark:bg-red-900/40'
+                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        <AlertTriangle size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
+                      </button>
+                    </InfoTooltip>
                   </div>
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    <input
-                      type="text"
-                      value={issue.title}
-                      onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
-                      placeholder="Issue title..."
-                      className="w-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none"
-                    />
-                    <select
-                      value={issue.severity}
-                      onChange={(e) => updateContextIssue(context.id, issue.id, { severity: e.target.value as 'info' | 'warning' | 'critical' })}
-                      className="text-[10px] text-slate-500 dark:text-slate-400 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 rounded px-1.5 py-0.5 cursor-pointer outline-none"
-                    >
-                      <option value="info">info</option>
-                      <option value="warning">warning</option>
-                      <option value="critical">critical</option>
-                    </select>
-                  </div>
+                  <input
+                    type="text"
+                    value={issue.title}
+                    onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
+                    placeholder="Issue title..."
+                    className="flex-1 min-w-0 text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none"
+                  />
                   <button
                     onClick={() => deleteContextIssue(context.id, issue.id)}
                     className="opacity-0 group-hover/issue:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-opacity"
