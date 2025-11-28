@@ -29,9 +29,11 @@ export function TopBar() {
   const showGroups = useEditorStore(s => s.showGroups)
   const showRelationships = useEditorStore(s => s.showRelationships)
   const showIssueLabels = useEditorStore(s => s.showIssueLabels)
+  const showTeamLabels = useEditorStore(s => s.showTeamLabels)
   const toggleShowGroups = useEditorStore(s => s.toggleShowGroups)
   const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
   const toggleIssueLabels = useEditorStore(s => s.toggleIssueLabels)
+  const toggleTeamLabels = useEditorStore(s => s.toggleTeamLabels)
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
   const toggleHelpTooltips = useEditorStore(s => s.toggleHelpTooltips)
   const resetWelcome = useEditorStore(s => s.resetWelcome)
@@ -387,6 +389,22 @@ export function TopBar() {
                       </div>
                       <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
                         Display issue titles on canvas
+                      </p>
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="text-xs text-slate-600 dark:text-slate-400">Show Team Labels</span>
+                        <button
+                          onClick={toggleTeamLabels}
+                          className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                          style={{ backgroundColor: showTeamLabels ? '#3b82f6' : '#cbd5e1' }}
+                        >
+                          <span
+                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                            style={{ transform: showTeamLabels ? 'translateX(18px)' : 'translateX(2px)' }}
+                          />
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+                        Display team names on canvas
                       </p>
                     </div>
                     <div>

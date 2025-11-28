@@ -69,6 +69,7 @@ export interface EditorState {
   showGroups: boolean
   showRelationships: boolean
   showIssueLabels: boolean
+  showTeamLabels: boolean
 
   // Help preferences
   showHelpTooltips: boolean
@@ -151,6 +152,7 @@ export interface EditorState {
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
   toggleIssueLabels: () => void
+  toggleTeamLabels: () => void
   toggleHelpTooltips: () => void
   dismissWelcome: () => void
   resetWelcome: () => void
