@@ -1301,7 +1301,7 @@ export function InspectorPanel() {
       <Section label={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}>
         {context.issues && context.issues.length > 0 ? (
           <div className="space-y-3">
-            {context.issues.map((issue) => (
+            {context.issues.map((issue, index) => (
               <div key={issue.id} className="group/issue bg-slate-50 dark:bg-neutral-800 rounded-md p-2">
                 <div className="flex items-center gap-2">
                   <div className="flex-shrink-0 flex items-center gap-0.5">
@@ -1346,6 +1346,18 @@ export function InspectorPanel() {
                     type="text"
                     value={issue.title}
                     onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        addContextIssue(context.id, '')
+                      }
+                    }}
+                    onFocus={(e) => {
+                      if (issue.title === 'New issue') {
+                        e.target.select()
+                      }
+                    }}
+                    autoFocus={index === context.issues!.length - 1 && (issue.title === '' || issue.title === 'New issue')}
                     placeholder="Issue title..."
                     className="flex-1 min-w-0 text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none"
                   />
