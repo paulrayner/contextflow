@@ -13,11 +13,12 @@ export function shouldShowGettingStartedGuide(
   project: Project,
   seenSampleProjects: Set<string>,
   manuallyOpened: boolean,
-  welcomeModalDismissed: boolean
+  welcomeModalDismissed: boolean,
+  dismissedForEmptyProject: boolean
 ): boolean {
   if (manuallyOpened) return true
   if (!welcomeModalDismissed) return false
-  if (isProjectEmpty(project)) return true
+  if (isProjectEmpty(project) && !dismissedForEmptyProject) return true
   if (isSampleProject(project.id) && !seenSampleProjects.has(project.id)) return true
   return false
 }

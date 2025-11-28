@@ -2026,6 +2026,7 @@ function CanvasContent() {
 
   // Getting started guide modal - auto-opens when project is empty or first time viewing sample
   const [showGettingStartedGuide, setShowGettingStartedGuide] = React.useState(false)
+  const [dismissedGuideForEmptyProject, setDismissedGuideForEmptyProject] = React.useState(false)
   const [seenSampleProjects, setSeenSampleProjects] = React.useState<Set<string>>(new Set())
   const setActiveProject = useEditorStore(s => s.setActiveProject)
 
@@ -3089,12 +3090,14 @@ function CanvasContent() {
         <ValueChainGuideModal onClose={() => setShowValueChainGuide(false)} />
       )}
 
-      {project && shouldShowGettingStartedGuide(project, seenSampleProjects, showGettingStartedGuide, hasSeenWelcome) && (
+      {project && shouldShowGettingStartedGuide(project, seenSampleProjects, showGettingStartedGuide, hasSeenWelcome, dismissedGuideForEmptyProject) && (
         <GettingStartedGuideModal
           onClose={() => {
             setShowGettingStartedGuide(false)
             if (isSampleProject(project.id)) {
               setSeenSampleProjects(prev => new Set(prev).add(project.id))
+            } else {
+              setDismissedGuideForEmptyProject(true)
             }
           }}
         />

@@ -86,19 +86,25 @@ describe('shouldShowGettingStartedGuide', () => {
       contexts: [createMockContext()],
     }
 
-    expect(shouldShowGettingStartedGuide(project, new Set(), true, false)).toBe(true)
+    expect(shouldShowGettingStartedGuide(project, new Set(), true, false, false)).toBe(true)
   })
 
   it('returns false when welcome modal not yet dismissed', () => {
     const project = createBaseMockProject()
 
-    expect(shouldShowGettingStartedGuide(project, new Set(), false, false)).toBe(false)
+    expect(shouldShowGettingStartedGuide(project, new Set(), false, false, false)).toBe(false)
   })
 
   it('returns true when project is empty and welcome dismissed', () => {
     const project = createBaseMockProject()
 
-    expect(shouldShowGettingStartedGuide(project, new Set(), false, true)).toBe(true)
+    expect(shouldShowGettingStartedGuide(project, new Set(), false, true, false)).toBe(true)
+  })
+
+  it('returns false when project is empty but guide was dismissed', () => {
+    const project = createBaseMockProject()
+
+    expect(shouldShowGettingStartedGuide(project, new Set(), false, true, true)).toBe(false)
   })
 
   it('returns true for unseen sample project after welcome dismissed', () => {
@@ -108,7 +114,7 @@ describe('shouldShowGettingStartedGuide', () => {
       contexts: [createMockContext()],
     }
 
-    expect(shouldShowGettingStartedGuide(project, new Set(), false, true)).toBe(true)
+    expect(shouldShowGettingStartedGuide(project, new Set(), false, true, false)).toBe(true)
   })
 
   it('returns false for already-seen sample project', () => {
@@ -119,7 +125,7 @@ describe('shouldShowGettingStartedGuide', () => {
     }
     const seenProjects = new Set(['acme-ecommerce'])
 
-    expect(shouldShowGettingStartedGuide(project, seenProjects, false, true)).toBe(false)
+    expect(shouldShowGettingStartedGuide(project, seenProjects, false, true, false)).toBe(false)
   })
 
   it('returns false for non-empty user project', () => {
@@ -129,6 +135,6 @@ describe('shouldShowGettingStartedGuide', () => {
       contexts: [createMockContext()],
     }
 
-    expect(shouldShowGettingStartedGuide(project, new Set(), false, true)).toBe(false)
+    expect(shouldShowGettingStartedGuide(project, new Set(), false, true, false)).toBe(false)
   })
 })
