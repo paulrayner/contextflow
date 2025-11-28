@@ -98,6 +98,43 @@ describe('teamActions', () => {
 
       expect(result).toBe(state)
     })
+
+    it('should update jiraBoard', () => {
+      const result = updateTeamAction(mockState, 'team-1', { jiraBoard: 'https://jira.example.com/board/123' })
+
+      const updatedTeam = result.projects?.['test-project'].teams?.find(t => t.id === 'team-1')
+      expect(updatedTeam?.jiraBoard).toBe('https://jira.example.com/board/123')
+      expect(updatedTeam?.name).toBe('Platform Team')
+    })
+
+    it('should update topologyType', () => {
+      const result = updateTeamAction(mockState, 'team-1', { topologyType: 'enabling' })
+
+      const updatedTeam = result.projects?.['test-project'].teams?.find(t => t.id === 'team-1')
+      expect(updatedTeam?.topologyType).toBe('enabling')
+      expect(updatedTeam?.name).toBe('Platform Team')
+    })
+
+    it('should update multiple properties at once', () => {
+      const result = updateTeamAction(mockState, 'team-1', {
+        name: 'Updated Team',
+        jiraBoard: 'https://jira.example.com',
+        topologyType: 'complicated-subsystem'
+      })
+
+      const updatedTeam = result.projects?.['test-project'].teams?.find(t => t.id === 'team-1')
+      expect(updatedTeam?.name).toBe('Updated Team')
+      expect(updatedTeam?.jiraBoard).toBe('https://jira.example.com')
+      expect(updatedTeam?.topologyType).toBe('complicated-subsystem')
+    })
+
+    it('should clear jiraBoard when set to empty string', () => {
+      mockState.projects['test-project'].teams![0].jiraBoard = 'https://old-jira.com'
+      const result = updateTeamAction(mockState, 'team-1', { jiraBoard: '' })
+
+      const updatedTeam = result.projects?.['test-project'].teams?.find(t => t.id === 'team-1')
+      expect(updatedTeam?.jiraBoard).toBe('')
+    })
   })
 
   describe('addTeamAction', () => {

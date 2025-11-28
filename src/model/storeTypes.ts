@@ -133,7 +133,7 @@ export interface EditorState {
   setSelectedRelationship: (relationshipId: string | null) => void
   setSelectedStage: (stageIndex: number | null) => void
   setSelectedTeam: (teamId: string | null) => void
-  updateTeam: (teamId: string, updates: Partial<{ name: string }>) => void
+  updateTeam: (teamId: string, updates: Partial<{ name: string; jiraBoard: string; topologyType: 'stream-aligned' | 'platform' | 'enabling' | 'complicated-subsystem' | 'unknown' }>) => void
   addTeam: (name: string) => void
   deleteTeam: (teamId: string) => void
   addUser: (name: string) => void
