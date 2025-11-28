@@ -286,7 +286,7 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
                   : 'bg-slate-100 dark:bg-neutral-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-neutral-600'
               }`}
             >
-              Start with a User Journey
+              Start with User Journey
             </button>
             <button
               onClick={() => setApproach('systems-first')}
