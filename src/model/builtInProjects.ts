@@ -3,7 +3,7 @@ import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
 import emptyProject from '../../examples/empty.project.json'
 import elanWarrantyProject from '../../examples/elan-warranty.project.json'
-import { saveProject, loadProject } from './persistence'
+import { saveProject, loadProject, migrateProject } from './persistence'
 import { classifyFromStrategicPosition } from './classification'
 
 // ============================================================================
@@ -122,10 +122,13 @@ export function initializeBuiltInProjects(
 
     BUILT_IN_PROJECTS.forEach((builtInProject, index) => {
       const savedProject = savedProjects[index]
-      const selectedProject = isBuiltInNewer(builtInProject, savedProject)
-        ? builtInProject
-        : savedProject!
-      projects[selectedProject.id] = selectedProject
+      if (isBuiltInNewer(builtInProject, savedProject)) {
+        projects[builtInProject.id] = builtInProject
+      } else {
+        // Migrate saved project to handle schema changes (e.g., actors → users)
+        const migratedProject = migrateProject(savedProject!)
+        projects[migratedProject.id] = migratedProject
+      }
     })
 
     setState({ projects })
