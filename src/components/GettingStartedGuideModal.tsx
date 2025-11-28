@@ -72,7 +72,6 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
           <div className="text-sm text-slate-600 dark:text-slate-400">
             <p>
               Context mapping helps you visualize how different parts of your system connect and serve your users.
-              Start by following a single user journey through your domain.
             </p>
           </div>
 
@@ -88,49 +87,66 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
             </p>
           </div>
 
-          {/* Step 1 */}
-          <StepCard number={1} title="Choose a User Journey">
-            <p>Pick a specific scenario to map:</p>
-            <ul className="list-disc ml-5 space-y-1 text-slate-500 dark:text-slate-400">
-              <li>Customer making a purchase</li>
-              <li>User uploading and processing a file</li>
-              <li>Admin generating a report</li>
-              <li>Support rep handling a ticket</li>
+          {/* Two approaches */}
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="font-medium text-slate-700 dark:text-slate-300 mb-2">Two ways to start:</p>
+            <ul className="list-disc ml-5 space-y-2">
+              <li>
+                <strong className="text-slate-700 dark:text-slate-300">User journey first</strong> —
+                Pick a specific scenario (like "customer makes a purchase") and trace it through your systems.
+                Great for discovery when you're still learning the landscape.
+              </li>
+              <li>
+                <strong className="text-slate-700 dark:text-slate-300">Systems first</strong> —
+                Map out all your known contexts upfront (e.g., from an EventStorming session), then add
+                users and their needs to connect the problem space. Great when the team already knows the systems.
+              </li>
             </ul>
-            <TipBox>Start with something you know well. You can always add more journeys later.</TipBox>
+          </div>
+
+          {/* Step 1 */}
+          <StepCard number={1} title="Add Your Starting Points">
+            <p>Depending on your approach:</p>
+            <ul className="list-disc ml-5 space-y-1 text-slate-500 dark:text-slate-400">
+              <li>
+                <strong className="text-slate-700 dark:text-slate-300">User journey:</strong> Add a user and a scenario they're trying to accomplish
+              </li>
+              <li>
+                <strong className="text-slate-700 dark:text-slate-300">Systems first:</strong> Add the contexts (systems/services) you already know about
+              </li>
+            </ul>
+            <TipBox>Start with what you know well. You can always expand later.</TipBox>
           </StepCard>
 
           {/* Step 2 */}
-          <StepCard number={2} title="Identify Who's Involved">
+          <StepCard number={2} title="Add Users and Contexts">
             <p>
-              Add <strong className="text-slate-700 dark:text-slate-300">Users</strong> for each person or role in the journey.
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <Users size={14} className="text-slate-400" />
-              <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> in the toolbar</span>
-            </div>
-            <p className="mt-2">
-              Mark users as <em>external</em> (customers, partners) or <em>internal</em> (employees) in the inspector panel.
-            </p>
-          </StepCard>
-
-          {/* Step 3 */}
-          <StepCard number={3} title="Map Their Needs to Systems">
-            <p>
-              For each user, add what they need to accomplish, then connect those needs to the systems that fulfill them.
+              <strong className="text-slate-700 dark:text-slate-300">Users</strong> represent people or roles interacting with your systems.
+              <strong className="text-slate-700 dark:text-slate-300"> Contexts</strong> are the systems or services that fulfill their needs.
             </p>
             <div className="flex flex-col gap-2 mt-2">
               <div className="flex items-center gap-2">
-                <FileText size={14} className="text-slate-400" />
-                <span className="text-xs"><strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — what the user is trying to do</span>
+                <Users size={14} className="text-slate-400" />
+                <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> — mark as external (customers) or internal (employees)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Box size={14} className="text-slate-400" />
-                <span className="text-xs"><strong className="text-slate-700 dark:text-slate-300">+ Context</strong> — each system or service handling a step</span>
+                <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> — mark as external for third-party systems</span>
               </div>
             </div>
+          </StepCard>
+
+          {/* Step 3 */}
+          <StepCard number={3} title="Add Needs">
+            <p>
+              For each user, add what they need to accomplish. This captures the problem space—what users are trying to do.
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <FileText size={14} className="text-slate-400" />
+              <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g., "Browse products", "Make payment", "Track order"</span>
+            </div>
             <p className="mt-3">
-              Ask yourself: <em>What system handles this step? Is it internal (you own it) or external (third-party)?</em>
+              Then connect needs to the contexts that fulfill them by dragging between them.
             </p>
           </StepCard>
 
