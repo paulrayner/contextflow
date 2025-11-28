@@ -108,20 +108,32 @@ function UserJourneySteps() {
         </TipBox>
       </StepCard>
 
-      <StepCard number={6} title="Organize Your Map (Optional)">
-        <div className="flex items-center gap-2">
+      <StepCard number={6} title="Add Value Stream Stages">
+        <p>
+          Stages represent phases in your value stream—how value flows from user need to fulfillment.
+        </p>
+        <div className="flex items-center gap-2 mt-2">
           <LayoutGrid size={14} className="text-slate-400" />
-          <span>Add structure to make your map easier to read.</span>
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — e.g., "Discovery", "Selection", "Transaction", "Fulfillment"</span>
         </div>
-        <ul className="list-disc ml-5 space-y-1 mt-2 text-slate-500 dark:text-slate-400">
+        <p className="mt-2">
+          Drag contexts into stages to show which phase of the value stream they support.
+        </p>
+        <TipBox>
+          If you've done Big Picture EventStorming, stages often map to your subprocess boundaries.
+        </TipBox>
+      </StepCard>
+
+      <StepCard number={7} title="Analyze with Strategic Views (Optional)">
+        <p>
+          Use these views to inform investment decisions and identify strategic opportunities:
+        </p>
+        <ul className="list-disc ml-5 space-y-2 mt-2 text-slate-500 dark:text-slate-400">
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — organize contexts into flow stages
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
           </li>
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — classify contexts as Core, Supporting, or Generic
-          </li>
-          <li>
-            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — position contexts by evolution stage
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
           </li>
         </ul>
       </StepCard>
@@ -185,20 +197,32 @@ function SystemsFirstSteps() {
         </p>
       </StepCard>
 
-      <StepCard number={5} title="Organize Your Map (Optional)">
-        <div className="flex items-center gap-2">
+      <StepCard number={5} title="Add Value Stream Stages">
+        <p>
+          Stages represent phases in your value stream—how value flows from user need to fulfillment.
+        </p>
+        <div className="flex items-center gap-2 mt-2">
           <LayoutGrid size={14} className="text-slate-400" />
-          <span>Add structure to make your map easier to read.</span>
+          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — e.g., "Discovery", "Selection", "Transaction", "Fulfillment"</span>
         </div>
-        <ul className="list-disc ml-5 space-y-1 mt-2 text-slate-500 dark:text-slate-400">
+        <p className="mt-2">
+          Drag contexts into stages to show which phase of the value stream they support.
+        </p>
+        <TipBox>
+          If you've done Big Picture EventStorming, your subprocess boundaries become stages here.
+        </TipBox>
+      </StepCard>
+
+      <StepCard number={6} title="Analyze with Strategic Views (Optional)">
+        <p>
+          Use these views to inform investment decisions and identify strategic opportunities:
+        </p>
+        <ul className="list-disc ml-5 space-y-2 mt-2 text-slate-500 dark:text-slate-400">
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — organize contexts into flow stages
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
           </li>
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — classify contexts as Core, Supporting, or Generic
-          </li>
-          <li>
-            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — position contexts by evolution stage
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
           </li>
         </ul>
       </StepCard>

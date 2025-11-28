@@ -471,19 +471,19 @@
   "viewConfig": {
     "flowStages": [
       {
-        "label": "Data Ingestion",
+        "name": "Data Ingestion",
         "position": 10
       },
       {
-        "label": "Curation & Harmonization",
+        "name": "Curation & Harmonization",
         "position": 30
       },
       {
-        "label": "Cohort Query / Analysis",
+        "name": "Cohort Query / Analysis",
         "position": 55
       },
       {
-        "label": "Clinical Insight Delivery",
+        "name": "Clinical Insight Delivery",
         "position": 80
       }
     ]

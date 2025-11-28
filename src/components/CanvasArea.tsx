@@ -450,7 +450,7 @@ function ContextNode({ data }: NodeProps) {
 }
 
 // Component to render stage labels that pan/zoom with canvas
-function StageLabels({ stages }: { stages: Array<{ label: string; position: number }> }) {
+function StageLabels({ stages }: { stages: Array<{ name: string; position: number; description?: string }> }) {
   const { x, y, zoom } = useViewport()
   const updateFlowStage = useEditorStore(s => s.updateFlowStage)
   const deleteFlowStage = useEditorStore(s => s.deleteFlowStage)
@@ -469,15 +469,15 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
     }
   }, [editingIndex])
 
-  const handleStartEdit = (index: number, currentLabel: string) => {
+  const handleStartEdit = (index: number, currentName: string) => {
     setEditingIndex(index)
-    setEditValue(currentLabel)
+    setEditValue(currentName)
   }
 
   const handleSaveEdit = (index: number) => {
-    if (editValue.trim() && editValue !== stages[index].label) {
+    if (editValue.trim() && editValue !== stages[index].name) {
       try {
-        updateFlowStage(index, { label: editValue.trim() })
+        updateFlowStage(index, { name: editValue.trim() })
       } catch (err) {
         alert((err as Error).message)
       }
@@ -504,7 +504,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
       alert('Cannot delete the last stage')
       return
     }
-    if (window.confirm(`Delete stage "${stages[index].label}"? This can be undone with Cmd/Ctrl+Z.`)) {
+    if (window.confirm(`Delete stage "${stages[index].name}"? This can be undone with Cmd/Ctrl+Z.`)) {
       deleteFlowStage(index)
     }
     setContextMenuIndex(null)
@@ -573,7 +573,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
 
         return (
           <div
-            key={stage.label}
+            key={stage.name}
             className={`text-slate-700 dark:text-slate-200 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} group`}
             style={{
               position: 'absolute',
@@ -591,7 +591,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
               gap: `${4 * zoom}px`,
             }}
             onMouseDown={(e) => handleMouseDown(e, index)}
-            onClick={() => !isDragging && handleStartEdit(index, stage.label)}
+            onClick={() => !isDragging && handleStartEdit(index, stage.name)}
             onContextMenu={(e) => handleContextMenu(e, index)}
             onMouseEnter={() => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(null)}
@@ -621,7 +621,7 @@ function StageLabels({ stages }: { stages: Array<{ label: string; position: numb
               />
             ) : (
               <>
-                <span>{stage.label}</span>
+                <span>{stage.name}</span>
                 {isHovered && stages.length > 1 && (
                   <button
                     onClick={(e) => {

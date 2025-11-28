@@ -113,11 +113,11 @@ export function TopBar() {
   }
 
   const handleAddStage = () => {
-    const label = prompt('Stage label:')
-    if (!label) return
+    const name = prompt('Stage name:')
+    if (!name) return
 
     try {
-      addFlowStage(label.trim())
+      addFlowStage(name.trim())
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to add stage')
     }

@@ -1,40 +1,40 @@
 import { describe, it, expect } from 'vitest'
 import {
-  validateStageLabel,
+  validateStageName,
   validateStagePosition,
   createSelectionState,
   type FlowStage,
 } from './validation'
 
-describe('validateStageLabel', () => {
+describe('validateStageName', () => {
   const stages: FlowStage[] = [
-    { label: 'Stage 1', position: 1 },
-    { label: 'Stage 2', position: 2 },
-    { label: 'Stage 3', position: 3 },
+    { name: 'Stage 1', position: 1 },
+    { name: 'Stage 2', position: 2 },
+    { name: 'Stage 3', position: 3 },
   ]
 
-  it('throws error when label already exists', () => {
-    expect(() => validateStageLabel(stages, 'Stage 2')).toThrow('Stage label must be unique')
+  it('throws error when name already exists', () => {
+    expect(() => validateStageName(stages, 'Stage 2')).toThrow('Stage name must be unique')
   })
 
-  it('does not throw when label is unique', () => {
-    expect(() => validateStageLabel(stages, 'Stage 4')).not.toThrow()
+  it('does not throw when name is unique', () => {
+    expect(() => validateStageName(stages, 'Stage 4')).not.toThrow()
   })
 
-  it('allows duplicate label when excludeIndex matches', () => {
-    expect(() => validateStageLabel(stages, 'Stage 2', 1)).not.toThrow()
+  it('allows duplicate name when excludeIndex matches', () => {
+    expect(() => validateStageName(stages, 'Stage 2', 1)).not.toThrow()
   })
 
-  it('throws error when label exists at different index', () => {
-    expect(() => validateStageLabel(stages, 'Stage 2', 0)).toThrow('Stage label must be unique')
+  it('throws error when name exists at different index', () => {
+    expect(() => validateStageName(stages, 'Stage 2', 0)).toThrow('Stage name must be unique')
   })
 })
 
 describe('validateStagePosition', () => {
   const stages: FlowStage[] = [
-    { label: 'Stage 1', position: 1 },
-    { label: 'Stage 2', position: 2 },
-    { label: 'Stage 3', position: 3 },
+    { name: 'Stage 1', position: 1 },
+    { name: 'Stage 2', position: 2 },
+    { name: 'Stage 3', position: 3 },
   ]
 
   it('throws error when position already exists', () => {

@@ -1465,23 +1465,23 @@
   "viewConfig": {
     "flowStages": [
       {
-        "label": "Discovery",
+        "name": "Discovery",
         "position": 10
       },
       {
-        "label": "Selection",
+        "name": "Selection",
         "position": 30
       },
       {
-        "label": "Purchase",
+        "name": "Purchase",
         "position": 50
       },
       {
-        "label": "Fulfillment",
+        "name": "Fulfillment",
         "position": 70
       },
       {
-        "label": "Post-Sale",
+        "name": "Post-Sale",
         "position": 90
       }
     ]

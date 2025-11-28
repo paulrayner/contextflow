@@ -531,23 +531,23 @@
   "viewConfig": {
     "flowStages": [
       {
-        "label": "Acquisition",
+        "name": "Acquisition",
         "position": 15
       },
       {
-        "label": "Warranty Admin",
+        "name": "Warranty Admin",
         "position": 35
       },
       {
-        "label": "Claims Benefit Management",
+        "name": "Claims Benefit Management",
         "position": 55
       },
       {
-        "label": "Fulfillment",
+        "name": "Fulfillment",
         "position": 75
       },
       {
-        "label": "Analysis",
+        "name": "Analysis",
         "position": 90
       }
     ]
