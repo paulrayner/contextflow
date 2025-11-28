@@ -1028,23 +1028,27 @@ export function InspectorPanel() {
 
         {/* Jira Board */}
         <Section label="Jira Board">
-          <input
-            type="text"
-            value={team.jiraBoard || ''}
-            onChange={(e) => updateTeam(team.id, { jiraBoard: e.target.value })}
-            placeholder="https://jira.example.com/board/..."
-            className="w-full text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-neutral-500"
-          />
-          {team.jiraBoard && (
-            <a
-              href={team.jiraBoard}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block"
-            >
-              Open Jira Board
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={team.jiraBoard || ''}
+              onChange={(e) => updateTeam(team.id, { jiraBoard: e.target.value })}
+              placeholder="https://jira.example.com/..."
+              className="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-neutral-500"
+            />
+            {team.jiraBoard && (
+              <SimpleTooltip content="Open Jira Board">
+                <a
+                  href={team.jiraBoard}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                >
+                  <ExternalLink size={16} />
+                </a>
+              </SimpleTooltip>
+            )}
+          </div>
         </Section>
 
         {/* Assigned Contexts */}
