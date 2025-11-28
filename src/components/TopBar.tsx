@@ -358,7 +358,7 @@ export function TopBar() {
                       setShowGettingStartedGuide(true)
                       setShowSettings(false)
                     }}
-                    className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                    className="block mt-3 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                   >
                     Getting Started Guide
                   </button>
@@ -369,7 +369,7 @@ export function TopBar() {
                       resetWelcome()
                       setShowSettings(false)
                     }}
-                    className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                    className="block mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                   >
                     Restart Welcome
                   </button>
