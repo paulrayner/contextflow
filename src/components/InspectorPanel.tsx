@@ -1304,42 +1304,39 @@ export function InspectorPanel() {
               <div key={issue.id} className="group/issue bg-slate-50 dark:bg-neutral-800 rounded-md p-2">
                 <div className="flex items-center gap-2">
                   <div className="flex-shrink-0 flex items-center gap-0.5">
-                    <InfoTooltip content="Info: General note or observation" position="top">
-                      <button
-                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'info' })}
-                        className={`p-0.5 rounded transition-colors ${
-                          issue.severity === 'info'
-                            ? 'bg-blue-100 dark:bg-blue-900/40'
-                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <Info size={14} className={issue.severity === 'info' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
-                      </button>
-                    </InfoTooltip>
-                    <InfoTooltip content="Warning: Needs attention" position="top">
-                      <button
-                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'warning' })}
-                        className={`p-0.5 rounded transition-colors ${
-                          issue.severity === 'warning'
-                            ? 'bg-amber-100 dark:bg-amber-900/40'
-                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <AlertTriangle size={14} className={issue.severity === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'} />
-                      </button>
-                    </InfoTooltip>
-                    <InfoTooltip content="Critical: Urgent problem" position="top">
-                      <button
-                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'critical' })}
-                        className={`p-0.5 rounded transition-colors ${
-                          issue.severity === 'critical'
-                            ? 'bg-red-100 dark:bg-red-900/40'
-                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <AlertOctagon size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
-                      </button>
-                    </InfoTooltip>
+                    <button
+                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'info' })}
+                      title="Info: General note or observation"
+                      className={`p-0.5 rounded transition-colors ${
+                        issue.severity === 'info'
+                          ? 'bg-blue-100 dark:bg-blue-900/40'
+                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      <Info size={14} className={issue.severity === 'info' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
+                    </button>
+                    <button
+                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'warning' })}
+                      title="Warning: Needs attention"
+                      className={`p-0.5 rounded transition-colors ${
+                        issue.severity === 'warning'
+                          ? 'bg-amber-100 dark:bg-amber-900/40'
+                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      <AlertTriangle size={14} className={issue.severity === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'} />
+                    </button>
+                    <button
+                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'critical' })}
+                      title="Critical: Urgent problem"
+                      className={`p-0.5 rounded transition-colors ${
+                        issue.severity === 'critical'
+                          ? 'bg-red-100 dark:bg-red-900/40'
+                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      <AlertOctagon size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
+                    </button>
                   </div>
                   <input
                     type="text"
