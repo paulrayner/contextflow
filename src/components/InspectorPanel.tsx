@@ -67,6 +67,8 @@ export function InspectorPanel() {
   const addContextIssue = useEditorStore(s => s.addContextIssue)
   const updateContextIssue = useEditorStore(s => s.updateContextIssue)
   const deleteContextIssue = useEditorStore(s => s.deleteContextIssue)
+  const assignTeamToContext = useEditorStore(s => s.assignTeamToContext)
+  const unassignTeamFromContext = useEditorStore(s => s.unassignTeamFromContext)
 
   // Temporal state
   const currentDate = useEditorStore(s => s.temporal.currentDate)
@@ -1116,6 +1118,36 @@ export function InspectorPanel() {
           <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
         </InfoTooltip>
       </div>
+
+      {/* Team Assignment - only for non-external contexts */}
+      {context.ownership !== 'external' && project.teams && project.teams.length > 0 && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Team</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={context.teamId || ''}
+              onChange={(e) => {
+                const teamId = e.target.value
+                if (teamId) {
+                  assignTeamToContext(context.id, teamId)
+                } else {
+                  unassignTeamFromContext(context.id)
+                }
+              }}
+              className="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+            >
+              <option value="">No team assigned</option>
+              {project.teams.map(team => (
+                <option key={team.id} value={team.id}>
+                  {team.name}{team.topologyType ? ` (${team.topologyType})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Member of Groups - under pills, no heading */}
       {memberOfGroups.length > 0 && (

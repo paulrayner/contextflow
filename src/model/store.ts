@@ -17,7 +17,9 @@ import {
   deleteContextAction,
   addContextIssueAction,
   updateContextIssueAction,
-  deleteContextIssueAction
+  deleteContextIssueAction,
+  assignTeamToContextAction,
+  unassignTeamFromContextAction
 } from './actions/contextActions'
 import {
   createGroupAction,
@@ -277,6 +279,18 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   deleteContextIssue: (contextId, issueId) => set((state) => {
     const result = deleteContextIssueAction(state, contextId, issueId)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  assignTeamToContext: (contextId, teamId) => set((state) => {
+    const result = assignTeamToContextAction(state, contextId, teamId)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  unassignTeamFromContext: (contextId) => set((state) => {
+    const result = unassignTeamFromContextAction(state, contextId)
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),

@@ -7,7 +7,9 @@ import {
   deleteContextAction,
   addContextIssueAction,
   updateContextIssueAction,
-  deleteContextIssueAction
+  deleteContextIssueAction,
+  assignTeamToContextAction,
+  unassignTeamFromContextAction
 } from './contextActions'
 import { createMockState, createMockContext } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
@@ -534,6 +536,89 @@ describe('contextActions', () => {
       const result = deleteContextIssueAction(mockState, 'context-1', 'issue-1')
 
       expect(result.projects?.['project-1'].contexts[0]?.issues).toHaveLength(0)
+    })
+  })
+
+  describe('assignTeamToContextAction', () => {
+    beforeEach(() => {
+      mockState.projects['project-1'].teams = [
+        { id: 'team-1', name: 'Platform Team', topologyType: 'platform' },
+        { id: 'team-2', name: 'Customer Experience Squad', topologyType: 'stream-aligned' }
+      ]
+    })
+
+    it('should assign a team to a context', () => {
+      const result = assignTeamToContextAction(mockState, 'context-1', 'team-1')
+
+      expect(result.projects?.['project-1'].contexts[0].teamId).toBe('team-1')
+    })
+
+    it('should replace existing team assignment', () => {
+      mockState.projects['project-1'].contexts[0].teamId = 'team-1'
+
+      const result = assignTeamToContextAction(mockState, 'context-1', 'team-2')
+
+      expect(result.projects?.['project-1'].contexts[0].teamId).toBe('team-2')
+    })
+
+    it('should return unchanged state if context not found', () => {
+      const result = assignTeamToContextAction(mockState, 'nonexistent', 'team-1')
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should return unchanged state if project not found', () => {
+      const state = { ...mockState, activeProjectId: 'nonexistent' }
+      const result = assignTeamToContextAction(state, 'context-1', 'team-1')
+
+      expect(result).toBe(state)
+    })
+
+    it('should return unchanged state if team not found in project', () => {
+      const result = assignTeamToContextAction(mockState, 'context-1', 'nonexistent-team')
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should not allow team assignment to external contexts', () => {
+      mockState.projects['project-1'].contexts[0].ownership = 'external'
+
+      const result = assignTeamToContextAction(mockState, 'context-1', 'team-1')
+
+      expect(result).toBe(mockState)
+    })
+  })
+
+  describe('unassignTeamFromContextAction', () => {
+    beforeEach(() => {
+      mockState.projects['project-1'].contexts[0].teamId = 'team-1'
+    })
+
+    it('should remove team assignment from a context', () => {
+      const result = unassignTeamFromContextAction(mockState, 'context-1')
+
+      expect(result.projects?.['project-1'].contexts[0].teamId).toBeUndefined()
+    })
+
+    it('should return unchanged state if context not found', () => {
+      const result = unassignTeamFromContextAction(mockState, 'nonexistent')
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should return unchanged state if project not found', () => {
+      const state = { ...mockState, activeProjectId: 'nonexistent' }
+      const result = unassignTeamFromContextAction(state, 'context-1')
+
+      expect(result).toBe(state)
+    })
+
+    it('should work even if no team was assigned', () => {
+      delete mockState.projects['project-1'].contexts[0].teamId
+
+      const result = unassignTeamFromContextAction(mockState, 'context-1')
+
+      expect(result.projects?.['project-1'].contexts[0].teamId).toBeUndefined()
     })
   })
 })

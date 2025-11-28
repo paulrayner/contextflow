@@ -64,6 +64,7 @@ export interface BoundedContext {
 
   notes?: string
   issues?: Issue[]
+  teamId?: string  // direct team assignment (orthogonal to repo ownership)
 }
 
 export interface Relationship {

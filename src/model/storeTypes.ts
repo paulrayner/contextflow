@@ -114,6 +114,8 @@ export interface EditorState {
   addContextIssue: (contextId: string, title: string, severity?: IssueSeverity) => void
   updateContextIssue: (contextId: string, issueId: string, updates: Partial<Issue>) => void
   deleteContextIssue: (contextId: string, issueId: string) => void
+  assignTeamToContext: (contextId: string, teamId: string) => void
+  unassignTeamFromContext: (contextId: string) => void
   assignRepoToContext: (repoId: string, contextId: string) => void
   unassignRepo: (repoId: string) => void
   createGroup: (label: string, color?: string, notes?: string) => void

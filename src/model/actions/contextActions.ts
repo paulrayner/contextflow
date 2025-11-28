@@ -477,3 +477,77 @@ export function deleteContextIssueAction(
     },
   }
 }
+
+export function assignTeamToContextAction(
+  state: EditorState,
+  contextId: string,
+  teamId: string
+): Partial<EditorState> {
+  const projectId = state.activeProjectId
+  if (!projectId) return state
+
+  const project = state.projects[projectId]
+  if (!project) return state
+
+  const contextIndex = project.contexts.findIndex(c => c.id === contextId)
+  if (contextIndex === -1) return state
+
+  const context = project.contexts[contextIndex]
+
+  // Don't allow team assignment to external contexts
+  if (context.ownership === 'external') return state
+
+  // Verify team exists in project
+  const teamExists = project.teams?.some(t => t.id === teamId)
+  if (!teamExists) return state
+
+  const updatedContexts = [...project.contexts]
+  updatedContexts[contextIndex] = {
+    ...context,
+    teamId,
+  }
+
+  const updatedProject = {
+    ...project,
+    contexts: updatedContexts,
+  }
+
+  return {
+    projects: {
+      ...state.projects,
+      [projectId]: updatedProject,
+    },
+  }
+}
+
+export function unassignTeamFromContextAction(
+  state: EditorState,
+  contextId: string
+): Partial<EditorState> {
+  const projectId = state.activeProjectId
+  if (!projectId) return state
+
+  const project = state.projects[projectId]
+  if (!project) return state
+
+  const contextIndex = project.contexts.findIndex(c => c.id === contextId)
+  if (contextIndex === -1) return state
+
+  const context = project.contexts[contextIndex]
+  const { teamId, ...restOfContext } = context
+
+  const updatedContexts = [...project.contexts]
+  updatedContexts[contextIndex] = restOfContext
+
+  const updatedProject = {
+    ...project,
+    contexts: updatedContexts,
+  }
+
+  return {
+    projects: {
+      ...state.projects,
+      [projectId]: updatedProject,
+    },
+  }
+}
