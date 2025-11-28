@@ -392,39 +392,38 @@ function ContextNode({ data }: NodeProps) {
         </div>
       )}
 
-      {/* Issue indicator */}
-      {context.issues && context.issues.length > 0 && (() => {
-        const highestSeverity = context.issues.reduce((highest, issue) => {
-          const severityOrder = { critical: 3, warning: 2, info: 1 }
-          return severityOrder[issue.severity] > severityOrder[highest] ? issue.severity : highest
-        }, context.issues[0].severity)
-
-        const severityColors = {
-          critical: '#dc2626',
-          warning: '#d97706',
-          info: '#3b82f6',
-        }
-
-        return (
-          <div
-            style={{
-              position: 'absolute',
-              top: '4px',
-              left: context.isExternal ? undefined : '4px',
-              right: context.isExternal ? (context.isLegacy ? '24px' : '4px') : undefined,
-            }}
-            title={`${context.issues.length} issue${context.issues.length > 1 ? 's' : ''}`}
-          >
-            {highestSeverity === 'info' ? (
-              <Info size={14} color={severityColors[highestSeverity]} />
-            ) : highestSeverity === 'critical' ? (
-              <AlertOctagon size={14} color={severityColors[highestSeverity]} />
-            ) : (
-              <AlertTriangle size={14} color={severityColors[highestSeverity]} />
-            )}
-          </div>
-        )
-      })()}
+      {/* Issue indicators */}
+      {context.issues && context.issues.length > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '4px',
+            left: context.isExternal ? undefined : '4px',
+            right: context.isExternal ? (context.isLegacy ? '24px' : '4px') : undefined,
+            display: 'flex',
+            gap: '2px',
+          }}
+        >
+          {context.issues.map((issue) => {
+            const severityColors = {
+              critical: '#dc2626',
+              warning: '#d97706',
+              info: '#3b82f6',
+            }
+            return (
+              <div key={issue.id} title={issue.title || 'Untitled issue'} style={{ cursor: 'default' }}>
+                {issue.severity === 'info' ? (
+                  <Info size={14} color={severityColors[issue.severity]} />
+                ) : issue.severity === 'critical' ? (
+                  <AlertOctagon size={14} color={severityColors[issue.severity]} />
+                ) : (
+                  <AlertTriangle size={14} color={severityColors[issue.severity]} />
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Context name */}
       <div
