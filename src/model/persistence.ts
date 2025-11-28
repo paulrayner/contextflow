@@ -96,6 +96,13 @@ export function migrateProject(project: Project): Project {
   if (!project.users) project.users = []
   if (!project.userNeedConnections) project.userNeedConnections = []
 
+  // Ensure viewConfig exists with flowStages array
+  if (!project.viewConfig) {
+    project.viewConfig = { flowStages: [] }
+  } else if (!project.viewConfig.flowStages) {
+    project.viewConfig.flowStages = []
+  }
+
   project.contexts = project.contexts.map(context => {
     const needsDistillation = !context.positions.distillation
     const needsEvolution = !context.evolutionStage

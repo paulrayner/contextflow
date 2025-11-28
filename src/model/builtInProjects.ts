@@ -36,6 +36,12 @@ BUILT_IN_PROJECTS.forEach(project => {
   if (!project.userNeeds) project.userNeeds = []
   if (!project.userNeedConnections) project.userNeedConnections = []
   if (!project.needContextConnections) project.needContextConnections = []
+  // Ensure viewConfig exists with flowStages array
+  if (!project.viewConfig) {
+    project.viewConfig = { flowStages: [] }
+  } else if (!project.viewConfig.flowStages) {
+    project.viewConfig.flowStages = []
+  }
 })
 
 // Migrate contexts to include distillation position and evolution stage if missing
