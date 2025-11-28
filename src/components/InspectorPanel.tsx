@@ -14,7 +14,7 @@ import {
 } from '../model/patternDefinitions'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_USER, POWER_DYNAMICS, COMMUNICATION_MODE, OWNERSHIP_DEFINITIONS } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_USER, POWER_DYNAMICS, COMMUNICATION_MODE, OWNERSHIP_DEFINITIONS, TEAM_TOPOLOGIES } from '../model/conceptDefinitions'
 import type { ContextOwnership } from '../model/types'
 
 // Shared input styles for consistency across all inspector panels
@@ -1013,17 +1013,25 @@ export function InspectorPanel() {
 
         {/* Team Topology Type */}
         <Section label="Team Topology">
-          <select
-            value={team.topologyType || ''}
-            onChange={(e) => updateTeam(team.id, { topologyType: e.target.value as 'stream-aligned' | 'platform' | 'enabling' | 'complicated-subsystem' | 'unknown' || undefined })}
-            className="w-full text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
-          >
-            <option value="">Not specified</option>
-            <option value="stream-aligned">Stream-aligned</option>
-            <option value="platform">Platform</option>
-            <option value="enabling">Enabling</option>
-            <option value="complicated-subsystem">Complicated Subsystem</option>
-          </select>
+          <div className="flex flex-wrap gap-1.5">
+            {(['stream-aligned', 'platform', 'enabling', 'complicated-subsystem'] as const).map((value) => (
+              <InfoTooltip key={value} content={TEAM_TOPOLOGIES[value]} position="bottom">
+                <button
+                  onClick={() => updateTeam(team.id, { topologyType: value })}
+                  className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
+                    team.topologyType === value
+                      ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 ring-1 ring-indigo-400'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {value === 'stream-aligned' && 'Stream'}
+                  {value === 'platform' && 'Platform'}
+                  {value === 'enabling' && 'Enabling'}
+                  {value === 'complicated-subsystem' && 'Subsystem'}
+                </button>
+              </InfoTooltip>
+            ))}
+          </div>
         </Section>
 
         {/* Jira Board */}

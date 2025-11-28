@@ -446,3 +446,47 @@ export const COMMUNICATION_MODE: ConceptDefinition = {
     'Shared Database - direct data access (often a smell)',
   ],
 }
+
+// Team Topologies (from Team Topologies book by Matthew Skelton & Manuel Pais)
+export const TEAM_TOPOLOGIES: Record<string, ConceptDefinition> = {
+  'stream-aligned': {
+    title: 'Stream-aligned Team',
+    description: 'Aligned to a single flow of work from a segment of the business domain.',
+    characteristics: [
+      'Primary team type in the organization',
+      'Owns end-to-end delivery of value stream',
+      'Has minimal dependencies on other teams',
+      'Empowered to build and deliver customer value',
+    ],
+  },
+  'platform': {
+    title: 'Platform Team',
+    description: 'Provides internal services to reduce cognitive load for stream-aligned teams.',
+    characteristics: [
+      'Enables stream-aligned teams to be autonomous',
+      'Provides self-service APIs and tools',
+      'Treats internal teams as customers',
+      'Focuses on developer experience',
+    ],
+  },
+  'enabling': {
+    title: 'Enabling Team',
+    description: 'Helps other teams adopt new technologies or practices.',
+    characteristics: [
+      'Specialists in a particular domain',
+      'Actively seeks to understand team needs',
+      'Stays ahead of the curve on technology',
+      'Temporary engagement - aims to upskill teams',
+    ],
+  },
+  'complicated-subsystem': {
+    title: 'Complicated Subsystem Team',
+    description: 'Owns a subsystem requiring deep specialist expertise.',
+    characteristics: [
+      'Handles mathematically complex components',
+      'Reduces cognitive load for other teams',
+      'Requires rare specialist skills',
+      'Examples: video codec, ML model, trading algorithm',
+    ],
+  },
+}
