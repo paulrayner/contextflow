@@ -277,22 +277,28 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
           </div>
 
           {/* Approach selector */}
-          {!approach && (
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setApproach('user-journey')}
-                className="px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
-              >
-                Start with a User Journey
-              </button>
-              <button
-                onClick={() => setApproach('systems-first')}
-                className="px-4 py-3 rounded-lg bg-slate-600 hover:bg-slate-700 dark:bg-neutral-600 dark:hover:bg-neutral-500 text-white font-medium text-sm transition-colors"
-              >
-                Start with Systems
-              </button>
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setApproach('user-journey')}
+              className={`px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                approach === 'user-journey'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-neutral-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-neutral-600'
+              }`}
+            >
+              Start with a User Journey
+            </button>
+            <button
+              onClick={() => setApproach('systems-first')}
+              className={`px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                approach === 'systems-first'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 dark:bg-neutral-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-neutral-600'
+              }`}
+            >
+              Start with Systems
+            </button>
+          </div>
 
           {/* Steps based on selected approach */}
           {approach === 'user-journey' && <UserJourneySteps />}
