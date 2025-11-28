@@ -108,6 +108,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   },
   showGroups: true,
   showRelationships: true,
+  showIssueLabels: false,
   groupOpacity: 0.6,
   temporal: {
     currentDate: '2024',
@@ -158,6 +159,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   updateNeedContextConnection: vi.fn(),
   toggleShowGroups: vi.fn(),
   toggleShowRelationships: vi.fn(),
+  toggleIssueLabels: vi.fn(),
   setGroupOpacity: vi.fn(),
   updateFlowStage: vi.fn(),
   addFlowStage: vi.fn(),

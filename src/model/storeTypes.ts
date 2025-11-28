@@ -68,6 +68,7 @@ export interface EditorState {
   // View filters
   showGroups: boolean
   showRelationships: boolean
+  showIssueLabels: boolean
 
   // Help preferences
   showHelpTooltips: boolean
@@ -147,6 +148,7 @@ export interface EditorState {
   updateNeedContextConnection: (connectionId: string, updates: Partial<NeedContextConnection>) => void
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
+  toggleIssueLabels: () => void
   toggleHelpTooltips: () => void
   dismissWelcome: () => void
   resetWelcome: () => void

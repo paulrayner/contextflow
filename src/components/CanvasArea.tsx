@@ -675,6 +675,131 @@ function StageBoundaryLines({ stages }: { stages: Array<{ name: string; position
   )
 }
 
+// Component to render floating issue labels below context nodes
+function IssueLabelsOverlay({
+  contexts,
+  viewMode
+}: {
+  contexts: BoundedContext[]
+  viewMode: 'flow' | 'strategic' | 'distillation'
+}) {
+  const { x, y, zoom } = useViewport()
+
+  // Don't render if zoom is too low (labels become unreadable)
+  if (zoom < 0.4) return null
+
+  // Filter contexts with issues
+  const contextsWithIssues = contexts.filter(ctx => ctx.issues && ctx.issues.length > 0)
+
+  if (contextsWithIssues.length === 0) return null
+
+  const severityStyles = {
+    critical: { bg: '#fef2f2', border: '#fca5a5', text: '#b91c1c' },
+    warning: { bg: '#fffbeb', border: '#fcd34d', text: '#b45309' },
+    info: { bg: '#eff6ff', border: '#93c5fd', text: '#1d4ed8' },
+  }
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+        zIndex: 15,
+      }}
+    >
+      {contextsWithIssues.map(context => {
+        const nodeSize = NODE_SIZES[context.codeSize?.bucket || 'medium']
+
+        // Calculate position based on view mode
+        let xPos: number, yPos: number
+        if (viewMode === 'distillation') {
+          xPos = (context.positions.distillation.x / 100) * 2000
+          yPos = ((100 - context.positions.distillation.y) / 100) * 1000
+        } else if (viewMode === 'strategic') {
+          xPos = (context.positions.strategic.x / 100) * 2000
+          yPos = (context.positions.shared.y / 100) * 1000
+        } else {
+          xPos = (context.positions.flow.x / 100) * 2000
+          yPos = (context.positions.shared.y / 100) * 1000
+        }
+
+        // Position label below node center
+        const labelX = xPos + nodeSize.width / 2
+        const labelY = yPos + nodeSize.height + 8
+
+        const transformedX = labelX * zoom + x
+        const transformedY = labelY * zoom + y
+
+        // Limit to 3 visible issues
+        const visibleIssues = context.issues!.slice(0, 3)
+        const remainingCount = context.issues!.length - 3
+
+        return (
+          <div
+            key={`issue-labels-${context.id}`}
+            style={{
+              position: 'absolute',
+              left: transformedX,
+              top: transformedY,
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: `${3 * zoom}px`,
+            }}
+          >
+            {visibleIssues.map(issue => {
+              const colors = severityStyles[issue.severity]
+              const truncatedTitle = issue.title.length > 25
+                ? issue.title.substring(0, 22) + '...'
+                : issue.title
+              const iconSize = Math.max(8, 10 * zoom)
+
+              return (
+                <div
+                  key={issue.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: `${3 * zoom}px`,
+                    padding: `${2 * zoom}px ${6 * zoom}px`,
+                    backgroundColor: colors.bg,
+                    border: `${Math.max(1, 1 * zoom)}px solid ${colors.border}`,
+                    borderRadius: `${4 * zoom}px`,
+                    fontSize: `${Math.max(8, 10 * zoom)}px`,
+                    fontWeight: 500,
+                    color: colors.text,
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  {issue.severity === 'critical' && <AlertOctagon size={iconSize} />}
+                  {issue.severity === 'warning' && <AlertTriangle size={iconSize} />}
+                  {issue.severity === 'info' && <Info size={iconSize} />}
+                  <span>{truncatedTitle}</span>
+                </div>
+              )
+            })}
+            {remainingCount > 0 && (
+              <span
+                style={{
+                  fontSize: `${9 * zoom}px`,
+                  color: '#64748b',
+                  fontWeight: 500,
+                }}
+              >
+                +{remainingCount} more
+              </span>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // Component to render Strategic View evolution bands
 function EvolutionBands() {
   const { x, y, zoom } = useViewport()
@@ -2002,6 +2127,7 @@ function CanvasContent() {
   const viewMode = useEditorStore(s => s.activeViewMode)
   const showGroups = useEditorStore(s => s.showGroups)
   const showRelationships = useEditorStore(s => s.showRelationships)
+  const showIssueLabels = useEditorStore(s => s.showIssueLabels)
   const updateContextPosition = useEditorStore(s => s.updateContextPosition)
   const updateMultipleContextPositions = useEditorStore(s => s.updateMultipleContextPositions)
   const updateUserPosition = useEditorStore(s => s.updateUserPosition)
@@ -2900,6 +3026,11 @@ function CanvasContent() {
             <EvolutionBands />
             <YAxisLabels />
           </>
+        )}
+
+        {/* Issue labels overlay - visible in all views when enabled */}
+        {showIssueLabels && project && (
+          <IssueLabelsOverlay contexts={project.contexts} viewMode={viewMode} />
         )}
 
         {/* Arrow marker definitions */}

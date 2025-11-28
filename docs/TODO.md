@@ -2,9 +2,12 @@
 
 ## In Progress
 
+- [ ] Assign team names to contexts
+- [ ] Show issue labels on canvas (toggle)
+- [ ] Team management UI (view, create, update, delete)
+
 ## Backlog
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
-- [ ] Assign team names to contexts
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
