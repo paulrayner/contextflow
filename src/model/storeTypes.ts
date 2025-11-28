@@ -77,6 +77,7 @@ export interface EditorState {
 
   // UI preferences
   groupOpacity: number
+  colorByMode: 'strategic' | 'ownership'
 
   // Temporal state
   temporal: {
@@ -150,6 +151,7 @@ export interface EditorState {
   dismissWelcome: () => void
   resetWelcome: () => void
   setGroupOpacity: (opacity: number) => void
+  setColorByMode: (mode: 'strategic' | 'ownership') => void
   updateFlowStage: (index: number, updates: Partial<{ name: string; position: number; description: string; owner: string; notes: string }>) => void
   addFlowStage: (name: string, position?: number) => void
   deleteFlowStage: (index: number) => void

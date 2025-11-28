@@ -125,6 +125,11 @@ export const useEditorStore = create<EditorState>((set) => ({
     return stored !== null ? parseFloat(stored) : config.ui.groupOpacity
   })(),
 
+  colorByMode: (() => {
+    const stored = localStorage.getItem('contextflow.colorByMode')
+    return stored === 'strategic' ? 'strategic' : 'ownership'
+  })() as 'strategic' | 'ownership',
+
   // Temporal state (defaults to current year)
   temporal: {
     currentDate: new Date().getFullYear().toString(),
@@ -636,6 +641,11 @@ export const useEditorStore = create<EditorState>((set) => ({
   setGroupOpacity: (opacity) => {
     localStorage.setItem('contextflow.groupOpacity', String(opacity))
     set({ groupOpacity: opacity })
+  },
+
+  setColorByMode: (mode) => {
+    localStorage.setItem('contextflow.colorByMode', mode)
+    set({ colorByMode: mode })
   },
 
   setDragging: (isDragging) => set({ isDragging }),

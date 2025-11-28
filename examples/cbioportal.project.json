@@ -29,7 +29,7 @@
         "bucket": "large"
       },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "ours",
       "notes": "High visibility. Drives perceived value for clinical/research users. Backed by React/MobX frontend and Java backend REST API."
     },
     {
@@ -59,7 +59,7 @@
         "bucket": "medium"
       },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "ours",
       "notes": "Acts as an Open Host Service. External research consumers must conform to its language."
     },
     {
@@ -89,7 +89,7 @@
         "bucket": "large"
       },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "ours",
       "notes": "Differentiator. Feeds both the Portal UI and programmatic API. Tight coupling to curated relational schemas."
     },
     {
@@ -119,7 +119,7 @@
         "bucket": "medium"
       },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "internal",
       "notes": "Holds user-specific context like saved cohorts. Access controlled by backend-only proxy. Supports collaboration / revisitability."
     },
     {
@@ -149,7 +149,7 @@
         "bucket": "medium"
       },
       "isLegacy": true,
-      "isExternal": false,
+      "ownership": "internal",
       "notes": "Onboarding new studies bottlenecks here. Mix of Python wrappers + Java import classes. Informal ownership, lots of implicit rules."
     },
     {
@@ -179,7 +179,7 @@
         "bucket": "huge"
       },
       "isLegacy": true,
-      "isExternal": false,
+      "ownership": "internal",
       "notes": "High coupling. Acts as a shared kernel between ingestion and query/analysis. Performance tuning via Redis/ClickHouse leaks infra concerns upward."
     },
     {
@@ -209,7 +209,7 @@
         "bucket": "tiny"
       },
       "isLegacy": false,
-      "isExternal": true,
+      "ownership": "external",
       "notes": "External upstream. We depend on OncoKB for classification of mutations and treatment implications."
     },
     {
@@ -239,7 +239,7 @@
         "bucket": "tiny"
       },
       "isLegacy": false,
-      "isExternal": true,
+      "ownership": "external",
       "notes": "Provides standardized variant annotations and references. We treat it as commodity enrichment."
     },
     {
@@ -269,7 +269,7 @@
         "bucket": "tiny"
       },
       "isLegacy": false,
-      "isExternal": true,
+      "ownership": "external",
       "notes": "Represents hospitals, research partners, downstream analysis pipelines. They integrate via our Open Host Service."
     }
   ],

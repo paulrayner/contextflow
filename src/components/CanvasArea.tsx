@@ -219,6 +219,7 @@ function ContextNode({ data }: NodeProps) {
   const viewMode = useEditorStore(s => s.activeViewMode)
   const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
   const updateKeyframe = useEditorStore(s => s.updateKeyframe)
+  const colorByMode = useEditorStore(s => s.colorByMode)
 
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
   const hideDescription = context.codeSize?.bucket === 'tiny' || context.codeSize?.bucket === 'small'
@@ -285,10 +286,20 @@ function ContextNode({ data }: NodeProps) {
     }
   }
 
-  // Fill color based on strategic classification
-  const fillColor =
-    context.strategicClassification === 'core' ? '#f8e7a1' :
-    context.strategicClassification === 'supporting' ? '#dbeafe' : '#f3f4f6'
+  // Fill color based on colorByMode setting
+  const OWNERSHIP_COLORS = {
+    ours: '#d1fae5',      // green-100
+    internal: '#dbeafe',  // blue-100
+    external: '#fed7aa',  // orange-200
+  }
+  const STRATEGIC_COLORS = {
+    core: '#f8e7a1',      // yellow
+    supporting: '#dbeafe', // blue
+    generic: '#f3f4f6',   // gray
+  }
+  const fillColor = colorByMode === 'ownership'
+    ? OWNERSHIP_COLORS[context.ownership || 'ours']
+    : STRATEGIC_COLORS[context.strategicClassification || 'generic']
 
   // Border style based on boundary integrity
   // Strong = thick solid, Moderate = medium solid, Weak = thin dotted
@@ -314,10 +325,10 @@ function ContextNode({ data }: NodeProps) {
     : isHighlighted
     ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
     : isHovered
-    ? context.isExternal
+    ? context.ownership === 'external'
       ? `${externalRing}, 0 4px 8px -1px rgba(0, 0, 0, 0.12)`
       : '0 2px 8px -1px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.08)'
-    : context.isExternal
+    : context.ownership === 'external'
     ? `${externalRing}, 0 2px 6px 0 rgba(0, 0, 0, 0.06)`
     : '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
 
@@ -339,7 +350,7 @@ function ContextNode({ data }: NodeProps) {
           height: size.height,
           backgroundColor: fillColor,
           borderWidth,
-          borderStyle: context.isExternal ? 'dashed' : borderStyle,
+          borderStyle: context.ownership === 'external' ? 'dashed' : borderStyle,
           borderColor,
           borderRadius: '8px',
           padding: '8px',
@@ -373,7 +384,7 @@ function ContextNode({ data }: NodeProps) {
       )}
 
       {/* External badge */}
-      {context.isExternal && (
+      {context.ownership === 'external' && (
         <div
           style={{
             position: 'absolute',
@@ -399,8 +410,8 @@ function ContextNode({ data }: NodeProps) {
           style={{
             position: 'absolute',
             top: '4px',
-            left: context.isExternal ? undefined : '4px',
-            right: context.isExternal ? (context.isLegacy ? '24px' : '4px') : undefined,
+            left: context.ownership === 'external' ? undefined : '4px',
+            right: context.ownership === 'external' ? (context.isLegacy ? '24px' : '4px') : undefined,
             display: 'flex',
             gap: '2px',
           }}
@@ -434,7 +445,7 @@ function ContextNode({ data }: NodeProps) {
           fontSize: '13px',
           fontWeight: 600,
           color: '#0f172a',
-          marginTop: context.isExternal ? '20px' : (context.isLegacy || (context.issues && context.issues.length > 0)) ? '20px' : '0',
+          marginTop: context.ownership === 'external' ? '20px' : (context.isLegacy || (context.issues && context.issues.length > 0)) ? '20px' : '0',
           lineHeight: '1.3',
           overflow: 'hidden',
           textOverflow: 'ellipsis',

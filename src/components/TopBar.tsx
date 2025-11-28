@@ -35,6 +35,8 @@ export function TopBar() {
   const resetWelcome = useEditorStore(s => s.resetWelcome)
   const groupOpacity = useEditorStore(s => s.groupOpacity)
   const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
+  const colorByMode = useEditorStore(s => s.colorByMode)
+  const setColorByMode = useEditorStore(s => s.setColorByMode)
   const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
   const temporalEnabled = project?.temporal?.enabled || false
 
@@ -307,26 +309,84 @@ export function TopBar() {
           {showSettings && (
             <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 z-50">
               <div className="space-y-4">
-                {/* Appearance Section */}
+                {/* View Options Section */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Appearance</h3>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {theme === 'light' ? <Sun size={14} className="text-slate-600 dark:text-slate-400" /> : <Moon size={14} className="text-slate-600 dark:text-slate-400" />}
-                      <span className="text-xs text-slate-600 dark:text-slate-400">
-                        {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
-                      </span>
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">View Options</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
+                        Context Colors
+                      </label>
+                      <div className="flex gap-1 bg-slate-100 dark:bg-neutral-700 rounded-md p-1">
+                        <button
+                          onClick={() => setColorByMode('ownership')}
+                          className={`flex-1 text-xs py-1.5 px-2 rounded transition-colors ${
+                            colorByMode === 'ownership'
+                              ? 'bg-white dark:bg-neutral-600 text-slate-900 dark:text-slate-100 shadow-sm'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                          }`}
+                        >
+                          Ownership
+                        </button>
+                        <button
+                          onClick={() => setColorByMode('strategic')}
+                          className={`flex-1 text-xs py-1.5 px-2 rounded transition-colors ${
+                            colorByMode === 'strategic'
+                              ? 'bg-white dark:bg-neutral-600 text-slate-900 dark:text-slate-100 shadow-sm'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                          }`}
+                        >
+                          Strategic
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={toggleTheme}
-                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                      style={{ backgroundColor: theme === 'dark' ? '#3b82f6' : '#cbd5e1' }}
-                    >
-                      <span
-                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                        style={{ transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)' }}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-slate-600 dark:text-slate-400">Show Groups</span>
+                        <button
+                          onClick={toggleShowGroups}
+                          className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                          style={{ backgroundColor: showGroups ? '#3b82f6' : '#cbd5e1' }}
+                        >
+                          <span
+                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                            style={{ transform: showGroups ? 'translateX(18px)' : 'translateX(2px)' }}
+                          />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-slate-600 dark:text-slate-400">Show Relationships</span>
+                        <button
+                          onClick={toggleShowRelationships}
+                          className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                          style={{ backgroundColor: showRelationships ? '#3b82f6' : '#cbd5e1' }}
+                        >
+                          <span
+                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                            style={{ transform: showRelationships ? 'translateX(18px)' : 'translateX(2px)' }}
+                          />
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+                        Available in Flow & Strategic views
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
+                        Group Opacity: {Math.round(groupOpacity * 100)}%
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={groupOpacity * 100}
+                        onChange={(e) => setGroupOpacity(parseInt(e.target.value) / 100)}
+                        className="w-full h-2 bg-slate-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer"
+                        style={{
+                          accentColor: theme === 'light' ? '#3b82f6' : '#60a5fa'
+                        }}
                       />
-                    </button>
+                    </div>
                   </div>
                 </div>
 
@@ -378,39 +438,26 @@ export function TopBar() {
 
                 <div className="border-t border-slate-200 dark:border-neutral-700" />
 
-                {/* View Filters Section */}
+                {/* Display Section */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">View Filters</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-600 dark:text-slate-400">Show Groups</span>
-                      <button
-                        onClick={toggleShowGroups}
-                        className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                        style={{ backgroundColor: showGroups ? '#3b82f6' : '#cbd5e1' }}
-                      >
-                        <span
-                          className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                          style={{ transform: showGroups ? 'translateX(18px)' : 'translateX(2px)' }}
-                        />
-                      </button>
+                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Display</h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {theme === 'light' ? <Sun size={14} className="text-slate-600 dark:text-slate-400" /> : <Moon size={14} className="text-slate-600 dark:text-slate-400" />}
+                      <span className="text-xs text-slate-600 dark:text-slate-400">
+                        {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-600 dark:text-slate-400">Show Relationships</span>
-                      <button
-                        onClick={toggleShowRelationships}
-                        className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                        style={{ backgroundColor: showRelationships ? '#3b82f6' : '#cbd5e1' }}
-                      >
-                        <span
-                          className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                          style={{ transform: showRelationships ? 'translateX(18px)' : 'translateX(2px)' }}
-                        />
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
-                      Available in Flow & Strategic views
-                    </p>
+                    <button
+                      onClick={toggleTheme}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
+                      style={{ backgroundColor: theme === 'dark' ? '#3b82f6' : '#cbd5e1' }}
+                    >
+                      <span
+                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                        style={{ transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)' }}
+                      />
+                    </button>
                   </div>
                 </div>
 
@@ -439,29 +486,6 @@ export function TopBar() {
                   <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
                     Enable live repository stats and contributors
                   </p>
-                </div>
-
-                <div className="border-t border-slate-200 dark:border-neutral-700" />
-
-                {/* Display Section */}
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Display</h3>
-                  <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
-                      Group Opacity: {Math.round(groupOpacity * 100)}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={groupOpacity * 100}
-                      onChange={(e) => setGroupOpacity(parseInt(e.target.value) / 100)}
-                      className="w-full h-2 bg-slate-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer"
-                      style={{
-                        accentColor: theme === 'light' ? '#3b82f6' : '#60a5fa'
-                      }}
-                    />
-                  </div>
                 </div>
               </div>
             </div>

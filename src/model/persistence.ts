@@ -1,5 +1,5 @@
 // IndexedDB persistence for ContextFlow projects
-import type { Project } from './types'
+import type { Project, ContextOwnership } from './types'
 import { classifyFromStrategicPosition } from './classification'
 import { migrateActorToUser } from './migrations/migrateActorToUser'
 
@@ -107,15 +107,25 @@ export function migrateProject(project: Project): Project {
     const needsDistillation = !context.positions.distillation
     const needsEvolution = !context.evolutionStage
 
-    if (needsDistillation || needsEvolution) {
+    // Migrate isExternal → ownership
+    const contextAny = context as any
+    const needsOwnershipMigration = contextAny.isExternal !== undefined && context.ownership === undefined
+    let ownership: ContextOwnership | undefined = context.ownership
+    if (needsOwnershipMigration) {
+      ownership = contextAny.isExternal === true ? 'external' : 'ours'
+    }
+
+    if (needsDistillation || needsEvolution || needsOwnershipMigration) {
+      const { isExternal: _, ...contextWithoutExternal } = contextAny
       return {
-        ...context,
+        ...contextWithoutExternal,
         positions: {
           ...context.positions,
           distillation: context.positions.distillation || { x: 50, y: 50 },
         },
         strategicClassification: context.strategicClassification || 'supporting',
         evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
+        ...(ownership !== undefined && { ownership }),
       }
     }
     return context

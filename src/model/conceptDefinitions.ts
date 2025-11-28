@@ -209,6 +209,37 @@ export const EXTERNAL_CONTEXT: ConceptDefinition = {
   ],
 }
 
+// Context Ownership
+export const OWNERSHIP_DEFINITIONS: Record<string, ConceptDefinition> = {
+  ours: {
+    title: 'Our Team',
+    description: 'Your team builds and owns this bounded context.',
+    characteristics: [
+      'You control the roadmap and priorities',
+      'Your team maintains the codebase',
+      'You can make changes without external coordination',
+    ],
+  },
+  internal: {
+    title: 'Internal (Other Team)',
+    description: 'Another team within your organization owns this context.',
+    characteristics: [
+      'Requires coordination for changes',
+      'You may be a consumer/downstream',
+      'Internal SLAs and contracts apply',
+    ],
+  },
+  external: {
+    title: 'External (Third Party)',
+    description: 'A third-party or external organization owns this context.',
+    characteristics: [
+      'Limited or no ability to request changes',
+      'Typically requires anti-corruption layer',
+      'Subject to external contracts/SLAs',
+    ],
+  },
+}
+
 // Legacy Context
 export const LEGACY_CONTEXT: ConceptDefinition = {
   title: 'Legacy Context',

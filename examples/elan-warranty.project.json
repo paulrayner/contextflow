@@ -19,7 +19,7 @@
       "evolutionStage": "product/rental",
       "codeSize": { "bucket": "medium" },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "internal",
       "notes": "Completely separate department and pipeline from POS-originated warranties. Maintains Leads database with manufacturer warranty expiration tracking. Sends pre-expiration marketing mailings."
     },
     {
@@ -38,7 +38,7 @@
       "evolutionStage": "custom-built",
       "codeSize": { "bucket": "huge" },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "ours",
       "notes": "Core domain with complex validation rules for contract effective/expiration dates and coverage eligibility. Contains Client Transaction Processing module for POS integrations. Domain model: Contract aggregate, Customer entity, Covered Product value object (Brand-Make-Model-SKU only)."
     },
     {
@@ -57,7 +57,7 @@
       "evolutionStage": "custom-built",
       "codeSize": { "bucket": "huge" },
       "isLegacy": true,
-      "isExternal": false,
+      "ownership": "internal",
       "notes": "BBOM = Big Ball of Mud. Supporting (not Generic) because it was custom-built in-house. Product entity is complex with full technical specs, but downstream contexts only need Brand-Make-Model-SKU. Candidate to become Generic by replacing with commercial PIM solution."
     },
     {
@@ -76,7 +76,7 @@
       "evolutionStage": "custom-built",
       "codeSize": { "bucket": "large" },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "ours",
       "notes": "Only customer-facing context (via CSR role). This is where business risk and money is won or lost. Complex state transitions and authorization rules. Tight collaboration with Service Dispatch on repair orchestration and cost tracking. Multiple repair attempts per claim allowed."
     },
     {
@@ -95,7 +95,7 @@
       "evolutionStage": "product/rental",
       "codeSize": { "bucket": "medium" },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "ours",
       "notes": "Orchestrates repair fulfillment. Creates repair POs sent to Servicer Management System. Tracks technician assignments and specialization matching (e.g., dishwasher brand experts). Multiple POs can exist per claim for repeated repair attempts."
     },
     {
@@ -114,7 +114,7 @@
       "evolutionStage": "commodity/utility",
       "codeSize": { "bucket": "medium" },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "internal",
       "notes": "Generic back-office function. No competitive differentiation. Standard payment processing and store credit issuance. Could be replaced with commercial accounting package."
     },
     {
@@ -133,7 +133,7 @@
       "evolutionStage": "product/rental",
       "codeSize": { "bucket": "medium" },
       "isLegacy": false,
-      "isExternal": false,
+      "ownership": "internal",
       "notes": "User-facing for internal users (managers, analysts, CSRs). Generates dashboards showing claim patterns, repair costs, contract performance, limit of liability trends. Conformist pattern keeps development cost low but creates coupling to upstream model changes."
     },
     {
@@ -152,7 +152,7 @@
       "evolutionStage": "product/rental",
       "codeSize": { "bucket": "small" },
       "isLegacy": false,
-      "isExternal": true,
+      "ownership": "external",
       "notes": "Multiple 3rd party integrations (one per retail partner). Sends warranty info including customer details, covered product details, purchase date. These are existing customers (already purchased), not leads. Separate acquisition channel from Lead Management."
     },
     {
@@ -171,7 +171,7 @@
       "evolutionStage": "product/rental",
       "codeSize": { "bucket": "small" },
       "isLegacy": false,
-      "isExternal": true,
+      "ownership": "external",
       "notes": "Used by CSRs to log customer interactions. Consumes customer and product information from Claims Management via OHS API. Claims Management publishes stable integration API that CRM conforms to."
     },
     {
@@ -190,7 +190,7 @@
       "evolutionStage": "product/rental",
       "codeSize": { "bucket": "small" },
       "isLegacy": false,
-      "isExternal": true,
+      "ownership": "external",
       "notes": "Receives repair POs from Service Dispatch. Coordinates technician assignments and scheduling. Returns parts/labor cost data. Service Dispatch uses ACL to translate internal repair PO model to external servicer API format."
     }
   ],

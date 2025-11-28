@@ -14,7 +14,8 @@ import {
 } from '../model/patternDefinitions'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_USER, POWER_DYNAMICS, COMMUNICATION_MODE } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_USER, POWER_DYNAMICS, COMMUNICATION_MODE, OWNERSHIP_DEFINITIONS } from '../model/conceptDefinitions'
+import type { ContextOwnership } from '../model/types'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -1075,28 +1076,45 @@ export function InspectorPanel() {
         </div>
       )}
 
-      {/* Attributes - toggle switches */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Switch
-            label="Legacy"
-            checked={context.isLegacy || false}
-            onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
-          />
-          <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
-            <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-          </InfoTooltip>
+      {/* Ownership */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-1">
+          <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Ownership</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Switch
-            label="External"
-            checked={context.isExternal || false}
-            onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
-          />
-          <InfoTooltip content={EXTERNAL_CONTEXT} position="bottom">
-            <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-          </InfoTooltip>
+        <div className="flex gap-1.5">
+          {(['ours', 'internal', 'external'] as const).map((value) => (
+            <InfoTooltip key={value} content={OWNERSHIP_DEFINITIONS[value]} position="bottom">
+              <button
+                onClick={() => handleUpdate({ ownership: value as ContextOwnership })}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
+                  context.ownership === value || (!context.ownership && value === 'ours')
+                    ? value === 'ours'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 ring-1 ring-green-400'
+                      : value === 'internal'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 ring-1 ring-blue-400'
+                      : 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 ring-1 ring-orange-400'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {value === 'ours' && 'Our Team'}
+                {value === 'internal' && 'Internal'}
+                {value === 'external' && 'External'}
+              </button>
+            </InfoTooltip>
+          ))}
         </div>
+      </div>
+
+      {/* Legacy toggle */}
+      <div className="flex items-center gap-2">
+        <Switch
+          label="Legacy"
+          checked={context.isLegacy || false}
+          onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
+        />
+        <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+        </InfoTooltip>
       </div>
 
       {/* Member of Groups - under pills, no heading */}

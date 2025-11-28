@@ -33,7 +33,7 @@ export function updateContextAction(
   // Track property changes
   const trackedProperties = [
     'name', 'purpose', 'strategicClassification', 'evolutionStage',
-    'boundaryIntegrity', 'boundaryNotes', 'isExternal', 'isLegacy',
+    'boundaryIntegrity', 'boundaryNotes', 'ownership', 'isLegacy',
     'notes'
   ] as const
 
@@ -256,7 +256,7 @@ export function addContextAction(
     source_view: state.activeViewMode,
     metadata: {
       context_type: newContext.strategicClassification,
-      is_external: newContext.isExternal || false
+      ownership: newContext.ownership || 'ours'
     }
   })
 

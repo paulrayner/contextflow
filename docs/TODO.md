@@ -2,10 +2,13 @@
 
 ## In Progress
 
+- [ ] implement context categorization based on ownership levels (project/mine|internal to org|external (3rd party))
+
 ## Backlog
+
+- [ ] Different color coding options (e.g. mine|internal to org|external to org, strategic classification, team, boundary condition?)
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
 - [ ] Assign team names to contexts
-- [ ] Different color coding options (e.g. mine|internal to org|external to org, strategic classification, team, boundary condition?)
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
@@ -44,6 +47,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Reorganize Settings menu for discoverability (View Options with Context Colors first, Help, Display, Integrations)
 - [x] Add Issues/Hotspots feature - mark notes, concerns, and issues of varying severity (info/warning/critical) on bounded contexts, inspired by EventStorming hot spots
 - [x] Revamp Getting Started Guide with approach selector (User Journey First vs Systems First), dedicated stages step with EventStorming context, and strategic views framed as DDD/Wardley Mapping lenses
 - [x] Change "actor" -> "user" everywhere in the app where appropriate. This will make it consistent with Susanne's article and user needs mapping.

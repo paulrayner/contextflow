@@ -33,12 +33,15 @@ export interface Project {
   }
 }
 
+export type ContextOwnership = 'ours' | 'internal' | 'external'
+
 export interface BoundedContext {
   id: string
   name: string
   purpose?: string
 
   strategicClassification?: 'core' | 'supporting' | 'generic'
+  ownership?: ContextOwnership
 
   boundaryIntegrity?: 'strong' | 'moderate' | 'weak'
   boundaryNotes?: string
@@ -58,7 +61,6 @@ export interface BoundedContext {
   }
 
   isLegacy?: boolean
-  isExternal?: boolean
 
   notes?: string
   issues?: Issue[]
