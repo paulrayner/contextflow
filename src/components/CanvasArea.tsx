@@ -28,7 +28,7 @@ import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
-import { isProjectEmpty } from '../model/actions/projectHelpers'
+import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { InfoTooltip } from './InfoTooltip'
 import { EVOLUTION_STAGES, EDGE_INDICATORS, VALUE_CHAIN_VISIBILITY, DISTILLATION_AXES, DISTILLATION_REGIONS } from '../model/conceptDefinitions'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
@@ -2023,9 +2023,9 @@ function CanvasContent() {
   // Value chain guide modal
   const [showValueChainGuide, setShowValueChainGuide] = React.useState(false)
 
-  // Getting started guide modal - auto-opens when project is empty
+  // Getting started guide modal - auto-opens when project is empty or first time viewing sample
   const [showGettingStartedGuide, setShowGettingStartedGuide] = React.useState(false)
-  const [userDismissedGuide, setUserDismissedGuide] = React.useState(false)
+  const [seenSampleProjects, setSeenSampleProjects] = React.useState<Set<string>>(new Set())
   const setActiveProject = useEditorStore(s => s.setActiveProject)
 
   const { fitBounds } = useReactFlow()
@@ -3088,17 +3088,20 @@ function CanvasContent() {
         <ValueChainGuideModal onClose={() => setShowValueChainGuide(false)} />
       )}
 
-      {/* Getting Started Guide Modal - auto-opens when project is empty */}
-      {(showGettingStartedGuide || (project && isProjectEmpty(project) && !userDismissedGuide)) && (
+      {project && shouldShowGettingStartedGuide(project, seenSampleProjects, showGettingStartedGuide) && (
         <GettingStartedGuideModal
           onClose={() => {
             setShowGettingStartedGuide(false)
-            setUserDismissedGuide(true)
+            if (isSampleProject(project.id)) {
+              setSeenSampleProjects(prev => new Set(prev).add(project.id))
+            }
           }}
           onViewSample={() => {
             setActiveProject('acme-ecommerce')
             setShowGettingStartedGuide(false)
-            setUserDismissedGuide(true)
+            if (isSampleProject(project.id)) {
+              setSeenSampleProjects(prev => new Set(prev).add(project.id))
+            }
           }}
         />
       )}

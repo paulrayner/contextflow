@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isProjectEmpty } from './projectHelpers'
+import { isProjectEmpty, isSampleProject, shouldShowGettingStartedGuide } from './projectHelpers'
 import { createBaseMockProject, createMockContext } from './__testFixtures__/mockState'
 import type { User } from '../types'
 
@@ -53,5 +53,76 @@ describe('isProjectEmpty', () => {
     }
 
     expect(isProjectEmpty(project)).toBe(false)
+  })
+})
+
+describe('isSampleProject', () => {
+  it('returns true for acme-ecommerce', () => {
+    expect(isSampleProject('acme-ecommerce')).toBe(true)
+  })
+
+  it('returns true for cbioportal', () => {
+    expect(isSampleProject('cbioportal')).toBe(true)
+  })
+
+  it('returns true for elan-warranty', () => {
+    expect(isSampleProject('elan-warranty')).toBe(true)
+  })
+
+  it('returns false for empty-project', () => {
+    expect(isSampleProject('empty-project')).toBe(false)
+  })
+
+  it('returns false for user-created projects', () => {
+    expect(isSampleProject('my-custom-project')).toBe(false)
+  })
+})
+
+describe('shouldShowGettingStartedGuide', () => {
+  it('returns true when manually opened', () => {
+    const project = {
+      ...createBaseMockProject(),
+      id: 'my-project',
+      contexts: [createMockContext()],
+    }
+
+    expect(shouldShowGettingStartedGuide(project, new Set(), true)).toBe(true)
+  })
+
+  it('returns true when project is empty', () => {
+    const project = createBaseMockProject()
+
+    expect(shouldShowGettingStartedGuide(project, new Set(), false)).toBe(true)
+  })
+
+  it('returns true for unseen sample project', () => {
+    const project = {
+      ...createBaseMockProject(),
+      id: 'acme-ecommerce',
+      contexts: [createMockContext()],
+    }
+
+    expect(shouldShowGettingStartedGuide(project, new Set(), false)).toBe(true)
+  })
+
+  it('returns false for already-seen sample project', () => {
+    const project = {
+      ...createBaseMockProject(),
+      id: 'acme-ecommerce',
+      contexts: [createMockContext()],
+    }
+    const seenProjects = new Set(['acme-ecommerce'])
+
+    expect(shouldShowGettingStartedGuide(project, seenProjects, false)).toBe(false)
+  })
+
+  it('returns false for non-empty user project', () => {
+    const project = {
+      ...createBaseMockProject(),
+      id: 'my-project',
+      contexts: [createMockContext()],
+    }
+
+    expect(shouldShowGettingStartedGuide(project, new Set(), false)).toBe(false)
   })
 })
