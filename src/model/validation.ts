@@ -33,13 +33,24 @@ export interface SelectionState {
   selectedUserNeedId: string | null
   selectedUserNeedConnectionId: string | null
   selectedNeedContextConnectionId: string | null
+  selectedStageIndex: number | null
   selectedContextIds: string[]
 }
 
-type SelectionType = 'context' | 'relationship' | 'group' | 'user' | 'userNeed' | 'userNeedConnection' | 'needContextConnection'
+type SelectionType = 'context' | 'relationship' | 'group' | 'user' | 'userNeed' | 'userNeedConnection' | 'needContextConnection' | 'stage'
 
 export function createSelectionState(
   selectedId: string | null,
+  type: Exclude<SelectionType, 'stage'>
+): SelectionState
+
+export function createSelectionState(
+  selectedIndex: number | null,
+  type: 'stage'
+): SelectionState
+
+export function createSelectionState(
+  selectedValue: string | number | null,
   type: SelectionType
 ): SelectionState {
   const baseState: SelectionState = {
@@ -50,23 +61,26 @@ export function createSelectionState(
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
+    selectedStageIndex: null,
     selectedContextIds: [],
   }
 
   switch (type) {
     case 'context':
-      return { ...baseState, selectedContextId: selectedId }
+      return { ...baseState, selectedContextId: selectedValue as string | null }
     case 'relationship':
-      return { ...baseState, selectedRelationshipId: selectedId }
+      return { ...baseState, selectedRelationshipId: selectedValue as string | null }
     case 'group':
-      return { ...baseState, selectedGroupId: selectedId }
+      return { ...baseState, selectedGroupId: selectedValue as string | null }
     case 'user':
-      return { ...baseState, selectedUserId: selectedId }
+      return { ...baseState, selectedUserId: selectedValue as string | null }
     case 'userNeed':
-      return { ...baseState, selectedUserNeedId: selectedId }
+      return { ...baseState, selectedUserNeedId: selectedValue as string | null }
     case 'userNeedConnection':
-      return { ...baseState, selectedUserNeedConnectionId: selectedId }
+      return { ...baseState, selectedUserNeedConnectionId: selectedValue as string | null }
     case 'needContextConnection':
-      return { ...baseState, selectedNeedContextConnectionId: selectedId }
+      return { ...baseState, selectedNeedContextConnectionId: selectedValue as string | null }
+    case 'stage':
+      return { ...baseState, selectedStageIndex: selectedValue as number | null }
   }
 }

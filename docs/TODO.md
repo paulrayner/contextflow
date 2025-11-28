@@ -46,6 +46,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Revamp Getting Started Guide with approach selector (User Journey First vs Systems First), dedicated stages step with EventStorming context, and strategic views framed as DDD/Wardley Mapping lenses
 - [x] Change "actor" -> "user" everywhere in the app where appropriate. This will make it consistent with Susanne's article and user needs mapping.
 - [x] Add onboarding/tutorial for first-time users
 - [x] Add grouping of elements and bulk-move

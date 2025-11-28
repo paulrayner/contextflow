@@ -66,6 +66,7 @@ describe('createSelectionState', () => {
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
       selectedContextIds: [],
     })
   })
@@ -81,6 +82,7 @@ describe('createSelectionState', () => {
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
       selectedContextIds: [],
     })
   })
@@ -96,6 +98,7 @@ describe('createSelectionState', () => {
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
       selectedContextIds: [],
     })
   })
@@ -111,6 +114,7 @@ describe('createSelectionState', () => {
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
       selectedContextIds: [],
     })
   })
@@ -126,6 +130,7 @@ describe('createSelectionState', () => {
       selectedUserNeedId: 'need1',
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
       selectedContextIds: [],
     })
   })
@@ -141,6 +146,7 @@ describe('createSelectionState', () => {
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: 'conn1',
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
       selectedContextIds: [],
     })
   })
@@ -156,6 +162,7 @@ describe('createSelectionState', () => {
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: 'conn2',
+      selectedStageIndex: null,
       selectedContextIds: [],
     })
   })
@@ -171,6 +178,55 @@ describe('createSelectionState', () => {
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
+      selectedContextIds: [],
+    })
+  })
+
+  it('creates stage selection state with index', () => {
+    const result = createSelectionState(2, 'stage')
+
+    expect(result).toEqual({
+      selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
+      selectedUserId: null,
+      selectedUserNeedId: null,
+      selectedUserNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
+      selectedStageIndex: 2,
+      selectedContextIds: [],
+    })
+  })
+
+  it('creates stage selection state with null index', () => {
+    const result = createSelectionState(null, 'stage')
+
+    expect(result).toEqual({
+      selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
+      selectedUserId: null,
+      selectedUserNeedId: null,
+      selectedUserNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
+      selectedContextIds: [],
+    })
+  })
+
+  it('creates stage selection state with index 0', () => {
+    const result = createSelectionState(0, 'stage')
+
+    expect(result).toEqual({
+      selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
+      selectedUserId: null,
+      selectedUserNeedId: null,
+      selectedUserNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
+      selectedStageIndex: 0,
       selectedContextIds: [],
     })
   })
