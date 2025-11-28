@@ -22,7 +22,7 @@ import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, User as UserType, UserNeed, UserNeedConnection, NeedContextConnection } from '../model/types'
-import { User as UserIcon, Target, X, ArrowRight, ArrowLeftRight, Trash2 } from 'lucide-react'
+import { User as UserIcon, Target, X, ArrowRight, ArrowLeftRight, Trash2, AlertTriangle, Info } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
@@ -391,13 +391,45 @@ function ContextNode({ data }: NodeProps) {
         </div>
       )}
 
+      {/* Issue indicator */}
+      {context.issues && context.issues.length > 0 && (() => {
+        const highestSeverity = context.issues.reduce((highest, issue) => {
+          const severityOrder = { critical: 3, warning: 2, info: 1 }
+          return severityOrder[issue.severity] > severityOrder[highest] ? issue.severity : highest
+        }, context.issues[0].severity)
+
+        const severityColors = {
+          critical: '#dc2626',
+          warning: '#d97706',
+          info: '#3b82f6',
+        }
+
+        return (
+          <div
+            style={{
+              position: 'absolute',
+              top: '4px',
+              left: context.isExternal ? undefined : '4px',
+              right: context.isExternal ? (context.isLegacy ? '24px' : '4px') : undefined,
+            }}
+            title={`${context.issues.length} issue${context.issues.length > 1 ? 's' : ''}`}
+          >
+            {highestSeverity === 'info' ? (
+              <Info size={14} color={severityColors[highestSeverity]} />
+            ) : (
+              <AlertTriangle size={14} color={severityColors[highestSeverity]} />
+            )}
+          </div>
+        )
+      })()}
+
       {/* Context name */}
       <div
         style={{
           fontSize: '13px',
           fontWeight: 600,
           color: '#0f172a',
-          marginTop: context.isExternal ? '20px' : context.isLegacy ? '20px' : '0',
+          marginTop: context.isExternal ? '20px' : (context.isLegacy || (context.issues && context.issues.length > 0)) ? '20px' : '0',
           lineHeight: '1.3',
           overflow: 'hidden',
           textOverflow: 'ellipsis',

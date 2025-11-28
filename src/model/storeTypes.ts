@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Issue, IssueSeverity } from './types'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
@@ -109,6 +109,9 @@ export interface EditorState {
   setActiveProject: (projectId: string) => void
   addContext: (name: string) => void
   deleteContext: (contextId: string) => void
+  addContextIssue: (contextId: string, title: string, severity?: IssueSeverity) => void
+  updateContextIssue: (contextId: string, issueId: string, updates: Partial<Issue>) => void
+  deleteContextIssue: (contextId: string, issueId: string) => void
   assignRepoToContext: (repoId: string, contextId: string) => void
   unassignRepo: (repoId: string) => void
   createGroup: (label: string, color?: string, notes?: string) => void

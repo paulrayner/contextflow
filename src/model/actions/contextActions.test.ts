@@ -4,7 +4,10 @@ import {
   updateContextPositionAction,
   updateMultipleContextPositionsAction,
   addContextAction,
-  deleteContextAction
+  deleteContextAction,
+  addContextIssueAction,
+  updateContextIssueAction,
+  deleteContextIssueAction
 } from './contextActions'
 import { createMockState, createMockContext } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
@@ -398,6 +401,139 @@ describe('contextActions', () => {
       const result = deleteContextAction(mockState, 'context-1')
 
       expect(result.redoStack).toHaveLength(0)
+    })
+  })
+
+  describe('addContextIssueAction', () => {
+    it('should add an issue to a context', () => {
+      const result = addContextIssueAction(mockState, 'context-1', 'Needs OHS', 'warning')
+
+      const context = result.projects?.['project-1'].contexts[0]
+      expect(context?.issues).toHaveLength(1)
+      expect(context?.issues?.[0].title).toBe('Needs OHS')
+      expect(context?.issues?.[0].severity).toBe('warning')
+    })
+
+    it('should generate a unique id for the issue', () => {
+      const result = addContextIssueAction(mockState, 'context-1', 'Test Issue', 'info')
+
+      const issue = result.projects?.['project-1'].contexts[0]?.issues?.[0]
+      expect(issue?.id).toBeDefined()
+      expect(issue?.id).toMatch(/^issue-/)
+    })
+
+    it('should default severity to warning if not provided', () => {
+      const result = addContextIssueAction(mockState, 'context-1', 'Test Issue')
+
+      expect(result.projects?.['project-1'].contexts[0]?.issues?.[0].severity).toBe('warning')
+    })
+
+    it('should append to existing issues', () => {
+      mockState.projects['project-1'].contexts[0].issues = [
+        { id: 'issue-existing', title: 'Existing', severity: 'info' }
+      ]
+
+      const result = addContextIssueAction(mockState, 'context-1', 'New Issue', 'critical')
+
+      expect(result.projects?.['project-1'].contexts[0]?.issues).toHaveLength(2)
+      expect(result.projects?.['project-1'].contexts[0]?.issues?.[1].title).toBe('New Issue')
+    })
+
+    it('should return unchanged state if context not found', () => {
+      const result = addContextIssueAction(mockState, 'nonexistent', 'Test', 'info')
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should return unchanged state if project not found', () => {
+      const state = { ...mockState, activeProjectId: 'nonexistent' }
+      const result = addContextIssueAction(state, 'context-1', 'Test', 'info')
+
+      expect(result).toBe(state)
+    })
+  })
+
+  describe('updateContextIssueAction', () => {
+    beforeEach(() => {
+      mockState.projects['project-1'].contexts[0].issues = [
+        { id: 'issue-1', title: 'Original Title', description: 'Original desc', severity: 'warning' }
+      ]
+    })
+
+    it('should update issue title', () => {
+      const result = updateContextIssueAction(mockState, 'context-1', 'issue-1', { title: 'Updated Title' })
+
+      expect(result.projects?.['project-1'].contexts[0]?.issues?.[0].title).toBe('Updated Title')
+    })
+
+    it('should update issue description', () => {
+      const result = updateContextIssueAction(mockState, 'context-1', 'issue-1', { description: 'New description' })
+
+      expect(result.projects?.['project-1'].contexts[0]?.issues?.[0].description).toBe('New description')
+    })
+
+    it('should update issue severity', () => {
+      const result = updateContextIssueAction(mockState, 'context-1', 'issue-1', { severity: 'critical' })
+
+      expect(result.projects?.['project-1'].contexts[0]?.issues?.[0].severity).toBe('critical')
+    })
+
+    it('should preserve other issue fields when updating', () => {
+      const result = updateContextIssueAction(mockState, 'context-1', 'issue-1', { title: 'Updated' })
+
+      const issue = result.projects?.['project-1'].contexts[0]?.issues?.[0]
+      expect(issue?.description).toBe('Original desc')
+      expect(issue?.severity).toBe('warning')
+    })
+
+    it('should return unchanged state if issue not found', () => {
+      const result = updateContextIssueAction(mockState, 'context-1', 'nonexistent', { title: 'Test' })
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should return unchanged state if context not found', () => {
+      const result = updateContextIssueAction(mockState, 'nonexistent', 'issue-1', { title: 'Test' })
+
+      expect(result).toBe(mockState)
+    })
+  })
+
+  describe('deleteContextIssueAction', () => {
+    beforeEach(() => {
+      mockState.projects['project-1'].contexts[0].issues = [
+        { id: 'issue-1', title: 'Issue 1', severity: 'warning' },
+        { id: 'issue-2', title: 'Issue 2', severity: 'info' }
+      ]
+    })
+
+    it('should delete an issue from a context', () => {
+      const result = deleteContextIssueAction(mockState, 'context-1', 'issue-1')
+
+      expect(result.projects?.['project-1'].contexts[0]?.issues).toHaveLength(1)
+      expect(result.projects?.['project-1'].contexts[0]?.issues?.[0].id).toBe('issue-2')
+    })
+
+    it('should return unchanged state if issue not found', () => {
+      const result = deleteContextIssueAction(mockState, 'context-1', 'nonexistent')
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should return unchanged state if context not found', () => {
+      const result = deleteContextIssueAction(mockState, 'nonexistent', 'issue-1')
+
+      expect(result).toBe(mockState)
+    })
+
+    it('should handle deleting last issue', () => {
+      mockState.projects['project-1'].contexts[0].issues = [
+        { id: 'issue-1', title: 'Only Issue', severity: 'warning' }
+      ]
+
+      const result = deleteContextIssueAction(mockState, 'context-1', 'issue-1')
+
+      expect(result.projects?.['project-1'].contexts[0]?.issues).toHaveLength(0)
     })
   })
 })

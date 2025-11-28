@@ -1,4 +1,4 @@
-import type { Project, BoundedContext } from '../types'
+import type { Project, BoundedContext, Issue, IssueSeverity } from '../types'
 import type { EditorState, EditorCommand } from '../storeTypes'
 import { classifyFromDistillationPosition, classifyFromStrategicPosition } from '../classification'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../../utils/analytics'
@@ -343,5 +343,137 @@ export function deleteContextAction(
     undoStack: [...state.undoStack, command],
     redoStack: [],
     command,
+  }
+}
+
+export function addContextIssueAction(
+  state: EditorState,
+  contextId: string,
+  title: string,
+  severity: IssueSeverity = 'warning'
+): Partial<EditorState> {
+  const projectId = state.activeProjectId
+  if (!projectId) return state
+
+  const project = state.projects[projectId]
+  if (!project) return state
+
+  const contextIndex = project.contexts.findIndex(c => c.id === contextId)
+  if (contextIndex === -1) return state
+
+  const newIssue: Issue = {
+    id: `issue-${Date.now()}`,
+    title,
+    severity,
+  }
+
+  const context = project.contexts[contextIndex]
+  const updatedContext = {
+    ...context,
+    issues: [...(context.issues || []), newIssue],
+  }
+
+  const updatedContexts = [...project.contexts]
+  updatedContexts[contextIndex] = updatedContext
+
+  const updatedProject = {
+    ...project,
+    contexts: updatedContexts,
+  }
+
+  return {
+    projects: {
+      ...state.projects,
+      [projectId]: updatedProject,
+    },
+  }
+}
+
+export function updateContextIssueAction(
+  state: EditorState,
+  contextId: string,
+  issueId: string,
+  updates: Partial<Issue>
+): Partial<EditorState> {
+  const projectId = state.activeProjectId
+  if (!projectId) return state
+
+  const project = state.projects[projectId]
+  if (!project) return state
+
+  const contextIndex = project.contexts.findIndex(c => c.id === contextId)
+  if (contextIndex === -1) return state
+
+  const context = project.contexts[contextIndex]
+  if (!context.issues) return state
+
+  const issueIndex = context.issues.findIndex(i => i.id === issueId)
+  if (issueIndex === -1) return state
+
+  const updatedIssues = [...context.issues]
+  updatedIssues[issueIndex] = {
+    ...updatedIssues[issueIndex],
+    ...updates,
+  }
+
+  const updatedContext = {
+    ...context,
+    issues: updatedIssues,
+  }
+
+  const updatedContexts = [...project.contexts]
+  updatedContexts[contextIndex] = updatedContext
+
+  const updatedProject = {
+    ...project,
+    contexts: updatedContexts,
+  }
+
+  return {
+    projects: {
+      ...state.projects,
+      [projectId]: updatedProject,
+    },
+  }
+}
+
+export function deleteContextIssueAction(
+  state: EditorState,
+  contextId: string,
+  issueId: string
+): Partial<EditorState> {
+  const projectId = state.activeProjectId
+  if (!projectId) return state
+
+  const project = state.projects[projectId]
+  if (!project) return state
+
+  const contextIndex = project.contexts.findIndex(c => c.id === contextId)
+  if (contextIndex === -1) return state
+
+  const context = project.contexts[contextIndex]
+  if (!context.issues) return state
+
+  const issueExists = context.issues.some(i => i.id === issueId)
+  if (!issueExists) return state
+
+  const updatedContext = {
+    ...context,
+    issues: context.issues.filter(i => i.id !== issueId),
+  }
+
+  const updatedContexts = [...project.contexts]
+  updatedContexts[contextIndex] = updatedContext
+
+  const updatedProject = {
+    ...project,
+    contexts: updatedContexts,
+  }
+
+  return {
+    projects: {
+      ...state.projects,
+      [projectId]: updatedProject,
+    },
   }
 }

@@ -14,7 +14,10 @@ import {
   updateContextPositionAction,
   updateMultipleContextPositionsAction,
   addContextAction,
-  deleteContextAction
+  deleteContextAction,
+  addContextIssueAction,
+  updateContextIssueAction,
+  deleteContextIssueAction
 } from './actions/contextActions'
 import {
   createGroupAction,
@@ -247,6 +250,24 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   deleteContext: (contextId) => set((state) => {
     const result = deleteContextAction(state, contextId)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  addContextIssue: (contextId, title, severity) => set((state) => {
+    const result = addContextIssueAction(state, contextId, title, severity)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  updateContextIssue: (contextId, issueId, updates) => set((state) => {
+    const result = updateContextIssueAction(state, contextId, issueId, updates)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  deleteContextIssue: (contextId, issueId) => set((state) => {
+    const result = deleteContextIssueAction(state, contextId, issueId)
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),

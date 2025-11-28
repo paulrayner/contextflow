@@ -2,10 +2,10 @@
 
 ## In Progress
 
+- [ ] Mark notes/concerns/isssues/problems of varying severity on the canvas. It's a bit like the idea of hot spots in EventStorming.
 
 ## Backlog
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
-- [ ] Need some way to mark concerns or problems on the canvas (e.g. "core domain is inside BBOM", or "core domain inside ACL", "Customer/Supplier expectations unclear", "Teams overly coupled", "Needs OHS", "Boundary needs reinforcing")
 - [ ] Assign team names to contexts
 - [ ] Different color coding options (e.g. mine|internal to org|external to org, strategic classification, team, boundary condition?)
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?

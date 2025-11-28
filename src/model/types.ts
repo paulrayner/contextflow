@@ -1,4 +1,11 @@
-// Core data model for ContextFlow
+export type IssueSeverity = 'info' | 'warning' | 'critical'
+
+export interface Issue {
+  id: string
+  title: string
+  description?: string
+  severity: IssueSeverity
+}
 
 export interface Project {
   id: string
@@ -51,9 +58,10 @@ export interface BoundedContext {
   }
 
   isLegacy?: boolean
-  isExternal?: boolean // upstream/downstream contexts not owned by org
+  isExternal?: boolean
 
-  notes?: string // freeform assumptions, politics, bottlenecks, risks
+  notes?: string
+  issues?: Issue[]
 }
 
 export interface Relationship {

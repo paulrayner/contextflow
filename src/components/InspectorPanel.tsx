@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, ArrowLeftRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle, BookOpen } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, ArrowLeftRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle, BookOpen, AlertTriangle, Info } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 import { PatternsGuideModal } from './PatternsGuideModal'
 import { Switch } from './Switch'
@@ -62,6 +62,9 @@ export function InspectorPanel() {
   const updateFlowStage = useEditorStore(s => s.updateFlowStage)
   const deleteFlowStage = useEditorStore(s => s.deleteFlowStage)
   const setSelectedStage = useEditorStore(s => s.setSelectedStage)
+  const addContextIssue = useEditorStore(s => s.addContextIssue)
+  const updateContextIssue = useEditorStore(s => s.updateContextIssue)
+  const deleteContextIssue = useEditorStore(s => s.deleteContextIssue)
 
   // Temporal state
   const currentDate = useEditorStore(s => s.temporal.currentDate)
@@ -1291,6 +1294,70 @@ export function InspectorPanel() {
           rows={3}
           className={TEXTAREA_CLASS}
         />
+      </Section>
+
+      {/* Issues */}
+      <Section label={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}>
+        {context.issues && context.issues.length > 0 ? (
+          <div className="space-y-2">
+            {context.issues.map((issue) => (
+              <div key={issue.id} className="group/issue">
+                <div className="flex items-start gap-2">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {issue.severity === 'critical' ? (
+                      <AlertTriangle size={14} className="text-red-600 dark:text-red-400" />
+                    ) : issue.severity === 'warning' ? (
+                      <AlertTriangle size={14} className="text-amber-600 dark:text-amber-400" />
+                    ) : (
+                      <Info size={14} className="text-blue-600 dark:text-blue-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <input
+                      type="text"
+                      value={issue.title}
+                      onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
+                      className="w-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent border-none outline-none p-0"
+                    />
+                    <select
+                      value={issue.severity}
+                      onChange={(e) => updateContextIssue(context.id, issue.id, { severity: e.target.value as 'info' | 'warning' | 'critical' })}
+                      className="text-[10px] text-slate-500 dark:text-slate-400 bg-transparent border-none outline-none cursor-pointer p-0 -ml-1"
+                    >
+                      <option value="info">info</option>
+                      <option value="warning">warning</option>
+                      <option value="critical">critical</option>
+                    </select>
+                    {issue.description !== undefined && (
+                      <textarea
+                        value={issue.description}
+                        onChange={(e) => updateContextIssue(context.id, issue.id, { description: e.target.value })}
+                        placeholder="Add description..."
+                        rows={2}
+                        className="w-full mt-1 text-[11px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded px-2 py-1 outline-none resize-none"
+                      />
+                    )}
+                  </div>
+                  <button
+                    onClick={() => deleteContextIssue(context.id, issue.id)}
+                    className="opacity-0 group-hover/issue:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-opacity"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 dark:text-slate-500 italic">No issues marked</p>
+        )}
+        <button
+          onClick={() => addContextIssue(context.id, 'New issue')}
+          className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          <Plus size={12} />
+          Add Issue
+        </button>
       </Section>
 
       {/* Relationships */}
