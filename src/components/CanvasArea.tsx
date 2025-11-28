@@ -22,7 +22,7 @@ import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, User as UserType, UserNeed, UserNeedConnection, NeedContextConnection } from '../model/types'
-import { User as UserIcon, Target, X, ArrowRight, ArrowLeftRight, Trash2, AlertTriangle, Info } from 'lucide-react'
+import { User as UserIcon, Target, X, ArrowRight, ArrowLeftRight, Trash2, AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
@@ -417,6 +417,8 @@ function ContextNode({ data }: NodeProps) {
           >
             {highestSeverity === 'info' ? (
               <Info size={14} color={severityColors[highestSeverity]} />
+            ) : highestSeverity === 'critical' ? (
+              <AlertOctagon size={14} color={severityColors[highestSeverity]} />
             ) : (
               <AlertTriangle size={14} color={severityColors[highestSeverity]} />
             )}

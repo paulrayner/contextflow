@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../model/store'
-import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, ArrowLeftRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle, BookOpen, AlertTriangle, Info } from 'lucide-react'
+import { ExternalLink, Trash2, X, Users, Plus, ArrowRight, ArrowLeftRight, GitBranch, Clock, ChevronDown, ChevronRight, HelpCircle, BookOpen, AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 import { PatternsGuideModal } from './PatternsGuideModal'
 import { Switch } from './Switch'
@@ -1337,7 +1337,7 @@ export function InspectorPanel() {
                             : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
                         }`}
                       >
-                        <AlertTriangle size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
+                        <AlertOctagon size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
                       </button>
                     </InfoTooltip>
                   </div>
