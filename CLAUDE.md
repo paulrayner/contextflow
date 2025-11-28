@@ -57,6 +57,11 @@ Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-cor
 - Update BOTH `hasRightSidebar` calculation AND the conditional render `{(selectedContextId || selectedGroupId || ...) && <InspectorPanel />}`
 - Common bug: Store updates correctly but InspectorPanel doesn't appear because App.tsx doesn't check the new selection state
 
+**Tooltips:**
+- Use `SimpleTooltip` for simple text tooltips (instant display, no delay)
+- Use `InfoTooltip` for educational DDD concept tooltips (requires `ConceptDefinition` object, respects `showHelpTooltips` setting)
+- NEVER use native `title` attribute (has browser-imposed delay)
+
 ### Current Milestone
 
 **Milestone 1**: Flow View core (see [docs/Milestone1_Prompt.md](docs/Milestone1_Prompt.md))

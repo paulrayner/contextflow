@@ -28,6 +28,7 @@ import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
+import { SimpleTooltip } from './SimpleTooltip'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { InfoTooltip } from './InfoTooltip'
 import { EVOLUTION_STAGES, EDGE_INDICATORS, VALUE_CHAIN_VISIBILITY, DISTILLATION_AXES, DISTILLATION_REGIONS } from '../model/conceptDefinitions'
@@ -411,15 +412,17 @@ function ContextNode({ data }: NodeProps) {
               info: '#3b82f6',
             }
             return (
-              <div key={issue.id} title={issue.title || 'Untitled issue'} style={{ cursor: 'default' }}>
-                {issue.severity === 'info' ? (
-                  <Info size={14} color={severityColors[issue.severity]} />
-                ) : issue.severity === 'critical' ? (
-                  <AlertOctagon size={14} color={severityColors[issue.severity]} />
-                ) : (
-                  <AlertTriangle size={14} color={severityColors[issue.severity]} />
-                )}
-              </div>
+              <SimpleTooltip key={issue.id} text={issue.title || 'Untitled issue'} position="bottom">
+                <div style={{ cursor: 'default' }}>
+                  {issue.severity === 'info' ? (
+                    <Info size={14} color={severityColors[issue.severity]} />
+                  ) : issue.severity === 'critical' ? (
+                    <AlertOctagon size={14} color={severityColors[issue.severity]} />
+                  ) : (
+                    <AlertTriangle size={14} color={severityColors[issue.severity]} />
+                  )}
+                </div>
+              </SimpleTooltip>
             )
           })}
         </div>

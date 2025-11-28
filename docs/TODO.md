@@ -2,8 +2,6 @@
 
 ## In Progress
 
-- [ ] Mark notes/concerns/isssues/problems of varying severity on the canvas. It's a bit like the idea of hot spots in EventStorming.
-
 ## Backlog
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
 - [ ] Assign team names to contexts
@@ -46,6 +44,7 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Add Issues/Hotspots feature - mark notes, concerns, and issues of varying severity (info/warning/critical) on bounded contexts, inspired by EventStorming hot spots
 - [x] Revamp Getting Started Guide with approach selector (User Journey First vs Systems First), dedicated stages step with EventStorming context, and strategic views framed as DDD/Wardley Mapping lenses
 - [x] Change "actor" -> "user" everywhere in the app where appropriate. This will make it consistent with Susanne's article and user needs mapping.
 - [x] Add onboarding/tutorial for first-time users

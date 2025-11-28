@@ -1300,74 +1300,72 @@ export function InspectorPanel() {
       {/* Issues */}
       <Section label={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}>
         {context.issues && context.issues.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-1">
             {context.issues.map((issue, index) => (
-              <div key={issue.id} className="group/issue bg-slate-50 dark:bg-neutral-800 rounded-md p-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex-shrink-0 flex items-center gap-0.5">
-                    <SimpleTooltip text="Info: General note" position="top">
-                      <button
-                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'info' })}
-                        className={`p-0.5 rounded transition-colors ${
-                          issue.severity === 'info'
-                            ? 'bg-blue-100 dark:bg-blue-900/40'
-                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <Info size={14} className={issue.severity === 'info' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
-                      </button>
-                    </SimpleTooltip>
-                    <SimpleTooltip text="Warning: Needs attention" position="top">
-                      <button
-                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'warning' })}
-                        className={`p-0.5 rounded transition-colors ${
-                          issue.severity === 'warning'
-                            ? 'bg-amber-100 dark:bg-amber-900/40'
-                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <AlertTriangle size={14} className={issue.severity === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'} />
-                      </button>
-                    </SimpleTooltip>
-                    <SimpleTooltip text="Critical: Urgent problem" position="top">
-                      <button
-                        onClick={() => updateContextIssue(context.id, issue.id, { severity: 'critical' })}
-                        className={`p-0.5 rounded transition-colors ${
-                          issue.severity === 'critical'
-                            ? 'bg-red-100 dark:bg-red-900/40'
-                            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        <AlertOctagon size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
-                      </button>
-                    </SimpleTooltip>
-                  </div>
-                  <input
-                    type="text"
-                    value={issue.title}
-                    onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        addContextIssue(context.id, '')
-                      }
-                    }}
-                    onFocus={(e) => {
-                      if (issue.title === 'New issue') {
-                        e.target.select()
-                      }
-                    }}
-                    autoFocus={index === context.issues!.length - 1 && (issue.title === '' || issue.title === 'New issue')}
-                    placeholder="Issue title..."
-                    className="flex-1 min-w-0 text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 outline-none"
-                  />
-                  <button
-                    onClick={() => deleteContextIssue(context.id, issue.id)}
-                    className="opacity-0 group-hover/issue:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-opacity"
-                  >
-                    <X size={12} />
-                  </button>
+              <div key={issue.id} className="group/issue flex items-center gap-1.5">
+                <div className="flex-shrink-0 flex items-center gap-0.5">
+                  <SimpleTooltip text="Info: General note" position="top">
+                    <button
+                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'info' })}
+                      className={`p-0.5 rounded transition-colors ${
+                        issue.severity === 'info'
+                          ? 'bg-blue-100 dark:bg-blue-900/40'
+                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      <Info size={14} className={issue.severity === 'info' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
+                    </button>
+                  </SimpleTooltip>
+                  <SimpleTooltip text="Warning: Needs attention" position="top">
+                    <button
+                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'warning' })}
+                      className={`p-0.5 rounded transition-colors ${
+                        issue.severity === 'warning'
+                          ? 'bg-amber-100 dark:bg-amber-900/40'
+                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      <AlertTriangle size={14} className={issue.severity === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'} />
+                    </button>
+                  </SimpleTooltip>
+                  <SimpleTooltip text="Critical: Urgent problem" position="top">
+                    <button
+                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'critical' })}
+                      className={`p-0.5 rounded transition-colors ${
+                        issue.severity === 'critical'
+                          ? 'bg-red-100 dark:bg-red-900/40'
+                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      <AlertOctagon size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
+                    </button>
+                  </SimpleTooltip>
                 </div>
+                <input
+                  type="text"
+                  value={issue.title}
+                  onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addContextIssue(context.id, '')
+                    }
+                  }}
+                  onFocus={(e) => {
+                    if (issue.title === 'New issue') {
+                      e.target.select()
+                    }
+                  }}
+                  autoFocus={index === context.issues!.length - 1 && (issue.title === '' || issue.title === 'New issue')}
+                  placeholder="Issue title..."
+                  className="flex-1 min-w-0 text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 outline-none"
+                />
+                <button
+                  onClick={() => deleteContextIssue(context.id, issue.id)}
+                  className="opacity-0 group-hover/issue:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-opacity"
+                >
+                  <X size={12} />
+                </button>
               </div>
             ))}
           </div>
