@@ -183,8 +183,8 @@ function App() {
           <CanvasArea />
         </section>
 
-        {/* Inspector Panel - shown when context, group, user, userNeed, relationship, connection, or stage is selected */}
-        {(selectedContextId || selectedGroupId || selectedUserId || selectedUserNeedId || selectedRelationshipId || selectedUserNeedConnectionId || selectedNeedContextConnectionId || selectedStageIndex !== null) && (
+        {/* Inspector Panel - shown when context, group, user, userNeed, relationship, connection, stage, or team is selected */}
+        {(selectedContextId || selectedGroupId || selectedUserId || selectedUserNeedId || selectedRelationshipId || selectedUserNeedConnectionId || selectedNeedContextConnectionId || selectedStageIndex !== null || selectedTeamId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>
