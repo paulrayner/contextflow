@@ -1299,11 +1299,11 @@ export function InspectorPanel() {
       {/* Issues */}
       <Section label={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}>
         {context.issues && context.issues.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {context.issues.map((issue) => (
-              <div key={issue.id} className="group/issue">
+              <div key={issue.id} className="group/issue bg-slate-50 dark:bg-neutral-800 rounded-md p-2">
                 <div className="flex items-start gap-2">
-                  <div className="flex-shrink-0 mt-0.5">
+                  <div className="flex-shrink-0 mt-1">
                     {issue.severity === 'critical' ? (
                       <AlertTriangle size={14} className="text-red-600 dark:text-red-400" />
                     ) : issue.severity === 'warning' ? (
@@ -1317,26 +1317,19 @@ export function InspectorPanel() {
                       type="text"
                       value={issue.title}
                       onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
-                      className="w-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent border-none outline-none p-0"
+                      className="w-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-1 py-0.5 -ml-1 outline-none"
                     />
-                    <select
-                      value={issue.severity}
-                      onChange={(e) => updateContextIssue(context.id, issue.id, { severity: e.target.value as 'info' | 'warning' | 'critical' })}
-                      className="text-[10px] text-slate-500 dark:text-slate-400 bg-transparent border-none outline-none cursor-pointer p-0 -ml-1"
-                    >
-                      <option value="info">info</option>
-                      <option value="warning">warning</option>
-                      <option value="critical">critical</option>
-                    </select>
-                    {issue.description !== undefined && (
-                      <textarea
-                        value={issue.description}
-                        onChange={(e) => updateContextIssue(context.id, issue.id, { description: e.target.value })}
-                        placeholder="Add description..."
-                        rows={2}
-                        className="w-full mt-1 text-[11px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded px-2 py-1 outline-none resize-none"
-                      />
-                    )}
+                    <div className="flex items-center gap-2 mt-1">
+                      <select
+                        value={issue.severity}
+                        onChange={(e) => updateContextIssue(context.id, issue.id, { severity: e.target.value as 'info' | 'warning' | 'critical' })}
+                        className="text-[10px] text-slate-500 dark:text-slate-400 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 rounded px-1 py-0.5 cursor-pointer outline-none"
+                      >
+                        <option value="info">info</option>
+                        <option value="warning">warning</option>
+                        <option value="critical">critical</option>
+                      </select>
+                    </div>
                   </div>
                   <button
                     onClick={() => deleteContextIssue(context.id, issue.id)}
