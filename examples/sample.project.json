@@ -31,7 +31,8 @@
       },
       "isLegacy": false,
       "ownership": "internal",
-      "notes": "High visibility. Primary revenue driver. Built with React/Next.js frontend and Node.js BFF (Backend-for-Frontend)."
+      "notes": "High visibility. Primary revenue driver. Built with React/Next.js frontend and Node.js BFF (Backend-for-Frontend).",
+      "teamId": "team.customer-experience"
     },
     {
       "id": "ctx.catalog",
@@ -65,7 +66,8 @@
       "issues": [
         { "id": "issue-catalog-1", "title": "Upstream changes breaking Search integration", "severity": "warning" },
         { "id": "issue-catalog-2", "title": "Consider Published Language for product events", "severity": "info" }
-      ]
+      ],
+      "teamId": "team.customer-experience"
     },
     {
       "id": "ctx.search",
@@ -98,7 +100,8 @@
       "notes": "Uses Elasticsearch. Consumes catalog change events to keep search index up to date.",
       "issues": [
         { "id": "issue-search-1", "title": "Conformist to Catalog - struggling with frequent schema changes", "severity": "warning" }
-      ]
+      ],
+      "teamId": "team.customer-experience"
     },
     {
       "id": "ctx.cart",
@@ -127,8 +130,9 @@
         "bucket": "medium"
       },
       "isLegacy": false,
-      "ownership": "internal",
-      "notes": "Redis-backed session storage. Some technical debt around promotion calculation consistency."
+      "ownership": "ours",
+      "notes": "Redis-backed session storage. Some technical debt around promotion calculation consistency.",
+      "teamId": "team.checkout"
     },
     {
       "id": "ctx.checkout",
@@ -162,7 +166,8 @@
       "issues": [
         { "id": "issue-checkout-1", "title": "Partnership with Payment needs formal contract", "severity": "warning" },
         { "id": "issue-checkout-2", "title": "Consider Open Host Service for downstream consumers", "severity": "info" }
-      ]
+      ],
+      "teamId": "team.checkout"
     },
     {
       "id": "ctx.payment",
@@ -191,13 +196,14 @@
         "bucket": "medium"
       },
       "isLegacy": false,
-      "ownership": "ours",
+      "ownership": "internal",
       "notes": "PCI-compliant. Uses tokenization to avoid storing card data. Publishes payment events for downstream systems.",
       "issues": [
         { "id": "issue-payment-1", "title": "PCI compliance audit findings need remediation", "severity": "critical" },
         { "id": "issue-payment-2", "title": "Checkout partnership contract undefined - causing integration bugs", "severity": "warning" },
         { "id": "issue-payment-3", "title": "Add support for Apple Pay", "severity": "info" }
-      ]
+      ],
+      "teamId": "team.payments"
     },
     {
       "id": "ctx.stripe",
@@ -256,8 +262,9 @@
         "bucket": "large"
       },
       "isLegacy": false,
-      "ownership": "ours",
-      "notes": "Event-sourced architecture. Publishes order events consumed by fulfillment, analytics, and customer service systems."
+      "ownership": "internal",
+      "notes": "Event-sourced architecture. Publishes order events consumed by fulfillment, analytics, and customer service systems.",
+      "teamId": "team.fulfillment"
     },
     {
       "id": "ctx.inventory",
@@ -291,7 +298,8 @@
       "issues": [
         { "id": "issue-inventory-1", "title": "ACL to Warehouse incomplete - missing stock reservation events", "severity": "warning" },
         { "id": "issue-inventory-2", "title": "Evaluate Conformist vs ACL trade-off with Warehouse", "severity": "info" }
-      ]
+      ],
+      "teamId": "team.fulfillment"
     },
     {
       "id": "ctx.warehouse",
@@ -325,7 +333,8 @@
       "issues": [
         { "id": "issue-warehouse-1", "title": "ACL in Inventory not translating all required fields", "severity": "critical" },
         { "id": "issue-warehouse-2", "title": "API deprecation deadline Q2 2025", "severity": "warning" }
-      ]
+      ],
+      "teamId": "team.operations"
     },
     {
       "id": "ctx.shipping",
@@ -355,7 +364,8 @@
       },
       "isLegacy": false,
       "ownership": "internal",
-      "notes": "Abstracts carrier-specific APIs. Publishes shipping events for order tracking updates."
+      "notes": "Abstracts carrier-specific APIs. Publishes shipping events for order tracking updates.",
+      "teamId": "team.fulfillment"
     },
     {
       "id": "ctx.carriers",
@@ -415,7 +425,8 @@
       },
       "isLegacy": false,
       "ownership": "internal",
-      "notes": "Uses SendGrid for email, Twilio for SMS. Template management via CMS."
+      "notes": "Uses SendGrid for email, Twilio for SMS. Template management via CMS.",
+      "teamId": "team.platform"
     },
     {
       "id": "ctx.customerService",
@@ -445,7 +456,8 @@
       },
       "isLegacy": false,
       "ownership": "internal",
-      "notes": "Internal React admin panel. Some technical debt around direct database access bypassing domain boundaries."
+      "notes": "Internal React admin panel. Some technical debt around direct database access bypassing domain boundaries.",
+      "teamId": "team.customer-experience"
     },
     {
       "id": "ctx.analytics",
@@ -475,7 +487,8 @@
       },
       "isLegacy": false,
       "ownership": "internal",
-      "notes": "Snowflake data warehouse. dbt for transformations. Looker for BI. Event-driven ETL from domain events."
+      "notes": "Snowflake data warehouse. dbt for transformations. Looker for BI. Event-driven ETL from domain events.",
+      "teamId": "team.data-engineering"
     },
     {
       "id": "ctx.identity",
@@ -505,7 +518,8 @@
       },
       "isLegacy": false,
       "ownership": "internal",
-      "notes": "Uses Auth0 for authentication. Custom authorization layer for role-based access control."
+      "notes": "Uses Auth0 for authentication. Custom authorization layer for role-based access control.",
+      "teamId": "team.platform"
     },
     {
       "id": "ctx.recommendations",
@@ -535,7 +549,8 @@
       },
       "isLegacy": false,
       "ownership": "internal",
-      "notes": "Python-based ML service. Cutting-edge recommendation algorithms. Training pipeline runs nightly. Real-time inference API for storefront."
+      "notes": "Python-based ML service. Cutting-edge recommendation algorithms. Training pipeline runs nightly. Real-time inference API for storefront.",
+      "teamId": "team.data-engineering"
     },
     {
       "id": "ctx.taxCalculation",

@@ -22,7 +22,7 @@ import 'reactflow/dist/style.css'
 import { motion } from 'framer-motion'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, User as UserType, UserNeed, UserNeedConnection, NeedContextConnection, Team } from '../model/types'
-import { User as UserIcon, Target, X, ArrowRight, ArrowLeftRight, Trash2, AlertTriangle, AlertOctagon, Info } from 'lucide-react'
+import { User as UserIcon, Users, Target, X, ArrowRight, ArrowLeftRight, Trash2, AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
@@ -745,53 +745,67 @@ function IssueLabelsOverlay({
               top: transformedY,
               transform: 'translateX(-50%)',
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: `${3 * zoom}px`,
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              gap: `${6 * zoom}px`,
             }}
           >
             {visibleIssues.map(issue => {
               const colors = severityStyles[issue.severity]
-              const truncatedTitle = issue.title.length > 25
-                ? issue.title.substring(0, 22) + '...'
-                : issue.title
-              const iconSize = Math.max(8, 10 * zoom)
 
               return (
                 <div
                   key={issue.id}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: `${3 * zoom}px`,
-                    padding: `${2 * zoom}px ${6 * zoom}px`,
+                    padding: `${6 * zoom}px ${8 * zoom}px`,
                     backgroundColor: colors.bg,
-                    border: `${Math.max(1, 1 * zoom)}px solid ${colors.border}`,
+                    border: `${Math.max(1, 2 * zoom)}px solid ${colors.border}`,
                     borderRadius: `${4 * zoom}px`,
-                    fontSize: `${Math.max(8, 10 * zoom)}px`,
+                    fontSize: `${10 * zoom}px`,
                     fontWeight: 500,
                     color: colors.text,
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    width: `${120 * zoom}px`,
+                    minHeight: `${75 * zoom}px`,
+                    boxShadow: `0 ${3 * zoom}px ${6 * zoom}px rgba(0,0,0,0.1)`,
                   }}
                 >
-                  {issue.severity === 'critical' && <AlertOctagon size={iconSize} />}
-                  {issue.severity === 'warning' && <AlertTriangle size={iconSize} />}
-                  {issue.severity === 'info' && <Info size={iconSize} />}
-                  <span>{truncatedTitle}</span>
+                  <span style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 6,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                  }}>
+                    <span style={{ float: 'left', marginRight: `${3 * zoom}px` }}>
+                      {issue.severity === 'critical' && <AlertOctagon size={Math.max(10, 12 * zoom)} />}
+                      {issue.severity === 'warning' && <AlertTriangle size={Math.max(10, 12 * zoom)} />}
+                      {issue.severity === 'info' && <Info size={Math.max(10, 12 * zoom)} />}
+                    </span>
+                    {issue.title}
+                  </span>
                 </div>
               )
             })}
             {remainingCount > 0 && (
-              <span
+              <div
                 style={{
-                  fontSize: `${9 * zoom}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: `${6 * zoom}px`,
+                  backgroundColor: '#f1f5f9',
+                  border: `${Math.max(1, 2 * zoom)}px solid #cbd5e1`,
+                  borderRadius: `${4 * zoom}px`,
+                  fontSize: `${12 * zoom}px`,
+                  fontWeight: 600,
                   color: '#64748b',
-                  fontWeight: 500,
+                  minHeight: `${75 * zoom}px`,
+                  boxShadow: `0 ${3 * zoom}px ${6 * zoom}px rgba(0,0,0,0.1)`,
                 }}
               >
-                +{remainingCount} more
-              </span>
+                +{remainingCount}
+              </div>
             )}
           </div>
         )
@@ -886,13 +900,14 @@ function TeamLabelsOverlay({
               backgroundColor: colors.bg,
               border: `${Math.max(1, 1 * zoom)}px solid ${colors.border}`,
               borderRadius: `${4 * zoom}px`,
-              fontSize: `${Math.max(8, 10 * zoom)}px`,
+              fontSize: `${10 * zoom}px`,
               fontWeight: 500,
               color: colors.text,
               whiteSpace: 'nowrap',
               boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             }}
           >
+            <Users size={Math.max(10, 12 * zoom)} />
             <span>{truncatedName}</span>
           </div>
         )
