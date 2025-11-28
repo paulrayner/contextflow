@@ -76,6 +76,18 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
             </p>
           </div>
 
+          {/* Philosophy callout */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 className="font-medium text-blue-900 dark:text-blue-200 text-sm mb-2">
+              Focus on usefulness, not perfection
+            </h4>
+            <p className="text-sm text-blue-800 dark:text-blue-300">
+              Your map is a discovery tool—use it to explore the landscape, challenge assumptions,
+              and guide future investment. Don't aim for a perfect model. Aim for one that sparks
+              useful conversations and helps you make better decisions.
+            </p>
+          </div>
+
           {/* Step 1 */}
           <StepCard number={1} title="Choose a User Journey">
             <p>Pick a specific scenario to map:</p>
