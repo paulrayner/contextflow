@@ -32,8 +32,8 @@ describe('contextActions', () => {
       contexts: [mockContext],
       viewConfig: {
         flowStages: [
-          { label: 'Stage 1', position: 25 },
-          { label: 'Stage 2', position: 75 },
+          { name: 'Stage 1', position: 25 },
+          { name: 'Stage 2', position: 75 },
         ],
       },
     })

@@ -9,18 +9,18 @@ describe('Store - Flow Stage Management', () => {
   })
 
   describe('updateFlowStage', () => {
-    it('should update stage label', () => {
+    it('should update stage name', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { updateFlowStage } = state
       const initialStages = project!.viewConfig.flowStages
       expect(initialStages.length).toBeGreaterThan(0)
 
-      updateFlowStage(0, { label: 'New Label' })
+      updateFlowStage(0, { name: 'New Name' })
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      expect(updatedProject!.viewConfig.flowStages[0].label).toBe('New Label')
+      expect(updatedProject!.viewConfig.flowStages[0].name).toBe('New Name')
       expect(updatedProject!.viewConfig.flowStages[0].position).toBe(initialStages[0].position)
     })
 
@@ -28,14 +28,14 @@ describe('Store - Flow Stage Management', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { updateFlowStage } = state
-      const initialLabel = project!.viewConfig.flowStages[0].label
+      const initialName = project!.viewConfig.flowStages[0].name
 
       updateFlowStage(0, { position: 75 })
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
       expect(updatedProject!.viewConfig.flowStages[0].position).toBe(75)
-      expect(updatedProject!.viewConfig.flowStages[0].label).toBe(initialLabel)
+      expect(updatedProject!.viewConfig.flowStages[0].name).toBe(initialName)
     })
 
     it('should validate unique positions', () => {
@@ -49,25 +49,25 @@ describe('Store - Flow Stage Management', () => {
       }).toThrow('Stage position must be unique')
     })
 
-    it('should validate unique labels', () => {
+    it('should validate unique names', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { updateFlowStage } = state
-      const existingLabel = project!.viewConfig.flowStages[1].label
+      const existingName = project!.viewConfig.flowStages[1].name
 
       expect(() => {
-        updateFlowStage(0, { label: existingLabel })
-      }).toThrow('Stage label must be unique')
+        updateFlowStage(0, { name: existingName })
+      }).toThrow('Stage name must be unique')
     })
 
-    it('should allow updating to same label (no-op case)', () => {
+    it('should allow updating to same name (no-op case)', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { updateFlowStage } = state
-      const existingLabel = project!.viewConfig.flowStages[0].label
+      const existingName = project!.viewConfig.flowStages[0].name
 
       expect(() => {
-        updateFlowStage(0, { label: existingLabel })
+        updateFlowStage(0, { name: existingName })
       }).not.toThrow()
     })
 
@@ -96,7 +96,7 @@ describe('Store - Flow Stage Management', () => {
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
       expect(updatedProject!.viewConfig.flowStages.length).toBe(initialCount + 1)
 
-      const newStage = updatedProject!.viewConfig.flowStages.find(s => s.label === 'New Stage')
+      const newStage = updatedProject!.viewConfig.flowStages.find(s => s.name === 'New Stage')
       expect(newStage).toBeDefined()
       expect(newStage?.position).toBe(55)
     })
@@ -112,15 +112,15 @@ describe('Store - Flow Stage Management', () => {
       }).toThrow('Stage position must be unique')
     })
 
-    it('should validate unique label when adding', () => {
+    it('should validate unique name when adding', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { addFlowStage } = state
-      const existingLabel = project!.viewConfig.flowStages[0].label
+      const existingName = project!.viewConfig.flowStages[0].name
 
       expect(() => {
-        addFlowStage(existingLabel, 55)
-      }).toThrow('Stage label must be unique')
+        addFlowStage(existingName, 55)
+      }).toThrow('Stage name must be unique')
     })
   })
 
@@ -130,14 +130,14 @@ describe('Store - Flow Stage Management', () => {
       const project = state.projects[state.activeProjectId!]
       const { deleteFlowStage } = state
       const initialCount = project!.viewConfig.flowStages.length
-      const deletedLabel = project!.viewConfig.flowStages[0].label
+      const deletedName = project!.viewConfig.flowStages[0].name
 
       deleteFlowStage(0)
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
       expect(updatedProject!.viewConfig.flowStages.length).toBe(initialCount - 1)
-      expect(updatedProject!.viewConfig.flowStages.find(s => s.label === deletedLabel)).toBeUndefined()
+      expect(updatedProject!.viewConfig.flowStages.find(s => s.name === deletedName)).toBeUndefined()
     })
 
     it('should handle out of bounds index gracefully', () => {
@@ -187,7 +187,7 @@ describe('Store - Flow Stage Management', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { deleteFlowStage, undo } = state
-      const deletedLabel = project!.viewConfig.flowStages[0].label
+      const deletedName = project!.viewConfig.flowStages[0].name
       const deletedPosition = project!.viewConfig.flowStages[0].position
 
       deleteFlowStage(0)
@@ -195,7 +195,7 @@ describe('Store - Flow Stage Management', () => {
 
       const updatedState = useEditorStore.getState()
       const afterUndo = updatedState.projects[updatedState.activeProjectId!]
-      const restoredStage = afterUndo!.viewConfig.flowStages.find(s => s.label === deletedLabel)
+      const restoredStage = afterUndo!.viewConfig.flowStages.find(s => s.name === deletedName)
       expect(restoredStage).toBeDefined()
       expect(restoredStage?.position).toBe(deletedPosition)
     })

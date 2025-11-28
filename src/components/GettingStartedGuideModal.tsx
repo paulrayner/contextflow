@@ -124,16 +124,16 @@ function UserJourneySteps() {
         </TipBox>
       </StepCard>
 
-      <StepCard number={7} title="Analyze with Strategic Views (Optional)">
+      <StepCard number={7} title="Go Deeper with Strategic Views (Optional)">
         <p>
-          Use these views to inform investment decisions and identify strategic opportunities:
+          Move beyond context mapping with two complementary strategic lenses:
         </p>
         <ul className="list-disc ml-5 space-y-2 mt-2 text-slate-500 dark:text-slate-400">
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> (DDD) — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
           </li>
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> (Wardley Mapping) — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
           </li>
         </ul>
       </StepCard>
@@ -213,16 +213,16 @@ function SystemsFirstSteps() {
         </TipBox>
       </StepCard>
 
-      <StepCard number={6} title="Analyze with Strategic Views (Optional)">
+      <StepCard number={6} title="Go Deeper with Strategic Views (Optional)">
         <p>
-          Use these views to inform investment decisions and identify strategic opportunities:
+          Move beyond context mapping with two complementary strategic lenses:
         </p>
         <ul className="list-disc ml-5 space-y-2 mt-2 text-slate-500 dark:text-slate-400">
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> (DDD) — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
           </li>
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> (Wardley Mapping) — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
           </li>
         </ul>
       </StepCard>

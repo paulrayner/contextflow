@@ -651,8 +651,8 @@ describe('applyUndo', () => {
 
   describe('flow stage commands', () => {
     it('should restore old flow stage data', () => {
-      const oldStage = { label: 'Old', position: 0 }
-      const newStage = { label: 'New', position: 0 }
+      const oldStage = { name: 'Old', position: 0 }
+      const newStage = { name: 'New', position: 0 }
       const project = createTestProject({
         viewConfig: { flowStages: [newStage] },
       })
@@ -671,7 +671,7 @@ describe('applyUndo', () => {
     })
 
     it('should remove added flow stage', () => {
-      const stage = { label: 'Stage', position: 0 }
+      const stage = { name: 'Stage', position: 0 }
       const project = createTestProject({
         viewConfig: { flowStages: [stage] },
       })
@@ -686,7 +686,7 @@ describe('applyUndo', () => {
     })
 
     it('should restore deleted flow stage', () => {
-      const stage = { label: 'Stage', position: 0 }
+      const stage = { name: 'Stage', position: 0 }
       const project = createTestProject({
         viewConfig: { flowStages: [] },
       })
