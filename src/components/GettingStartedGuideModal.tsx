@@ -277,52 +277,26 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
           </div>
 
           {/* Approach selector */}
-          <div>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Choose your approach:</p>
+          {!approach && (
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setApproach('user-journey')}
-                className={`text-left p-3 rounded-lg border-2 transition-colors ${
-                  approach === 'user-journey'
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600'
-                }`}
+                className="px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
               >
-                <div className="font-medium text-sm text-slate-900 dark:text-slate-100 mb-1">
-                  User Journey First
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Trace a specific scenario through your systems. Great for discovery when you're still learning the landscape.
-                </p>
+                Start with a User Journey
               </button>
               <button
                 onClick={() => setApproach('systems-first')}
-                className={`text-left p-3 rounded-lg border-2 transition-colors ${
-                  approach === 'systems-first'
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600'
-                }`}
+                className="px-4 py-3 rounded-lg bg-slate-600 hover:bg-slate-700 dark:bg-neutral-600 dark:hover:bg-neutral-500 text-white font-medium text-sm transition-colors"
               >
-                <div className="font-medium text-sm text-slate-900 dark:text-slate-100 mb-1">
-                  Systems First
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Map known contexts upfront (e.g., from EventStorming), then add users and needs. Great when the team already knows the systems.
-                </p>
+                Start with Systems
               </button>
             </div>
-          </div>
+          )}
 
           {/* Steps based on selected approach */}
           {approach === 'user-journey' && <UserJourneySteps />}
           {approach === 'systems-first' && <SystemsFirstSteps />}
-
-          {/* Prompt to select if nothing selected */}
-          {!approach && (
-            <div className="text-center py-6 text-sm text-slate-500 dark:text-slate-400">
-              Select an approach above to see the steps
-            </div>
-          )}
         </div>
 
         {/* Footer */}
