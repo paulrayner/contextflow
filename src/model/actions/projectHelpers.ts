@@ -12,9 +12,11 @@ export function isSampleProject(projectId: string): boolean {
 export function shouldShowGettingStartedGuide(
   project: Project,
   seenSampleProjects: Set<string>,
-  manuallyOpened: boolean
+  manuallyOpened: boolean,
+  welcomeModalDismissed: boolean
 ): boolean {
   if (manuallyOpened) return true
+  if (!welcomeModalDismissed) return false
   if (isProjectEmpty(project)) return true
   if (isSampleProject(project.id) && !seenSampleProjects.has(project.id)) return true
   return false
