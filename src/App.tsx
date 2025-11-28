@@ -22,6 +22,7 @@ function App() {
   const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
+  const selectedTeamId = useEditorStore(s => s.selectedTeamId)
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const clearContextSelection = useEditorStore(s => s.clearContextSelection)
   const createGroup = useEditorStore(s => s.createGroup)
@@ -63,7 +64,7 @@ function App() {
 
   const hasUnassignedRepos = unassignedRepos.length > 0
   const showRepoSidebar = hasUnassignedRepos && !isRepoSidebarCollapsed
-  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedUserId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedUserNeedConnectionId || !!selectedNeedContextConnectionId || selectedStageIndex !== null
+  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedUserId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedUserNeedConnectionId || !!selectedNeedContextConnectionId || selectedStageIndex !== null || !!selectedTeamId
 
   const gridCols = showRepoSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
                  : showRepoSidebar ? 'grid-cols-[240px_1fr]'

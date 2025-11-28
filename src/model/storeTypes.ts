@@ -56,6 +56,7 @@ export interface EditorState {
   selectedUserNeedConnectionId: string | null
   selectedNeedContextConnectionId: string | null
   selectedStageIndex: number | null
+  selectedTeamId: string | null
   selectedContextIds: string[]
   isDragging: boolean
 
@@ -131,6 +132,10 @@ export interface EditorState {
   swapRelationshipDirection: (relationshipId: string) => void
   setSelectedRelationship: (relationshipId: string | null) => void
   setSelectedStage: (stageIndex: number | null) => void
+  setSelectedTeam: (teamId: string | null) => void
+  updateTeam: (teamId: string, updates: Partial<{ name: string }>) => void
+  addTeam: (name: string) => void
+  deleteTeam: (teamId: string) => void
   addUser: (name: string) => void
   deleteUser: (userId: string) => void
   updateUser: (userId: string, updates: Partial<User>) => void

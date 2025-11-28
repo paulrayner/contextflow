@@ -35,6 +35,7 @@ export function InspectorPanel() {
   const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
   const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
+  const selectedTeamId = useEditorStore(s => s.selectedTeamId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const updateContext = useEditorStore(s => s.updateContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
@@ -64,6 +65,10 @@ export function InspectorPanel() {
   const updateFlowStage = useEditorStore(s => s.updateFlowStage)
   const deleteFlowStage = useEditorStore(s => s.deleteFlowStage)
   const setSelectedStage = useEditorStore(s => s.setSelectedStage)
+  const setSelectedTeam = useEditorStore(s => s.setSelectedTeam)
+  const updateTeam = useEditorStore(s => s.updateTeam)
+  const addTeam = useEditorStore(s => s.addTeam)
+  const deleteTeam = useEditorStore(s => s.deleteTeam)
   const addContextIssue = useEditorStore(s => s.addContextIssue)
   const updateContextIssue = useEditorStore(s => s.updateContextIssue)
   const deleteContextIssue = useEditorStore(s => s.deleteContextIssue)
@@ -966,6 +971,98 @@ export function InspectorPanel() {
           >
             <Trash2 size={14} />
             Delete Stage
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show team details if team is selected
+  if (selectedTeamId) {
+    const team = project.teams?.find(t => t.id === selectedTeamId)
+    if (!team) {
+      return (
+        <div className="text-neutral-500 dark:text-neutral-400">
+          Team not found.
+        </div>
+      )
+    }
+
+    // Find contexts assigned to this team
+    const assignedContexts = project.contexts.filter(c => c.teamId === selectedTeamId)
+
+    // Get Team Topology type label
+    const topologyLabels: Record<string, string> = {
+      'stream-aligned': 'Stream-aligned',
+      'platform': 'Platform',
+      'enabling': 'Enabling',
+      'complicated-subsystem': 'Complicated Subsystem',
+    }
+
+    return (
+      <div className="space-y-5">
+        {/* Name */}
+        <div>
+          <input
+            type="text"
+            value={team.name}
+            onChange={(e) => updateTeam(team.id, { name: e.target.value })}
+            className={INPUT_TITLE_CLASS}
+          />
+        </div>
+
+        {/* Team Topology Type */}
+        {team.topologyType && (
+          <Section label="Team Topology">
+            <Badge color="neutral">
+              {topologyLabels[team.topologyType] || team.topologyType}
+            </Badge>
+          </Section>
+        )}
+
+        {/* Assigned Contexts */}
+        <Section label={`Assigned Contexts (${assignedContexts.length})`}>
+          {assignedContexts.length === 0 ? (
+            <div className="text-xs text-slate-500 dark:text-slate-400 italic">
+              No contexts assigned to this team
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {assignedContexts.map(ctx => (
+                <div
+                  key={ctx.id}
+                  className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-neutral-800 px-2 py-1 rounded"
+                >
+                  {ctx.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* Add Team button */}
+        <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
+          <button
+            onClick={() => addTeam('New Team')}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-300 rounded transition-colors"
+          >
+            <Plus size={12} />
+            Add Team
+          </button>
+        </div>
+
+        {/* Delete Team button */}
+        <div className="pt-2">
+          <button
+            onClick={() => {
+              if (window.confirm(`Delete team "${team.name}"? ${assignedContexts.length > 0 ? `${assignedContexts.length} context${assignedContexts.length > 1 ? 's' : ''} will be unassigned.` : ''}`)) {
+                deleteTeam(team.id)
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+          >
+            <Trash2 size={14} />
+            Delete Team
           </button>
         </div>
       </div>

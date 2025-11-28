@@ -818,11 +818,13 @@ function IssueLabelsOverlay({
 function TeamLabelsOverlay({
   contexts,
   teams,
-  viewMode
+  viewMode,
+  onTeamClick,
 }: {
   contexts: BoundedContext[]
   teams: Team[]
   viewMode: 'flow' | 'strategic' | 'distillation'
+  onTeamClick?: (teamId: string) => void
 }) {
   const { x, y, zoom } = useViewport()
 
@@ -888,6 +890,7 @@ function TeamLabelsOverlay({
         return (
           <div
             key={`team-label-${context.id}`}
+            onClick={onTeamClick ? () => onTeamClick(team.id) : undefined}
             style={{
               position: 'absolute',
               left: transformedX,
@@ -905,6 +908,8 @@ function TeamLabelsOverlay({
               color: colors.text,
               whiteSpace: 'nowrap',
               boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              pointerEvents: onTeamClick ? 'auto' : 'none',
+              cursor: onTeamClick ? 'pointer' : 'default',
             }}
           >
             <Users size={Math.max(10, 12 * zoom)} />
@@ -2250,6 +2255,7 @@ function CanvasContent() {
   const updateUserPosition = useEditorStore(s => s.updateUserPosition)
   const updateUserNeedPosition = useEditorStore(s => s.updateUserNeedPosition)
   const setSelectedUser = useEditorStore(s => s.setSelectedUser)
+  const setSelectedTeam = useEditorStore(s => s.setSelectedTeam)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
   const deleteUser = useEditorStore(s => s.deleteUser)
@@ -3152,7 +3158,7 @@ function CanvasContent() {
 
         {/* Team labels overlay - visible in all views when enabled */}
         {showTeamLabels && project && project.teams && (
-          <TeamLabelsOverlay contexts={project.contexts} teams={project.teams} viewMode={viewMode} />
+          <TeamLabelsOverlay contexts={project.contexts} teams={project.teams} viewMode={viewMode} onTeamClick={setSelectedTeam} />
         )}
 
         {/* Arrow marker definitions */}

@@ -36,6 +36,11 @@ import {
   swapRelationshipDirectionAction
 } from './actions/relationshipActions'
 import {
+  updateTeamAction,
+  addTeamAction,
+  deleteTeamAction,
+} from './actions/teamActions'
+import {
   addUserAction,
   deleteUserAction,
   updateUserAction,
@@ -92,6 +97,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedUserNeedConnectionId: null,
   selectedNeedContextConnectionId: null,
   selectedStageIndex: null,
+  selectedTeamId: null,
   selectedContextIds: [],
 
   isDragging: false,
@@ -246,6 +252,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       activeProjectId: projectId,
       selectedContextId: null,
       selectedGroupId: null,
+      selectedTeamId: null,
       selectedUserId: null,
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
@@ -462,6 +469,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
+    selectedTeamId: null,
     selectedUserId: null,
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
@@ -474,11 +482,45 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
+    selectedTeamId: null,
     selectedRelationshipId: null,
     selectedUserId: null,
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
+  }),
+
+  setSelectedTeam: (teamId) => set(teamId === null ? {
+    selectedTeamId: null,
+  } : {
+    selectedTeamId: teamId,
+    selectedContextId: null,
+    selectedContextIds: [],
+    selectedGroupId: null,
+    selectedStageIndex: null,
+    selectedRelationshipId: null,
+    selectedUserId: null,
+    selectedUserNeedId: null,
+    selectedUserNeedConnectionId: null,
+    selectedNeedContextConnectionId: null,
+  }),
+
+  updateTeam: (teamId, updates) => set((state) => {
+    const result = updateTeamAction(state, teamId, updates)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  addTeam: (name) => set((state) => {
+    const result = addTeamAction(state, name)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
+  }),
+
+  deleteTeam: (teamId) => set((state) => {
+    const result = deleteTeamAction(state, teamId)
+    autosaveIfNeeded(state.activeProjectId, result.projects)
+    return result
   }),
 
   addUser: (name) => set((state) => {
@@ -514,6 +556,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
+    selectedTeamId: null,
     selectedRelationshipId: null,
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
@@ -555,6 +598,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
+    selectedTeamId: null,
     selectedRelationshipId: null,
     selectedUserId: null,
     selectedUserNeedConnectionId: null,
@@ -567,6 +611,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
+    selectedTeamId: null,
     selectedRelationshipId: null,
     selectedUserId: null,
     selectedUserNeedId: null,
@@ -579,6 +624,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedContextIds: [],
     selectedGroupId: null,
+    selectedTeamId: null,
     selectedRelationshipId: null,
     selectedUserId: null,
     selectedUserNeedId: null,
@@ -994,6 +1040,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedContextId: null,
     selectedRelationshipId: null,
     selectedGroupId: null,
+    selectedTeamId: null,
     selectedUserId: null,
     selectedUserNeedId: null,
     selectedUserNeedConnectionId: null,
