@@ -2,9 +2,7 @@
 
 ## In Progress
 
-- [ ] Assign team names to contexts
-- [ ] Show issue labels on canvas (toggle)
-- [ ] Team management UI (view, create, update, delete)
+(empty)
 
 ## Backlog
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
@@ -46,6 +44,9 @@
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+- [x] Team management UI (view, create, update, delete teams with context cleanup)
+- [x] Show issue labels on canvas (toggle in Settings)
+- [x] Assign team names to contexts (team assignment dropdown in Context inspector)
 - [x] Reorganize Settings menu for discoverability (View Options with Context Colors first, Help, Display, Integrations)
 - [x] Implement context categorization based on ownership levels (project/mine|internal to org|external 3rd party) with color coding option in Settings
 - [x] Add Issues/Hotspots feature - mark notes, concerns, and issues of varying severity (info/warning/critical) on bounded contexts, inspired by EventStorming hot spots
