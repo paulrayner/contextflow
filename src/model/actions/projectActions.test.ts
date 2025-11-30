@@ -3,6 +3,9 @@ import {
   generateEmptyProject,
   validateProjectName,
   createProjectAction,
+  canDeleteProject,
+  selectNextProjectAfterDelete,
+  deleteProjectAction,
 } from './projectActions'
 import { createMockState } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
@@ -162,6 +165,137 @@ describe('projectActions', () => {
 
       expect(result.projects!['test-project']).toBeDefined()
       expect(result.projects!['test-project'].name).toBe('Existing Project')
+    })
+  })
+
+  describe('canDeleteProject', () => {
+    it('should return false when only one project exists', () => {
+      const state = createMockState()
+
+      const result = canDeleteProject(state, 'test-project')
+
+      expect(result.canDelete).toBe(false)
+      expect(result.reason).toContain('at least one project')
+    })
+
+    it('should return true when multiple projects exist', () => {
+      const state = createMockState()
+      state.projects['another-project'] = generateEmptyProject('Another Project')
+
+      const result = canDeleteProject(state, 'test-project')
+
+      expect(result.canDelete).toBe(true)
+      expect(result.reason).toBeUndefined()
+    })
+
+    it('should return false for non-existent project', () => {
+      const state = createMockState()
+
+      const result = canDeleteProject(state, 'non-existent')
+
+      expect(result.canDelete).toBe(false)
+      expect(result.reason).toContain('not found')
+    })
+  })
+
+  describe('selectNextProjectAfterDelete', () => {
+    it('should return null when no other projects exist', () => {
+      const state = createMockState()
+
+      const result = selectNextProjectAfterDelete(state, 'test-project')
+
+      expect(result).toBeNull()
+    })
+
+    it('should return another project when available', () => {
+      const state = createMockState()
+      const anotherProject = generateEmptyProject('Another Project')
+      state.projects[anotherProject.id] = anotherProject
+
+      const result = selectNextProjectAfterDelete(state, 'test-project')
+
+      expect(result).toBe(anotherProject.id)
+    })
+
+    it('should prefer most recently modified project', () => {
+      const state = createMockState()
+      const olderProject = generateEmptyProject('Older Project')
+      olderProject.updatedAt = '2024-01-01T00:00:00.000Z'
+      const newerProject = generateEmptyProject('Newer Project')
+      newerProject.updatedAt = '2024-12-01T00:00:00.000Z'
+      state.projects[olderProject.id] = olderProject
+      state.projects[newerProject.id] = newerProject
+
+      const result = selectNextProjectAfterDelete(state, 'test-project')
+
+      expect(result).toBe(newerProject.id)
+    })
+  })
+
+  describe('deleteProjectAction', () => {
+    let mockState: EditorState
+
+    beforeEach(() => {
+      mockState = createMockState()
+      const anotherProject = generateEmptyProject('Another Project')
+      mockState.projects[anotherProject.id] = anotherProject
+    })
+
+    it('should remove the project from state', () => {
+      const result = deleteProjectAction(mockState, 'test-project')
+
+      expect(result.projects!['test-project']).toBeUndefined()
+    })
+
+    it('should switch to another project if deleting active project', () => {
+      mockState.activeProjectId = 'test-project'
+
+      const result = deleteProjectAction(mockState, 'test-project')
+
+      expect(result.activeProjectId).not.toBe('test-project')
+      expect(result.activeProjectId).toBeDefined()
+    })
+
+    it('should keep active project if deleting non-active project', () => {
+      mockState.activeProjectId = 'test-project'
+      const otherProject = generateEmptyProject('Other')
+      mockState.projects[otherProject.id] = otherProject
+
+      const result = deleteProjectAction(mockState, otherProject.id)
+
+      expect(result.activeProjectId).toBe('test-project')
+    })
+
+    it('should clear selections when deleting active project', () => {
+      mockState.activeProjectId = 'test-project'
+      mockState.selectedContextId = 'some-context'
+      mockState.selectedGroupId = 'some-group'
+
+      const result = deleteProjectAction(mockState, 'test-project')
+
+      expect(result.selectedContextId).toBeNull()
+      expect(result.selectedGroupId).toBeNull()
+    })
+
+    it('should throw when trying to delete last project', () => {
+      const singleProjectState = createMockState()
+
+      expect(() => deleteProjectAction(singleProjectState, 'test-project')).toThrow()
+    })
+
+    it('should throw for non-existent project', () => {
+      expect(() => deleteProjectAction(mockState, 'non-existent')).toThrow()
+    })
+
+    it('should clear undo/redo stacks when deleting active project', () => {
+      mockState.activeProjectId = 'test-project'
+      mockState.undoStack = [{ type: 'addContext', payload: {} }]
+      mockState.redoStack = [{ type: 'deleteContext', payload: {} }]
+
+      const result = deleteProjectAction(mockState, 'test-project')
+
+      expect(result.undoStack).toEqual([])
+      expect(result.redoStack).toEqual([])
     })
   })
 })

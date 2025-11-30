@@ -40,7 +40,7 @@ import {
   addTeamAction,
   deleteTeamAction,
 } from './actions/teamActions'
-import { createProjectAction } from './actions/projectActions'
+import { createProjectAction, deleteProjectAction } from './actions/projectActions'
 import {
   addUserAction,
   deleteUserAction,
@@ -64,7 +64,7 @@ import {
   updateKeyframeAction,
   updateKeyframeContextPositionAction
 } from './actions/temporalActions'
-import { autosaveIfNeeded, migrateProject } from './persistence'
+import { autosaveIfNeeded, migrateProject, deleteProject as deleteProjectFromDB } from './persistence'
 import { determineProjectOrigin } from './builtInProjects'
 import { calculateKeyframeTransition } from './keyframes'
 import { validateStageName, validateStagePosition, createSelectionState } from './validation'
@@ -271,6 +271,17 @@ export const useEditorStore = create<EditorState>((set) => ({
       localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
       autosaveIfNeeded(result.activeProjectId, result.projects)
     }
+    return result
+  }),
+
+  deleteProject: (projectId) => set((state) => {
+    const result = deleteProjectAction(state, projectId)
+    if (result.activeProjectId) {
+      localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
+    }
+    deleteProjectFromDB(projectId).catch((err) => {
+      console.error('Failed to delete project from IndexedDB:', err)
+    })
     return result
   }),
 

@@ -18,6 +18,7 @@ export function TopBar() {
   const setViewMode = useEditorStore(s => s.setViewMode)
   const setActiveProject = useEditorStore(s => s.setActiveProject)
   const createProject = useEditorStore(s => s.createProject)
+  const deleteProject = useEditorStore(s => s.deleteProject)
   const canUndo = useEditorStore(s => s.undoStack.length > 0)
   const canRedo = useEditorStore(s => s.redoStack.length > 0)
   const undo = useEditorStore(s => s.undo)
@@ -540,6 +541,7 @@ export function TopBar() {
           activeProjectId={projectId}
           onSelectProject={setActiveProject}
           onCreateProject={createProject}
+          onDeleteProject={deleteProject}
           onClose={() => setShowProjectList(false)}
         />
       )}

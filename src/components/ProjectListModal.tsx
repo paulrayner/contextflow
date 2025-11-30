@@ -1,15 +1,17 @@
 import React from 'react'
-import { X, Layers, Plus } from 'lucide-react'
+import { X, Layers, Plus, Trash2 } from 'lucide-react'
 import type { Project } from '../model/types'
 import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
 import { ProjectCreateDialog } from './ProjectCreateDialog'
+import { ProjectDeleteDialog } from './ProjectDeleteDialog'
 
 interface ProjectListModalProps {
   projects: Record<string, Project>
   activeProjectId: string | null
   onSelectProject: (projectId: string) => void
   onCreateProject: (name: string) => void
+  onDeleteProject: (projectId: string) => void
   onClose: () => void
 }
 
@@ -18,13 +20,18 @@ export function ProjectListModal({
   activeProjectId,
   onSelectProject,
   onCreateProject,
+  onDeleteProject,
   onClose,
 }: ProjectListModalProps) {
   const [showCreateDialog, setShowCreateDialog] = React.useState(false)
+  const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null)
 
   const sortedProjects = React.useMemo(() => {
     return sortProjectsByLastModified(Object.values(projects))
   }, [projects])
+
+  const projectCount = Object.keys(projects).length
+  const canDeleteAny = projectCount > 1
 
   const handleSelectProject = (projectId: string) => {
     onSelectProject(projectId)
@@ -35,6 +42,28 @@ export function ProjectListModal({
     onCreateProject(name)
     setShowCreateDialog(false)
     onClose()
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation()
+    setDeleteTarget({ id: project.id, name: project.name })
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteTarget) {
+      onDeleteProject(deleteTarget.id)
+      setDeleteTarget(null)
+    }
+  }
+
+  if (deleteTarget) {
+    return (
+      <ProjectDeleteDialog
+        projectName={deleteTarget.name}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+    )
   }
 
   if (showCreateDialog) {
@@ -79,46 +108,60 @@ export function ProjectListModal({
               const metadata = getProjectMetadata(project)
               const isActive = project.id === activeProjectId
               const isBuiltIn = isBuiltInProject(project.id)
+              const canDelete = canDeleteAny && !isBuiltIn
 
               return (
-                <button
+                <div
                   key={project.id}
-                  onClick={() => handleSelectProject(project.id)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
-                    isActive
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-750'
-                  }`}
+                  className="group relative"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
-                          {project.name}
-                        </span>
-                        {isBuiltIn && (
-                          <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-700 text-slate-500 dark:text-slate-400">
-                            Sample
+                  <button
+                    onClick={() => handleSelectProject(project.id)}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                      isActive
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-750'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                            {project.name}
                           </span>
-                        )}
-                        {isActive && (
-                          <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
-                            Active
+                          {isBuiltIn && (
+                            <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-700 text-slate-500 dark:text-slate-400">
+                              Sample
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="flex items-center gap-1">
+                            <Layers size={12} />
+                            {metadata.contextCount} context{metadata.contextCount !== 1 ? 's' : ''}
                           </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <Layers size={12} />
-                          {metadata.contextCount} context{metadata.contextCount !== 1 ? 's' : ''}
-                        </span>
-                        <span>
-                          {formatRelativeTime(metadata.lastModified)}
-                        </span>
+                          <span>
+                            {formatRelativeTime(metadata.lastModified)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={(e) => handleDeleteClick(e, project)}
+                      className="absolute top-2 right-2 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 dark:hover:text-red-400"
+                      title="Delete project"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               )
             })}
           </div>
