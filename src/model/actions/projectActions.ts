@@ -337,36 +337,90 @@ export function duplicateProjectAction(
 
   const existingNames = Object.values(state.projects).map((p) => p.name)
   const newName = generateUniqueProjectName(sourceProject.name, existingNames)
-  const now = new Date().toISOString()
-  const newProjectId = crypto.randomUUID()
-  const mappings = buildIdMappings(sourceProject)
-
-  const newProject: Project = {
-    ...sourceProject,
-    id: newProjectId,
-    name: newName,
-    createdAt: now,
-    updatedAt: now,
-    contexts: duplicateContexts(sourceProject, mappings),
-    relationships: duplicateRelationships(sourceProject, mappings),
-    groups: duplicateGroups(sourceProject, mappings),
-    users: duplicateUsers(sourceProject, mappings),
-    userNeeds: duplicateUserNeeds(sourceProject, mappings),
-    userNeedConnections: duplicateUserNeedConnections(sourceProject, mappings),
-    needContextConnections: duplicateNeedContextConnections(sourceProject, mappings),
-    teams: duplicateTeams(sourceProject, mappings),
-    temporalKeyframes: duplicateKeyframes(sourceProject, mappings),
-    repos: sourceProject.repos.map((repo) => ({ ...repo })),
-    people: sourceProject.people.map((person) => ({ ...person })),
-    viewConfig: duplicateViewConfig(sourceProject),
-  }
+  const newProject = regenerateAllIds(sourceProject, newName)
 
   return {
     projects: {
       ...state.projects,
-      [newProjectId]: newProject,
+      [newProject.id]: newProject,
     },
-    activeProjectId: newProjectId,
+    activeProjectId: newProject.id,
     ...createClearedSelectionState(),
   }
+}
+
+export function regenerateAllIds(project: Project, newName?: string): Project {
+  const now = new Date().toISOString()
+  const newProjectId = crypto.randomUUID()
+  const mappings = buildIdMappings(project)
+
+  return {
+    ...project,
+    id: newProjectId,
+    name: newName ?? project.name,
+    createdAt: now,
+    updatedAt: now,
+    contexts: duplicateContexts(project, mappings),
+    relationships: duplicateRelationships(project, mappings),
+    groups: duplicateGroups(project, mappings),
+    users: duplicateUsers(project, mappings),
+    userNeeds: duplicateUserNeeds(project, mappings),
+    userNeedConnections: duplicateUserNeedConnections(project, mappings),
+    needContextConnections: duplicateNeedContextConnections(project, mappings),
+    teams: duplicateTeams(project, mappings),
+    temporalKeyframes: duplicateKeyframes(project, mappings),
+    repos: project.repos.map((repo) => ({ ...repo })),
+    people: project.people.map((person) => ({ ...person })),
+    viewConfig: duplicateViewConfig(project),
+  }
+}
+
+export interface ImportConflictResult {
+  hasConflict: boolean
+  existingProject?: Project
+}
+
+export function checkImportConflict(
+  importedProject: Project,
+  existingProjects: Record<string, Project>
+): ImportConflictResult {
+  const existingProject = existingProjects[importedProject.id]
+  if (existingProject) {
+    return { hasConflict: true, existingProject }
+  }
+  return { hasConflict: false }
+}
+
+export function importProjectAsNew(
+  project: Project,
+  existingNames: string[]
+): Project {
+  const uniqueName = generateUniqueProjectName(project.name, existingNames)
+  return regenerateAllIds(project, uniqueName)
+}
+
+export function validateImportedProject(data: unknown): ValidationResult {
+  if (!data || typeof data !== 'object') {
+    return { valid: false, error: 'Invalid file format: not a valid JSON object' }
+  }
+
+  const project = data as Record<string, unknown>
+
+  if (!project.id || typeof project.id !== 'string') {
+    return { valid: false, error: 'Invalid project: missing id field' }
+  }
+
+  if (!project.name || typeof project.name !== 'string') {
+    return { valid: false, error: 'Invalid project: missing name field' }
+  }
+
+  if (project.contexts !== undefined && !Array.isArray(project.contexts)) {
+    return { valid: false, error: 'Invalid project: contexts must be an array' }
+  }
+
+  if (project.relationships !== undefined && !Array.isArray(project.relationships)) {
+    return { valid: false, error: 'Invalid project: relationships must be an array' }
+  }
+
+  return { valid: true }
 }

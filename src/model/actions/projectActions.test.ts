@@ -9,6 +9,10 @@ import {
   renameProjectAction,
   generateUniqueProjectName,
   duplicateProjectAction,
+  regenerateAllIds,
+  checkImportConflict,
+  importProjectAsNew,
+  validateImportedProject,
 } from './projectActions'
 import { createMockState } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
@@ -516,6 +520,217 @@ describe('projectActions', () => {
         p => p.name !== 'Original Project' && p.name !== 'Original Project (Copy)'
       )
       expect(duplicatedProject!.name).toBe('Original Project (Copy 2)')
+    })
+  })
+
+  describe('regenerateAllIds', () => {
+    it('should generate a new project ID', () => {
+      const project = generateEmptyProject('Test Project')
+
+      const result = regenerateAllIds(project)
+
+      expect(result.id).not.toBe(project.id)
+    })
+
+    it('should preserve the original name by default', () => {
+      const project = generateEmptyProject('Test Project')
+
+      const result = regenerateAllIds(project)
+
+      expect(result.name).toBe('Test Project')
+    })
+
+    it('should use newName when provided', () => {
+      const project = generateEmptyProject('Test Project')
+
+      const result = regenerateAllIds(project, 'New Name')
+
+      expect(result.name).toBe('New Name')
+    })
+
+    it('should regenerate context IDs', () => {
+      const project = generateEmptyProject('Test')
+      project.contexts = [
+        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
+      ]
+
+      const result = regenerateAllIds(project)
+
+      expect(result.contexts[0].id).not.toBe('ctx-1')
+      expect(result.contexts[0].name).toBe('Context 1')
+    })
+
+    it('should update relationship references to new context IDs', () => {
+      const project = generateEmptyProject('Test')
+      project.contexts = [
+        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
+        { id: 'ctx-2', name: 'Context 2', strategicClassification: 'supporting', positions: { flow: { x: 200 }, strategic: { x: 300 }, shared: { y: 100 } } } as any,
+      ]
+      project.relationships = [
+        { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'customer-supplier' } as any,
+      ]
+
+      const result = regenerateAllIds(project)
+
+      expect(result.relationships[0].id).not.toBe('rel-1')
+      expect(result.relationships[0].fromContextId).not.toBe('ctx-1')
+      expect(result.relationships[0].toContextId).not.toBe('ctx-2')
+      expect(result.relationships[0].fromContextId).toBe(result.contexts[0].id)
+      expect(result.relationships[0].toContextId).toBe(result.contexts[1].id)
+    })
+
+    it('should regenerate group IDs and update context references', () => {
+      const project = generateEmptyProject('Test')
+      project.contexts = [
+        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
+      ]
+      project.groups = [
+        { id: 'group-1', label: 'Group 1', contextIds: ['ctx-1'] } as any,
+      ]
+
+      const result = regenerateAllIds(project)
+
+      expect(result.groups[0].id).not.toBe('group-1')
+      expect(result.groups[0].contextIds[0]).toBe(result.contexts[0].id)
+    })
+
+    it('should set new timestamps', () => {
+      const project = generateEmptyProject('Test')
+      project.createdAt = '2024-01-01T00:00:00.000Z'
+      project.updatedAt = '2024-01-01T00:00:00.000Z'
+
+      const result = regenerateAllIds(project)
+
+      expect(result.createdAt).not.toBe('2024-01-01T00:00:00.000Z')
+      expect(result.updatedAt).not.toBe('2024-01-01T00:00:00.000Z')
+    })
+  })
+
+  describe('checkImportConflict', () => {
+    it('should return conflict when project ID already exists', () => {
+      const existingProject = generateEmptyProject('Existing')
+      const importedProject = { ...generateEmptyProject('Imported'), id: existingProject.id }
+      const existingProjects = { [existingProject.id]: existingProject }
+
+      const result = checkImportConflict(importedProject, existingProjects)
+
+      expect(result.hasConflict).toBe(true)
+      expect(result.existingProject).toBe(existingProject)
+    })
+
+    it('should return no conflict when project ID is new', () => {
+      const existingProject = generateEmptyProject('Existing')
+      const importedProject = generateEmptyProject('Imported')
+      const existingProjects = { [existingProject.id]: existingProject }
+
+      const result = checkImportConflict(importedProject, existingProjects)
+
+      expect(result.hasConflict).toBe(false)
+      expect(result.existingProject).toBeUndefined()
+    })
+
+    it('should return no conflict when no existing projects', () => {
+      const importedProject = generateEmptyProject('Imported')
+
+      const result = checkImportConflict(importedProject, {})
+
+      expect(result.hasConflict).toBe(false)
+    })
+  })
+
+  describe('importProjectAsNew', () => {
+    it('should regenerate project ID', () => {
+      const project = generateEmptyProject('My Project')
+      const originalId = project.id
+
+      const result = importProjectAsNew(project, [])
+
+      expect(result.id).not.toBe(originalId)
+    })
+
+    it('should keep original name when no conflict', () => {
+      const project = generateEmptyProject('My Project')
+
+      const result = importProjectAsNew(project, ['Other Project'])
+
+      expect(result.name).toBe('My Project')
+    })
+
+    it('should generate unique name when name conflicts', () => {
+      const project = generateEmptyProject('My Project')
+
+      const result = importProjectAsNew(project, ['My Project'])
+
+      expect(result.name).toBe('My Project (Copy)')
+    })
+
+    it('should increment name suffix when multiple conflicts', () => {
+      const project = generateEmptyProject('My Project')
+
+      const result = importProjectAsNew(project, ['My Project', 'My Project (Copy)'])
+
+      expect(result.name).toBe('My Project (Copy 2)')
+    })
+
+    it('should regenerate all entity IDs', () => {
+      const project = generateEmptyProject('Test')
+      project.contexts = [
+        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
+      ]
+
+      const result = importProjectAsNew(project, [])
+
+      expect(result.contexts[0].id).not.toBe('ctx-1')
+    })
+  })
+
+  describe('validateImportedProject', () => {
+    it('should return valid for a proper project', () => {
+      const project = generateEmptyProject('Valid Project')
+
+      const result = validateImportedProject(project)
+
+      expect(result.valid).toBe(true)
+      expect(result.error).toBeUndefined()
+    })
+
+    it('should return invalid when id is missing', () => {
+      const project = { name: 'No ID' } as any
+
+      const result = validateImportedProject(project)
+
+      expect(result.valid).toBe(false)
+      expect(result.error).toContain('id')
+    })
+
+    it('should return invalid when name is missing', () => {
+      const project = { id: 'some-id' } as any
+
+      const result = validateImportedProject(project)
+
+      expect(result.valid).toBe(false)
+      expect(result.error).toContain('name')
+    })
+
+    it('should return invalid for null input', () => {
+      const result = validateImportedProject(null as any)
+
+      expect(result.valid).toBe(false)
+    })
+
+    it('should return invalid for non-object input', () => {
+      const result = validateImportedProject('not an object' as any)
+
+      expect(result.valid).toBe(false)
+    })
+
+    it('should return invalid when contexts is not an array', () => {
+      const project = { id: 'id', name: 'Name', contexts: 'not-array' } as any
+
+      const result = validateImportedProject(project)
+
+      expect(result.valid).toBe(false)
+      expect(result.error).toContain('contexts')
     })
   })
 })

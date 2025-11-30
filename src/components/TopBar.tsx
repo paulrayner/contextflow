@@ -6,7 +6,10 @@ import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { ProjectListModal } from './ProjectListModal'
+import { ImportConflictDialog } from './ImportConflictDialog'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, USER_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
+import { checkImportConflict, importProjectAsNew, validateImportedProject } from '../model/actions/projectActions'
+import type { Project } from '../model/types'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -53,6 +56,10 @@ export function TopBar() {
   const [showSettings, setShowSettings] = useState(false)
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
   const [showProjectList, setShowProjectList] = useState(false)
+  const [importConflict, setImportConflict] = useState<{
+    importedProject: Project
+    existingProject: Project
+  } | null>(null)
   const [useCodeCohesionAPI, setUseCodeCohesionAPI] = useState(() => {
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
     return stored === 'true'
@@ -96,7 +103,21 @@ export function TopBar() {
       reader.onload = (e) => {
         try {
           const json = JSON.parse(e.target?.result as string)
-          importProject(json)
+          const validation = validateImportedProject(json)
+          if (!validation.valid) {
+            alert(`Failed to import project: ${validation.error}`)
+            return
+          }
+          const project = json as Project
+          const conflict = checkImportConflict(project, projects)
+          if (conflict.hasConflict && conflict.existingProject) {
+            setImportConflict({
+              importedProject: project,
+              existingProject: conflict.existingProject,
+            })
+          } else {
+            importProject(project)
+          }
         } catch (err) {
           alert('Failed to import project: Invalid JSON file')
         }
@@ -104,6 +125,22 @@ export function TopBar() {
       reader.readAsText(file)
     }
     input.click()
+  }
+
+  const handleImportReplace = () => {
+    if (importConflict) {
+      importProject(importConflict.importedProject)
+      setImportConflict(null)
+    }
+  }
+
+  const handleImportAsNew = () => {
+    if (importConflict) {
+      const existingNames = Object.values(projects).map((p) => p.name)
+      const newProject = importProjectAsNew(importConflict.importedProject, existingNames)
+      importProject(newProject)
+      setImportConflict(null)
+    }
   }
 
   const handleAddContext = () => {
@@ -547,6 +584,17 @@ export function TopBar() {
           onRenameProject={renameProject}
           onDuplicateProject={duplicateProject}
           onClose={() => setShowProjectList(false)}
+        />
+      )}
+
+      {/* Import Conflict Dialog */}
+      {importConflict && (
+        <ImportConflictDialog
+          importedProjectName={importConflict.importedProject.name}
+          existingProjectName={importConflict.existingProject.name}
+          onReplace={handleImportReplace}
+          onImportAsNew={handleImportAsNew}
+          onCancel={() => setImportConflict(null)}
         />
       )}
     </header>
