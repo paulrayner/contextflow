@@ -11,6 +11,8 @@ export interface Project {
   id: string
   name: string
   version?: number  // Version number for built-in projects (default: 1)
+  createdAt?: string  // ISO timestamp, optional for backwards compatibility
+  updatedAt?: string  // ISO timestamp, optional for backwards compatibility
 
   contexts: BoundedContext[]
   relationships: Relationship[]

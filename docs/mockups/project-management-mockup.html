@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ContextFlow - Project Management Mockups</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .mockup-section { border: 2px dashed #cbd5e1; }
+  </style>
+</head>
+<body class="bg-slate-100 p-8">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold text-slate-800 mb-2">Project Management - UI Mockups</h1>
+    <p class="text-slate-600 mb-8">Interactive mockups for the new project management feature. Click elements to see interactions.</p>
+
+    <!-- Navigation -->
+    <div class="flex gap-4 mb-8">
+      <button onclick="showMockup('topbar')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">TopBar Changes</button>
+      <button onclick="showMockup('modal')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Project List Modal</button>
+      <button onclick="showMockup('create')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Project Dialog</button>
+      <button onclick="showMockup('delete')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Delete Confirmation</button>
+      <button onclick="showMockup('welcome')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Enhanced Welcome</button>
+    </div>
+
+    <!-- Mockup 1: TopBar Changes -->
+    <div id="mockup-topbar" class="mockup-section rounded-xl p-6 bg-white mb-8">
+      <h2 class="text-xl font-semibold text-slate-700 mb-4">1. TopBar Changes</h2>
+      <p class="text-sm text-slate-500 mb-6">Two options for how to access project management from the TopBar:</p>
+
+      <!-- Option A -->
+      <div class="mb-8">
+        <h3 class="text-sm font-medium text-slate-600 mb-3">Option A: Keep dropdown + add "Manage" button</h3>
+        <div class="flex items-center gap-4 px-5 py-3 border border-slate-200 bg-white rounded-lg">
+          <div class="font-semibold text-slate-800">ContextFlow</div>
+          <div class="text-slate-400">•</div>
+          <select class="text-sm text-slate-600 font-medium bg-transparent border border-slate-300 rounded px-2 py-1 pr-6">
+            <option>ACME E-Commerce</option>
+            <option>My New Project</option>
+            <option>cBioPortal</option>
+          </select>
+          <button class="p-1.5 rounded hover:bg-slate-100 text-slate-500" title="Manage Projects">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <div class="ml-4 flex items-center bg-slate-100 rounded-lg p-1">
+            <button class="px-3 py-1.5 text-xs font-medium rounded bg-white text-slate-900 shadow-sm">Value Stream</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600">Distillation</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600">Strategic</button>
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">Pros: Quick switching via dropdown. Cons: Two ways to access projects.</p>
+      </div>
+
+      <!-- Option B -->
+      <div>
+        <h3 class="text-sm font-medium text-slate-600 mb-3">Option B: Clickable project name (replaces dropdown)</h3>
+        <div class="flex items-center gap-4 px-5 py-3 border border-slate-200 bg-white rounded-lg">
+          <div class="font-semibold text-slate-800">ContextFlow</div>
+          <div class="text-slate-400">•</div>
+          <button class="flex items-center gap-2 text-sm text-slate-600 font-medium hover:text-slate-900 group">
+            <span>ACME E-Commerce</span>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="ml-4 flex items-center bg-slate-100 rounded-lg p-1">
+            <button class="px-3 py-1.5 text-xs font-medium rounded bg-white text-slate-900 shadow-sm">Value Stream</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600">Distillation</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600">Strategic</button>
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">Pros: Cleaner, single entry point. Cons: Extra click to switch projects.</p>
+      </div>
+    </div>
+
+    <!-- Mockup 2: Project List Modal -->
+    <div id="mockup-modal" class="mockup-section rounded-xl p-6 bg-white mb-8 hidden">
+      <h2 class="text-xl font-semibold text-slate-700 mb-4">2. Project List Modal</h2>
+      <p class="text-sm text-slate-500 mb-6">Opens when clicking "Manage Projects" or the project name. Shows all projects with metadata.</p>
+
+      <!-- Modal Preview -->
+      <div class="relative bg-black/50 rounded-lg p-8 flex items-center justify-center min-h-[500px]">
+        <div class="bg-white rounded-lg shadow-xl w-[600px] max-h-[80vh] flex flex-col">
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+            <h2 class="text-lg font-semibold text-slate-900">Your Projects</h2>
+            <button class="p-1.5 rounded hover:bg-slate-100 text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="flex-1 overflow-y-auto p-6">
+            <!-- New Project Button -->
+            <button class="w-full flex items-center justify-center gap-2 px-4 py-3 mb-4 border-2 border-dashed border-slate-300 rounded-lg text-slate-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span class="font-medium">New Project</span>
+            </button>
+
+            <!-- Project Grid -->
+            <div class="grid grid-cols-2 gap-3">
+              <!-- User Project Card (active) -->
+              <div class="group relative p-4 border-2 border-blue-500 bg-blue-50 rounded-lg cursor-pointer">
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="font-medium text-slate-900">My New Project</h3>
+                  <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 rounded hover:bg-white text-slate-400 hover:text-slate-600" title="Duplicate">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                      </svg>
+                    </button>
+                    <button class="p-1 rounded hover:bg-white text-slate-400 hover:text-red-500" title="Delete">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    8 contexts
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    2 hours ago
+                  </span>
+                </div>
+                <div class="absolute top-2 right-2 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 bg-blue-100 rounded">Active</div>
+              </div>
+
+              <!-- User Project Card -->
+              <div class="group relative p-4 border border-slate-200 rounded-lg cursor-pointer hover:border-slate-300 hover:shadow-sm transition-all">
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="font-medium text-slate-900">Healthcare Platform</h3>
+                  <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600" title="Duplicate">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                      </svg>
+                    </button>
+                    <button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-red-500" title="Delete">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    15 contexts
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Yesterday
+                  </span>
+                </div>
+              </div>
+
+              <!-- Sample Project Card -->
+              <div class="group relative p-4 border border-slate-200 rounded-lg cursor-pointer hover:border-slate-300 hover:shadow-sm transition-all">
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="font-medium text-slate-900">ACME E-Commerce</h3>
+                  <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600" title="Duplicate">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                      </svg>
+                    </button>
+                    <!-- No delete for sample projects -->
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    21 contexts
+                  </span>
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium text-amber-600 bg-amber-100 rounded">Sample</span>
+                </div>
+              </div>
+
+              <!-- Sample Project Card -->
+              <div class="group relative p-4 border border-slate-200 rounded-lg cursor-pointer hover:border-slate-300 hover:shadow-sm transition-all">
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="font-medium text-slate-900">cBioPortal</h3>
+                  <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600" title="Duplicate">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    12 contexts
+                  </span>
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium text-amber-600 bg-amber-100 rounded">Sample</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup 3: Create Project Dialog -->
+    <div id="mockup-create" class="mockup-section rounded-xl p-6 bg-white mb-8 hidden">
+      <h2 class="text-xl font-semibold text-slate-700 mb-4">3. Create Project Dialog</h2>
+      <p class="text-sm text-slate-500 mb-6">Simple dialog for creating a new project. Opens from "New Project" button.</p>
+
+      <div class="relative bg-black/50 rounded-lg p-8 flex items-center justify-center min-h-[300px]">
+        <div class="bg-white rounded-lg shadow-xl w-[400px]">
+          <!-- Dialog Header -->
+          <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+            <h2 class="text-lg font-semibold text-slate-900">New Project</h2>
+            <button class="p-1.5 rounded hover:bg-slate-100 text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Dialog Content -->
+          <div class="p-6">
+            <label class="block text-sm font-medium text-slate-700 mb-2">Project Name</label>
+            <input
+              type="text"
+              placeholder="e.g., Healthcare Platform"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              value="My New Project"
+            >
+            <p class="mt-2 text-xs text-slate-500">You can rename this later</p>
+          </div>
+
+          <!-- Dialog Footer -->
+          <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-lg">
+            <button class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900">Cancel</button>
+            <button class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg">Create Project</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup 4: Delete Confirmation -->
+    <div id="mockup-delete" class="mockup-section rounded-xl p-6 bg-white mb-8 hidden">
+      <h2 class="text-xl font-semibold text-slate-700 mb-4">4. Delete Confirmation Dialog</h2>
+      <p class="text-sm text-slate-500 mb-6">Shown when user clicks delete on a project. Shows what will be deleted.</p>
+
+      <div class="relative bg-black/50 rounded-lg p-8 flex items-center justify-center min-h-[300px]">
+        <div class="bg-white rounded-lg shadow-xl w-[400px]">
+          <!-- Dialog Content -->
+          <div class="p-6">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="p-3 bg-red-100 rounded-full">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900">Delete Project?</h2>
+                <p class="text-sm text-slate-500">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-lg mb-4">
+              <p class="text-sm font-medium text-slate-900 mb-1">Healthcare Platform</p>
+              <p class="text-xs text-slate-500">15 contexts, 8 relationships, 3 groups</p>
+            </div>
+          </div>
+
+          <!-- Dialog Footer -->
+          <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-200">
+            <button class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900">Cancel</button>
+            <button class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg">Delete Project</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup 5: Updated Welcome Modal (First-Time Users) -->
+    <div id="mockup-welcome" class="mockup-section rounded-xl p-6 bg-white mb-8 hidden">
+      <h2 class="text-xl font-semibold text-slate-700 mb-4">5. Updated Welcome Modal (First-Time Users)</h2>
+      <p class="text-sm text-slate-500 mb-6">"Create new project" is now the primary action. Samples are secondary (collapsible). No more "Empty Project".</p>
+
+      <div class="relative bg-black/50 rounded-lg p-8 flex items-center justify-center min-h-[600px]">
+        <div class="bg-white rounded-lg shadow-xl w-[520px] max-h-[90vh] flex flex-col overflow-hidden">
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200">
+            <h2 class="text-xl font-semibold text-slate-900">Welcome to ContextFlow</h2>
+            <button class="p-1.5 rounded hover:bg-slate-100 text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Content -->
+          <div class="flex-1 overflow-y-auto px-6 py-5">
+            <!-- Intro -->
+            <p class="text-sm text-slate-600 leading-relaxed">
+              ContextFlow helps you map your software systems visually — showing how different
+              parts of your architecture connect and serve your users.
+            </p>
+
+            <!-- Features -->
+            <div class="mt-5 grid grid-cols-2 gap-3">
+              <div class="flex items-center gap-2 text-xs text-slate-600">
+                <span class="text-blue-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                </span>
+                <span>Map your system's major parts</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-slate-600">
+                <span class="text-blue-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                  </svg>
+                </span>
+                <span>Show how they depend on each other</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-slate-600">
+                <span class="text-blue-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                  </svg>
+                </span>
+                <span>Connect systems to user needs</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-slate-600">
+                <span class="text-blue-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                  </svg>
+                </span>
+                <span>Identify which parts are most important</span>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="my-6 border-t border-slate-200"></div>
+
+            <!-- Getting Started -->
+            <h3 class="text-sm font-semibold text-slate-800 mb-4">How would you like to start?</h3>
+
+            <!-- PRIMARY: Create New Project -->
+            <button class="w-full text-left px-4 py-4 mb-3 rounded-lg border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-500 rounded-lg">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-slate-900">Create new project</div>
+                  <div class="text-xs text-slate-500">Start mapping your own systems</div>
+                </div>
+              </div>
+            </button>
+
+            <!-- Divider with "or" -->
+            <div class="relative my-4">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-slate-200"></div>
+              </div>
+              <div class="relative flex justify-center">
+                <span class="px-2 bg-white text-xs text-slate-400">or</span>
+              </div>
+            </div>
+
+            <!-- SECONDARY: Sample Projects (collapsed) -->
+            <details class="group">
+              <summary class="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-700 list-none">
+                <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                Explore a sample project first
+              </summary>
+              <div class="mt-3 space-y-2">
+                <button class="w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+                  <div class="text-sm font-medium text-slate-800">ACME E-Commerce</div>
+                  <div class="text-xs text-slate-500">A complete online store with 20+ systems</div>
+                </button>
+                <button class="w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+                  <div class="text-sm font-medium text-slate-800">Elan Warranty</div>
+                  <div class="text-xs text-slate-500">Extended warranty service (has tutorial)</div>
+                </button>
+                <button class="w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+                  <div class="text-sm font-medium text-slate-800">cBioPortal</div>
+                  <div class="text-xs text-slate-500">Genomics research platform</div>
+                </button>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
+      <h2 class="text-lg font-semibold text-amber-800 mb-3">Design Notes</h2>
+      <ul class="text-sm text-amber-700 space-y-2">
+        <li><strong>Sample projects:</strong> Cannot be deleted (no trash icon), but can be duplicated</li>
+        <li><strong>Active project:</strong> Highlighted with blue border and "Active" badge</li>
+        <li><strong>Hover actions:</strong> Duplicate and delete icons appear on hover</li>
+        <li><strong>Inline rename:</strong> Double-click project name to edit (not shown in mockup)</li>
+        <li><strong>Returning users:</strong> Welcome modal prioritizes their projects over samples</li>
+        <li><strong>Empty state:</strong> If no user projects, show "New Project" button prominently</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function showMockup(id) {
+      // Hide all mockups
+      document.querySelectorAll('[id^="mockup-"]').forEach(el => el.classList.add('hidden'));
+      // Show selected mockup
+      document.getElementById('mockup-' + id).classList.remove('hidden');
+    }
+    // Show first mockup by default
+    showMockup('topbar');
+  </script>
+</body>
+</html>
