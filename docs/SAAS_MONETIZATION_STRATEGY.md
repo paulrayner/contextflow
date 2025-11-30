@@ -28,6 +28,7 @@ This document outlines research and recommendations for monetizing ContextFlow a
 8. [Pricing Strategy](#pricing-strategy)
 9. [Cost Analysis](#cost-analysis)
 10. [Decision Framework](#decision-framework)
+11. [Enterprise Features & Compliance](#enterprise-features--compliance)
 
 ---
 
@@ -1030,6 +1031,169 @@ https://pipedream.com/apps/lemon-squeezy/integrations/clerk
 
 ---
 
+## Enterprise Features & Compliance
+
+This section covers what's needed beyond the basic MoR stack to sell into enterprises and financial institutions.
+
+### Penpot Pricing Model (Reference)
+
+[Penpot](https://penpot.app/pricing) uses a simple, flat pricing model with capped monthly costs:
+
+| Tier | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Unlimited teams, designers, files; community support |
+| Professional | Max $175/mo (capped) | Preferred hosting region, premium support, 25GB storage |
+| Enterprise | Max $950/mo (capped) | SSO/SAML, 2FA, team access controls, audit logs, self-hosted option |
+
+**Key insight**: Capped monthly pricing regardless of team size gives enterprises budget predictability.
+
+---
+
+### Enterprise Feature Requirements
+
+When selling to financial institutions and large enterprises:
+
+#### Tier 1: Must-Have (Deal Breakers)
+
+| Feature | Why Required | Turnkey Solution |
+|---------|--------------|------------------|
+| SSO/SAML | 83% of enterprise buyers require before vendor onboarding | Clerk (built-in), WorkOS, BoxyHQ |
+| SOC 2 Type II | Industry standard; often contractual requirement | Vanta, Drata, Secureframe |
+| Audit Logging | Regulatory compliance (SOX, GLBA, DORA) | [Retraced](https://github.com/retracedhq/retraced) (free, OSS) |
+| Data Encryption | At rest and in transit; non-negotiable | Standard TLS + cloud provider |
+| MFA/2FA | Basic security requirement | Clerk (built-in) |
+
+#### Tier 2: Strongly Expected
+
+| Feature | Why Required | Turnkey Solution |
+|---------|--------------|------------------|
+| SCIM Provisioning | Auto user sync with corporate directory | WorkOS, BoxyHQ |
+| Role-Based Access Control | Granular permissions within teams | Permit.io, Cerbos, or built-in |
+| Data Residency Options | GDPR, regional compliance | Multi-region cloud deployment |
+| SLA/Uptime Guarantees | Contractual requirements | Your operational commitment |
+
+---
+
+### Turnkey Enterprise Platforms
+
+#### SSO/SAML: Clerk (Recommended) or WorkOS
+
+**Clerk** (already in your stack):
+
+- SSO/SAML available on Pro tier
+- No additional vendor needed
+- Includes MFA, Organizations, RBAC
+
+**WorkOS** (if you need more enterprise polish):
+
+- $125 per SSO/SCIM connection
+- Supports all major IdPs (Okta, Azure AD, Google Workspace)
+- Per-connection costs add up with many enterprise customers
+
+#### Audit Logging: Retraced by BoxyHQ
+
+- **Pricing**: Free (open source)
+- **Features**: Embeddable UI, Kubernetes-ready, searchable/exportable logs
+- **Why needed**: SOC 2, SOX, GLBA compliance all require audit trails
+- **GitHub**: https://github.com/retracedhq/retraced
+
+#### SOC 2 Compliance Automation
+
+| Platform | Starting Price | Best For |
+|----------|---------------|----------|
+| Secureframe | $7,500/year | Budget-conscious, fast certification |
+| Vanta | $11,500/year | Most integrations (375+), polished |
+| Drata | $7,500-15,000/year | Multi-framework, growing enterprises |
+
+**Key stat**: 83% of enterprise buyers require SOC 2 before vendor onboarding.
+
+**Recommendation**: Defer SOC 2 until enterprise customers demand it (~$15-30k total investment).
+
+---
+
+### Financial Services-Specific Requirements
+
+Beyond general enterprise needs, financial institutions may require:
+
+| Requirement | Framework | How to Address |
+|-------------|-----------|----------------|
+| Customer data protection | GLBA (US) | Encryption, access controls, audit logs |
+| Cybersecurity program | 23 NYCRR 500 (NY) | SOC 2 covers most requirements |
+| Operational resilience | DORA (EU) | Incident response, testing |
+| Record retention | SEC-17 4a | Audit logs with 6-year retention |
+
+**Key insight**: Most financial regulations are satisfied by SOC 2 + SSO + audit logging.
+
+---
+
+### Updated Pricing Strategy (Penpot-Style)
+
+Based on research, simplified flat pricing with capped monthly costs:
+
+| Tier | Price | Features |
+|------|-------|----------|
+| Free | $0 | View-only, IndexedDB local storage |
+| Pro | $299/year | Full editing, export, cloud backup |
+| Team | Max $175/mo (capped) | Shared workspace, unlimited users, premium support |
+| Enterprise | Max $950/mo (capped) | SSO/SAML, audit logs, SLA, priority support |
+
+**Key principles**:
+
+- NO per-seat/per-user pricing - flat rate covers entire organization
+- Capped monthly pricing gives enterprises budget predictability
+- Cloud-only (no self-hosted option initially)
+
+---
+
+### Updated Implementation Phases
+
+#### Phase 1: Validation (Current Strategy)
+
+- Polar.sh + Clerk + Simple Analytics
+- Free + Pro tiers only
+- No enterprise features yet
+
+#### Phase 2: Team Tier (After 10+ Pro customers)
+
+- Enable Clerk Organizations for team workspaces
+- Add cloud sync (Dexie Cloud or Supabase)
+- Launch Team tier ($175/mo capped)
+
+#### Phase 3: Enterprise-Ready (When demanded)
+
+- Enable Clerk SSO/SAML (already available in Clerk Pro)
+- Integrate Retraced for audit logging (free, OSS)
+- Launch Enterprise tier ($950/mo capped)
+- Create security questionnaire responses
+
+#### Phase 4: SOC 2 (When required for deals)
+
+- Complete SOC 2 Type II certification ($15-30k)
+- Switch to Paddle/FastSpring if enterprise billing needed
+- Only pursue if enterprise customers require it
+
+---
+
+### Enterprise Resources
+
+**SSO/Identity**:
+
+- [WorkOS SSO Guide](https://workos.com/blog/the-best-5-sso-providers-to-power-your-saas-app-in-2025)
+- [BoxyHQ SaaS Starter Kit](https://github.com/boxyhq/saas-starter-kit)
+
+**Compliance**:
+
+- [SOC 2 Compliance Checklist](https://secureleap.tech/blog/soc-2-compliance-checklist-saas)
+- [SSO Implementation Requirements](https://ssojet.com/ciam-101/sso-implementation-checklist-enterprise-security-requirements-for-b2b-saas)
+- [Financial Services Compliance](https://endgrate.com/blog/saas-compliance-for-financial-services-10-key-requirements)
+
+**Audit Logging**:
+
+- [Retraced GitHub](https://github.com/retracedhq/retraced)
+- [Enterprise Ready Audit Log Guide](https://www.enterpriseready.io/features/audit-log/)
+
+---
+
 **End of Document**
 
-*Last updated: 2025-01-21*
+*Last updated: 2025-01-29*
