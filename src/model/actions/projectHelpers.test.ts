@@ -6,7 +6,7 @@ import type { User } from '../types'
 const createMockUser = (overrides?: Partial<User>): User => ({
   id: 'user-1',
   name: 'Test User',
-  position: { x: 100, y: 100 },
+  position: 50,
   isExternal: false,
   ...overrides,
 })

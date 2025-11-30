@@ -2,7 +2,7 @@ import { vi } from 'vitest'
 
 let store: Record<string, string> = {}
 
-const localStorageMock = {
+const localStorageMock: Storage = {
   getItem: vi.fn((key: string) => store[key] || null),
   setItem: vi.fn((key: string, value: string) => {
     store[key] = value
@@ -13,9 +13,14 @@ const localStorageMock = {
   clear: vi.fn(() => {
     store = {}
   }),
+  key: vi.fn(() => null),
+  length: 0,
 }
 
-global.localStorage = localStorageMock as any
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+})
 
 const indexedDBMock = {
   open: vi.fn(() => ({
@@ -24,4 +29,7 @@ const indexedDBMock = {
   })),
 }
 
-global.indexedDB = indexedDBMock as any
+Object.defineProperty(globalThis, 'indexedDB', {
+  value: indexedDBMock,
+  writable: true,
+})

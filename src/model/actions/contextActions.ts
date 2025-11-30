@@ -32,54 +32,57 @@ export function updateContextAction(
 
   // Track property changes
   const trackedProperties = [
-    'name', 'purpose', 'strategicClassification', 'evolutionStage',
-    'boundaryIntegrity', 'boundaryNotes', 'ownership', 'isLegacy',
-    'notes'
+    'name', 'strategicClassification', 'evolutionStage',
+    'boundaryIntegrity', 'ownership', 'isLegacy',
   ] as const
+
+  const textProperties = ['purpose', 'boundaryNotes', 'notes'] as const
 
   trackedProperties.forEach(prop => {
     if (prop in updates && oldContext[prop] !== updates[prop]) {
-      if (prop === 'purpose' || prop === 'boundaryNotes' || prop === 'notes') {
-        // Text fields - track character count only (no PII)
-        trackTextFieldEdit(
-          updatedProject,
-          'context',
-          prop,
-          oldContext[prop],
-          updates[prop],
-          'inspector'
-        )
-      } else if (prop === 'codeSize') {
-        // Special handling for code size bucket
-        const oldBucket = (oldContext.codeSize as any)?.bucket
-        const newBucket = (updates.codeSize as any)?.bucket
-        if (oldBucket !== newBucket) {
-          trackPropertyChange(
-            'context_property_changed',
-            updatedProject,
-            'context',
-            contextId,
-            'codeSize.bucket',
-            oldBucket,
-            newBucket,
-            state.activeViewMode
-          )
-        }
-      } else {
-        // Standard property changes
-        trackPropertyChange(
-          'context_property_changed',
-          updatedProject,
-          'context',
-          contextId,
-          prop,
-          oldContext[prop],
-          updates[prop],
-          state.activeViewMode
-        )
-      }
+      trackPropertyChange(
+        'context_property_changed',
+        updatedProject,
+        'context',
+        contextId,
+        prop,
+        oldContext[prop],
+        updates[prop],
+        'inspector'
+      )
     }
   })
+
+  textProperties.forEach(prop => {
+    if (prop in updates && oldContext[prop] !== updates[prop]) {
+      trackTextFieldEdit(
+        updatedProject,
+        'context',
+        prop,
+        oldContext[prop],
+        updates[prop],
+        'inspector'
+      )
+    }
+  })
+
+  // Special handling for code size bucket
+  if ('codeSize' in updates) {
+    const oldBucket = oldContext.codeSize?.bucket
+    const newBucket = updates.codeSize?.bucket
+    if (oldBucket !== newBucket) {
+      trackPropertyChange(
+        'context_property_changed',
+        updatedProject,
+        'context',
+        contextId,
+        'codeSize.bucket',
+        oldBucket,
+        newBucket,
+        state.activeViewMode
+      )
+    }
+  }
 
   return {
     projects: {

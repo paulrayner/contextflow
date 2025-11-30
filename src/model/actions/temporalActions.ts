@@ -36,7 +36,7 @@ export function toggleTemporalModeAction(state: EditorState): Partial<EditorStat
   }
 }
 
-export function addKeyframeAction(state: EditorState, date: string, label: string): { newState: Partial<EditorState>, newKeyframeId: string | null } {
+export function addKeyframeAction(state: EditorState, date: string, label?: string): { newState: Partial<EditorState>, newKeyframeId: string | null } {
   const projectId = state.activeProjectId
   if (!projectId) return { newState: state, newKeyframeId: null }
 

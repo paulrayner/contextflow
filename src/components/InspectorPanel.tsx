@@ -5,8 +5,8 @@ import { RelationshipCreateDialog } from './RelationshipCreateDialog'
 import { PatternsGuideModal } from './PatternsGuideModal'
 import { Switch } from './Switch'
 import { config } from '../config'
-import { interpolatePosition, classifyFromStrategicPosition } from '../lib/temporal'
-import { classifyFromStrategicPosition as getEvolutionStage } from '../model/classification'
+import { interpolatePosition } from '../lib/temporal'
+import { classifyFromStrategicPosition } from '../model/classification'
 import {
   PATTERN_DEFINITIONS,
   POWER_DYNAMICS_ICONS,
@@ -15,7 +15,7 @@ import {
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, EXTERNAL_CONTEXT, LEGACY_CONTEXT, EXTERNAL_USER, POWER_DYNAMICS, COMMUNICATION_MODE, OWNERSHIP_DEFINITIONS, TEAM_TOPOLOGIES } from '../model/conceptDefinitions'
-import type { ContextOwnership } from '../model/types'
+import type { ContextOwnership, UserNeedConnection, NeedContextConnection, User, Person, ContributorRef } from '../model/types'
 
 // Shared input styles for consistency across all inspector panels
 const INPUT_TITLE_CLASS = "w-full font-semibold text-sm text-slate-900 dark:text-slate-100 leading-tight bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 -ml-2 outline-none"
@@ -52,8 +52,6 @@ export function InspectorPanel() {
   const updateUser = useEditorStore(s => s.updateUser)
   const setViewMode = useEditorStore(s => s.setViewMode)
   const deleteUser = useEditorStore(s => s.deleteUser)
-  const createUserConnection = useEditorStore(s => s.createUserConnection)
-  const deleteUserConnection = useEditorStore(s => s.deleteUserConnection)
   const updateUserNeed = useEditorStore(s => s.updateUserNeed)
   const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
   const createUserNeedConnection = useEditorStore(s => s.createUserNeedConnection)
@@ -1154,34 +1152,33 @@ export function InspectorPanel() {
         />
       </div>
 
-      {/* Users - between name and purpose, no heading */}
+      {/* Users connected via user needs - between name and purpose, no heading */}
       {(() => {
-        const userConns = (project.userConnections || []).filter(uc => uc.contextId === context.id)
-        const usersForContext = userConns.map(conn => {
-          const user = project.users?.find(u => u.id === conn.userId)
-          return { connection: conn, user }
-        }).filter(item => item.user)
+        const needContextConns = (project.needContextConnections || []).filter(
+          (nc: NeedContextConnection) => nc.contextId === context.id
+        )
+        const connectedUserNeedIds = new Set(needContextConns.map((nc: NeedContextConnection) => nc.userNeedId))
+        const userNeedConns = (project.userNeedConnections || []).filter(
+          (uc: UserNeedConnection) => connectedUserNeedIds.has(uc.userNeedId)
+        )
+        const uniqueUserIds = [...new Set(userNeedConns.map((uc: UserNeedConnection) => uc.userId))]
+        const usersForContext = uniqueUserIds
+          .map(userId => project.users?.find((u: User) => u.id === userId))
+          .filter((user): user is User => !!user)
 
         return usersForContext.length > 0 ? (
           <div className="space-y-1">
-            {usersForContext.map(({ connection, user }) => (
+            {usersForContext.map((user) => (
               <div
-                key={connection.id}
+                key={user.id}
                 className="flex items-center gap-2 group/user"
               >
                 <button
-                  onClick={() => useEditorStore.setState({ selectedUserId: user!.id, selectedContextId: null })}
+                  onClick={() => useEditorStore.setState({ selectedUserId: user.id, selectedContextId: null })}
                   className="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-xs flex items-center gap-2 text-slate-600 dark:text-slate-400"
                 >
                   <Users size={12} className="text-blue-500 flex-shrink-0" />
-                  {user!.name}
-                </button>
-                <button
-                  onClick={() => deleteUserConnection(connection.id)}
-                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/user:opacity-100"
-                  title="Remove user connection"
-                >
-                  <Trash2 size={11} />
+                  {user.name}
                 </button>
               </div>
             ))}
@@ -1378,7 +1375,7 @@ export function InspectorPanel() {
                 y: context.positions.shared.y,
               }
               const position = interpolatePosition(context.id, currentDate, keyframes, basePosition)
-              const evolutionStage = getEvolutionStage(position.x)
+              const evolutionStage = classifyFromStrategicPosition(position.x)
 
               return (
                 <>
@@ -1775,9 +1772,9 @@ function RepoCard({
   onUnassign: (repoId: string) => void
 }) {
   const repoTeams = project.teams.filter((t: any) => repo.teamIds.includes(t.id))
-  const staticContributors = repo.contributors
-    .map((c: any) => project.people.find((p: any) => p.id === c.personId))
-    .filter((p: any): p is NonNullable<typeof p> => !!p)
+  const staticContributors: Person[] = repo.contributors
+    .map((c: ContributorRef) => project.people.find((p: Person) => p.id === c.personId))
+    .filter((p: Person | undefined): p is Person => !!p)
 
   const isExpanded = expandedRepoId === repo.id
 
@@ -2005,7 +2002,7 @@ function useCodeCohesionRepoStats(repoName: string, enabled: boolean) {
 }
 
 // Helper components
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+function Section({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>
       <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">

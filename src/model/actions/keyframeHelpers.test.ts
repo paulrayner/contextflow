@@ -164,8 +164,7 @@ describe('keyframeHelpers', () => {
             distillation: { x: 50, y: 50 },
             shared: { y: 100 }
           },
-          isExternal: false,
-          evolutionStage: 'custom',
+          evolutionStage: 'custom-built',
           strategicClassification: 'core'
         },
         {
@@ -177,8 +176,7 @@ describe('keyframeHelpers', () => {
             distillation: { x: 75, y: 75 },
             shared: { y: 200 }
           },
-          isExternal: false,
-          evolutionStage: 'product',
+          evolutionStage: 'product/rental',
           strategicClassification: 'supporting'
         }
       ]
@@ -207,8 +205,7 @@ describe('keyframeHelpers', () => {
             distillation: { x: 25, y: 25 },
             shared: { y: 50 }
           },
-          isExternal: false,
-          evolutionStage: 'custom',
+          evolutionStage: 'custom-built',
           strategicClassification: 'core'
         }
       ]

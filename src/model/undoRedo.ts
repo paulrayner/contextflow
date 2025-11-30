@@ -280,7 +280,7 @@ export function applyRedo(project: Project, command: EditorCommand): Project {
     const groupIndex = newGroups.findIndex(g => g.id === command.payload.groupId)
     if (groupIndex !== -1) {
       newGroups = [...newGroups]
-      const contextsToAdd = command.payload.contextIds || [command.payload.contextId]
+      const contextsToAdd = command.payload.contextIds ?? (command.payload.contextId ? [command.payload.contextId] : [])
       newGroups[groupIndex] = {
         ...newGroups[groupIndex],
         contextIds: [...newGroups[groupIndex].contextIds, ...contextsToAdd],

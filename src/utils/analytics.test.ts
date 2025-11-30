@@ -10,7 +10,7 @@ import type { Project } from '../model/types'
 
 describe('analytics', () => {
   describe('getDeploymentContext', () => {
-    let originalLocation: Location
+    let originalLocation: typeof window.location
 
     beforeEach(() => {
       originalLocation = window.location
@@ -19,7 +19,10 @@ describe('analytics', () => {
     })
 
     afterEach(() => {
-      window.location = originalLocation
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
     })
 
     it('returns "hosted_demo" for contextflow.virtualgenius.com', () => {

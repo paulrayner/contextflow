@@ -40,8 +40,13 @@ describe('Store - Built-in Project Persistence', () => {
       groups: [],
       relationships: [],
       repos: [],
-      flowStages: [],
-      userNeeds: []
+      people: [],
+      teams: [],
+      users: [],
+      userNeeds: [],
+      userNeedConnections: [],
+      needContextConnections: [],
+      viewConfig: { flowStages: [] }
     }))
     saveProjectSpy.mockResolvedValue(undefined)
 

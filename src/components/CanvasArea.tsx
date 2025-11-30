@@ -1279,7 +1279,7 @@ function UserConnectionEdge({
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
   const selectedUserId = useEditorStore(s => s.selectedUserId)
-  const connection = data?.connection as UserConnection | undefined
+  const connection = data?.connection as UserNeedConnection | undefined
 
   // Highlight if this connection belongs to the selected user
   const isHighlighted = source === selectedUserId
@@ -1639,9 +1639,9 @@ function DistillationRegions() {
     { name: 'CORE', key: 'core', xStart: DISTILLATION_CORE_MIN_X, xEnd: 100, yStart: DISTILLATION_CORE_MIN_Y, yEnd: 100, color: 'rgba(93, 186, 164, 0.35)', textColor: '#fff', labelX: (DISTILLATION_CORE_MIN_X + 100) / 2, labelY: (DISTILLATION_CORE_MIN_Y + 100) / 2 },
   ]
 
-  const gridLines = [
-    { type: 'vertical' as const, position: DISTILLATION_GENERIC_MAX_X, label: '' },
-    { type: 'vertical' as const, position: DISTILLATION_CORE_MIN_X, label: '' },
+  const gridLines: { type: 'horizontal' | 'vertical'; position: number; label: string }[] = [
+    { type: 'vertical', position: DISTILLATION_GENERIC_MAX_X, label: '' },
+    { type: 'vertical', position: DISTILLATION_CORE_MIN_X, label: '' },
   ]
 
   // Axis labels - matching Nick Tune's layout
@@ -2317,11 +2317,16 @@ function CanvasContent() {
     // Find the selected group (if any)
     const selectedGroup = selectedGroupId ? project.groups.find(g => g.id === selectedGroupId) : null
 
-    // Find connected contexts for selected user
-    const selectedUserConnections = selectedUserId
-      ? project.userConnections?.filter(uc => uc.userId === selectedUserId) || []
+    // Find connected contexts for selected user (via user needs)
+    const selectedUserNeedConnectionsForUser = selectedUserId
+      ? project.userNeedConnections?.filter((uc: UserNeedConnection) => uc.userId === selectedUserId) || []
       : []
-    const connectedContextIds = new Set(selectedUserConnections.map(uc => uc.contextId))
+    const connectedUserNeedIds = new Set(selectedUserNeedConnectionsForUser.map((uc: UserNeedConnection) => uc.userNeedId))
+    const connectedContextIds = new Set(
+      project.needContextConnections
+        ?.filter((nc: NeedContextConnection) => connectedUserNeedIds.has(nc.userNeedId))
+        .map((nc: NeedContextConnection) => nc.contextId) || []
+    )
 
     // Find connected contexts for selected relationship
     const selectedRelationship = selectedRelationshipId
@@ -2427,14 +2432,9 @@ function CanvasContent() {
       const contexts = project.contexts.filter(c => group.contextIds.includes(c.id))
       if (contexts.length === 0) return null
 
-      let xPositions, yPositions
-      if (viewMode === 'distillation') {
-        xPositions = []
-        yPositions = []
-      } else {
-        xPositions = contexts.map(c => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20)
-        yPositions = contexts.map(c => c.positions.shared.y * 10)
-      }
+      // Since we're already in a non-distillation view (checked above), compute positions
+      const xPositions = contexts.map(c => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20)
+      const yPositions = contexts.map(c => c.positions.shared.y * 10)
 
       const BLOB_PADDING = 60
 
@@ -2594,19 +2594,6 @@ function CanvasContent() {
         }))
       : []
 
-    // Add user connection edges (Strategic and Value Stream views, not Distillation)
-    const userConnectionEdges: Edge[] = viewMode !== 'distillation' && project.userConnections
-      ? project.userConnections.map((conn) => ({
-          id: conn.id,
-          source: conn.userId,
-          target: conn.contextId,
-          type: 'userConnection',
-          data: { connection: conn },
-          animated: false,
-          zIndex: 12, // Above contexts (10) but below users (15)
-        }))
-      : []
-
     // Add user-need connection edges (Strategic and Value Stream views, not Distillation)
     const userNeedConnectionEdges: Edge[] = viewMode !== 'distillation' && project.userNeedConnections
       ? project.userNeedConnections.map((conn) => ({
@@ -2633,7 +2620,7 @@ function CanvasContent() {
         }))
       : []
 
-    return [...relationshipEdges, ...userConnectionEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
+    return [...relationshipEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
   }, [project, viewMode, showRelationships, selectedUserId, selectedRelationshipId])
 
   // Handle edge click

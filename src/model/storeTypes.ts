@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Issue, IssueSeverity } from './types'
+import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Issue, IssueSeverity, Relationship } from './types'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
@@ -130,9 +130,9 @@ export interface EditorState {
   removeContextFromGroup: (groupId: string, contextId: string) => void
   addContextToGroup: (groupId: string, contextId: string) => void
   addContextsToGroup: (groupId: string, contextIds: string[]) => void
-  addRelationship: (fromContextId: string, toContextId: string, pattern: string, description?: string) => void
+  addRelationship: (fromContextId: string, toContextId: string, pattern: Relationship['pattern'], description?: string) => void
   deleteRelationship: (relationshipId: string) => void
-  updateRelationship: (relationshipId: string, updates: Partial<{ pattern: string; communicationMode: string; description: string }>) => void
+  updateRelationship: (relationshipId: string, updates: Partial<Pick<Relationship, 'pattern' | 'communicationMode' | 'description'>>) => void
   swapRelationshipDirection: (relationshipId: string) => void
   setSelectedRelationship: (relationshipId: string | null) => void
   setSelectedStage: (stageIndex: number | null) => void

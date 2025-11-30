@@ -290,15 +290,16 @@ function duplicateTeams(project: Project, mappings: IdMappings) {
 }
 
 function duplicateKeyframes(project: Project, mappings: IdMappings) {
-  return (project.temporalKeyframes || []).map((keyframe) => ({
+  return (project.temporal?.keyframes || []).map((keyframe) => ({
     ...keyframe,
     id: crypto.randomUUID(),
-    contextPositions: Object.fromEntries(
-      Object.entries(keyframe.contextPositions || {}).map(([ctxId, pos]) => [
+    positions: Object.fromEntries(
+      Object.entries(keyframe.positions || {}).map(([ctxId, pos]) => [
         mappings.contexts[ctxId] || ctxId,
         pos,
       ])
     ),
+    activeContextIds: keyframe.activeContextIds.map(id => mappings.contexts[id] || id),
   }))
 }
 
@@ -368,7 +369,10 @@ export function regenerateAllIds(project: Project, newName?: string): Project {
     userNeedConnections: duplicateUserNeedConnections(project, mappings),
     needContextConnections: duplicateNeedContextConnections(project, mappings),
     teams: duplicateTeams(project, mappings),
-    temporalKeyframes: duplicateKeyframes(project, mappings),
+    temporal: project.temporal ? {
+      enabled: project.temporal.enabled,
+      keyframes: duplicateKeyframes(project, mappings),
+    } : undefined,
     repos: project.repos.map((repo) => ({ ...repo })),
     people: project.people.map((person) => ({ ...person })),
     viewConfig: duplicateViewConfig(project),

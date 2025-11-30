@@ -44,7 +44,7 @@ describe('relationshipActions', () => {
         shared: { y: 70 },
       },
       strategicClassification: 'supporting',
-      evolutionStage: 'product',
+      evolutionStage: 'product/rental',
     })
 
     const mockRelationship = createMockRelationship({

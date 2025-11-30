@@ -16,6 +16,8 @@ function createTestProject(overrides: Partial<Project> = {}): Project {
     userNeeds: [],
     userNeedConnections: [],
     needContextConnections: [],
+    people: [],
+    teams: [],
     viewConfig: {
       flowStages: [],
     },
@@ -32,17 +34,15 @@ function createTestContext(id: string, overrides: Partial<BoundedContext> = {}):
   return {
     id,
     name: `Context ${id}`,
-    description: '',
-    classification: {
-      distillation: 'supporting',
-      strategic: 'custom-built',
-    },
+    purpose: '',
+    strategicClassification: 'supporting',
+    evolutionStage: 'custom-built',
     positions: {
-      flow: { x: 100, y: 100 },
-      strategic: { x: 100, y: 100 },
+      flow: { x: 100 },
+      strategic: { x: 100 },
+      distillation: { x: 50, y: 50 },
       shared: { y: 100 },
     },
-    isExternal: false,
     ...overrides,
   }
 }
@@ -52,9 +52,10 @@ describe('applyUndo', () => {
     it('should restore old positions', () => {
       const context = createTestContext('ctx1', {
         positions: {
-          flow: { x: 200, y: 200 },
-          strategic: { x: 200, y: 200 },
-          shared: { y: 200 },
+          flow: { x: 200 },
+          strategic: { x: 200 },
+          distillation: { x: 50, y: 50 },
+shared: { y: 200 },
         },
       })
       const project = createTestProject({ contexts: [context] })
@@ -63,14 +64,16 @@ describe('applyUndo', () => {
         payload: {
           contextId: 'ctx1',
           oldPositions: {
-            flow: { x: 100, y: 100 },
-            strategic: { x: 100, y: 100 },
-            shared: { y: 100 },
+            flow: { x: 100 },
+            strategic: { x: 100 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 100 },
           },
           newPositions: {
-            flow: { x: 200, y: 200 },
-            strategic: { x: 200, y: 200 },
-            shared: { y: 200 },
+            flow: { x: 200 },
+            strategic: { x: 200 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 200 },
           },
         },
       }
@@ -78,9 +81,10 @@ describe('applyUndo', () => {
       const result = applyUndo(project, command)
 
       expect(result.contexts[0].positions).toEqual({
-        flow: { x: 100, y: 100 },
-        strategic: { x: 100, y: 100 },
-        shared: { y: 100 },
+        flow: { x: 100 },
+        strategic: { x: 100 },
+        distillation: { x: 50, y: 50 },
+shared: { y: 100 },
       })
     })
 
@@ -91,14 +95,16 @@ describe('applyUndo', () => {
         payload: {
           contextId: 'nonexistent',
           oldPositions: {
-            flow: { x: 100, y: 100 },
-            strategic: { x: 100, y: 100 },
-            shared: { y: 100 },
+            flow: { x: 100 },
+            strategic: { x: 100 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 100 },
           },
           newPositions: {
-            flow: { x: 200, y: 200 },
-            strategic: { x: 200, y: 200 },
-            shared: { y: 200 },
+            flow: { x: 200 },
+            strategic: { x: 200 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 200 },
           },
         },
       }
@@ -113,16 +119,18 @@ describe('applyUndo', () => {
     it('should restore old positions for all moved contexts', () => {
       const ctx1 = createTestContext('ctx1', {
         positions: {
-          flow: { x: 200, y: 200 },
-          strategic: { x: 200, y: 200 },
-          shared: { y: 200 },
+          flow: { x: 200 },
+          strategic: { x: 200 },
+          distillation: { x: 50, y: 50 },
+shared: { y: 200 },
         },
       })
       const ctx2 = createTestContext('ctx2', {
         positions: {
-          flow: { x: 300, y: 300 },
-          strategic: { x: 300, y: 300 },
-          shared: { y: 300 },
+          flow: { x: 300 },
+          strategic: { x: 300 },
+          distillation: { x: 50, y: 50 },
+shared: { y: 300 },
         },
       })
       const project = createTestProject({ contexts: [ctx1, ctx2] })
@@ -132,26 +140,30 @@ describe('applyUndo', () => {
           positionsMap: {
             'ctx1': {
               old: {
-                flow: { x: 100, y: 100 },
-                strategic: { x: 100, y: 100 },
-                shared: { y: 100 },
+                flow: { x: 100 },
+                strategic: { x: 100 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 100 },
               },
               new: {
-                flow: { x: 200, y: 200 },
-                strategic: { x: 200, y: 200 },
-                shared: { y: 200 },
+                flow: { x: 200 },
+                strategic: { x: 200 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 200 },
               },
             },
             'ctx2': {
               old: {
-                flow: { x: 150, y: 150 },
-                strategic: { x: 150, y: 150 },
-                shared: { y: 150 },
+                flow: { x: 150 },
+                strategic: { x: 150 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 150 },
               },
               new: {
-                flow: { x: 300, y: 300 },
-                strategic: { x: 300, y: 300 },
-                shared: { y: 300 },
+                flow: { x: 300 },
+                strategic: { x: 300 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 300 },
               },
             },
           },
@@ -161,14 +173,16 @@ describe('applyUndo', () => {
       const result = applyUndo(project, command)
 
       expect(result.contexts[0].positions).toEqual({
-        flow: { x: 100, y: 100 },
-        strategic: { x: 100, y: 100 },
-        shared: { y: 100 },
+        flow: { x: 100 },
+        strategic: { x: 100 },
+        distillation: { x: 50, y: 50 },
+shared: { y: 100 },
       })
       expect(result.contexts[1].positions).toEqual({
-        flow: { x: 150, y: 150 },
-        strategic: { x: 150, y: 150 },
-        shared: { y: 150 },
+        flow: { x: 150 },
+        strategic: { x: 150 },
+        distillation: { x: 50, y: 50 },
+shared: { y: 150 },
       })
     })
   })
@@ -206,7 +220,7 @@ describe('applyUndo', () => {
   describe('assignRepo command', () => {
     it('should restore old context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2' }],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2' , teamIds: [], contributors: []}],
       })
       const command: EditorCommand = {
         type: 'assignRepo',
@@ -224,7 +238,7 @@ describe('applyUndo', () => {
 
     it('should handle undefined old context', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2' }],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2' , teamIds: [], contributors: []}],
       })
       const command: EditorCommand = {
         type: 'assignRepo',
@@ -244,7 +258,7 @@ describe('applyUndo', () => {
   describe('unassignRepo command', () => {
     it('should restore context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: undefined }],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: undefined , teamIds: [], contributors: []}],
       })
       const command: EditorCommand = {
         type: 'unassignRepo',
@@ -264,13 +278,9 @@ describe('applyUndo', () => {
     it('should remove the added group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -288,13 +298,9 @@ describe('applyUndo', () => {
     it('should restore the deleted group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [] })
       const command: EditorCommand = {
@@ -312,13 +318,9 @@ describe('applyUndo', () => {
     it('should remove context from group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1', 'ctx2'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -337,13 +339,9 @@ describe('applyUndo', () => {
     it('should remove multiple contexts from group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1', 'ctx2', 'ctx3'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -364,13 +362,9 @@ describe('applyUndo', () => {
     it('should re-add context to group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -391,8 +385,8 @@ describe('applyUndo', () => {
     it('should remove the added relationship', () => {
       const relationship: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'customer-supplier',
       }
       const project = createTestProject({ relationships: [relationship] })
@@ -411,8 +405,8 @@ describe('applyUndo', () => {
     it('should restore the deleted relationship', () => {
       const relationship: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'customer-supplier',
       }
       const project = createTestProject({ relationships: [] })
@@ -431,14 +425,14 @@ describe('applyUndo', () => {
     it('should restore old relationship data', () => {
       const newRel: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'conformist',
       }
       const oldRel: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'customer-supplier',
       }
       const project = createTestProject({ relationships: [newRel] })
@@ -711,6 +705,7 @@ describe('applyUndo', () => {
         date: '2024-01-01',
         label: 'Q1',
         positions: {},
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -725,7 +720,7 @@ describe('applyUndo', () => {
 
       const result = applyUndo(project, command)
 
-      expect(result.temporal.keyframes).toEqual([])
+      expect(result.temporal!.keyframes).toEqual([])
     })
 
     it('should remove multiple created keyframes', () => {
@@ -734,12 +729,14 @@ describe('applyUndo', () => {
         date: '2024-01-01',
         label: 'Q1',
         positions: {},
+        activeContextIds: [],
       }
       const kf2: TemporalKeyframe = {
         id: 'kf2',
         date: '2024-04-01',
         label: 'Q2',
         positions: {},
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -754,7 +751,7 @@ describe('applyUndo', () => {
 
       const result = applyUndo(project, command)
 
-      expect(result.temporal.keyframes).toEqual([])
+      expect(result.temporal!.keyframes).toEqual([])
     })
 
     it('should restore deleted keyframe', () => {
@@ -763,6 +760,7 @@ describe('applyUndo', () => {
         date: '2024-01-01',
         label: 'Q1',
         positions: {},
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -777,7 +775,7 @@ describe('applyUndo', () => {
 
       const result = applyUndo(project, command)
 
-      expect(result.temporal.keyframes).toEqual([keyframe])
+      expect(result.temporal!.keyframes).toEqual([keyframe])
     })
 
     it('should restore old keyframe data', () => {
@@ -786,6 +784,7 @@ describe('applyUndo', () => {
         date: '2024-01-01',
         label: 'New',
         positions: {},
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -804,7 +803,7 @@ describe('applyUndo', () => {
 
       const result = applyUndo(project, command)
 
-      expect(result.temporal.keyframes[0].label).toBe('Old')
+      expect(result.temporal!.keyframes[0].label).toBe('Old')
     })
 
     it('should restore old context position in keyframe', () => {
@@ -815,6 +814,7 @@ describe('applyUndo', () => {
         positions: {
           'ctx1': { x: 200, y: 200 },
         },
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -828,21 +828,23 @@ describe('applyUndo', () => {
           keyframeId: 'kf1',
           contextId: 'ctx1',
           oldPositions: {
-            flow: { x: 100, y: 100 },
-            strategic: { x: 100, y: 100 },
-            shared: { y: 100 },
+            flow: { x: 100 },
+            strategic: { x: 100 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 100 },
           },
           newPositions: {
-            flow: { x: 200, y: 200 },
-            strategic: { x: 200, y: 200 },
-            shared: { y: 200 },
+            flow: { x: 200 },
+            strategic: { x: 200 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 200 },
           },
         },
       }
 
       const result = applyUndo(project, command)
 
-      expect(result.temporal.keyframes[0].positions['ctx1']).toEqual({ x: 100, y: 100 })
+      expect(result.temporal!.keyframes[0].positions['ctx1']).toEqual({ x: 100, y: 100 })
     })
   })
 })
@@ -852,9 +854,10 @@ describe('applyRedo', () => {
     it('should apply new positions', () => {
       const context = createTestContext('ctx1', {
         positions: {
-          flow: { x: 100, y: 100 },
-          strategic: { x: 100, y: 100 },
-          shared: { y: 100 },
+          flow: { x: 100 },
+          strategic: { x: 100 },
+          distillation: { x: 50, y: 50 },
+shared: { y: 100 },
         },
       })
       const project = createTestProject({ contexts: [context] })
@@ -863,14 +866,16 @@ describe('applyRedo', () => {
         payload: {
           contextId: 'ctx1',
           oldPositions: {
-            flow: { x: 100, y: 100 },
-            strategic: { x: 100, y: 100 },
-            shared: { y: 100 },
+            flow: { x: 100 },
+            strategic: { x: 100 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 100 },
           },
           newPositions: {
-            flow: { x: 200, y: 200 },
-            strategic: { x: 200, y: 200 },
-            shared: { y: 200 },
+            flow: { x: 200 },
+            strategic: { x: 200 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 200 },
           },
         },
       }
@@ -878,9 +883,10 @@ describe('applyRedo', () => {
       const result = applyRedo(project, command)
 
       expect(result.contexts[0].positions).toEqual({
-        flow: { x: 200, y: 200 },
-        strategic: { x: 200, y: 200 },
-        shared: { y: 200 },
+        flow: { x: 200 },
+        strategic: { x: 200 },
+        distillation: { x: 50, y: 50 },
+shared: { y: 200 },
       })
     })
   })
@@ -889,16 +895,18 @@ describe('applyRedo', () => {
     it('should apply new positions for all moved contexts', () => {
       const ctx1 = createTestContext('ctx1', {
         positions: {
-          flow: { x: 100, y: 100 },
-          strategic: { x: 100, y: 100 },
-          shared: { y: 100 },
+          flow: { x: 100 },
+          strategic: { x: 100 },
+          distillation: { x: 50, y: 50 },
+shared: { y: 100 },
         },
       })
       const ctx2 = createTestContext('ctx2', {
         positions: {
-          flow: { x: 150, y: 150 },
-          strategic: { x: 150, y: 150 },
-          shared: { y: 150 },
+          flow: { x: 150 },
+          strategic: { x: 150 },
+          distillation: { x: 50, y: 50 },
+shared: { y: 150 },
         },
       })
       const project = createTestProject({ contexts: [ctx1, ctx2] })
@@ -908,26 +916,30 @@ describe('applyRedo', () => {
           positionsMap: {
             'ctx1': {
               old: {
-                flow: { x: 100, y: 100 },
-                strategic: { x: 100, y: 100 },
-                shared: { y: 100 },
+                flow: { x: 100 },
+                strategic: { x: 100 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 100 },
               },
               new: {
-                flow: { x: 200, y: 200 },
-                strategic: { x: 200, y: 200 },
-                shared: { y: 200 },
+                flow: { x: 200 },
+                strategic: { x: 200 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 200 },
               },
             },
             'ctx2': {
               old: {
-                flow: { x: 150, y: 150 },
-                strategic: { x: 150, y: 150 },
-                shared: { y: 150 },
+                flow: { x: 150 },
+                strategic: { x: 150 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 150 },
               },
               new: {
-                flow: { x: 300, y: 300 },
-                strategic: { x: 300, y: 300 },
-                shared: { y: 300 },
+                flow: { x: 300 },
+                strategic: { x: 300 },
+                distillation: { x: 50, y: 50 },
+shared: { y: 300 },
               },
             },
           },
@@ -937,14 +949,16 @@ describe('applyRedo', () => {
       const result = applyRedo(project, command)
 
       expect(result.contexts[0].positions).toEqual({
-        flow: { x: 200, y: 200 },
-        strategic: { x: 200, y: 200 },
-        shared: { y: 200 },
+        flow: { x: 200 },
+        strategic: { x: 200 },
+        distillation: { x: 50, y: 50 },
+shared: { y: 200 },
       })
       expect(result.contexts[1].positions).toEqual({
-        flow: { x: 300, y: 300 },
-        strategic: { x: 300, y: 300 },
-        shared: { y: 300 },
+        flow: { x: 300 },
+        strategic: { x: 300 },
+        distillation: { x: 50, y: 50 },
+shared: { y: 300 },
       })
     })
   })
@@ -982,7 +996,7 @@ describe('applyRedo', () => {
   describe('assignRepo command', () => {
     it('should apply new context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1' }],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1' , teamIds: [], contributors: []}],
       })
       const command: EditorCommand = {
         type: 'assignRepo',
@@ -1002,7 +1016,7 @@ describe('applyRedo', () => {
   describe('unassignRepo command', () => {
     it('should remove context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1' }],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1' , teamIds: [], contributors: []}],
       })
       const command: EditorCommand = {
         type: 'unassignRepo',
@@ -1022,13 +1036,9 @@ describe('applyRedo', () => {
     it('should add group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [] })
       const command: EditorCommand = {
@@ -1044,13 +1054,9 @@ describe('applyRedo', () => {
     it('should delete group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -1066,13 +1072,9 @@ describe('applyRedo', () => {
     it('should add context to group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -1091,13 +1093,9 @@ describe('applyRedo', () => {
     it('should add multiple contexts to group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -1116,13 +1114,9 @@ describe('applyRedo', () => {
     it('should remove context from group', () => {
       const group: Group = {
         id: 'grp1',
-        name: 'Group 1',
+        label: 'Group 1',
         contextIds: ['ctx1', 'ctx2'],
         color: '#ff0000',
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 200,
       }
       const project = createTestProject({ groups: [group] })
       const command: EditorCommand = {
@@ -1143,8 +1137,8 @@ describe('applyRedo', () => {
     it('should add relationship', () => {
       const relationship: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'customer-supplier',
       }
       const project = createTestProject({ relationships: [] })
@@ -1161,8 +1155,8 @@ describe('applyRedo', () => {
     it('should delete relationship', () => {
       const relationship: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'customer-supplier',
       }
       const project = createTestProject({ relationships: [relationship] })
@@ -1179,14 +1173,14 @@ describe('applyRedo', () => {
     it('should update relationship', () => {
       const oldRel: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'customer-supplier',
       }
       const newRel: Relationship = {
         id: 'rel1',
-        upstreamContextId: 'ctx1',
-        downstreamContextId: 'ctx2',
+        toContextId: 'ctx1',
+        fromContextId: 'ctx2',
         pattern: 'conformist',
       }
       const project = createTestProject({ relationships: [oldRel] })
@@ -1212,6 +1206,7 @@ describe('applyRedo', () => {
         date: '2024-01-01',
         label: 'Q1',
         positions: {},
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -1226,7 +1221,7 @@ describe('applyRedo', () => {
 
       const result = applyRedo(project, command)
 
-      expect(result.temporal.keyframes).toEqual([keyframe])
+      expect(result.temporal!.keyframes).toEqual([keyframe])
     })
 
     it('should delete keyframe', () => {
@@ -1235,6 +1230,7 @@ describe('applyRedo', () => {
         date: '2024-01-01',
         label: 'Q1',
         positions: {},
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -1249,7 +1245,7 @@ describe('applyRedo', () => {
 
       const result = applyRedo(project, command)
 
-      expect(result.temporal.keyframes).toEqual([])
+      expect(result.temporal!.keyframes).toEqual([])
     })
 
     it('should update keyframe', () => {
@@ -1258,6 +1254,7 @@ describe('applyRedo', () => {
         date: '2024-01-01',
         label: 'Old',
         positions: {},
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -1276,7 +1273,7 @@ describe('applyRedo', () => {
 
       const result = applyRedo(project, command)
 
-      expect(result.temporal.keyframes[0].label).toBe('New')
+      expect(result.temporal!.keyframes[0].label).toBe('New')
     })
 
     it('should move context in keyframe', () => {
@@ -1287,6 +1284,7 @@ describe('applyRedo', () => {
         positions: {
           'ctx1': { x: 100, y: 100 },
         },
+        activeContextIds: [],
       }
       const project = createTestProject({
         temporal: {
@@ -1300,21 +1298,23 @@ describe('applyRedo', () => {
           keyframeId: 'kf1',
           contextId: 'ctx1',
           oldPositions: {
-            flow: { x: 100, y: 100 },
-            strategic: { x: 100, y: 100 },
-            shared: { y: 100 },
+            flow: { x: 100 },
+            strategic: { x: 100 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 100 },
           },
           newPositions: {
-            flow: { x: 200, y: 200 },
-            strategic: { x: 200, y: 200 },
-            shared: { y: 200 },
+            flow: { x: 200 },
+            strategic: { x: 200 },
+            distillation: { x: 50, y: 50 },
+shared: { y: 200 },
           },
         },
       }
 
       const result = applyRedo(project, command)
 
-      expect(result.temporal.keyframes[0].positions['ctx1']).toEqual({ x: 200, y: 200 })
+      expect(result.temporal!.keyframes[0].positions['ctx1']).toEqual({ x: 200, y: 200 })
     })
   })
 })

@@ -209,29 +209,27 @@ export function isContextVisibleAtDate(
   targetDate: string,
   keyframes: TemporalKeyframe[]
 ): boolean {
-  if (keyframes.length === 0) {
-    // No keyframes: all contexts visible (base state)
+  const NO_KEYFRAMES = keyframes.length === 0
+  if (NO_KEYFRAMES) {
     return true
   }
 
   const before = findKeyframeBefore(targetDate, keyframes)
   const after = findKeyframeAfter(targetDate, keyframes)
 
-  // If we're before all keyframes, show all contexts (base state)
-  if (!before) {
+  const beforeAllKeyframes = !before
+  if (beforeAllKeyframes) {
     return true
   }
 
-  // If we're on or after a keyframe, check its activeContextIds
-  if (before && (!after || before === after)) {
+  const onOrAfterLastKeyframe = !after || before === after
+  if (onOrAfterLastKeyframe) {
     return before.activeContextIds.includes(contextId)
   }
 
-  // Between two keyframes: visible if in either keyframe
-  const inBefore = before.activeContextIds.includes(contextId)
-  const inAfter = after.activeContextIds.includes(contextId)
-
-  return inBefore || inAfter
+  const inBeforeKeyframe = before.activeContextIds.includes(contextId)
+  const inAfterKeyframe = after.activeContextIds.includes(contextId)
+  return inBeforeKeyframe || inAfterKeyframe
 }
 
 /**

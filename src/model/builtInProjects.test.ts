@@ -228,14 +228,14 @@ describe('builtInProjects', () => {
 
     it('should treat missing version as version 1', () => {
       const builtInProject = { id: 'test-project', version: 2, name: 'Test' }
-      const savedProject = { id: 'test-project', name: 'Test' }
+      const savedProject: { version?: number } = {}
 
       expect(isBuiltInNewer(builtInProject, savedProject)).toBe(true)
     })
 
     it('should return false when both have no version (both default to 1)', () => {
       const builtInProject = { id: 'test-project', version: 1, name: 'Test' }
-      const savedProject = { id: 'test-project', name: 'Test' }
+      const savedProject: { version?: number } = {}
 
       expect(isBuiltInNewer(builtInProject, savedProject)).toBe(false)
     })

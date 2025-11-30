@@ -8,6 +8,7 @@ import {
   addContextsToGroupAction
 } from './groupActions'
 import { createMockState, createMockContext, createMockGroup } from './__testFixtures__/mockState'
+import type { Group } from '../types'
 import type { EditorState } from '../storeTypes'
 
 // Mock analytics

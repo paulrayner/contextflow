@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useEditorStore } from '../store'
 import * as analytics from '../../utils/analytics'
 
 describe('store analytics integration', () => {
-  let trackEventSpy: ReturnType<typeof vi.spyOn>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let trackEventSpy: any
 
   beforeEach(() => {
     // Reset store to initial state

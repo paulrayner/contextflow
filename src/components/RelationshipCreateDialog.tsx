@@ -1,6 +1,6 @@
 import React from 'react'
 import { X } from 'lucide-react'
-import type { BoundedContext } from '../model/types'
+import type { BoundedContext, Relationship } from '../model/types'
 import {
   PATTERN_DEFINITIONS,
   POWER_DYNAMICS_ICONS,
@@ -10,7 +10,7 @@ import {
 interface RelationshipCreateDialogProps {
   fromContext: BoundedContext
   availableContexts: BoundedContext[]
-  onConfirm: (toContextId: string, pattern: string, description?: string) => void
+  onConfirm: (toContextId: string, pattern: Relationship['pattern'], description?: string) => void
   onCancel: () => void
 }
 
@@ -21,7 +21,7 @@ export function RelationshipCreateDialog({
   onCancel,
 }: RelationshipCreateDialogProps) {
   const [toContextId, setToContextId] = React.useState('')
-  const [pattern, setPattern] = React.useState('customer-supplier')
+  const [pattern, setPattern] = React.useState<Relationship['pattern']>('customer-supplier')
   const [description, setDescription] = React.useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -86,7 +86,7 @@ export function RelationshipCreateDialog({
             </label>
             <select
               value={pattern}
-              onChange={(e) => setPattern(e.target.value)}
+              onChange={(e) => setPattern(e.target.value as Relationship['pattern'])}
               className="w-full text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
             >
               {PATTERN_DEFINITIONS.map(p => (

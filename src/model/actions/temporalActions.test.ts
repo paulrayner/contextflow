@@ -94,8 +94,7 @@ describe('temporalActions', () => {
               distillation: { x: 50, y: 50 },
               shared: { y: 100 }
             },
-            isExternal: false,
-            evolutionStage: 'custom',
+            evolutionStage: 'custom-built',
             strategicClassification: 'core'
           },
           {
@@ -107,8 +106,7 @@ describe('temporalActions', () => {
               distillation: { x: 75, y: 75 },
               shared: { y: 200 }
             },
-            isExternal: false,
-            evolutionStage: 'product',
+            evolutionStage: 'product/rental',
             strategicClassification: 'supporting'
           }
         ]
@@ -134,8 +132,7 @@ describe('temporalActions', () => {
               distillation: { x: 50, y: 50 },
               shared: { y: 100 }
             },
-            isExternal: false,
-            evolutionStage: 'custom',
+            evolutionStage: 'custom-built',
             strategicClassification: 'core'
           },
           {
@@ -147,8 +144,7 @@ describe('temporalActions', () => {
               distillation: { x: 75, y: 75 },
               shared: { y: 200 }
             },
-            isExternal: false,
-            evolutionStage: 'product',
+            evolutionStage: 'product/rental',
             strategicClassification: 'supporting'
           }
         ]

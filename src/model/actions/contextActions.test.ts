@@ -13,6 +13,7 @@ import {
 } from './contextActions'
 import { createMockState, createMockContext } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
+import type { BoundedContext } from '../types'
 
 // Mock analytics
 vi.mock('../../utils/analytics', () => ({
@@ -88,7 +89,7 @@ describe('contextActions', () => {
           shared: { y: 30 },
         },
         strategicClassification: 'generic',
-        evolutionStage: 'product',
+        evolutionStage: 'product/rental',
       }
       mockState.projects['project-1'].contexts.push(context2)
 
@@ -195,7 +196,7 @@ describe('contextActions', () => {
           shared: { y: 30 },
         },
         strategicClassification: 'generic',
-        evolutionStage: 'product',
+        evolutionStage: 'product/rental',
       }
       mockState.projects['project-1'].contexts.push(context2)
     })
