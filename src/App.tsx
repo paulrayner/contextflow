@@ -29,6 +29,7 @@ function App() {
   const hasSeenWelcome = useEditorStore(s => s.hasSeenWelcome)
   const dismissWelcome = useEditorStore(s => s.dismissWelcome)
   const setActiveProject = useEditorStore(s => s.setActiveProject)
+  const createProject = useEditorStore(s => s.createProject)
 
   const [showGroupDialog, setShowGroupDialog] = React.useState(false)
   const showWelcomeModal = !hasSeenWelcome
@@ -125,8 +126,8 @@ function App() {
             setActiveProject(projectId)
             dismissWelcome()
           }}
-          onStartEmpty={() => {
-            setActiveProject('empty-project')
+          onCreateProject={(name) => {
+            createProject(name)
             dismissWelcome()
           }}
           onClose={dismissWelcome}

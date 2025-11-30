@@ -1,13 +1,15 @@
 import React from 'react'
-import { X, Layers } from 'lucide-react'
+import { X, Layers, Plus } from 'lucide-react'
 import type { Project } from '../model/types'
 import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
+import { ProjectCreateDialog } from './ProjectCreateDialog'
 
 interface ProjectListModalProps {
   projects: Record<string, Project>
   activeProjectId: string | null
   onSelectProject: (projectId: string) => void
+  onCreateProject: (name: string) => void
   onClose: () => void
 }
 
@@ -15,8 +17,11 @@ export function ProjectListModal({
   projects,
   activeProjectId,
   onSelectProject,
+  onCreateProject,
   onClose,
 }: ProjectListModalProps) {
+  const [showCreateDialog, setShowCreateDialog] = React.useState(false)
+
   const sortedProjects = React.useMemo(() => {
     return sortProjectsByLastModified(Object.values(projects))
   }, [projects])
@@ -24,6 +29,21 @@ export function ProjectListModal({
   const handleSelectProject = (projectId: string) => {
     onSelectProject(projectId)
     onClose()
+  }
+
+  const handleCreateProject = (name: string) => {
+    onCreateProject(name)
+    setShowCreateDialog(false)
+    onClose()
+  }
+
+  if (showCreateDialog) {
+    return (
+      <ProjectCreateDialog
+        onConfirm={handleCreateProject}
+        onCancel={() => setShowCreateDialog(false)}
+      />
+    )
   }
 
   return (
@@ -34,13 +54,22 @@ export function ProjectListModal({
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             Projects
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCreateDialog(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            >
+              <Plus size={14} />
+              New Project
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Project List */}
