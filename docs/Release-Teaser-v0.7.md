@@ -4,9 +4,13 @@
 
 **For Teams:** "See your software landscape together" - issues/hotspots for surfacing risks, team assignments for ownership clarity, and visual relationship patterns drive shared understanding across technical and business stakeholders.
 
+**For Architects:** "Communicate strategic clarity" - full value chain from users to systems, ownership visibility, team assignments, and visual relationship patterns help translate complex technical reality for business stakeholders.
+
 **For Consultants:** "The tool that teaches DDD while you use it" - educational tooltips, issues/hotspots for risk visualization, team management, and a guided experience make workshop facilitation smoother than generic whiteboarding.
 
-**For Architects:** "Communicate strategic clarity" - full value chain from users to systems, ownership visibility, team assignments, and visual relationship patterns help translate complex technical reality for business stakeholders.
+**For Engineering Managers:** "Align teams to business capabilities" - see which teams own which contexts, identify organizational friction points, and use Team Topology classifications to evolve team structures.
+
+**For Product Owners:** "Connect user needs to technical capabilities" - trace value from users through their needs to the systems that serve them, ensuring product decisions align with strategic domain investments.
 
 ---
 
