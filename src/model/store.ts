@@ -40,6 +40,7 @@ import {
   addTeamAction,
   deleteTeamAction,
 } from './actions/teamActions'
+import { createProjectAction } from './actions/projectActions'
 import {
   addUserAction,
   deleteUserAction,
@@ -262,6 +263,15 @@ export const useEditorStore = create<EditorState>((set) => ({
       undoStack: [],
       redoStack: [],
     }
+  }),
+
+  createProject: (name) => set((state) => {
+    const result = createProjectAction(state, name)
+    if (result.activeProjectId && result.projects) {
+      localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
+      autosaveIfNeeded(result.activeProjectId, result.projects)
+    }
+    return result
   }),
 
   addContext: (name) => set((state) => {
