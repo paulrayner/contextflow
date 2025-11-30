@@ -1,5 +1,5 @@
 import React from 'react'
-import { X, Layers, Plus, Trash2, Copy } from 'lucide-react'
+import { X, Layers, Plus, Trash2, Copy, Pencil } from 'lucide-react'
 import type { Project } from '../model/types'
 import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
@@ -71,8 +71,7 @@ export function ProjectListModal({
     }
   }
 
-  const handleDoubleClick = (e: React.MouseEvent, project: Project) => {
-    if (isBuiltInProject(project.id)) return
+  const handleEditClick = (e: React.MouseEvent, project: Project) => {
     e.stopPropagation()
     setEditingProjectId(project.id)
     setEditingName(project.name)
@@ -169,7 +168,6 @@ export function ProjectListModal({
                 >
                   <button
                     onClick={() => handleSelectProject(project.id)}
-                    onDoubleClick={(e) => handleDoubleClick(e, project)}
                     className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                       isActive
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -191,10 +189,7 @@ export function ProjectListModal({
                               className="text-sm font-medium px-1 py-0.5 -ml-1 rounded border border-blue-500 bg-white dark:bg-neutral-900 text-slate-800 dark:text-slate-200 outline-none w-full max-w-[200px]"
                             />
                           ) : (
-                            <span
-                              className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate"
-                              title={isBuiltIn ? undefined : 'Double-click to rename'}
-                            >
+                            <span className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
                               {project.name}
                             </span>
                           )}
@@ -222,6 +217,15 @@ export function ProjectListModal({
                     </div>
                   </button>
                   <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!isBuiltIn && (
+                      <button
+                        onClick={(e) => handleEditClick(e, project)}
+                        className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        title="Rename project"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    )}
                     <button
                       onClick={(e) => handleDuplicateClick(e, project.id)}
                       className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
