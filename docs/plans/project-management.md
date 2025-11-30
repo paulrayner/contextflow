@@ -4,6 +4,17 @@
 
 Enable users to create, edit, delete, and organize their ContextFlow projects through a modern modal-based interface.
 
+## Development Branch
+
+Work on feature branch to keep main stable:
+
+```bash
+git checkout -b feature/project-management
+git push -u origin feature/project-management
+```
+
+Create PR to merge into main when ready.
+
 ## Design Decisions
 
 1. **TopBar:** Replace dropdown with clickable project name → opens ProjectListModal
