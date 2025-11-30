@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target } from 'lucide-react'
+import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target, ChevronDown } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
+import { ProjectListModal } from './ProjectListModal'
+import { ImportConflictDialog } from './ImportConflictDialog'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, USER_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
+import { checkImportConflict, importProjectAsNew, validateImportedProject } from '../model/actions/projectActions'
+import type { Project } from '../model/types'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -16,6 +20,10 @@ export function TopBar() {
   const viewMode = useEditorStore(s => s.activeViewMode)
   const setViewMode = useEditorStore(s => s.setViewMode)
   const setActiveProject = useEditorStore(s => s.setActiveProject)
+  const createProject = useEditorStore(s => s.createProject)
+  const deleteProject = useEditorStore(s => s.deleteProject)
+  const renameProject = useEditorStore(s => s.renameProject)
+  const duplicateProject = useEditorStore(s => s.duplicateProject)
   const canUndo = useEditorStore(s => s.undoStack.length > 0)
   const canRedo = useEditorStore(s => s.redoStack.length > 0)
   const undo = useEditorStore(s => s.undo)
@@ -47,6 +55,11 @@ export function TopBar() {
   const { theme, toggleTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
+  const [showProjectList, setShowProjectList] = useState(false)
+  const [importConflict, setImportConflict] = useState<{
+    importedProject: Project
+    existingProject: Project
+  } | null>(null)
   const [useCodeCohesionAPI, setUseCodeCohesionAPI] = useState(() => {
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
     return stored === 'true'
@@ -90,7 +103,21 @@ export function TopBar() {
       reader.onload = (e) => {
         try {
           const json = JSON.parse(e.target?.result as string)
-          importProject(json)
+          const validation = validateImportedProject(json)
+          if (!validation.valid) {
+            alert(`Failed to import project: ${validation.error}`)
+            return
+          }
+          const project = json as Project
+          const conflict = checkImportConflict(project, projects)
+          if (conflict.hasConflict && conflict.existingProject) {
+            setImportConflict({
+              importedProject: project,
+              existingProject: conflict.existingProject,
+            })
+          } else {
+            importProject(project)
+          }
         } catch (err) {
           alert('Failed to import project: Invalid JSON file')
         }
@@ -98,6 +125,22 @@ export function TopBar() {
       reader.readAsText(file)
     }
     input.click()
+  }
+
+  const handleImportReplace = () => {
+    if (importConflict) {
+      importProject(importConflict.importedProject)
+      setImportConflict(null)
+    }
+  }
+
+  const handleImportAsNew = () => {
+    if (importConflict) {
+      const existingNames = Object.values(projects).map((p) => p.name)
+      const newProject = importProjectAsNew(importConflict.importedProject, existingNames)
+      importProject(newProject)
+      setImportConflict(null)
+    }
   }
 
   const handleAddContext = () => {
@@ -142,23 +185,13 @@ export function TopBar() {
       {project && (
         <>
           <div className="text-slate-400 dark:text-slate-500">•</div>
-          <select
-            value={projectId || ''}
-            onChange={(e) => setActiveProject(e.target.value)}
-            className="text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 pr-6 outline-none cursor-pointer max-w-[220px] truncate"
+          <button
+            onClick={() => setShowProjectList(true)}
+            className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 rounded px-2 py-1 outline-none cursor-pointer max-w-[220px]"
           >
-            {Object.values(projects)
-              .sort((a, b) => {
-                // Order: Empty Project, Elan Warranty, ACME, cBioPortal
-                const order = { 'empty-project': 0, 'elan-warranty': 1, 'acme-ecommerce': 2, 'cbioportal': 3 }
-                return (order[a.id as keyof typeof order] ?? 999) - (order[b.id as keyof typeof order] ?? 999)
-              })
-              .map(p => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-          </select>
+            <span className="truncate">{project.name}</span>
+            <ChevronDown size={14} className="shrink-0 text-slate-400" />
+          </button>
         </>
       )}
 
@@ -537,6 +570,31 @@ export function TopBar() {
             setActiveProject('acme-ecommerce')
             setShowGettingStartedGuide(false)
           }}
+        />
+      )}
+
+      {/* Project List Modal */}
+      {showProjectList && (
+        <ProjectListModal
+          projects={projects}
+          activeProjectId={projectId}
+          onSelectProject={setActiveProject}
+          onCreateProject={createProject}
+          onDeleteProject={deleteProject}
+          onRenameProject={renameProject}
+          onDuplicateProject={duplicateProject}
+          onClose={() => setShowProjectList(false)}
+        />
+      )}
+
+      {/* Import Conflict Dialog */}
+      {importConflict && (
+        <ImportConflictDialog
+          importedProjectName={importConflict.importedProject.name}
+          existingProjectName={importConflict.existingProject.name}
+          onReplace={handleImportReplace}
+          onImportAsNew={handleImportAsNew}
+          onCancel={() => setImportConflict(null)}
         />
       )}
     </header>

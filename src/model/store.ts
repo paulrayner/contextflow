@@ -40,6 +40,7 @@ import {
   addTeamAction,
   deleteTeamAction,
 } from './actions/teamActions'
+import { createProjectAction, deleteProjectAction, renameProjectAction, duplicateProjectAction } from './actions/projectActions'
 import {
   addUserAction,
   deleteUserAction,
@@ -63,7 +64,7 @@ import {
   updateKeyframeAction,
   updateKeyframeContextPositionAction
 } from './actions/temporalActions'
-import { autosaveIfNeeded, migrateProject } from './persistence'
+import { autosaveIfNeeded, migrateProject, deleteProject as deleteProjectFromDB } from './persistence'
 import { determineProjectOrigin } from './builtInProjects'
 import { calculateKeyframeTransition } from './keyframes'
 import { validateStageName, validateStagePosition, createSelectionState } from './validation'
@@ -262,6 +263,41 @@ export const useEditorStore = create<EditorState>((set) => ({
       undoStack: [],
       redoStack: [],
     }
+  }),
+
+  createProject: (name) => set((state) => {
+    const result = createProjectAction(state, name)
+    if (result.activeProjectId && result.projects) {
+      localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
+      autosaveIfNeeded(result.activeProjectId, result.projects)
+    }
+    return result
+  }),
+
+  deleteProject: (projectId) => set((state) => {
+    const result = deleteProjectAction(state, projectId)
+    if (result.activeProjectId) {
+      localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
+    }
+    deleteProjectFromDB(projectId).catch((err) => {
+      console.error('Failed to delete project from IndexedDB:', err)
+    })
+    return result
+  }),
+
+  renameProject: (projectId, newName) => set((state) => {
+    const result = renameProjectAction(state, projectId, newName)
+    autosaveIfNeeded(projectId, result.projects)
+    return result
+  }),
+
+  duplicateProject: (projectId) => set((state) => {
+    const result = duplicateProjectAction(state, projectId)
+    if (result.activeProjectId && result.projects) {
+      localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
+      autosaveIfNeeded(result.activeProjectId, result.projects)
+    }
+    return result
   }),
 
   addContext: (name) => set((state) => {

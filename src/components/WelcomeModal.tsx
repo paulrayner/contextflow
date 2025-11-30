@@ -1,5 +1,6 @@
 import React from 'react'
-import { X, Layers, Network, Users, TrendingUp } from 'lucide-react'
+import { X, Layers, Network, Users, TrendingUp, Plus } from 'lucide-react'
+import { ProjectCreateDialog } from './ProjectCreateDialog'
 
 interface SampleProject {
   id: string
@@ -27,17 +28,33 @@ const SAMPLE_PROJECTS: SampleProject[] = [
 
 interface WelcomeModalProps {
   onSelectProject: (projectId: string) => void
-  onStartEmpty: () => void
+  onCreateProject: (name: string) => void
   onClose: () => void
 }
 
-export function WelcomeModal({ onSelectProject, onStartEmpty, onClose }: WelcomeModalProps) {
+export function WelcomeModal({ onSelectProject, onCreateProject, onClose }: WelcomeModalProps) {
   const [selectedProjectId, setSelectedProjectId] = React.useState<string | null>(null)
+  const [showCreateDialog, setShowCreateDialog] = React.useState(false)
 
   const handleExplore = () => {
     if (selectedProjectId) {
       onSelectProject(selectedProjectId)
     }
+  }
+
+  const handleCreateProject = (name: string) => {
+    onCreateProject(name)
+    setShowCreateDialog(false)
+    onClose()
+  }
+
+  if (showCreateDialog) {
+    return (
+      <ProjectCreateDialog
+        onConfirm={handleCreateProject}
+        onCancel={() => setShowCreateDialog(false)}
+      />
+    )
   }
 
   return (
@@ -93,82 +110,73 @@ export function WelcomeModal({ onSelectProject, onStartEmpty, onClose }: Welcome
             How would you like to start?
           </h3>
 
-          {/* Sample Projects Section */}
-          <div className="mb-4">
-            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Explore a sample project
+          {/* Create New Project - Primary CTA */}
+          <button
+            onClick={() => setShowCreateDialog(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Plus size={16} />
+            Create New Project
+          </button>
+
+          {/* Divider with "or" */}
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200 dark:border-neutral-700" />
             </div>
-            <div className="space-y-2">
-              {SAMPLE_PROJECTS.map((project) => (
-                <button
-                  key={project.id}
-                  onClick={() => setSelectedProjectId(project.id)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
-                    selectedProjectId === project.id
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-750'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        selectedProjectId === project.id
-                          ? 'border-blue-500'
-                          : 'border-slate-300 dark:border-neutral-600'
-                      }`}
-                    >
-                      {selectedProjectId === project.id && (
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      )}
+            <div className="relative flex justify-center">
+              <span className="px-2 bg-white dark:bg-neutral-800 text-xs text-slate-400 dark:text-slate-500">
+                or explore a sample
+              </span>
+            </div>
+          </div>
+
+          {/* Sample Projects Section - Secondary */}
+          <div className="space-y-2">
+            {SAMPLE_PROJECTS.map((project) => (
+              <button
+                key={project.id}
+                onClick={() => setSelectedProjectId(project.id)}
+                className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                  selectedProjectId === project.id
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-750'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      selectedProjectId === project.id
+                        ? 'border-blue-500'
+                        : 'border-slate-300 dark:border-neutral-600'
+                    }`}
+                  >
+                    {selectedProjectId === project.id && (
+                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {project.name}
                     </div>
-                    <div>
-                      <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                        {project.name}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {project.description}
-                      </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      {project.description}
                     </div>
                   </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              </button>
+            ))}
           </div>
 
           {/* Explore Button */}
           {selectedProjectId && (
             <button
               onClick={handleExplore}
-              className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors mb-4"
+              className="w-full mt-3 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg transition-colors"
             >
               Explore {SAMPLE_PROJECTS.find(p => p.id === selectedProjectId)?.name}
             </button>
           )}
-
-          {/* Divider with "or" */}
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200 dark:border-neutral-700" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-2 bg-white dark:bg-neutral-800 text-xs text-slate-400 dark:text-slate-500">
-                or
-              </span>
-            </div>
-          </div>
-
-          {/* Start Empty */}
-          <button
-            onClick={onStartEmpty}
-            className="w-full text-left px-4 py-3 rounded-lg border border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-750 transition-colors"
-          >
-            <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
-              Start with an empty canvas
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Begin mapping your own systems from scratch
-            </div>
-          </button>
         </div>
       </div>
     </div>
