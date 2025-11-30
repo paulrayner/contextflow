@@ -2,48 +2,72 @@
 
 ## In Progress
 
-(empty)
+(nothing currently in progress)
 
 ## Backlog
+
+### Next release - SAAS Cloud Edition
+
+- [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
+- [ ] Implement SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md
+- [ ] Repo management
+- [ ] Add about page? link to repo? link to VG.com
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
+- [ ] Add logo
+- [ ] Implement ANALYTICS_PLAN.md
+- [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
+
+### Collaborative Editing
+
+- [ ] Collaborative editing of projects together, so a team could work on them together
+
+### Integrations
+
+- [ ] Import from a Big Picture EventStorming timeline (subprocesses between pivotal events as value stream stages, systems as contexts, actors as users, pivotal events as user needs? hotspots as issues?) exported from EventStormer (eventstormer.virtualgenius.com)
+- [ ] Export to EventCatalog?
+- [ ] Integrate glossary with Contextive?
+
+### UX/Polish
+
+- [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
-- [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
-- [ ] Update ARCHITECTURE.md, UX_GUIDELINES.md
-- [ ] Incorporate VISION.md into README.md as appropriate
-- [ ] Update README.md with fresh images
 - [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
-- [ ] Implement ANALYTICS_PLAN.doc
 - [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
 - [ ] Add optional actor attributes: goal(s), challenges
 - [ ] Not clear how to add a context to a group
 - [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
-- [ ] Add new project description: goal/purpose, scope, creator name? (how does this match to Wardley Mapping step 1 - Purpose?)
 - [ ] Accessibility checks
 - [ ] Responsive design
 - [ ] Distillation - can a context overlap subdomain boundaries? what would this tell us if it did?
 - [ ] Add search/filter for contexts, repos, teams
-- [ ] Verify how to add/manage repos
-- [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
-- [ ] Add about page? link to repo?
-- [ ] Project management - add/rename/delete(archive?) projects
-- [ ] Add logo
-- [ ] Implement SAAS hosting (orgs & users etc)
+
+### Docs
+
+- [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
+- [ ] Update ARCHITECTURE.md, UX_GUIDELINES.md
+- [ ] Update README.md with fresh images
 
 ### Temporal Evolution Enhancements
+
 - [ ] Temporal Milestone 2: Interpolation polish (smooth animations, snap-to-keyframe refinements)
 - [ ] Temporal Milestone 3: Keyframe Management UI (keyframe list panel, context visibility per keyframe, copy keyframe)
 - [ ] Temporal Milestone 4: Visualization Enhancements (trajectory overlay, animated playback, ghost preview mode, quarter granularity)
 
-**Team Topologies:**
+### Team Topologies
+
 - [ ] Enhance Team Topologies implementation with more substance (currently mostly conceptual)
 - [ ] Add visual team topology rendering on canvas (e.g., interaction modes between teams)
 
-**Team Flow:**
+### Team Flow
+
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
+
+- [x] Project management (create, rename, duplicate, delete projects with modal UI and import conflict handling)
+- [x] Fix TypeScript errors across codebase (UserConnection rename, position structures, test fixtures)
 - [x] Team management UI (view, create, update, delete teams with context cleanup)
 - [x] Show issue labels on canvas (toggle in Settings)
 - [x] Assign team names to contexts (team assignment dropdown in Context inspector)
