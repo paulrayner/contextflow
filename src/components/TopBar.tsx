@@ -20,6 +20,7 @@ export function TopBar() {
   const createProject = useEditorStore(s => s.createProject)
   const deleteProject = useEditorStore(s => s.deleteProject)
   const renameProject = useEditorStore(s => s.renameProject)
+  const duplicateProject = useEditorStore(s => s.duplicateProject)
   const canUndo = useEditorStore(s => s.undoStack.length > 0)
   const canRedo = useEditorStore(s => s.redoStack.length > 0)
   const undo = useEditorStore(s => s.undo)
@@ -544,6 +545,7 @@ export function TopBar() {
           onCreateProject={createProject}
           onDeleteProject={deleteProject}
           onRenameProject={renameProject}
+          onDuplicateProject={duplicateProject}
           onClose={() => setShowProjectList(false)}
         />
       )}

@@ -79,6 +79,8 @@ export const createBaseMockProject = (): Project => ({
   userNeeds: [],
   userNeedConnections: [],
   needContextConnections: [],
+  teams: [],
+  people: [],
   viewConfig: {
     flowStages: [],
   },
@@ -130,6 +132,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   createProject: vi.fn(),
   deleteProject: vi.fn(),
   renameProject: vi.fn(),
+  duplicateProject: vi.fn(),
   addContext: vi.fn(),
   deleteContext: vi.fn(),
   assignTeamToContext: vi.fn(),

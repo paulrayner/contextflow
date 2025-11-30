@@ -40,7 +40,7 @@ import {
   addTeamAction,
   deleteTeamAction,
 } from './actions/teamActions'
-import { createProjectAction, deleteProjectAction, renameProjectAction } from './actions/projectActions'
+import { createProjectAction, deleteProjectAction, renameProjectAction, duplicateProjectAction } from './actions/projectActions'
 import {
   addUserAction,
   deleteUserAction,
@@ -288,6 +288,15 @@ export const useEditorStore = create<EditorState>((set) => ({
   renameProject: (projectId, newName) => set((state) => {
     const result = renameProjectAction(state, projectId, newName)
     autosaveIfNeeded(projectId, result.projects)
+    return result
+  }),
+
+  duplicateProject: (projectId) => set((state) => {
+    const result = duplicateProjectAction(state, projectId)
+    if (result.activeProjectId && result.projects) {
+      localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
+      autosaveIfNeeded(result.activeProjectId, result.projects)
+    }
     return result
   }),
 

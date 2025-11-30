@@ -7,6 +7,8 @@ import {
   selectNextProjectAfterDelete,
   deleteProjectAction,
   renameProjectAction,
+  generateUniqueProjectName,
+  duplicateProjectAction,
 } from './projectActions'
 import { createMockState } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
@@ -349,6 +351,171 @@ describe('projectActions', () => {
       expect(updatedProject.contexts).toBe(originalProject.contexts)
       expect(updatedProject.relationships).toBe(originalProject.relationships)
       expect(updatedProject.createdAt).toBe(originalProject.createdAt)
+    })
+  })
+
+  describe('generateUniqueProjectName', () => {
+    it('should return original name if no duplicates exist', () => {
+      const existingNames = ['Project A', 'Project B']
+
+      const result = generateUniqueProjectName('New Project', existingNames)
+
+      expect(result).toBe('New Project')
+    })
+
+    it('should add (Copy) suffix if name exists', () => {
+      const existingNames = ['My Project', 'Other Project']
+
+      const result = generateUniqueProjectName('My Project', existingNames)
+
+      expect(result).toBe('My Project (Copy)')
+    })
+
+    it('should increment number if (Copy) already exists', () => {
+      const existingNames = ['My Project', 'My Project (Copy)']
+
+      const result = generateUniqueProjectName('My Project', existingNames)
+
+      expect(result).toBe('My Project (Copy 2)')
+    })
+
+    it('should find next available number', () => {
+      const existingNames = ['My Project', 'My Project (Copy)', 'My Project (Copy 2)', 'My Project (Copy 3)']
+
+      const result = generateUniqueProjectName('My Project', existingNames)
+
+      expect(result).toBe('My Project (Copy 4)')
+    })
+
+    it('should handle name that already ends with (Copy)', () => {
+      const existingNames = ['Test (Copy)', 'Test (Copy) (Copy)']
+
+      const result = generateUniqueProjectName('Test (Copy)', existingNames)
+
+      expect(result).toBe('Test (Copy) (Copy 2)')
+    })
+  })
+
+  describe('duplicateProjectAction', () => {
+    let mockState: EditorState
+
+    beforeEach(() => {
+      mockState = createMockState({
+        name: 'Original Project',
+      })
+      // Add some content to the project
+      mockState.projects['test-project'].contexts = [
+        {
+          id: 'ctx-1',
+          name: 'Context 1',
+          strategicClassification: 'core',
+          positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } },
+        } as any,
+      ]
+      mockState.projects['test-project'].relationships = [
+        { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'customer-supplier' } as any,
+      ]
+    })
+
+    it('should create a new project with duplicated content', () => {
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      expect(Object.keys(result.projects!)).toHaveLength(2)
+      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      expect(duplicatedProject).toBeDefined()
+    })
+
+    it('should generate new IDs for the duplicated project', () => {
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      expect(duplicatedProject!.id).not.toBe('test-project')
+    })
+
+    it('should deep copy contexts with new IDs', () => {
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      expect(duplicatedProject!.contexts).toHaveLength(1)
+      expect(duplicatedProject!.contexts[0].id).not.toBe('ctx-1')
+      expect(duplicatedProject!.contexts[0].name).toBe('Context 1')
+    })
+
+    it('should update relationship references to new context IDs', () => {
+      // Add a second context that the relationship points to
+      mockState.projects['test-project'].contexts.push({
+        id: 'ctx-2',
+        name: 'Context 2',
+        strategicClassification: 'supporting',
+        positions: { flow: { x: 300 }, strategic: { x: 400 }, shared: { y: 100 } },
+      } as any)
+
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      const dupRelationship = duplicatedProject!.relationships[0]
+
+      // Relationship should have new ID and reference the new context IDs
+      expect(dupRelationship.id).not.toBe('rel-1')
+      expect(dupRelationship.fromContextId).not.toBe('ctx-1')
+      expect(dupRelationship.toContextId).not.toBe('ctx-2')
+    })
+
+    it('should set the duplicated project as active', () => {
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      expect(result.activeProjectId).toBe(duplicatedProject!.id)
+    })
+
+    it('should clear all selections', () => {
+      mockState.selectedContextId = 'some-context'
+      mockState.selectedGroupId = 'some-group'
+
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      expect(result.selectedContextId).toBeNull()
+      expect(result.selectedGroupId).toBeNull()
+      expect(result.selectedContextIds).toEqual([])
+    })
+
+    it('should clear undo/redo stacks', () => {
+      mockState.undoStack = [{ type: 'addContext', payload: {} }]
+      mockState.redoStack = [{ type: 'deleteContext', payload: {} }]
+
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      expect(result.undoStack).toEqual([])
+      expect(result.redoStack).toEqual([])
+    })
+
+    it('should throw for non-existent project', () => {
+      expect(() => duplicateProjectAction(mockState, 'non-existent')).toThrow('Project not found')
+    })
+
+    it('should set new timestamps', () => {
+      const originalProject = mockState.projects['test-project']
+      originalProject.createdAt = '2024-01-01T00:00:00.000Z'
+      originalProject.updatedAt = '2024-01-01T00:00:00.000Z'
+
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      expect(duplicatedProject!.createdAt).not.toBe('2024-01-01T00:00:00.000Z')
+      expect(duplicatedProject!.updatedAt).not.toBe('2024-01-01T00:00:00.000Z')
+    })
+
+    it('should handle unique name generation when copy already exists', () => {
+      // Add a project that would conflict with the default copy name
+      const existingCopy = generateEmptyProject('Original Project (Copy)')
+      mockState.projects[existingCopy.id] = existingCopy
+
+      const result = duplicateProjectAction(mockState, 'test-project')
+
+      const duplicatedProject = Object.values(result.projects!).find(
+        p => p.name !== 'Original Project' && p.name !== 'Original Project (Copy)'
+      )
+      expect(duplicatedProject!.name).toBe('Original Project (Copy 2)')
     })
   })
 })

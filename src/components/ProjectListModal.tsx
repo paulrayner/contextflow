@@ -1,5 +1,5 @@
 import React from 'react'
-import { X, Layers, Plus, Trash2 } from 'lucide-react'
+import { X, Layers, Plus, Trash2, Copy } from 'lucide-react'
 import type { Project } from '../model/types'
 import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
@@ -13,6 +13,7 @@ interface ProjectListModalProps {
   onCreateProject: (name: string) => void
   onDeleteProject: (projectId: string) => void
   onRenameProject: (projectId: string, newName: string) => void
+  onDuplicateProject: (projectId: string) => void
   onClose: () => void
 }
 
@@ -23,6 +24,7 @@ export function ProjectListModal({
   onCreateProject,
   onDeleteProject,
   onRenameProject,
+  onDuplicateProject,
   onClose,
 }: ProjectListModalProps) {
   const [showCreateDialog, setShowCreateDialog] = React.useState(false)
@@ -97,6 +99,12 @@ export function ProjectListModal({
       e.preventDefault()
       handleCancelRename()
     }
+  }
+
+  const handleDuplicateClick = (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation()
+    onDuplicateProject(projectId)
+    onClose()
   }
 
   if (deleteTarget) {
@@ -213,15 +221,24 @@ export function ProjectListModal({
                       </div>
                     </div>
                   </button>
-                  {canDelete && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={(e) => handleDeleteClick(e, project)}
-                      className="absolute top-2 right-2 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 dark:hover:text-red-400"
-                      title="Delete project"
+                      onClick={(e) => handleDuplicateClick(e, project.id)}
+                      className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      title="Duplicate project"
                     >
-                      <Trash2 size={14} />
+                      <Copy size={14} />
                     </button>
-                  )}
+                    {canDelete && (
+                      <button
+                        onClick={(e) => handleDeleteClick(e, project)}
+                        className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 dark:hover:text-red-400"
+                        title="Delete project"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}
