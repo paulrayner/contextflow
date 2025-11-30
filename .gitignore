@@ -33,3 +33,9 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Beads issue tracker (runtime/cache files - JSONL is committed)
+.beads/*.db
+.beads/*.db-*
+.beads/daemon.*
+.beads/bd.sock
