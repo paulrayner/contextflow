@@ -12,6 +12,7 @@ interface ProjectListModalProps {
   onSelectProject: (projectId: string) => void
   onCreateProject: (name: string) => void
   onDeleteProject: (projectId: string) => void
+  onRenameProject: (projectId: string, newName: string) => void
   onClose: () => void
 }
 
@@ -21,10 +22,14 @@ export function ProjectListModal({
   onSelectProject,
   onCreateProject,
   onDeleteProject,
+  onRenameProject,
   onClose,
 }: ProjectListModalProps) {
   const [showCreateDialog, setShowCreateDialog] = React.useState(false)
   const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null)
+  const [editingProjectId, setEditingProjectId] = React.useState<string | null>(null)
+  const [editingName, setEditingName] = React.useState('')
+  const editInputRef = React.useRef<HTMLInputElement>(null)
 
   const sortedProjects = React.useMemo(() => {
     return sortProjectsByLastModified(Object.values(projects))
@@ -33,7 +38,15 @@ export function ProjectListModal({
   const projectCount = Object.keys(projects).length
   const canDeleteAny = projectCount > 1
 
+  React.useEffect(() => {
+    if (editingProjectId && editInputRef.current) {
+      editInputRef.current.focus()
+      editInputRef.current.select()
+    }
+  }, [editingProjectId])
+
   const handleSelectProject = (projectId: string) => {
+    if (editingProjectId) return
     onSelectProject(projectId)
     onClose()
   }
@@ -53,6 +66,36 @@ export function ProjectListModal({
     if (deleteTarget) {
       onDeleteProject(deleteTarget.id)
       setDeleteTarget(null)
+    }
+  }
+
+  const handleDoubleClick = (e: React.MouseEvent, project: Project) => {
+    if (isBuiltInProject(project.id)) return
+    e.stopPropagation()
+    setEditingProjectId(project.id)
+    setEditingName(project.name)
+  }
+
+  const handleSaveRename = () => {
+    if (editingProjectId && editingName.trim()) {
+      onRenameProject(editingProjectId, editingName.trim())
+    }
+    setEditingProjectId(null)
+    setEditingName('')
+  }
+
+  const handleCancelRename = () => {
+    setEditingProjectId(null)
+    setEditingName('')
+  }
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSaveRename()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleCancelRename()
     }
   }
 
@@ -109,6 +152,7 @@ export function ProjectListModal({
               const isActive = project.id === activeProjectId
               const isBuiltIn = isBuiltInProject(project.id)
               const canDelete = canDeleteAny && !isBuiltIn
+              const isEditing = editingProjectId === project.id
 
               return (
                 <div
@@ -117,6 +161,7 @@ export function ProjectListModal({
                 >
                   <button
                     onClick={() => handleSelectProject(project.id)}
+                    onDoubleClick={(e) => handleDoubleClick(e, project)}
                     className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                       isActive
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -126,9 +171,25 @@ export function ProjectListModal({
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
-                            {project.name}
-                          </span>
+                          {isEditing ? (
+                            <input
+                              ref={editInputRef}
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onBlur={handleSaveRename}
+                              onKeyDown={handleRenameKeyDown}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-sm font-medium px-1 py-0.5 -ml-1 rounded border border-blue-500 bg-white dark:bg-neutral-900 text-slate-800 dark:text-slate-200 outline-none w-full max-w-[200px]"
+                            />
+                          ) : (
+                            <span
+                              className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate"
+                              title={isBuiltIn ? undefined : 'Double-click to rename'}
+                            >
+                              {project.name}
+                            </span>
+                          )}
                           {isBuiltIn && (
                             <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-700 text-slate-500 dark:text-slate-400">
                               Sample

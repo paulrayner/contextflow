@@ -113,6 +113,7 @@ export interface EditorState {
   setActiveProject: (projectId: string) => void
   createProject: (name: string) => void
   deleteProject: (projectId: string) => void
+  renameProject: (projectId: string, newName: string) => void
   addContext: (name: string) => void
   deleteContext: (contextId: string) => void
   addContextIssue: (contextId: string, title: string, severity?: IssueSeverity) => void

@@ -149,3 +149,32 @@ export function deleteProjectAction(
 
   return result
 }
+
+export function renameProjectAction(
+  state: EditorState,
+  projectId: string,
+  newName: string
+): Partial<EditorState> {
+  const validation = validateProjectName(newName)
+  if (!validation.valid) {
+    throw new Error(validation.error)
+  }
+
+  const project = state.projects[projectId]
+  if (!project) {
+    throw new Error('Project not found')
+  }
+
+  const updatedProject = {
+    ...project,
+    name: newName.trim(),
+    updatedAt: new Date().toISOString(),
+  }
+
+  return {
+    projects: {
+      ...state.projects,
+      [projectId]: updatedProject,
+    },
+  }
+}

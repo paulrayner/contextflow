@@ -40,7 +40,7 @@ import {
   addTeamAction,
   deleteTeamAction,
 } from './actions/teamActions'
-import { createProjectAction, deleteProjectAction } from './actions/projectActions'
+import { createProjectAction, deleteProjectAction, renameProjectAction } from './actions/projectActions'
 import {
   addUserAction,
   deleteUserAction,
@@ -282,6 +282,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     deleteProjectFromDB(projectId).catch((err) => {
       console.error('Failed to delete project from IndexedDB:', err)
     })
+    return result
+  }),
+
+  renameProject: (projectId, newName) => set((state) => {
+    const result = renameProjectAction(state, projectId, newName)
+    autosaveIfNeeded(projectId, result.projects)
     return result
   }),
 

@@ -129,6 +129,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   setActiveProject: vi.fn(),
   createProject: vi.fn(),
   deleteProject: vi.fn(),
+  renameProject: vi.fn(),
   addContext: vi.fn(),
   deleteContext: vi.fn(),
   assignTeamToContext: vi.fn(),

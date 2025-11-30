@@ -6,6 +6,7 @@ import {
   canDeleteProject,
   selectNextProjectAfterDelete,
   deleteProjectAction,
+  renameProjectAction,
 } from './projectActions'
 import { createMockState } from './__testFixtures__/mockState'
 import type { EditorState } from '../storeTypes'
@@ -296,6 +297,58 @@ describe('projectActions', () => {
 
       expect(result.undoStack).toEqual([])
       expect(result.redoStack).toEqual([])
+    })
+  })
+
+  describe('renameProjectAction', () => {
+    let mockState: EditorState
+
+    beforeEach(() => {
+      mockState = createMockState({
+        name: 'Original Name',
+      })
+    })
+
+    it('should update the project name', () => {
+      const result = renameProjectAction(mockState, 'test-project', 'New Name')
+
+      expect(result.projects!['test-project'].name).toBe('New Name')
+    })
+
+    it('should update the updatedAt timestamp', () => {
+      const originalUpdatedAt = mockState.projects['test-project'].updatedAt
+      const result = renameProjectAction(mockState, 'test-project', 'New Name')
+
+      expect(result.projects!['test-project'].updatedAt).not.toBe(originalUpdatedAt)
+    })
+
+    it('should trim the new name', () => {
+      const result = renameProjectAction(mockState, 'test-project', '  New Name  ')
+
+      expect(result.projects!['test-project'].name).toBe('New Name')
+    })
+
+    it('should throw for empty name', () => {
+      expect(() => renameProjectAction(mockState, 'test-project', '')).toThrow()
+    })
+
+    it('should throw for whitespace-only name', () => {
+      expect(() => renameProjectAction(mockState, 'test-project', '   ')).toThrow()
+    })
+
+    it('should throw for non-existent project', () => {
+      expect(() => renameProjectAction(mockState, 'non-existent', 'New Name')).toThrow()
+    })
+
+    it('should preserve other project fields', () => {
+      const originalProject = mockState.projects['test-project']
+      const result = renameProjectAction(mockState, 'test-project', 'New Name')
+      const updatedProject = result.projects!['test-project']
+
+      expect(updatedProject.id).toBe(originalProject.id)
+      expect(updatedProject.contexts).toBe(originalProject.contexts)
+      expect(updatedProject.relationships).toBe(originalProject.relationships)
+      expect(updatedProject.createdAt).toBe(originalProject.createdAt)
     })
   })
 })
