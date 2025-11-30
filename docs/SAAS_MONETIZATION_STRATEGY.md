@@ -41,6 +41,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** Developer tools, indie hackers, validation phase
 
 **Pros:**
+
 - Cheapest MoR on market (5% flat fee)
 - Open source, developer-friendly
 - Modern API and beautiful checkout UX
@@ -50,6 +51,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 - User feedback: "smoothest, most developer-friendly payment integration"
 
 **Cons:**
+
 - Newer platform (less proven than Paddle/FastSpring)
 - Smaller ecosystem
 - Seat-based pricing in private beta
@@ -65,6 +67,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** Small businesses, creators, solopreneurs
 
 **Pros:**
+
 - Acquired by Stripe (July 2024) - stable/trusted
 - 5% + 50¢ per transaction (competitive)
 - Large ecosystem of boilerplates (SaasterKit, etc.)
@@ -72,6 +75,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 - 950+ websites currently using it
 
 **Cons:**
+
 - Stripe acquisition causing integration uncertainty
 - Some users report slower feature development post-acquisition
 - Cannot migrate subscriptions out (lock-in concern)
@@ -79,6 +83,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Pricing:** 5% + 50¢ per transaction
 
 **Examples:**
+
 - Canvas Supply (Framer templates)
 - Notion template creator ($110k+/month)
 - 950+ SaaS products
@@ -90,6 +95,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** B2B/enterprise SaaS from day one
 
 **Pros:**
+
 - Better enterprise invoicing and multi-currency
 - Proven at scale with larger SaaS companies
 - Strong B2B credibility
@@ -97,6 +103,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 - Independent vendor (no acquisition uncertainty)
 
 **Cons:**
+
 - Higher fees: 5% + 50¢ + 3% non-domestic currency = ~8%+
 - More enterprise-oriented (might be overkill for validation)
 
@@ -111,12 +118,14 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** Ultra-simple validation (then migrate away)
 
 **Pros:**
+
 - Dead simple setup (hours, not days)
 - Built-in marketplace (Discover feature)
 - No coding required
 - Now acts as MoR (as of Jan 2025)
 
 **Cons:**
+
 - **10% + 50¢ fee** (double competitors!)
 - Limited SaaS features
 - **Cannot migrate subscriptions** if you outgrow it
@@ -133,12 +142,14 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** B2B software with enterprise sales motion
 
 **Pros:**
+
 - Built specifically for B2B SaaS/software companies
 - Sales team features (quotes, custom invoices, POs, net-30 terms)
 - "Most extensive B2B features of any MoR"
 - Handles complex enterprise scenarios
 
 **Cons:**
+
 - Overkill for solo founder starting out
 - Higher fees than Lemon Squeezy/Polar
 - Contact sales for pricing (no transparent pricing)
@@ -154,12 +165,14 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** Maximum control, long-term cost optimization
 
 **Pros:**
+
 - Cheapest at scale: Stripe 2.9% + 30¢
 - Complete control over UX
 - Supabase Auth simpler than before
 - Auth + database + storage bundled
 
 **Cons:**
+
 - **You handle tax compliance** (VAT, sales tax - complex!)
 - Edge functions for webhooks (previous pain point)
 - More ongoing maintenance
@@ -180,6 +193,7 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** Drop-in auth, B2B SaaS, fast validation
 
 **Features:**
+
 - Pre-built beautiful UI components (`<SignIn>`, `<UserButton>`, `<OrganizationSwitcher>`)
 - Multi-tenancy built-in via Organizations
 - SSO/SAML support (enterprise-ready)
@@ -187,12 +201,14 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 - 10k MAU free tier
 
 **Pricing:**
+
 - Free: 10k MAU
 - Pro: Starts ~$25/mo
 
 **Multi-tenancy:** Built-in Organizations feature significantly reduces custom development work
 
 **Examples:**
+
 - Bucket.co (feature management tool)
 - Multiple Next.js SaaS startups
 
@@ -203,22 +219,26 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 **Best for:** Database-integrated apps, cost optimization at scale
 
 **Features:**
+
 - Free tier: 50k MAU (100k on Pro plan)
 - Bundled with database, storage, edge functions
 - Row Level Security (RLS) for fine-grained authorization
 - Need to build your own UI components
 
 **Pricing:**
+
 - Free: 50k MAU
 - Pro: $25/mo (includes database, storage, etc.)
 
 **Multi-tenancy:** Requires custom implementation
 
 **Pros:**
+
 - Cheaper at scale if you need database anyway
 - Complete control over UX
 
 **Cons:**
+
 - No pre-built UI components
 - SSO/SAML requires custom setup
 - Steeper learning curve for RLS
@@ -247,12 +267,14 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 Based on indie hacker community research and analysis of successful solo projects:
 
 **90% of solo founders use privacy-first analytics:**
+
 - Simple Analytics, Plausible, or Fathom
 - Cheap ($9-19/mo), simple, privacy-compliant
 - No cookies, GDPR-compliant out-of-the-box
 - Just track: traffic, conversions, basic goals
 
 **10% add product analytics later:**
+
 - PostHog or Mixpanel
 - Only after they have paying customers
 - When they need to optimize features, not just track visits
@@ -264,6 +286,7 @@ Based on indie hacker community research and analysis of successful solo project
 ### Polar Dashboard (Built-in)
 
 **Included with Polar.sh:**
+
 - Transaction analytics
 - Revenue metrics (MRR, ARR, growth)
 - Conversion tracking
@@ -281,6 +304,7 @@ Based on indie hacker community research and analysis of successful solo project
 **Best for:** Solo founders in validation phase (most common choice)
 
 **Features:**
+
 - Privacy-first (no cookies, GDPR-compliant)
 - Lightweight script (77x smaller than Google Analytics)
 - Custom event tracking (like EventCatalog uses)
@@ -291,6 +315,7 @@ Based on indie hacker community research and analysis of successful solo project
 **Pricing:** $9/mo (10k visitors) → $49/mo (1M visitors)
 
 **Why solo founders choose this:**
+
 - ✅ Simple setup (drop-in script)
 - ✅ Privacy-compliant (no consent banners)
 - ✅ Cheap and predictable pricing
@@ -304,6 +329,7 @@ Based on indie hacker community research and analysis of successful solo project
 **Best for:** Similar to Simple Analytics, slightly more popular
 
 **Features:**
+
 - Lightweight, no cookies
 - Beautiful single dashboard
 - GDPR compliant
@@ -313,6 +339,7 @@ Based on indie hacker community research and analysis of successful solo project
 **Pricing:** $9/mo (10k pageviews)
 
 **Why choose this:**
+
 - Most mentioned in indie hacker community
 - Quote: *"It's pretty simple, but honestly it's got everything I need"*
 - Self-hosted option available (Plausible CE)
@@ -324,6 +351,7 @@ Based on indie hacker community research and analysis of successful solo project
 **Best for:** Simplicity + real-time analytics
 
 **Features:**
+
 - Privacy-first (no cookies)
 - 2kB script size
 - Real-time analytics
@@ -332,6 +360,7 @@ Based on indie hacker community research and analysis of successful solo project
 **Pricing:** $14/mo (100k pageviews)
 
 **Why choose this:**
+
 - Used by levelsio (Nomadlist founder - $74k MRR solo)
 - Slightly more expensive but highly polished
 - EU-compliant out of the box
@@ -343,6 +372,7 @@ Based on indie hacker community research and analysis of successful solo project
 **Best for:** Product analytics when optimizing features (not for validation phase)
 
 **Features:**
+
 - Web analytics + product analytics
 - Session replay (watch user sessions)
 - A/B testing
@@ -352,16 +382,19 @@ Based on indie hacker community research and analysis of successful solo project
 - Data warehouse
 
 **Pricing:**
+
 - Free: 1M events/month
 - Pay-as-you-go after free tier
 
 **When to add this:**
+
 - ✅ After you have 100+ paying customers
 - ✅ When you need to decide which features to build next
 - ✅ When you want to A/B test pricing ($299 vs $249)
 - ✅ When you need session replay to debug UX issues
 
 **Why NOT for Phase 1:**
+
 - ❌ More complex than you need initially
 - ❌ Steeper learning curve
 - ❌ Overkill when you just need traffic + conversions
@@ -373,6 +406,7 @@ Based on indie hacker community research and analysis of successful solo project
 ### Primary Recommendation: Polar.sh + Clerk + Simple Analytics ⭐
 
 **Stack:**
+
 - **Payments:** Polar.sh (5% fee, merchant of record)
 - **Auth:** Clerk (drop-in components, multi-tenancy ready)
 - **Analytics:** Simple Analytics ($9/mo)
@@ -397,17 +431,20 @@ Based on indie hacker community research and analysis of successful solo project
 **If you prefer something else:**
 
 **Option A: Plausible instead of Simple Analytics**
+
 - Same price ($9/mo)
 - More popular in indie hacker community
 - Open-source self-hosted option available
 
 **Option B: Polar + Clerk only (no external analytics initially)**
+
 - Wait until you have 10+ paying customers
 - Polar shows conversions, Clerk shows signups
 - Add Simple Analytics later when you need more insights
 - **Cheapest option:** $0 extra cost
 
 **Option C: Add PostHog for power users**
+
 - If you need A/B testing from day 1
 - If you want session replay to debug issues
 - Free tier (1M events/month)
@@ -418,12 +455,14 @@ Based on indie hacker community research and analysis of successful solo project
 ### Payment Platform Alternatives
 
 **Lemon Squeezy instead of Polar:**
+
 - More proven platform (Stripe-backed)
 - Larger ecosystem (more boilerplates, tutorials)
 - Same pricing as Polar (5% + 50¢)
 - **Trade-off:** Stripe acquisition uncertainty vs Polar's independence
 
 **Paddle for enterprise focus:**
+
 - Better invoicing, PO support, net-30 terms
 - More enterprise credibility
 - Slightly higher fees (~8%) worth it for B2B
@@ -437,6 +476,7 @@ Based on indie hacker community research and analysis of successful solo project
 Clerk provides **built-in multi-tenancy** via Organizations feature:
 
 **What you get out-of-the-box:**
+
 - `<OrganizationSwitcher />` - users create/switch teams
 - `<OrganizationProfile />` - manage team members, send invites
 - Role-based access control (admin, member, guest)
@@ -454,6 +494,7 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 #### Option A: Seat-Based Pricing (Ideal for Team tier)
 
 **How it works:**
+
 1. Customer buys "Team plan - 5 seats" for $999/year
 2. Polar provides billing manager interface
 3. Billing manager assigns seats to team members by email
@@ -463,6 +504,7 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 **Status:** Private beta (need to request access)
 
 **Pros:**
+
 - Polar handles seat management UI
 - Dynamic add/remove seats with proration
 - Scales revenue with team size
@@ -472,6 +514,7 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 #### Option B: Organization-Level Subscription (Available Now)
 
 **How it works:**
+
 1. Customer buys "Team plan" subscription via Polar
 2. Create Clerk Organization for them
 3. Org admin invites unlimited team members via Clerk UI
@@ -479,12 +522,14 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 5. Validate: `user.orgId` → check subscription in metadata
 
 **Pros:**
+
 - Available immediately (no beta access needed)
 - Simpler pricing (unlimited seats)
 - Easier to sell ("bring your whole team")
 - Less customer support burden
 
 **Cons:**
+
 - No per-seat revenue scaling
 
 **Recommendation:** Start with unlimited seats, switch to per-seat if teams average 20+ people
@@ -495,7 +540,7 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 
 **Simple serverless function flow:**
 
-```
+```text
 1. Customer buys Team plan on Polar
    ↓
 2. Polar webhook → your Vercel/Cloudflare function
@@ -529,6 +574,7 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 ### Current State: IndexedDB (Browser-Based)
 
 **Current architecture:**
+
 - All data stored in browser IndexedDB
 - Client-side only, no server
 - Works offline
@@ -552,7 +598,8 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 **Pattern:** Cloud-first with offline fallback
 
 **Architecture:**
-```
+
+```text
 Free Tier:
 └─ IndexedDB only (no sync, local-only)
 
@@ -588,6 +635,7 @@ Team Tier:
 **Pattern:** IndexedDB + managed cloud sync service
 
 **How it works:**
+
 - Keep using IndexedDB via Dexie.js wrapper
 - Dexie Cloud handles sync/auth/multi-user automatically
 - Minimal code changes from current setup
@@ -613,6 +661,7 @@ Team Tier:
 **Pattern:** Peer-to-peer collaboration with conflict-free data types
 
 **How it works:**
+
 - Refactor data model to Yjs CRDT format
 - IndexedDB for offline persistence (y-indexeddb)
 - WebSocket server for real-time sync
@@ -638,12 +687,14 @@ Team Tier:
 **Pattern:** Different pricing model to avoid multi-user problem
 
 **How it works:**
+
 - Keep current IndexedDB architecture
 - Only offer **single-user licenses** (no team tier)
 - Add cloud export/backup features
 
 **Tiers:**
-```
+
+```text
 Free: View-only, IndexedDB only
 
 Pro ($299/year per user):
@@ -676,6 +727,7 @@ Enterprise ($5k/year):
 ### Phase 1: Launch with IndexedDB-only (Initial Release)
 
 **What to build:**
+
 1. Integrate Polar.sh for payments
 2. Add Clerk authentication
 3. Implement feature gates (Free vs Pro tiers)
@@ -683,6 +735,7 @@ Enterprise ($5k/year):
 5. Deploy webhook handler (Vercel function) for Polar → Clerk sync
 
 **Tiers:**
+
 - **Free:** View-only mode, IndexedDB
 - **Pro ($299/year):** Full editing + export, IndexedDB
 
@@ -696,11 +749,13 @@ Enterprise ($5k/year):
 ### Phase 2: Validate Demand (Early Adoption Period)
 
 **Goals:**
+
 - Get first 10 paying customers
 - Survey customers: "Would you pay more for team collaboration?"
 - Track feature requests
 
 **Decision criteria:**
+
 - If >50% ask for team features → proceed to Phase 3
 - If <20% ask for teams → stay single-user
 - If customers want "share projects" but not real-time → add export/import only
@@ -718,6 +773,7 @@ Enterprise ($5k/year):
 ### Phase 4: Enterprise Features (After $50k ARR)
 
 **If enterprise customers appear:**
+
 - Self-hosted deployment option
 - SSO/SAML (already have via Clerk)
 - Custom contracts, invoicing
@@ -727,9 +783,61 @@ Enterprise ($5k/year):
 
 ## Pricing Strategy
 
+### 3-Tier vs 4-Tier Model Decision
+
+Before defining tiers, consider whether a Team tier is necessary. Penpot (a comparable open-source design tool) uses only 3 tiers: Free → Professional → Enterprise, with no separate Team tier.
+
+#### 3-Tier Model (Penpot-style: Free/Pro/Enterprise)
+
+**Pros:**
+
+- Simpler pricing story - easier for customers to understand and choose
+- Lower decision friction - no "should I get Team or Enterprise?" confusion
+- Collaboration as default - makes the product feel more generous/modern
+- Less infrastructure complexity - one collaboration tier to build, not two
+- Easier marketing - "Pro includes your whole team" is compelling
+
+**Cons:**
+
+- Leaves money on table - teams of 20+ pay same as teams of 3
+- No revenue scaling - flat price regardless of organization size
+- Enterprise jump is steep - $299/year → $950/mo is a big gap
+- May attract tire-kickers - unlimited seats could attract teams who won't pay for Enterprise later
+
+#### 4-Tier Model (Free/Pro/Team/Enterprise)
+
+**Pros:**
+
+- Revenue scales with usage - larger teams pay more
+- Gradual upgrade path - $299 → $999 → $5k+ feels natural
+- Pricing flexibility - can experiment with per-seat vs flat team pricing
+- Captures mid-market - teams too small for Enterprise but willing to pay more than Pro
+- Validates demand - Team tier acts as signal for collaboration feature demand
+
+**Cons:**
+
+- More complex pricing page - customers must compare 4 options
+- Feature allocation headaches - what goes in Team vs Enterprise?
+- More infrastructure - potentially different collaboration/sync implementations per tier
+- Cannibalizes Enterprise - some customers buy Team when they'd have paid Enterprise
+
+#### Decision Guide
+
+| If you value... | Choose |
+|-----------------|--------|
+| Simplicity & speed to market | 3-tier |
+| Revenue maximization | 4-tier |
+| Validation-first (stated goal) | 3-tier |
+| Enterprise sales motion | 4-tier |
+
+**Recommendation:** Given the validation-first philosophy, start with 3 tiers (Free/Pro/Enterprise). Add a Team tier later only if customers explicitly demand pricing between Pro and Enterprise.
+
+---
+
 ### Recommended Tiers
 
 #### Free Tier
+
 - **Price:** $0
 - **Features:**
   - View-only mode
@@ -744,6 +852,7 @@ Enterprise ($5k/year):
 ---
 
 #### Pro Tier (Solo)
+
 - **Price:** $299/year (~$25/month annual)
 - **Target:** Individual software architects, consultants
 - **Features:**
@@ -757,6 +866,7 @@ Enterprise ($5k/year):
 ---
 
 #### Team Tier (Later - Phase 3+)
+
 - **Price:** $999/year (unlimited seats)
   - OR $199/year per seat (5 seat minimum)
 - **Target:** Architecture teams, consulting firms
@@ -772,6 +882,7 @@ Enterprise ($5k/year):
 ---
 
 #### Enterprise Tier (Later - After validation)
+
 - **Price:** Custom ($5k-50k/year)
 - **Target:** Large enterprises, regulated industries
 - **Features:**
@@ -785,12 +896,12 @@ Enterprise ($5k/year):
 
 ---
 
-
 ## Cost Analysis
 
 ### Monthly Recurring Costs
 
 **Phase 1 (Validation - first 100 users):**
+
 - Clerk: $0 (free tier up to 10k MAU)
 - Polar.sh: $0 monthly fee
 - Simple Analytics: $9/mo (10k visitors)
@@ -798,6 +909,7 @@ Enterprise ($5k/year):
 - **Total: $9/month**
 
 **Phase 2 (Growing - 500 users):**
+
 - Clerk: $25-50/mo (exceeds free tier)
 - Polar.sh: $0 monthly fee
 - Simple Analytics: $9-19/mo (still within tier)
@@ -805,6 +917,7 @@ Enterprise ($5k/year):
 - **Total: ~$34-69/month**
 
 **Phase 3 (With multi-tenancy - 2k users):**
+
 - Clerk: $50-100/mo
 - Polar.sh: $0 monthly fee
 - Simple Analytics: $19-29/mo
@@ -818,6 +931,7 @@ Enterprise ($5k/year):
 ### Transaction Costs
 
 **Polar.sh pricing:**
+
 - 5% Polar fee
 - ~3% payment processing (Stripe/PayPal)
 - **Total: ~8% per transaction**
@@ -836,6 +950,7 @@ Enterprise ($5k/year):
 ### Cost Comparison: Turnkey vs DIY
 
 **Turnkey (Polar + Clerk + Simple Analytics) at $50k ARR:**
+
 - Transaction fees: $4,000/year (8%)
 - Platform costs: $408/year (Clerk + Simple Analytics)
 - Development effort: Minimal
@@ -843,6 +958,7 @@ Enterprise ($5k/year):
 - **Your time saved: Significant (avoids custom implementation)**
 
 **DIY (Stripe + custom auth) at $50k ARR:**
+
 - Stripe fees: $1,450/year (2.9%)
 - Stripe Tax: $500/year (for compliance)
 - Supabase: $300/year
@@ -945,6 +1061,7 @@ Enterprise ($5k/year):
 EventCatalog (3.5k+ stars, solo founder project) uses Simple Analytics with this approach:
 
 **Code structure:**
+
 ```javascript
 // src/analytics/analytics.js
 import axios from 'axios';
@@ -967,11 +1084,13 @@ export const trackEvent = async (eventName, metadata = {}) => {
 ```
 
 **Events they track:**
+
 - Page views (automatic)
 - Custom events: user actions, feature usage
 - Metadata: timestamp, user agent, platform
 
 **Key lessons:**
+
 - ✅ Simple POST requests (no complex SDK)
 - ✅ Error handling that doesn't break UX
 - ✅ Custom event tracking for conversions
@@ -983,51 +1102,55 @@ export const trackEvent = async (eventName, metadata = {}) => {
 
 ### Example Boilerplates Using Similar Stack
 
-**SaasterKit** - Next.js + Clerk + Lemon Squeezy
-https://github.com/leandroercoli/SaasterKit
+**SaasterKit** - Next.js + Clerk + Lemon Squeezy: <https://github.com/leandroercoli/SaasterKit>
 
-**Supastarter** - Next.js + Clerk + Lemon Squeezy/Polar/Stripe
-https://supastarter.dev
+**Supastarter** - Next.js + Clerk + Lemon Squeezy/Polar/Stripe: <https://supastarter.dev>
 
-**Pipedream Integration** - Auto-sync Lemon Squeezy/Polar → Clerk
-https://pipedream.com/apps/lemon-squeezy/integrations/clerk
+**Pipedream Integration** - Auto-sync Lemon Squeezy/Polar → Clerk: <https://pipedream.com/apps/lemon-squeezy/integrations/clerk>
 
 ---
 
 ## Resources
 
 **Polar.sh:**
-- Homepage: https://polar.sh
-- Docs: https://docs.polar.sh
-- Seat-based pricing: https://polar.sh/docs/features/seat-based-pricing
+
+- Homepage: <https://polar.sh>
+- Docs: <https://docs.polar.sh>
+- Seat-based pricing: <https://polar.sh/docs/features/seat-based-pricing>
 
 **Clerk:**
-- Homepage: https://clerk.com
-- Multi-tenancy guide: https://clerk.com/articles/multi-tenancy-in-react-applications-guide
-- Organizations docs: https://clerk.com/docs/guides/multi-tenant-architecture
+
+- Homepage: <https://clerk.com>
+- Multi-tenancy guide: <https://clerk.com/articles/multi-tenancy-in-react-applications-guide>
+- Organizations docs: <https://clerk.com/docs/guides/multi-tenant-architecture>
 
 **Simple Analytics:**
-- Homepage: https://simpleanalytics.com
-- Docs: https://docs.simpleanalytics.com
-- Event tracking API: https://docs.simpleanalytics.com/events
-- EventCatalog implementation: https://github.com/event-catalog/eventcatalog/blob/main/src/analytics/analytics.js
+
+- Homepage: <https://simpleanalytics.com>
+- Docs: <https://docs.simpleanalytics.com>
+- Event tracking API: <https://docs.simpleanalytics.com/events>
+- EventCatalog implementation: <https://github.com/event-catalog/eventcatalog/blob/main/src/analytics/analytics.js>
 
 **Alternative Analytics:**
-- Plausible: https://plausible.io
-- Fathom: https://usefathom.com
-- PostHog: https://posthog.com
+
+- Plausible: <https://plausible.io>
+- Fathom: <https://usefathom.com>
+- PostHog: <https://posthog.com>
 
 **Dexie Cloud:**
-- Homepage: https://dexie.org
-- Cloud sync: https://dexie.org (see "Dexie Cloud" section)
+
+- Homepage: <https://dexie.org>
+- Cloud sync: <https://dexie.org> (see "Dexie Cloud" section)
 
 **Supabase + RxDB:**
-- RxDB-Supabase plugin: https://rxdb.info/replication-supabase.html
-- PowerSync (alternative): https://www.powersync.com
+
+- RxDB-Supabase plugin: <https://rxdb.info/replication-supabase.html>
+- PowerSync (alternative): <https://www.powersync.com>
 
 **Yjs:**
-- Homepage: https://yjs.dev
-- Docs: https://docs.yjs.dev
+
+- Homepage: <https://yjs.dev>
+- Docs: <https://docs.yjs.dev>
 
 ---
 
@@ -1095,7 +1218,7 @@ When selling to financial institutions and large enterprises:
 - **Pricing**: Free (open source)
 - **Features**: Embeddable UI, Kubernetes-ready, searchable/exportable logs
 - **Why needed**: SOC 2, SOX, GLBA compliance all require audit trails
-- **GitHub**: https://github.com/retracedhq/retraced
+- **GitHub**: <https://github.com/retracedhq/retraced>
 
 #### SOC 2 Compliance Automation
 
@@ -1193,7 +1316,5 @@ Based on research, simplified flat pricing with capped monthly costs:
 - [Enterprise Ready Audit Log Guide](https://www.enterpriseready.io/features/audit-log/)
 
 ---
-
-**End of Document**
 
 *Last updated: 2025-01-29*
