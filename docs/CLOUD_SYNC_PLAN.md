@@ -12,18 +12,25 @@ Add real-time cloud sync to ContextFlow using the proven EventStormer architectu
 
 ## Plan Review Summary (2024-12)
 
-This plan was reviewed from three perspectives: Technical Architecture, Risk/Feasibility, and UX/Product. Key findings incorporated:
+This plan was reviewed and revised to adopt a **cloud-only architecture**. Key decisions:
+
+### Key Decision: Cloud-Only (No Local/Cloud Split)
+
+The original plan proposed dual-mode (local + cloud projects). After review, this was **rejected** in favor of cloud-only:
+
+| Approach | Complexity | Decision |
+|----------|------------|----------|
+| Dual-mode (local + cloud) | Two code paths, two undo systems, 2x tests | ❌ Rejected |
+| Cloud-only | Single code path, Y.UndoManager, simpler | ✅ Adopted |
+
+All projects sync via Yjs. IndexedDB serves as an offline cache only. Existing users get automatic migration.
 
 ### Key Decision: No Dexie Dependency
-
-The original plan proposed adding Dexie for IndexedDB management. After review, this was **rejected**:
 
 | Approach | Bundle Size | Complexity | Decision |
 |----------|-------------|------------|----------|
 | Dexie (proposed) | +30KB gzipped | Two databases, new schema | ❌ Rejected |
-| Extend persistence.ts | +0KB | Single database, extend schema | ✅ Adopted |
-
-The existing `persistence.ts` is minimal (~90 lines), working, and sufficient. For cloud projects, Yjs is the source of truth - IndexedDB is just an offline cache.
+| Simple Yjs cache | +0KB | Single cache purpose | ✅ Adopted |
 
 ### Architecture Validated by EventStormer
 
@@ -33,23 +40,12 @@ The core stack is already proven in production by EventStormer (`~/Documents/Eve
 - **Durable Objects persistence**: Yjs state survives restarts automatically ✅
 - **Bundle size**: ~60KB gzipped (yjs + y-partyserver) ✅
 
-### Architectural Additions
+### Key Simplifications from Cloud-Only
 
-1. **Mutation Routing Abstraction** - Single code path for local/cloud mutations to prevent logic divergence
-2. **Undo/Redo Simplified** - Disabled for cloud projects in Phase 1 (too complex), added to Phase 2
-3. **Comprehensive UX Flows** - Added user journeys, UI wireframes, error states
-
-### Test Scenarios Expanded
-
-Added 8 new test scenarios covering:
-
-- Concurrent text field editing
-- Extended offline periods
-- Serialization round-trip
-- Browser crash recovery
-- Import/export atomicity
-- Multi-tab sync
-- Concurrent delete operations
+1. **Single mutation path** - All changes go through Yjs
+2. **Y.UndoManager from day 1** - Delete ~400 lines of manual undo/redo code
+3. **Automatic migration** - Existing IndexedDB projects migrate seamlessly
+4. **Simplified UI** - No local/cloud choice, just projects with share buttons
 
 ---
 
@@ -133,94 +129,25 @@ These items should be tested during Step 3, not as blockers:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Key architectural principle:** Yjs is the single source of truth for cloud projects. Zustand is a read-only projection updated via Yjs observers. This prevents race conditions and ensures consistent behavior for local and remote changes.
-
-## Local Projects vs Cloud Projects
-
-### Local Projects (Current Behavior, Unchanged)
-
-**How it works:**
-- Data stored in browser's IndexedDB
-- No network required
-- Only accessible on that specific browser/device
-- Works offline 100%
-
-**Use cases:**
-1. **Quick experimentation** - "I just want to try out the tool"
-2. **Sensitive data** - "I can't put this architecture diagram on a third-party server"
-3. **No account wanted** - "I don't want to create an account"
-4. **Offline work** - "I'm on a plane/train with no internet"
-5. **Free tier users** - If we later gate cloud sync behind payment
-
-**Limitations:**
-- Can't access from another device
-- Data lost if browser cache cleared
-- No collaboration
-- Manual export/import to share
+**Key architectural principle:** Yjs is the single source of truth. Zustand is a read-only projection updated via Yjs observers. This prevents race conditions and ensures consistent behavior for local and remote changes.
 
 ---
 
-### Cloud Projects (New)
+## Why Cloud-Only Architecture
 
-**How it works:**
-- Data stored on Cloudflare Durable Objects (via Yjs)
-- Syncs in real-time across all connected browsers
-- Accessible via shareable URL (e.g., `contextflow.app/p/abc123`)
-- Local cache for offline resilience (edits sync when reconnected)
+This plan adopts a **cloud-only** approach where all projects sync via Yjs. This simplifies the architecture significantly:
 
-**Use cases:**
-1. **Multi-device access** - "Work on laptop at office, continue on desktop at home"
-2. **Workshop collaboration** - "My team is building a context map together"
-3. **Instructor observation** - "I want to watch my students' progress"
-4. **Client sharing** - "Here's the link to our architecture diagram"
-5. **Backup/durability** - "I don't want to lose this if I clear my browser"
+| Aspect | Dual-Mode (Rejected) | Cloud-Only (Adopted) |
+|--------|---------------------|----------------------|
+| Mutation code paths | Two (local + cloud) | One |
+| Undo/redo systems | Two (Zustand + Yjs) | One (Y.UndoManager) |
+| Test scenarios | 2x (every feature tested twice) | 1x |
+| Persistence layer | Dual-purpose IndexedDB | Simple Yjs cache |
+| Migration code | Convert local↔cloud | One-time auto-migration |
 
-**Limitations:**
-- Requires internet for initial load
-- Data on third-party server (privacy consideration)
-- May require account later (for auth/payment gating)
+**Offline support is unchanged:** Yjs + IndexedDB caching provides the same offline resilience. Users can edit offline and changes sync when reconnected.
 
----
-
-### How They Coexist
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Project Switcher                       │
-├─────────────────────────────────────────────────────────┤
-│  LOCAL PROJECTS                                         │
-│  ├── My Architecture Draft        [local icon]          │
-│  └── Confidential Client Map      [local icon]          │
-│                                                         │
-│  CLOUD PROJECTS                                         │
-│  ├── Team Workshop Map            [cloud icon] [share]  │
-│  └── DDD Training Exercise        [cloud icon] [share]  │
-│                                                         │
-│  [+ New Local Project]  [+ New Cloud Project]           │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Key behaviors:**
-- User explicitly chooses local vs cloud when creating
-- Can "Convert to Cloud" (copies local → cloud)
-- Can "Export to Local" (downloads cloud → imports as local)
-- Both types use same `Project` data structure
-- Same editing UI for both
-
----
-
-### When to Use Which?
-
-| Scenario | Recommended |
-|----------|-------------|
-| "Just trying the tool" | Local |
-| "Working alone, one device" | Local (simpler) |
-| "Working alone, multiple devices" | Cloud |
-| "Team collaboration" | Cloud |
-| "Workshop/training" | Cloud |
-| "Sensitive/confidential data" | Local |
-| "No internet available" | Local |
-| "Want backup/durability" | Cloud |
+**Privacy approach:** Following industry standard (Miro, Figma, Notion) - data storage covered by Terms of Service and privacy policy, no special consent dialog.
 
 ---
 
@@ -282,58 +209,36 @@ npm install -D wrangler
 - Create two separate IndexedDB databases to maintain
 - Add complexity without clear benefit for cloud sync
 
-### 1.3 Extended Persistence Layer (No New Dependencies)
+### 1.3 Persistence Layer (Yjs Offline Cache)
 
-**Decision:** Extend existing `src/model/persistence.ts` instead of replacing it.
-
-**Rationale:**
-
-- For cloud projects, Yjs is the source of truth - IndexedDB is just an offline cache
-- For local projects, current persistence works perfectly
-- Single database, single schema, simpler migration
-
-**Extend existing schema:**
+IndexedDB serves as an offline cache for Yjs state. The existing `persistence.ts` is simplified:
 
 ```typescript
-// In persistence.ts - add these fields to existing ProjectRecord
-interface ProjectRecord {
-  id: string;
-  data: Project;
-  isCloud: boolean;           // NEW: true = cloud project, false = local
-  yjsStateVector?: Uint8Array; // NEW: optional offline cache for Yjs state
-  lastSyncedAt?: string;       // NEW: when cloud project was last synced
+// Simplified schema - just caching Yjs state
+interface YjsCacheRecord {
+  projectId: string;
+  yjsState: Uint8Array;      // Yjs document state
+  lastSyncedAt: string;       // When last synced to cloud
 }
-```
 
-**New helper functions to add:**
-```typescript
 // Cache Yjs state for offline resilience
-async function saveCachedYjsState(projectId: string, ydoc: Y.Doc): Promise<void> {
+async function cacheYjsState(projectId: string, ydoc: Y.Doc): Promise<void> {
   const state = Y.encodeStateAsUpdate(ydoc);
-  const project = await loadProject(projectId);
-  if (project) {
-    await saveProject({
-      ...project,
-      yjsStateVector: state,
-      lastSyncedAt: new Date().toISOString()
-    });
-  }
+  await db.put('yjs-cache', { projectId, yjsState: state, lastSyncedAt: new Date().toISOString() });
 }
 
 // Restore from cache when reconnecting
 async function loadCachedYjsState(projectId: string): Promise<Uint8Array | null> {
-  const project = await loadProject(projectId);
-  return project?.yjsStateVector ?? null;
+  const record = await db.get('yjs-cache', projectId);
+  return record?.yjsState ?? null;
 }
 ```
 
-**Benefits of this approach:**
+**Benefits:**
 
-- ✅ Zero changes to local project persistence
-- ✅ Single database, consistent schema
-- ✅ Simpler migration path
-- ✅ Offline support without new dependencies
-- ✅ Saves ~30KB bundle size
+- Yjs is the single source of truth
+- IndexedDB is purely an offline cache
+- No dual-purpose schema complexity
 
 ### 1.4 Collaboration Store
 
@@ -352,86 +257,7 @@ This is the major refactor. Key responsibilities:
 3. Yjs observation → Zustand state updates
 4. All mutations go through Yjs (which then syncs)
 
-### 1.5 Mutation Routing Abstraction
-
-**Critical design decision:** All mutations must route through a single abstraction that handles both local and cloud projects.
-
-**Problem:** Without this, we'd have duplicate mutation logic:
-
-- Local projects: mutate Zustand directly
-- Cloud projects: mutate Yjs, let observer update Zustand
-- Risk: Logic diverges, bugs fixed in one path but not the other
-
-**Solution:** Create `src/model/mutation.ts`:
-
-```typescript
-export type MutationTarget = 'local' | 'cloud';
-
-export interface MutationContext {
-  target: MutationTarget;
-  projectId: string;
-  ydoc?: Y.Doc;  // Only populated if target is 'cloud'
-}
-
-// All action functions use this instead of direct Zustand mutation
-export function applyMutation<T>(
-  context: MutationContext,
-  mutator: (project: Project) => Project
-): void {
-  if (context.target === 'local') {
-    // Apply to Zustand directly, trigger autosave
-    useEditorStore.setState((state) => {
-      const project = state.projects[context.projectId];
-      const updated = mutator(project);
-      return {
-        projects: { ...state.projects, [context.projectId]: updated }
-      };
-    });
-  } else {
-    // Apply to Yjs, observer will update Zustand
-    context.ydoc!.transact(() => {
-      const project = yjsToProject(context.ydoc!);
-      const updated = mutator(project);
-      projectToYjs(updated, context.ydoc!);
-    });
-  }
-}
-```
-
-**Refactoring existing actions:**
-
-```typescript
-// Before (current code in contextActions.ts)
-export function updateContextAction(state: EditorState, contextId: string, updates: Partial<BoundedContext>) {
-  // Direct Zustand mutation
-  return { projects: { ...state.projects, [projectId]: updatedProject } };
-}
-
-// After (unified mutation)
-export function updateContext(context: MutationContext, contextId: string, updates: Partial<BoundedContext>) {
-  applyMutation(context, (project) => ({
-    ...project,
-    contexts: project.contexts.map(c =>
-      c.id === contextId ? { ...c, ...updates } : c
-    )
-  }));
-}
-```
-
-**All mutation entry points to refactor:**
-
-| Entry Point | Current Location | Refactor Needed |
-|-------------|------------------|-----------------|
-| Add context | `contextActions.ts` | Use `applyMutation` |
-| Update context | `contextActions.ts` | Use `applyMutation` |
-| Delete context | `contextActions.ts` | Use `applyMutation` + cascade |
-| Add relationship | `relationshipActions.ts` | Use `applyMutation` |
-| Delete relationship | `relationshipActions.ts` | Use `applyMutation` |
-| Update group | `groupActions.ts` | Use `applyMutation` |
-| Drag context (position) | `store.ts` | Use `applyMutation` |
-| Inspector field edit | Various components | Use `applyMutation` |
-
-### 1.7 Data Model Mapping to Yjs
+### 1.5 Data Model Mapping to Yjs
 
 **Project structure in Yjs:**
 ```typescript
@@ -460,7 +286,7 @@ yproject.set("temporal", Y.Map);
 
 **Modifications to existing:**
 
-- `ProjectSwitcher` - distinguish local vs cloud projects
+- `ProjectSwitcher` - simplified project list with share buttons
 - `App.tsx` - initialize collaboration on project load
 
 ### 1.9 URL Scheme for Shareable Projects
@@ -486,16 +312,20 @@ VITE_COLLAB_HOST=contextflow-collab.youraccount.workers.dev  # production
 VITE_COLLAB_HOST=localhost:8787  # development
 ```
 
-### 1.11 Migration for Existing Users
+### 1.9 Automatic Migration for Existing Users
 
-Users have projects in current IndexedDB. Migration path:
+Users with projects in current IndexedDB get seamless migration:
 
-1. On app load, detect existing projects (all are local by default)
-2. User can "Convert to Cloud" via project menu (explicit action)
-3. "Convert to Cloud" creates new Yjs room, copies data, keeps local copy
-4. Mark converted projects with `isCloud: true` in extended schema
+1. On first app load after update, detect existing IndexedDB projects
+2. For each project: create cloud room, upload data, cache locally
+3. Show brief toast: "Your projects have been synced to the cloud"
+4. Delete old IndexedDB entries after successful migration
+5. If offline during migration: defer until next online session
 
-**Important:** No automatic migration. User explicitly chooses per-project.
+**Key behaviors:**
+- Migration is automatic and silent (no user action required)
+- Existing project URLs work (redirected to cloud version)
+- Built-in demo projects migrate like any other project
 
 ---
 
@@ -503,11 +333,12 @@ Users have projects in current IndexedDB. Migration path:
 
 | File | Change Type | Description |
 |------|-------------|-------------|
-| `src/model/store.ts` | Major refactor | Route cloud mutations through Yjs |
-| `src/model/persistence.ts` | Extend | Add `isCloud`, `yjsStateVector` fields |
-| `src/model/actions/*.ts` | Refactor | Add mutation routing for local vs cloud |
+| `src/model/store.ts` | Major refactor | Route all mutations through Yjs |
+| `src/model/persistence.ts` | Simplify | Replace with Yjs offline cache |
+| `src/model/undoRedo.ts` | Delete | Replace with Y.UndoManager |
+| `src/model/actions/*.ts` | Refactor | Mutations go through Yjs directly |
 | `src/App.tsx` | Modify | Initialize collaboration on mount, handle URL routing |
-| `src/components/ProjectSwitcher.tsx` | Modify | Show local vs cloud projects with visual distinction |
+| `src/components/ProjectSwitcher.tsx` | Modify | Single list of projects with share buttons |
 | `package.json` | Add deps | yjs, y-partyserver, wrangler |
 
 **New files:**
@@ -515,9 +346,8 @@ Users have projects in current IndexedDB. Migration path:
 - `workers/server.ts` - Cloudflare Worker with YjsRoom Durable Object
 - `wrangler.toml` - Cloudflare configuration
 - `src/model/useCollabStore.ts` - Yjs collaboration state management
-- `src/model/mutation.ts` - Unified mutation routing (local vs cloud)
 - `src/components/CloudStatusIndicator.tsx` - Connection status display
-- `src/components/ShareProjectDialog.tsx` - URL sharing with privacy warning
+- `src/components/ShareProjectDialog.tsx` - URL sharing
 
 ---
 
@@ -525,11 +355,10 @@ Users have projects in current IndexedDB. Migration path:
 
 ### Guiding Principles
 
-- **Feature flag everything** - cloud sync is opt-in, local mode unchanged
-- **Extend, don't replace** - add to existing persistence.ts, don't create parallel system
-- **Single source of truth** - Yjs owns cloud project data, Zustand is read-only projection
+- **Single source of truth** - Yjs owns all project data, Zustand is read-only projection
 - **Test on branch** - all work on feature branch, extensive testing before merge
 - **Protect import/export** - these must continue working throughout
+- **Automatic migration** - existing users get seamless transition
 
 ---
 
@@ -543,33 +372,28 @@ Users have projects in current IndexedDB. Migration path:
 
 ---
 
-### Step 2: Extend Persistence Layer (Non-Breaking)
+### Step 2: Persistence Layer (Yjs Cache)
 
-1. Add `isCloud`, `yjsStateVector`, `lastSyncedAt` fields to persistence.ts schema
-2. Add `saveCachedYjsState()` and `loadCachedYjsState()` helper functions
-3. Ensure backward compatibility: existing projects load without new fields
-4. Write tests for extended persistence layer
+1. Replace persistence.ts with simple Yjs cache functions
+2. Add `cacheYjsState()` and `loadCachedYjsState()` helper functions
+3. Write tests for cache layer
 
-**Key:** Single IndexedDB database with extended schema:
-
-- Existing projects work unchanged (new fields are optional)
-- Cloud projects use same storage with additional Yjs cache fields
-
-**Checkpoint:** Extended persistence works, existing projects still load correctly
+**Checkpoint:** Yjs cache works, can store and retrieve document state
 
 ---
 
-### Step 3: Collaboration Store (Isolated, Feature-Flagged)
-1. Create `useCollabStore.ts` as completely separate store
-2. Add environment variable: `VITE_ENABLE_CLOUD_SYNC=false` (default off)
-3. Implement `connectToProject()` / `disconnect()`
-4. Create conversion functions:
+### Step 3: Collaboration Store
+
+1. Create `useCollabStore.ts` for Yjs state management
+2. Implement `connectToProject()` / `disconnect()`
+3. Create conversion functions:
    - `projectToYjs(project: Project)` - serialize to Yjs
    - `yjsToProject(ydoc: Y.Doc)` - deserialize from Yjs
+4. Set up Y.UndoManager for undo/redo
 5. Write comprehensive tests for serialization round-trip
 6. Test real-time sync between two browser windows
 
-**Checkpoint:** Can create cloud project, sync works, existing projects untouched
+**Checkpoint:** Can create project, sync works, undo/redo works
 
 ---
 
@@ -577,13 +401,12 @@ Users have projects in current IndexedDB. Migration path:
 
 **4a: Contexts + Relationships (Core)**
 - These are the minimum for a useful sync
-- Refactor only cloud project mutations
-- Local projects continue using old code path
 - Write tests for:
   - Add/update/delete context syncs
   - Add/update/delete relationship syncs
   - Two browsers see same changes
   - Offline edit → reconnect → sync
+  - Undo/redo works across all operations
 
 **4b: Groups**
 - Add group sync to Yjs
@@ -605,7 +428,7 @@ Users have projects in current IndexedDB. Migration path:
 - [ ] All existing tests pass
 - [ ] New sync tests pass
 - [ ] Import/export still works
-- [ ] Local projects unchanged
+- [ ] Undo/redo works
 - [ ] Manual smoke test in browser
 
 ---
@@ -613,98 +436,87 @@ Users have projects in current IndexedDB. Migration path:
 ### Step 5: Import/Export Compatibility
 
 **Critical safety tests:**
-1. Export cloud project → JSON identical to local project export
-2. Import JSON → works as cloud project
-3. Import JSON → works as local project
-4. Export project from old app version → import in new version works
-5. Round-trip: export → import → export → compare (should be identical)
+1. Export project → valid JSON matching existing format
+2. Import JSON → creates cloud project, syncs immediately
+3. Export project from old app version → import in new version works
+4. Round-trip: export → import → export → compare (should be identical)
 
 **Implementation:**
 - Import/export operates on `Project` type (unchanged)
-- Cloud sync is orthogonal - just affects where `Project` is stored
-- Add "Import as cloud project" option in UI
+- Imported projects become cloud projects automatically
 
 ---
 
-### Step 6: UI Integration (Behind Feature Flag)
+### Step 6: UI Integration
 
-**Only visible when `VITE_ENABLE_CLOUD_SYNC=true`:**
 1. Add `CloudStatusIndicator` to header
-2. Add "New Cloud Project" option in ProjectSwitcher
-3. Add "Share" button for cloud projects
-4. Add "Convert to Cloud" option for local projects
-5. Visual distinction: cloud vs local projects in list
-
-**Feature flag approach:**
-```typescript
-const enableCloudSync = import.meta.env.VITE_ENABLE_CLOUD_SYNC === 'true';
-// Only show cloud UI if enabled
-{enableCloudSync && <CloudStatusIndicator />}
-```
+2. Add "Share" button for projects
+3. Simplify ProjectSwitcher (single list, no local/cloud distinction)
+4. Add automatic migration on first load (Step 7)
 
 ---
 
-### Step 7: Migration Path for Existing Projects
+### Step 7: Automatic Migration
 
-**User-controlled migration:**
-1. Existing projects stay local (no automatic migration)
-2. User can "Convert to Cloud" via menu option
-3. Conversion copies project to cloud, keeps local copy
-4. User can delete local copy manually after confirming cloud works
+1. On first load, detect existing IndexedDB projects
+2. For each project: create cloud room, upload, cache locally
+3. Show toast: "Your projects have been synced to the cloud"
+4. Clean up old IndexedDB entries
 
 **Data safety:**
-- Never delete local data automatically
-- Always copy, never move
-- User must explicitly choose to use cloud version
+- Migration deferred if offline
+- Progress indicator during migration
+- Error handling with retry option
 
 ---
 
 ### Step 8: Testing Checklist Before Merge
 
 **Automated tests:**
+
 - [ ] All existing unit tests pass
 - [ ] New Yjs serialization tests pass
 - [ ] New sync tests pass
 - [ ] Import/export round-trip tests pass
+- [ ] Undo/redo tests pass
 
 **Manual testing:**
-- [ ] Create local project → edit → works as before
-- [ ] Create cloud project → edit → syncs to another browser
+
+- [ ] Create project → edit → syncs to another browser
 - [ ] Offline edit → reconnect → changes appear
-- [ ] Export local project → valid JSON
-- [ ] Export cloud project → valid JSON
-- [ ] Import JSON as local → works
-- [ ] Import JSON as cloud → works
-- [ ] Convert local → cloud → data intact
-- [ ] Open old project (from before update) → still works
+- [ ] Export project → valid JSON
+- [ ] Import JSON → creates synced project
+- [ ] Existing projects auto-migrate on first load
 - [ ] Large project (20+ contexts) → performance OK
 
 **Regression testing:**
-- [ ] Undo/redo works (local projects)
-- [ ] Undo/redo works (cloud projects)
+
+- [ ] Undo/redo works (Y.UndoManager)
 - [ ] All views render correctly (Flow, Strategic, Distillation)
 - [ ] Inspector panel works for all entity types
 - [ ] Drag and drop works
-- [ ] Built-in demo projects load correctly
+- [ ] Built-in demo projects migrate and load correctly
 
 ---
 
 ### Step 9: Staged Rollout
 
 **Phase A: Internal testing**
+
 - Deploy to staging environment
 - Test with your own workshops
 - Fix any issues found
 
-**Phase B: Beta flag**
-- Merge to main with feature flag OFF by default
-- Announce beta: users can opt-in via URL param or setting
+**Phase B: Beta release**
+
+- Merge to main
+- Announce to existing users: "Your projects now sync across devices"
 - Gather feedback
 
 **Phase C: General availability**
-- Enable feature flag by default
-- Keep local-only mode available for users who prefer it
+
 - Monitor for issues
+- Address any migration edge cases
 
 ---
 
@@ -727,14 +539,15 @@ The Yjs sync layer remains unchanged - auth is an orthogonal concern.
 
 | Risk | Severity | Mitigation |
 |------|----------|------------|
-| Breaking existing local projects | HIGH | Migration wizard, keep old data until confirmed, feature flag |
+| Migration breaks existing projects | HIGH | Test migration thoroughly, keep IndexedDB backup until confirmed |
 | Yjs serialization data loss | HIGH | Comprehensive round-trip tests, validate before every deploy |
 | Zustand ↔ Yjs race conditions | HIGH | Single source of truth (Yjs), clear mutation flow documented |
-| Undo/redo complexity with Yjs | HIGH | Use Yjs UndoManager (scoped per client), document limitations |
+| Network required for first load | MEDIUM | Clear messaging, offline cache for subsequent loads |
 | Offline conflict produces garbled text | MEDIUM | Show merge notification, add conflict UI in Phase 2 if needed |
 | URL-based sharing security | MEDIUM | Privacy warning in UI, longer nanoid if needed, auth in Phase 2 |
 | Large project performance | MEDIUM | Yjs handles large docs well, test early with 100+ contexts |
 | y-partyserver package stability | MEDIUM | Lock version, monitor for updates, have fallback plan |
+| Cloudflare outage | MEDIUM | Offline cache allows continued editing, show "service unavailable" |
 | Cloudflare costs | LOW | Durable Objects free tier generous, monitor usage, set alerts |
 | Bundle size increase | LOW | Target < 100KB gzipped, code-split if needed |
 
@@ -759,7 +572,7 @@ Before implementation, verify these assumptions hold:
 
 | Assumption | Verification Method | Status |
 |------------|---------------------|--------|
-| Users understand local vs cloud distinction | User testing with prototype | ☐ Pending |
+| Automatic migration is seamless for existing users | Test with real user data, monitor support requests | ☐ Pending |
 | 8-char URL is memorable enough for sharing | Compare with competitors (Figma, Miro) | ☐ Pending |
 | Sync latency < 500ms is acceptable | User testing, compare to Google Docs | ☐ Pending |
 | "Anyone with link can edit" is acceptable for Phase 1 | Document clearly, gather user feedback | ☐ Pending |
@@ -774,11 +587,8 @@ npm view y-partyserver time  # Last publish date
 npm view y-partyserver repository  # GitHub link
 # Check GitHub: stars, issues, last commit
 
-# Check Dexie compatibility
-npm view dexie peerDependencies  # Any conflicts?
-
 # Check bundle size impact
-npm pack yjs y-partyserver dexie --dry-run  # Estimated sizes
+npm pack yjs y-partyserver --dry-run  # Estimated sizes
 ```
 
 ---
@@ -795,25 +605,20 @@ All project data mutations go through Yjs, with observers updating Zustand. This
 
 ### 2. Undo/Redo Strategy
 
-**Decision:** Phase 1 - Disable undo/redo for cloud projects; Phase 2 - Add collaborative undo
+**Decision:** Use Y.UndoManager from day 1
 
-**Rationale:** Collaborative undo adds significant complexity:
+**Implementation:**
 
-- Two undo systems would conflict (Zustand's undoStack vs Yjs UndoManager)
-- Edge cases: User A undoes while User B is editing same entity
-- Scope questions: Does undo affect just your changes or all changes?
-
-**Phase 1 approach:**
-
-- Local projects: Keep existing undo/redo (unchanged)
-- Cloud projects: Disable undo/redo, show message "Undo not available for collaborative projects"
-- This matches MVP scope and reduces implementation risk
-
-**Phase 2 approach (future):**
-
-- Implement Yjs UndoManager scoped to user's own changes (like Miro/Figma)
+- Replace existing Zustand undoStack with Y.UndoManager
+- Scoped to user's own changes (like Miro/Figma)
 - Ctrl+Z only undoes YOUR changes, not collaborator's
 - Session-scoped (cleared on refresh)
+
+**Benefits of cloud-only approach:**
+
+- Single undo system (no conflict between Zustand and Yjs)
+- Consistent behavior everywhere
+- Delete ~400 lines of manual undo/redo code
 
 ### 3. Offline Conflict Handling
 
@@ -969,7 +774,7 @@ ykeyframe.set('positions', ypositions);
 | Error | ☁️⚠ | Red | "Sync error" | Show retry button |
 | Reconnecting | ☁️↻ | Yellow | "Reconnecting..." | Show attempt count |
 
-**Location:** Header bar, right side, next to project name (only visible for cloud projects)
+**Location:** Header bar, right side, next to project name
 
 **Dimensions:** ~120px width, 32px height, fits within existing header
 
@@ -977,7 +782,7 @@ ykeyframe.set('positions', ypositions);
 
 ### ShareProjectDialog
 
-**Trigger:** "Share" button in toolbar (only for cloud projects)
+**Trigger:** "Share" button in toolbar
 
 **Dialog Contents:**
 
@@ -1003,7 +808,7 @@ ykeyframe.set('positions', ypositions);
 - After sync complete: "All changes synced" (auto-hide after 3s)
 - If merge occurred: Toast notification: "Your changes were merged with recent edits"
 
-### ProjectSwitcher Enhancements
+### ProjectSwitcher (Simplified)
 
 **Layout:**
 
@@ -1011,36 +816,31 @@ ykeyframe.set('positions', ypositions);
 ┌─────────────────────────────────────────────────────────┐
 │  [Search projects...]                            🔍     │
 ├─────────────────────────────────────────────────────────┤
-│  LOCAL PROJECTS                              [+ New]    │
-│  ├── My Architecture Draft        [📁] [•••]           │
-│  │   Last edited: 2 hours ago                          │
-│  └── Confidential Client Map      [📁] [•••]           │
-│       Last edited: Yesterday                            │
-├─────────────────────────────────────────────────────────┤
-│  CLOUD PROJECTS                              [+ New]    │
-│  ├── Team Workshop Map            [☁️] [🔗] [•••]      │
+│  MY PROJECTS                                 [+ New]    │
+│  ├── Team Workshop Map            [🔗] [•••]            │
 │  │   Last synced: Just now  •  2 collaborators         │
-│  └── DDD Training Exercise        [☁️] [🔗] [•••]      │
-│       Last synced: 5 min ago                           │
+│  ├── DDD Training Exercise        [🔗] [•••]            │
+│  │   Last synced: 5 min ago                            │
+│  └── My Architecture Draft        [🔗] [•••]            │
+│       Last synced: 2 hours ago                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
 **Features:**
 
 - Search by project name (filter as you type)
-- Sections collapsible (remember state)
-- [•••] menu: Rename, Export, Delete, Convert to Cloud (local only)
+- [•••] menu: Rename, Export, Delete
 - [🔗] quick-share button (copies URL with toast feedback)
-- Show "Last edited" for local, "Last synced" for cloud
+- Show "Last synced" and collaborator count
 - Empty state: "No projects yet. Create your first project!"
 
 **Scale handling:**
 
 - Virtualized list for 50+ projects
-- "Show more" pagination if > 20 in a section
+- "Show more" pagination if > 20 projects
 - Sort by: Recent (default), Name A-Z, Name Z-A
 
-### New Project Flow
+### New Project Flow (Simplified)
 
 **When user clicks "+ New Project":**
 
@@ -1050,27 +850,11 @@ ykeyframe.set('positions', ypositions);
 ├─────────────────────────────────────────────────────────┤
 │  Project Name: [________________________]               │
 │                                                          │
-│  Where to store?                                         │
+│  Your project syncs automatically across devices        │
+│  and can be shared with collaborators.                  │
 │                                                          │
-│  ┌─────────────────────┐  ┌─────────────────────┐       │
-│  │   📁 Local Only     │  │   ☁️ Cloud Sync     │       │
-│  │                     │  │                     │       │
-│  │  • Works offline    │  │  • Access anywhere  │       │
-│  │  • Private          │  │  • Real-time collab │       │
-│  │  • This device only │  │  • Shareable URL    │       │
-│  │                     │  │                     │       │
-│  │  [Select]           │  │  [Select]           │       │
-│  └─────────────────────┘  └─────────────────────┘       │
-│                                                          │
-│  ℹ️ You can convert local to cloud later                │
+│                    [Create Project]                      │
 └─────────────────────────────────────────────────────────┘
-```
-
-**First cloud project:** Show additional privacy notice:
-
-```text
-⚠️ Cloud projects are stored on Cloudflare servers.
-Anyone with the project URL can view and edit.
 ```
 
 ### Pre-Share Confirmation Dialog
@@ -1097,7 +881,7 @@ Anyone with the project URL can view and edit.
 
 **After confirmation:** Show ShareProjectDialog with URL
 
-### Cloud Project URL Routing
+### Project URL Routing
 
 **When user navigates to `contextflow.app/p/abc123`:**
 
@@ -1111,14 +895,14 @@ Anyone with the project URL can view and edit.
 │              Couldn't Load Project                       │
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
-│  ❌ Unable to connect to cloud project                  │
+│  ❌ Unable to connect to project                        │
 │                                                          │
 │  Possible reasons:                                       │
 │  • The project URL may be invalid                       │
 │  • The project may have been deleted                    │
 │  • Your internet connection may be down                 │
 │                                                          │
-│     [Retry]    [Open a Local Project]    [Create New]   │
+│           [Retry]              [Create New]              │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -1126,27 +910,22 @@ Anyone with the project URL can view and edit.
 
 ## User Journeys
 
-### Journey 1: First-Time User Creates Cloud Project
+### Journey 1: First-Time User Creates Project
 
 1. User lands on app (no existing projects)
 2. Clicks "+ New Project"
-3. Sees local vs cloud choice with explanations
-4. Chooses "Cloud Sync"
-5. Sees privacy notice, clicks "I understand"
-6. Project created, connected, empty canvas shown
-7. CloudStatusIndicator shows "Connected" briefly
-8. User edits, sees "Syncing..." → "Synced" feedback
+3. Enters project name
+4. Project created, connected, empty canvas shown
+5. CloudStatusIndicator shows "Connected" briefly
+6. User edits, sees "Syncing..." → "Synced" feedback
 
-### Journey 2: Existing User Converts Local to Cloud
+### Journey 2: Existing User After Migration
 
-1. User has local project they want to share
-2. Opens project menu (•••), clicks "Convert to Cloud"
-3. Sees confirmation: "This will create a cloud copy. Your local version will remain."
-4. Clicks "Convert"
-5. Progress indicator during upload
-6. Success: "Project now available in cloud. Your local copy is unchanged."
-7. Project appears in both Local and Cloud sections
-8. User can delete local copy manually if desired
+1. User opens app after update (has existing IndexedDB projects)
+2. Migration runs automatically in background
+3. Brief toast: "Your projects have been synced to the cloud"
+4. All projects now show in unified list with share buttons
+5. User continues working as normal
 
 ### Journey 3: Joining Shared Project via URL
 
@@ -1159,7 +938,7 @@ Anyone with the project URL can view and edit.
 
 ### Journey 4: Working Offline, Then Reconnecting
 
-1. User is editing cloud project
+1. User is editing project
 2. Internet drops, CloudStatusIndicator → "Offline"
 3. Offline banner appears with pending count
 4. User continues editing (changes cached locally)
@@ -1269,7 +1048,7 @@ And: All optional/nullable fields preserved
 
 ```gherkin
 Scenario: Browser crashes with pending offline changes
-Given: User is editing cloud project offline
+Given: User is editing project offline
 And: Has 5 pending changes in IndexedDB cache
 When: Browser crashes unexpectedly
 And: User reopens app
@@ -1315,18 +1094,20 @@ And: Final state consistent in both browsers
 
 ### Regression Test Matrix
 
-| Feature | Local Project | Cloud Project | Notes |
-|---------|--------------|---------------|-------|
-| Create context | ✓ Must work | ✓ Must work | Same UI |
-| Drag context | ✓ Must work | ✓ Must work | Position sync |
-| Edit in inspector | ✓ Must work | ✓ Must work | Field-level sync |
-| Undo/redo | ✓ Current behavior | ✗ Disabled (Phase 1) | Show "not available" message |
-| Import JSON | ✓ Must work | ✓ Must work | Creates local or cloud |
-| Export JSON | ✓ Must work | ✓ Must work | Identical format |
-| View switching | ✓ Must work | ✓ Must work | Position independence |
-| Groups | ✓ Must work | ✓ Must work | Visual overlay sync |
-| Temporal | ✓ Must work | ✓ Must work | Keyframe sync |
-| External contexts | ✓ Must work | ✓ Must work | Badge + restrictions |
+| Feature | Must Work | Notes |
+|---------|-----------|-------|
+| Create context | ✓ | Syncs immediately |
+| Drag context | ✓ | Position sync across browsers |
+| Edit in inspector | ✓ | Field-level sync |
+| Undo/redo | ✓ | Y.UndoManager (user's own changes) |
+| Import JSON | ✓ | Creates synced project |
+| Export JSON | ✓ | Same format as before |
+| View switching | ✓ | Position independence preserved |
+| Groups | ✓ | Visual overlay sync |
+| Temporal | ✓ | Keyframe sync |
+| External contexts | ✓ | Badge + restrictions |
+| Multi-browser sync | ✓ | Real-time updates |
+| Offline editing | ✓ | Cached locally, syncs on reconnect |
 
 ---
 
@@ -1341,10 +1122,11 @@ And: Final state consistent in both browsers
 - Failed sync attempts
 
 **Usage:**
-- Cloud vs local project ratio
+
+- Projects created per day
 - Concurrent collaborators per project (histogram)
 - Offline edit frequency
-- Convert-to-cloud conversion rate
+- Migration success rate (existing users)
 
 **Errors:**
 - Serialization failures (Yjs ↔ Project)
@@ -1376,10 +1158,10 @@ Add structured logging to:
 
 ### If Cloud Sync Causes Data Loss
 
-1. **Immediate:** Set `VITE_ENABLE_CLOUD_SYNC=false` and deploy
-2. **Users:** Fall back to local projects automatically
-3. **Recovery:** Export affected cloud projects via direct Yjs access
-4. **Communication:** Notify users via in-app banner
+1. **Immediate:** Deploy read-only mode (disable mutations)
+2. **Recovery:** Export affected projects via direct Yjs access
+3. **Communication:** Notify users via in-app banner
+4. **Investigation:** Check Yjs document state, IndexedDB cache
 
 ### If Yjs Document Corrupted
 
@@ -1391,12 +1173,12 @@ Add structured logging to:
    - Manual Yjs document repair (last resort)
 4. **Prevention:** Add document validation on every load
 
-### Rollback Procedure
+### Cloudflare Outage Procedure
 
-1. Feature flag allows instant disable without deployment
-2. Local projects continue working regardless of cloud status
-3. Cloud projects become read-only when flag disabled (can export)
-4. Full rollback: revert to pre-cloud-sync code version
+1. Users see "Service unavailable" message
+2. Offline cache allows continued editing (read from IndexedDB)
+3. Changes queue locally, sync when service restored
+4. Monitor Cloudflare status page for updates
 
 ---
 
@@ -1404,12 +1186,12 @@ Add structured logging to:
 
 ### Functional Requirements
 
-- [ ] User can create "cloud project" that syncs across devices
+- [ ] All projects sync across devices via Yjs
 - [ ] User can open same project URL on different computer, see same data
 - [ ] Real-time updates visible when two people edit same project
 - [ ] Connection status indicator in UI (connected/syncing/offline/error states)
 - [ ] Share button copies project URL
-- [ ] Existing local projects continue to work
+- [ ] Undo/redo works via Y.UndoManager (user's own changes)
 - [ ] Offline edits sync when reconnected
 
 ### Performance SLAs
@@ -1432,10 +1214,11 @@ Add structured logging to:
 - [ ] User sees clear "Offline - changes pending" indicator
 - [ ] Offline edits preserved if browser refreshed while offline (via IndexedDB cache)
 
-### Backward Compatibility
+### Migration
 
-- [ ] Existing local projects (pre-cloud-sync versions) open and edit normally
-- [ ] No automatic migration - user explicitly chooses "Convert to Cloud"
+- [ ] Existing IndexedDB projects auto-migrate on first load
+- [ ] Migration shows progress indicator
+- [ ] Migration deferred if offline (retries when online)
 - [ ] Import/export JSON format unchanged
 - [ ] Old exported JSON files import correctly
 
