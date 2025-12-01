@@ -1227,3 +1227,707 @@ Add structured logging to:
 - [ ] URL randomness: 8-char nanoid provides adequate entropy
 - [ ] Privacy warning shown when sharing URL ("Anyone with this link can view and edit")
 - [ ] Project deletion requires explicit confirmation
+
+---
+
+## Appendix A: Yjs Schema Implementation Guide
+
+This section provides concrete TypeScript implementation examples for the Yjs schema.
+
+### A.1 Data Classification: Yjs vs Zustand
+
+**Shared Data (stored in Yjs, syncs across devices):**
+
+- Project metadata (id, name, createdAt, updatedAt)
+- All entities: contexts, relationships, groups, repos, people, teams
+- Flow View entities: users, userNeeds, userNeedConnections, needContextConnections
+- viewConfig.flowStages
+- temporal keyframes
+
+**Local UI State (stays in Zustand, per-device):**
+
+- selectedContextId, selectedGroupId, selectedRelationshipId, etc.
+- Viewport zoom/pan (view-specific transforms)
+- Inspector panel state (collapsed sections, active tabs)
+- activeProjectId (which project is currently open)
+- Modal/dialog states
+
+### A.2 Nested Y.Map Structure
+
+The plan's dot-notation (`ycontext.set('positions.flow.x', 100)`) is NOT idiomatic Yjs. Instead, use nested Y.Map objects:
+
+```typescript
+import * as Y from 'yjs';
+
+// Create a BoundedContext in Yjs
+function createYjsContext(ydoc: Y.Doc, context: BoundedContext): void {
+  const ycontexts = ydoc.getMap('project').get('contexts') as Y.Array<Y.Map<unknown>>;
+
+  ydoc.transact(() => {
+    const ycontext = new Y.Map();
+
+    // Scalar fields
+    ycontext.set('id', context.id);
+    ycontext.set('name', context.name);
+    ycontext.set('purpose', context.purpose ?? null);
+    ycontext.set('strategicClassification', context.strategicClassification ?? null);
+    ycontext.set('ownership', context.ownership ?? null);
+    ycontext.set('boundaryIntegrity', context.boundaryIntegrity ?? null);
+    ycontext.set('boundaryNotes', context.boundaryNotes ?? null);
+    ycontext.set('evolutionStage', context.evolutionStage);
+    ycontext.set('isLegacy', context.isLegacy ?? false);
+    ycontext.set('notes', context.notes ?? null);
+    ycontext.set('teamId', context.teamId ?? null);
+
+    // Nested positions (use nested Y.Map)
+    const ypositions = new Y.Map();
+
+    const ystrategic = new Y.Map();
+    ystrategic.set('x', context.positions.strategic.x);
+    ypositions.set('strategic', ystrategic);
+
+    const yflow = new Y.Map();
+    yflow.set('x', context.positions.flow.x);
+    ypositions.set('flow', yflow);
+
+    const ydistillation = new Y.Map();
+    ydistillation.set('x', context.positions.distillation.x);
+    ydistillation.set('y', context.positions.distillation.y);
+    ypositions.set('distillation', ydistillation);
+
+    const yshared = new Y.Map();
+    yshared.set('y', context.positions.shared.y);
+    ypositions.set('shared', yshared);
+
+    ycontext.set('positions', ypositions);
+
+    // Nested codeSize (optional)
+    if (context.codeSize) {
+      const ycodeSize = new Y.Map();
+      ycodeSize.set('loc', context.codeSize.loc ?? null);
+      ycodeSize.set('bucket', context.codeSize.bucket ?? null);
+      ycontext.set('codeSize', ycodeSize);
+    }
+
+    // Issues array (nested Y.Array of Y.Map)
+    if (context.issues && context.issues.length > 0) {
+      const yissues = new Y.Array<Y.Map<unknown>>();
+      for (const issue of context.issues) {
+        const yissue = new Y.Map();
+        yissue.set('id', issue.id);
+        yissue.set('title', issue.title);
+        yissue.set('description', issue.description ?? null);
+        yissue.set('severity', issue.severity);
+        yissues.push([yissue]);
+      }
+      ycontext.set('issues', yissues);
+    }
+
+    ycontexts.push([ycontext]);
+  });
+}
+```
+
+### A.3 Deserializing from Yjs
+
+```typescript
+function yMapToContext(ycontext: Y.Map<unknown>): BoundedContext {
+  const ypositions = ycontext.get('positions') as Y.Map<unknown>;
+  const ystrategic = ypositions.get('strategic') as Y.Map<unknown>;
+  const yflow = ypositions.get('flow') as Y.Map<unknown>;
+  const ydistillation = ypositions.get('distillation') as Y.Map<unknown>;
+  const yshared = ypositions.get('shared') as Y.Map<unknown>;
+
+  const context: BoundedContext = {
+    id: ycontext.get('id') as string,
+    name: ycontext.get('name') as string,
+    evolutionStage: ycontext.get('evolutionStage') as BoundedContext['evolutionStage'],
+    positions: {
+      strategic: { x: ystrategic.get('x') as number },
+      flow: { x: yflow.get('x') as number },
+      distillation: {
+        x: ydistillation.get('x') as number,
+        y: ydistillation.get('y') as number
+      },
+      shared: { y: yshared.get('y') as number },
+    },
+  };
+
+  // Optional fields
+  const purpose = ycontext.get('purpose');
+  if (purpose !== null) context.purpose = purpose as string;
+
+  const strategicClassification = ycontext.get('strategicClassification');
+  if (strategicClassification !== null) {
+    context.strategicClassification = strategicClassification as BoundedContext['strategicClassification'];
+  }
+
+  // ... handle all other optional fields similarly
+
+  return context;
+}
+```
+
+### A.4 TemporalKeyframe Positions (Dynamic Keys)
+
+TemporalKeyframe.positions has dynamic contextId keys. Use Y.Map with string keys:
+
+```typescript
+function createYjsKeyframe(ydoc: Y.Doc, keyframe: TemporalKeyframe): void {
+  const ykeyframes = ydoc.getMap('project').get('temporal') as Y.Map<unknown>;
+  const yarray = ykeyframes.get('keyframes') as Y.Array<Y.Map<unknown>>;
+
+  ydoc.transact(() => {
+    const ykeyframe = new Y.Map();
+    ykeyframe.set('id', keyframe.id);
+    ykeyframe.set('date', keyframe.date);
+    ykeyframe.set('label', keyframe.label ?? null);
+
+    // Positions: { [contextId]: { x, y } }
+    const ypositions = new Y.Map();
+    for (const [contextId, pos] of Object.entries(keyframe.positions)) {
+      const ypos = new Y.Map();
+      ypos.set('x', pos.x);
+      ypos.set('y', pos.y);
+      ypositions.set(contextId, ypos);
+    }
+    ykeyframe.set('positions', ypositions);
+
+    // Active context IDs
+    const yactiveIds = new Y.Array<string>();
+    yactiveIds.push(keyframe.activeContextIds);
+    ykeyframe.set('activeContextIds', yactiveIds);
+
+    yarray.push([ykeyframe]);
+  });
+}
+```
+
+### A.5 Observer Pattern for Fine-Grained Updates
+
+```typescript
+function setupYjsObservers(ydoc: Y.Doc, updateZustand: (project: Project) => void): void {
+  const yproject = ydoc.getMap('project');
+
+  // Deep observe all changes
+  yproject.observeDeep((events) => {
+    // Convert entire Yjs doc to Project on any change
+    // This is simpler than tracking individual field changes
+    const project = yjsToProject(ydoc);
+    updateZustand(project);
+  });
+}
+
+// For performance optimization, you can observe specific arrays:
+function setupContextsObserver(ydoc: Y.Doc, onContextsChange: (contexts: BoundedContext[]) => void): void {
+  const ycontexts = ydoc.getMap('project').get('contexts') as Y.Array<Y.Map<unknown>>;
+
+  ycontexts.observe((event) => {
+    // event.changes contains: added, deleted, delta
+    const contexts = ycontexts.toArray().map(yMapToContext);
+    onContextsChange(contexts);
+  });
+}
+```
+
+### A.6 Handling Optional/Nullable Fields
+
+**Convention**: Use `null` in Yjs for absent optional fields, not `undefined`.
+
+```typescript
+// Setting optional field
+ycontext.set('purpose', context.purpose ?? null);
+
+// Reading optional field
+const purpose = ycontext.get('purpose');
+if (purpose !== null) {
+  context.purpose = purpose as string;
+}
+// If null, don't set the field (it stays undefined in TypeScript object)
+```
+
+---
+
+## Appendix B: Mutation Architecture
+
+### B.1 Current Flow (Pre-Yjs)
+
+```text
+User Action (click, drag, type)
+       ↓
+React Component calls store.updateContext(id, updates)
+       ↓
+Zustand store updates state immutably
+       ↓
+autosaveIfNeeded() persists to IndexedDB
+       ↓
+React re-renders from Zustand state
+```
+
+### B.2 New Flow (With Yjs)
+
+```text
+User Action (click, drag, type)
+       ↓
+React Component calls store.updateContext(id, updates)
+       ↓
+Store method applies change to Yjs Y.Doc (NOT Zustand directly)
+       ↓
+Yjs fires observeDeep event (synchronously)
+       ↓
+Observer converts Yjs → Project and updates Zustand
+       ↓
+React re-renders from Zustand state
+       ↓
+[Async] Yjs syncs to cloud via WebSocket
+       ↓
+[Async] Yjs caches to IndexedDB periodically (5s interval)
+```
+
+### B.3 Action Refactoring Strategy
+
+**Approach: Incremental migration (not all-at-once)**
+
+Phase 1: Create Yjs layer alongside Zustand
+
+- Keep existing Zustand actions working
+- Add new Yjs-based actions with `_yjs` suffix
+- Both systems run in parallel during development
+
+Phase 2: Migrate entity by entity
+
+1. Contexts + Relationships (core, test thoroughly)
+2. Groups
+3. Flow View entities (users, userNeeds, connections)
+4. Metadata (teams, repos, people)
+5. ViewConfig + Temporal
+
+Phase 3: Remove legacy Zustand mutations
+
+- Delete direct Zustand mutations
+- Remove `_yjs` suffix from new actions
+- Delete old undoRedo.ts
+
+**Example migration for updateContext:**
+
+```typescript
+// BEFORE: Direct Zustand mutation
+updateContext: (contextId, updates) => set((state) => {
+  const result = updateContextAction(state, contextId, updates);
+  autosaveIfNeeded(state.activeProjectId, result.projects);
+  return result;
+}),
+
+// AFTER: Yjs mutation with observer-driven Zustand update
+updateContext: (contextId, updates) => {
+  const ydoc = get().activeYDoc;
+  if (!ydoc) return;
+
+  ydoc.transact(() => {
+    const ycontexts = ydoc.getMap('project').get('contexts') as Y.Array<Y.Map<unknown>>;
+    const ycontext = ycontexts.toArray().find(yc => yc.get('id') === contextId);
+    if (!ycontext) return;
+
+    // Apply updates to Yjs (observers will update Zustand)
+    for (const [key, value] of Object.entries(updates)) {
+      if (key === 'positions') {
+        // Handle nested positions specially
+        applyPositionUpdates(ycontext, value);
+      } else {
+        ycontext.set(key, value ?? null);
+      }
+    }
+  });
+  // NOTE: No direct Zustand update here - observer handles it
+},
+```
+
+### B.4 Race Condition Prevention
+
+**Risk**: User makes rapid edits → Yjs transactions overlap → observer fires multiple times → React re-renders thrash
+
+**Mitigation**:
+
+1. Use `ydoc.transact()` for all multi-field mutations (atomic)
+2. Debounce Zustand updates from observer (16ms = 1 frame)
+3. Track pending local mutations to avoid echo from observer
+
+```typescript
+let pendingLocalMutation = false;
+
+function applyYjsMutation(mutation: () => void): void {
+  pendingLocalMutation = true;
+  ydoc.transact(mutation);
+  pendingLocalMutation = false;
+}
+
+function handleYjsObserverEvent(): void {
+  if (pendingLocalMutation) {
+    // Skip immediate re-projection, our own mutation triggered this
+    return;
+  }
+  // Remote change - update Zustand
+  const project = yjsToProject(ydoc);
+  set({ projects: { ...get().projects, [project.id]: project } });
+}
+```
+
+---
+
+## Appendix C: Error Message Catalog
+
+### C.1 Network Errors
+
+| Error | User Message | Recovery Action |
+|-------|--------------|-----------------|
+| WebSocket timeout (>10s) | "Taking longer than expected. Check your internet connection." | Auto-retry with exponential backoff |
+| WebSocket failed to connect | "Couldn't connect to sync service. Working offline." | Show offline banner, retry on reconnect |
+| 404 Project Not Found | "Project not found. It may have been deleted." | Offer to create new project |
+| 500 Server Error | "Service temporarily unavailable. Your changes are saved locally." | Auto-retry in 30s |
+
+### C.2 Sync Errors
+
+| Error | User Message | Recovery Action |
+|-------|--------------|-----------------|
+| Yjs document corrupted | "Project data couldn't be read. Restoring from backup." | Load from IndexedDB cache |
+| Merge conflict | "Your offline changes were merged with recent edits." | Toast notification (info level) |
+| IndexedDB quota exceeded | "Not enough storage space. Consider exporting and deleting old projects." | Show storage management UI |
+| IndexedDB write failed | "Couldn't save locally. Changes will sync to cloud only." | Continue with cloud-only mode |
+
+### C.3 Migration Errors
+
+| Error | User Message | Recovery Action |
+|-------|--------------|-----------------|
+| Migration failed (single project) | "Couldn't sync 'Project Name'. We'll try again later." | Add to retry queue |
+| Migration failed (network) | "Sync paused - no internet connection. Will resume when back online." | Defer until online |
+| Migration failed (corrupted data) | "Some project data couldn't be read. Please export and re-import." | Skip corrupted, continue others |
+
+### C.4 Import/Export Errors
+
+| Error | User Message | Recovery Action |
+|-------|--------------|-----------------|
+| Invalid JSON format | "File format not recognized. Please use a ContextFlow export file." | Show format requirements |
+| Import parse error | "File contains invalid data. Check line X for errors." | Highlight specific error location |
+| Export failed | "Couldn't create export file. Please try again." | Retry button |
+
+---
+
+## Appendix D: Threat Model (Phase 1)
+
+### D.1 Security Posture
+
+**Phase 1 is designed for:**
+
+- Workshop/classroom collaboration
+- Team design sessions
+- Personal cross-device sync
+- Sharing with trusted collaborators
+
+**Phase 1 is NOT designed for:**
+
+- Sensitive/confidential data
+- Regulated industries (HIPAA, SOC2, etc.)
+- Public-facing production systems
+- Long-term access control
+
+### D.2 Accepted Risks
+
+| Risk | Acceptance Rationale |
+|------|---------------------|
+| Anyone with URL can view/edit | Acceptable for Phase 1; auth comes in Phase 2 |
+| Cannot revoke shared links | Document clearly; URL obscurity provides basic protection |
+| No audit trail | Workshop use case doesn't require audit |
+| Server can read data | Standard SaaS model; documented in privacy policy |
+
+### D.3 Mitigated Risks
+
+| Risk | Mitigation |
+|------|------------|
+| URL enumeration/brute-force | 62^8 entropy + Cloudflare DDoS protection + rate limiting |
+| Data in transit | HTTPS only (Cloudflare enforced) |
+| WebSocket hijacking | WSS (secure WebSocket) only |
+| XSS in project data | React's default escaping + no dangerouslySetInnerHTML |
+
+### D.4 Rate Limiting Strategy
+
+```text
+Cloudflare Worker rate limits:
+- Max 100 requests/second per IP (DDoS protection)
+- Max 10 WebSocket connections per IP per project
+- Max 1000 requests/minute per IP (enumeration protection)
+```
+
+### D.5 Privacy Disclosures
+
+**In Share Dialog:**
+
+```text
+⚠️ Anyone with this link can view and edit all project contents.
+- Data is stored on Cloudflare's global network
+- You cannot revoke access once shared
+- For sensitive data, wait for authenticated sharing (coming soon)
+```
+
+**In Privacy Policy:**
+
+- Data stored in Cloudflare Durable Objects (edge locations)
+- Encrypted at rest (Cloudflare-managed keys)
+- Retention: Until user deletes project
+- No third-party data sharing
+
+---
+
+## Appendix E: Migration Detailed Algorithm
+
+### E.1 Migration State Machine
+
+```text
+STATES:
+- NOT_STARTED: Fresh install or migration complete
+- DETECTING: Checking for existing IndexedDB projects
+- MIGRATING: Actively uploading projects
+- PAUSED: Offline or error, will retry
+- COMPLETED: All projects migrated
+- FAILED: Unrecoverable error (manual intervention needed)
+
+TRANSITIONS:
+NOT_STARTED → DETECTING (on app load)
+DETECTING → MIGRATING (if projects found)
+DETECTING → COMPLETED (if no projects)
+MIGRATING → COMPLETED (all uploaded)
+MIGRATING → PAUSED (network error)
+PAUSED → MIGRATING (network restored)
+MIGRATING → FAILED (corrupted data, max retries exceeded)
+```
+
+### E.2 Checkpoint Persistence
+
+```typescript
+interface MigrationCheckpoint {
+  version: 1;
+  startedAt: string;
+  completedProjectIds: string[];
+  failedProjectIds: string[];
+  totalProjects: number;
+  lastAttemptAt: string;
+  retryCount: number;
+}
+
+// Store in localStorage (survives IndexedDB clear)
+const CHECKPOINT_KEY = 'contextflow_migration_checkpoint';
+
+function saveMigrationCheckpoint(checkpoint: MigrationCheckpoint): void {
+  localStorage.setItem(CHECKPOINT_KEY, JSON.stringify(checkpoint));
+}
+
+function loadMigrationCheckpoint(): MigrationCheckpoint | null {
+  const stored = localStorage.getItem(CHECKPOINT_KEY);
+  return stored ? JSON.parse(stored) : null;
+}
+
+function clearMigrationCheckpoint(): void {
+  localStorage.removeItem(CHECKPOINT_KEY);
+}
+```
+
+### E.3 Migration Algorithm
+
+```typescript
+async function runMigration(): Promise<void> {
+  // 1. Check if migration needed
+  const checkpoint = loadMigrationCheckpoint();
+  const existingProjects = await loadAllProjectsFromIndexedDB();
+
+  if (existingProjects.length === 0 && !checkpoint) {
+    return; // Nothing to migrate
+  }
+
+  // 2. Initialize or resume checkpoint
+  const projectsToMigrate = existingProjects.filter(
+    p => !checkpoint?.completedProjectIds.includes(p.id)
+  );
+
+  const state: MigrationCheckpoint = checkpoint ?? {
+    version: 1,
+    startedAt: new Date().toISOString(),
+    completedProjectIds: [],
+    failedProjectIds: [],
+    totalProjects: existingProjects.length,
+    lastAttemptAt: new Date().toISOString(),
+    retryCount: 0,
+  };
+
+  // 3. Show progress UI
+  showMigrationBanner(`Syncing projects to cloud (0/${state.totalProjects})...`);
+
+  // 4. Migrate each project
+  for (const project of projectsToMigrate) {
+    try {
+      // 4a. Create cloud room
+      const cloudProjectId = await createCloudProject(project);
+
+      // 4b. Upload Yjs state
+      await uploadProjectToCloud(cloudProjectId, project);
+
+      // 4c. Verify integrity (round-trip check)
+      const downloaded = await downloadProjectFromCloud(cloudProjectId);
+      if (!projectsAreEqual(project, downloaded)) {
+        throw new Error('Integrity check failed');
+      }
+
+      // 4d. Update checkpoint
+      state.completedProjectIds.push(project.id);
+      saveMigrationCheckpoint(state);
+
+      // 4e. Update UI
+      const progress = state.completedProjectIds.length;
+      showMigrationBanner(`Syncing projects to cloud (${progress}/${state.totalProjects})...`);
+
+    } catch (error) {
+      // 4f. Handle failure
+      state.failedProjectIds.push(project.id);
+      state.retryCount++;
+      saveMigrationCheckpoint(state);
+
+      if (state.retryCount > 3) {
+        showMigrationError(`Couldn't sync "${project.name}". Will retry later.`);
+      }
+    }
+  }
+
+  // 5. Cleanup on success
+  if (state.failedProjectIds.length === 0) {
+    // Delete old IndexedDB entries
+    await clearLegacyIndexedDB();
+    clearMigrationCheckpoint();
+    showMigrationSuccess('All projects synced to cloud!');
+  } else {
+    showMigrationWarning(`Synced ${state.completedProjectIds.length} of ${state.totalProjects} projects.`);
+  }
+}
+```
+
+### E.4 Built-in Demo Projects
+
+**Decision**: Built-in demo projects (ACME E-Commerce) do NOT migrate to cloud.
+
+**Rationale**:
+
+- Demo projects are recreated from hardcoded data on each load
+- Migrating would create duplicates
+- Users who want to keep changes can "Save As" to a new project
+
+**Implementation**:
+
+```typescript
+function shouldMigrateProject(project: Project): boolean {
+  // Skip built-in projects by checking for known IDs or version markers
+  const BUILTIN_PROJECT_IDS = ['acme-ecommerce-demo'];
+  return !BUILTIN_PROJECT_IDS.includes(project.id);
+}
+```
+
+---
+
+## Appendix F: Performance Test Plan
+
+### F.1 Baseline Measurements (Before Yjs)
+
+Capture these metrics BEFORE implementing Yjs:
+
+| Metric | How to Measure | Current Value |
+|--------|----------------|---------------|
+| Empty project load time | Performance.now() from app start to canvas ready | TBD |
+| 50-context project load | Load sample.project.json, measure time to interactive | TBD |
+| Context drag latency | Time from mousedown to position update | TBD |
+| Undo latency | Time from Ctrl+Z to UI update | TBD |
+| Memory baseline (empty) | Chrome DevTools heap snapshot | TBD |
+| Memory with 100 contexts | Chrome DevTools heap snapshot | TBD |
+| Bundle size (current) | `npm run build && ls -la dist/` | TBD |
+
+### F.2 Post-Yjs Targets
+
+| Metric | Target | Acceptable Regression |
+|--------|--------|----------------------|
+| Project load time | < 3s for 100 contexts | +500ms vs baseline |
+| Sync latency (p95) | < 500ms | N/A (new metric) |
+| Context drag latency | < 50ms | +20ms vs baseline |
+| Undo latency | < 100ms | +50ms vs baseline |
+| Memory increase | < 50MB over baseline | - |
+| Bundle size increase | < 100KB gzipped | - |
+
+### F.3 Measurement Framework
+
+```typescript
+// Performance measurement utilities
+const perfMarks: Record<string, number> = {};
+
+export function startMeasure(name: string): void {
+  perfMarks[name] = performance.now();
+}
+
+export function endMeasure(name: string): number {
+  const start = perfMarks[name];
+  if (!start) return -1;
+  const duration = performance.now() - start;
+  delete perfMarks[name];
+
+  // Log to console in dev, send to analytics in prod
+  console.log(`[Perf] ${name}: ${duration.toFixed(2)}ms`);
+  return duration;
+}
+
+// Usage:
+startMeasure('context-drag');
+// ... perform drag operation
+const latency = endMeasure('context-drag');
+```
+
+### F.4 Load Test Scenarios
+
+1. **Single user, large project**: 100 contexts, measure load/edit/undo
+2. **Two users, simultaneous edits**: Both typing in same field, measure convergence
+3. **Offline duration**: 1 hour offline with 20 edits, measure sync time
+4. **Many connections**: 10 browser tabs on same project, measure stability
+
+---
+
+## Appendix G: Updated Definition of Done
+
+### Additional Acceptance Criteria
+
+**Error Handling:**
+
+- [ ] WebSocket connection failure shows clear error with retry option
+- [ ] Cloudflare Worker errors display user-friendly messages (not stack traces)
+- [ ] Import/export errors show specific, actionable messages
+- [ ] Migration errors are recoverable (checkpoint-based retry)
+
+**Offline Scenarios:**
+
+- [ ] Offline edits persist across browser refresh (IndexedDB cache)
+- [ ] Reconnect shows accurate pending change count
+- [ ] Merge notification explains what happened (even if just "merged")
+- [ ] Offline edits are never silently dropped
+
+**Migration Safety:**
+
+- [ ] Migration checkpoint persists in localStorage
+- [ ] Integrity verification after each project upload
+- [ ] Built-in demo projects are NOT migrated (avoid duplicates)
+- [ ] Failed migrations can be retried on next session
+- [ ] Progress indicator shows "X of Y projects syncing..."
+
+**Accessibility:**
+
+- [ ] CloudStatusIndicator has aria-label for each state
+- [ ] Status colors have accompanying icons (colorblind-safe)
+- [ ] Offline banner has role="alert" for screen readers
+- [ ] All status messages are text-based (not just colors)
+
+**Performance Verification:**
+
+- [ ] Baseline metrics captured before Yjs implementation
+- [ ] All targets met or regressions documented and accepted
+- [ ] Bundle size verified < 100KB gzipped increase
+- [ ] Memory leak test passes (30-minute session)
