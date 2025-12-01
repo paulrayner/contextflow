@@ -25,13 +25,6 @@ The original plan proposed dual-mode (local + cloud projects). After review, thi
 
 All projects sync via Yjs. IndexedDB serves as an offline cache only. Existing users get automatic migration.
 
-### Key Decision: No Dexie Dependency
-
-| Approach | Bundle Size | Complexity | Decision |
-|----------|-------------|------------|----------|
-| Dexie (proposed) | +30KB gzipped | Two databases, new schema | ❌ Rejected |
-| Simple Yjs cache | +0KB | Single cache purpose | ✅ Adopted |
-
 ### Architecture Validated by EventStormer
 
 The core stack is already proven in production by EventStormer (`~/Documents/EventStormer`):
@@ -145,7 +138,7 @@ This plan adopts a **cloud-only** approach where all projects sync via Yjs. This
 | Persistence layer | Dual-purpose IndexedDB | Cloud-only (no local cache) |
 | Migration code | Convert local↔cloud | One-time auto-migration |
 
-**Session-only offline support:** Yjs buffers changes in memory during brief disconnections (< 5 min). Extended offline editing is not supported in Phase 1. If user refreshes while offline, they see "Reconnect to continue."
+**Session-only offline support:** Brief disconnections (< 5 min) are handled automatically by Yjs buffering changes in memory. No IndexedDB offline cache in Phase 1. If user refreshes while offline, they see a blocking modal: "Reconnect to continue." Extended offline editing is explicitly out of scope for Phase 1.
 
 **Privacy approach:** Following industry standard (Miro, Figma, Notion) - data storage covered by Terms of Service and privacy policy, no special consent dialog.
 
@@ -203,11 +196,7 @@ npm install yjs y-partyserver
 npm install -D wrangler
 ```
 
-**Note:** We intentionally do NOT add Dexie. The existing `persistence.ts` is minimal (~90 lines), working, and sufficient. Adding Dexie would:
-
-- Increase bundle size by ~30KB gzipped (vs ~1KB current)
-- Create two separate IndexedDB databases to maintain
-- Add complexity without clear benefit for cloud sync
+**Note:** IndexedDB is used only for migration backup, not ongoing caching. No Dexie dependency needed.
 
 ### 1.3 Persistence Layer (Session-Only)
 
@@ -248,6 +237,24 @@ This is the major refactor. Key responsibilities:
 3. Yjs observation → Zustand state updates
 4. All mutations go through Yjs (which then syncs)
 
+**App Initialization Sequence:**
+
+The current store initializes synchronously. With cloud sync, we need an async startup flow:
+
+1. Render loading state immediately (spinner + "Connecting...")
+2. Attempt WebSocket connection to Yjs room for active project
+3. On success: Load Yjs doc → update Zustand → render canvas
+4. On failure (offline): Show blocking modal "Reconnect to continue" with retry button
+5. Only render canvas after Yjs doc is ready
+
+**Multi-Tab Behavior:** Each browser tab works independently. Tabs can have different active projects open simultaneously. Yjs automatically handles sync when multiple tabs edit the same project (via WebSocket). No BroadcastChannel coordination needed.
+
+**WebSocket Reconnection:** y-partyserver handles reconnection automatically. Parameters:
+- Initial delay: 1 second
+- Max delay: 30 seconds
+- Backoff multiplier: 2x
+- Max retries: Infinite (keep trying until connected)
+
 ### 1.5 Data Model Mapping to Yjs
 
 **Project structure in Yjs:**
@@ -277,7 +284,19 @@ yproject.set("temporal", ytemporal);
 
 **Important:** Use nested Y.Map objects for hierarchical data, NOT dot-notation keys. See [Appendix A.2](#a2-nested-ymap-structure) for complete implementation examples.
 
-### 1.8 UI Changes
+**ID Generation:** All new entities MUST use `nanoid(8)` for IDs (not `Date.now()`). This prevents collision risk with concurrent users. Existing `Date.now()`-based IDs are unique enough for migration and will continue to work.
+
+```typescript
+import { nanoid } from 'nanoid';
+
+// New entity creation
+const newContext: BoundedContext = {
+  id: nanoid(8),  // e.g., "k7m2n9p4"
+  // ...
+};
+```
+
+### 1.6 UI Changes
 
 **New components needed:**
 
@@ -290,7 +309,7 @@ yproject.set("temporal", ytemporal);
 - `ProjectSwitcher` - simplified project list with share buttons
 - `App.tsx` - initialize collaboration on project load
 
-### 1.9 URL Scheme for Shareable Projects
+### 1.7 URL Scheme for Shareable Projects
 
 **Format:** `contextflow.app/p/{projectId}`
 
@@ -304,7 +323,7 @@ yproject.set("temporal", ytemporal);
 
 ---
 
-### 1.10 Environment Configuration
+### 1.8 Environment Configuration
 
 **New env vars:**
 
@@ -326,7 +345,7 @@ Users with projects in current IndexedDB get seamless migration:
 **Key behaviors:**
 - Migration is automatic and silent (no user action required)
 - Existing project URLs work (redirected to cloud version)
-- Built-in demo projects use fork-on-edit (see [Appendix E.4](#e4-built-in-demo-projects-fork-on-edit))
+- Built-in demo projects use "Create from Template" (see [Appendix E.4](#e4-built-in-demo-projects))
 
 ---
 
@@ -496,7 +515,7 @@ Users with projects in current IndexedDB get seamless migration:
 - [ ] All views render correctly (Flow, Strategic, Distillation)
 - [ ] Inspector panel works for all entity types
 - [ ] Drag and drop works
-- [ ] Built-in demo projects load correctly (fork-on-edit, reset works)
+- [ ] Built-in demo projects create from template correctly
 
 ---
 
@@ -546,7 +565,7 @@ The Yjs sync layer remains unchanged - auth is an orthogonal concern.
 | Network required for first load | MEDIUM | Clear messaging, offline cache for subsequent loads |
 | Offline conflict produces garbled text | MEDIUM | Show merge notification, add conflict UI in Phase 2 if needed |
 | URL-based sharing security | MEDIUM | Privacy warning in UI, longer nanoid if needed, auth in Phase 2 |
-| Large project performance | MEDIUM | Yjs handles large docs well, test early with 100+ contexts |
+| Large project performance | MEDIUM | Yjs handles large docs well, test early with 100+ contexts. Target <1MB per project (100 contexts ≈ 200KB). Monitor at 500KB. |
 | y-partyserver package stability | MEDIUM | Lock version, monitor for updates, have fallback plan |
 | Cloudflare outage | MEDIUM | Offline cache allows continued editing, show "service unavailable" |
 | Cloudflare costs | LOW | Durable Objects free tier generous, monitor usage, set alerts |
@@ -632,6 +651,8 @@ Yjs merges automatically via CRDT. Show toast: "Your offline changes were merged
 **Decision:** Option A - Cascade delete
 
 When a context is deleted, automatically delete all referencing relationships. Must be atomic in a single Yjs transaction. Matches user expectation and avoids orphaned data.
+
+**Temporal Keyframes:** When a context is deleted, also remove it from all `TemporalKeyframe.positions` and `activeContextIds` arrays. This loses historical position data for that context, which is acceptable for Phase 1. Future enhancement could preserve with "deleted context" marker if users request history preservation.
 
 ### 5. Transaction Batching
 
@@ -1815,70 +1836,62 @@ IndexedDB backup is kept until all three conditions are met:
 
 After all conditions are met, backup is deleted automatically on next app load.
 
-### E.4 Built-in Demo Projects (Fork-on-Edit)
+### E.4 Built-in Demo Projects
 
-**Decision**: Demo projects use fork-on-edit with reset capability.
+**Decision**: Demo projects use "Create from Template" approach (not fork-on-edit).
 
 **Rationale**:
 
-In the cloud-only architecture, all mutations go through Yjs. Non-synced projects would have no mutation path and no undo/redo (since Y.UndoManager replaces the old undo system). Making demos read-only would be confusing. Instead:
+The simpler approach avoids complexity of tracking in-memory vs cloud-synced state:
 
-- Demo projects load with an in-memory Yjs doc (not yet synced to cloud)
-- First edit triggers cloud sync, forking the demo to a user-owned project
-- Original demo template remains available for reset or creating fresh copies
+- Clicking a sample project immediately creates a new cloud project from the template
+- User gets a real, synced project they can edit, share, and collaborate on
+- No special fork-on-edit logic or edge cases to handle
+- "Sample Projects" section in UI always available to create fresh copies
 
 **Behavior**:
 
-| State | Cloud Sync | Undo/Redo | Persistence |
-|-------|------------|-----------|-------------|
-| Fresh demo (no edits) | Not synced | Works (in-memory Y.Doc) | None (recreated on reload) |
-| After first edit | Synced with new ID | Works (Y.UndoManager) | Cloud + IndexedDB cache |
-| After reset | Returns to fresh demo state | Works | None until next edit |
+| Action | Result |
+|--------|--------|
+| Click sample project | Creates new cloud project with unique ID, user is now editing their own copy |
+| Edit the project | Changes sync normally (it's a regular cloud project) |
+| Want a fresh copy | Click the sample again from the templates list |
 
 **Implementation**:
 
 ```typescript
-// Demo project template (hardcoded in code)
+// Demo project templates (bundled JSON)
 const DEMO_TEMPLATES: Record<string, () => Project> = {
   'acme-ecommerce': () => loadAcmeEcommerceDemo(),
+  'cbioportal': () => loadCbioportalDemo(),
 };
 
-// On app load: create in-memory Yjs doc for demo (no cloud connection)
-function loadDemoProject(templateId: string): { ydoc: Y.Doc; project: Project } {
-  const project = DEMO_TEMPLATES[templateId]();
-  const ydoc = new Y.Doc();
-  projectToYjs(project, ydoc);
-  // Note: provider NOT connected yet - no cloud sync
-  return { ydoc, project };
-}
-
-// On first edit: fork to cloud
-function forkDemoToCloud(ydoc: Y.Doc, originalProjectId: string): string {
+// Create new project from template
+async function createProjectFromTemplate(templateId: string): Promise<string> {
+  const template = DEMO_TEMPLATES[templateId]();
   const newProjectId = nanoid(8);
-  ydoc.getMap('project').set('id', newProjectId);
-  ydoc.getMap('project').set('forkedFrom', originalProjectId);
 
-  // Connect to cloud
-  const provider = new YProvider(host, newProjectId, ydoc, { connect: true });
+  const project: Project = {
+    ...template,
+    id: newProjectId,
+    name: `${template.name} (Copy)`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  // Connect to cloud and sync
+  await connectToProject(newProjectId, project);
 
   return newProjectId;
-}
-
-// Reset: discard forked project, return to template
-function resetToDemo(templateId: string): void {
-  // Optionally: delete the forked cloud project
-  // Load fresh demo
-  const { ydoc, project } = loadDemoProject(templateId);
-  // Update store with fresh demo state
 }
 ```
 
 **UI Implications**:
 
-- Demo projects show "Sample Project" badge in project list
-- Forked demos show "Reset to original" option in project menu
-- "Sample Projects" section always available to spawn fresh copies
-- Share button works after fork (disabled or hidden before first edit)
+- "Sample Projects" section in WelcomeModal and ProjectListModal
+- Clicking a sample creates a new project immediately (shows loading briefly)
+- User's project list shows their copies with "(Copy)" suffix
+- No special badges or reset functionality needed
 
 ---
 
@@ -1967,8 +1980,7 @@ const latency = endMeasure('context-drag');
 
 - [ ] Migration checkpoint persists in localStorage
 - [ ] Integrity verification after each project upload
-- [ ] Built-in demo projects use fork-on-edit (sync only after first edit)
-- [ ] Demo reset option restores original template state
+- [ ] Built-in demo projects use "Create from Template" (creates new cloud project immediately)
 - [ ] Failed migrations can be retried on next session
 - [ ] Progress indicator shows "X of Y projects syncing..."
 
