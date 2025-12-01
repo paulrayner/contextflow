@@ -1,10 +1,103 @@
 # ContextFlow Cloud Sync Implementation Plan
 
 ## Goal
+
 Add real-time cloud sync to ContextFlow using the proven EventStormer architecture (Yjs + Cloudflare Durable Objects), enabling:
+
 - Same user accessing projects from multiple devices
 - Real-time collaboration for workshops/teaching
 - Instructor observation of student work
+
+---
+
+## Plan Review Summary (2024-12)
+
+This plan was reviewed from three perspectives: Technical Architecture, Risk/Feasibility, and UX/Product. Key findings incorporated:
+
+### Key Decision: No Dexie Dependency
+
+The original plan proposed adding Dexie for IndexedDB management. After review, this was **rejected**:
+
+| Approach | Bundle Size | Complexity | Decision |
+|----------|-------------|------------|----------|
+| Dexie (proposed) | +30KB gzipped | Two databases, new schema | ❌ Rejected |
+| Extend persistence.ts | +0KB | Single database, extend schema | ✅ Adopted |
+
+The existing `persistence.ts` is minimal (~90 lines), working, and sufficient. For cloud projects, Yjs is the source of truth - IndexedDB is just an offline cache.
+
+### Critical Blockers Added
+
+Three items MUST be validated before implementation:
+
+1. **y-partyserver + Cloudflare compatibility** - Plan uses PartyKit API, may not work with raw Cloudflare
+2. **Yjs CRDT text merge behavior** - Concurrent text edits could produce garbled results
+3. **Cloudflare Durable Objects persistence** - State must survive worker restarts
+
+### Architectural Additions
+
+1. **Mutation Routing Abstraction** - Single code path for local/cloud mutations to prevent logic divergence
+2. **Undo/Redo Simplified** - Disabled for cloud projects in Phase 1 (too complex), added to Phase 2
+3. **Comprehensive UX Flows** - Added user journeys, UI wireframes, error states
+
+### Test Scenarios Expanded
+
+Added 8 new test scenarios covering:
+
+- Concurrent text field editing
+- Extended offline periods
+- Serialization round-trip
+- Browser crash recovery
+- Import/export atomicity
+- Multi-tab sync
+- Concurrent delete operations
+
+---
+
+## Pre-Implementation Blockers
+
+**These items MUST be validated before writing any implementation code.**
+
+### Critical Blockers (Cannot Proceed Without)
+
+| Blocker | Risk | Validation Task | Status |
+|---------|------|-----------------|--------|
+| y-partyserver + Cloudflare compatibility | Plan uses `routePartykitRequest` which is PartyKit API - may not work with raw Cloudflare Workers | Deploy test worker, verify WebSocket connects | ☐ Not started |
+| Yjs CRDT text merge behavior | Two users editing same `context.name` could produce garbled merge | Test concurrent text edits, document expected outcomes | ☐ Not started |
+| Cloudflare Durable Objects persistence | Yjs state must survive worker restarts | Deploy test worker, edit, restart, verify state persists | ☐ Not started |
+
+### Validation Spike (1-2 Days)
+
+Before starting Step 1, complete this spike:
+
+```bash
+# 1. Verify y-partyserver works with Cloudflare (not just PartyKit)
+# Create minimal worker, test WebSocket connection from browser
+
+# 2. Test Yjs CRDT merge for text fields
+# Scenario: Two clients edit same string field concurrently
+# Document: What outcome should users expect?
+
+# 3. Measure bundle size impact
+npm pack yjs y-partyserver --dry-run
+# Target: < 70KB gzipped combined (leaving room for other code)
+
+# 4. Load test with large project
+# Create project: 100 contexts, 80 relationships, 10 groups
+# Measure: initial sync time, memory usage, edit latency
+```
+
+### Exit Criteria for Spike
+
+- ✅ WebSocket connects from browser to Cloudflare Worker
+- ✅ Yjs sync works between two browser tabs
+- ✅ State persists after Durable Object restart
+- ✅ Concurrent text edits produce deterministic (not garbled) result
+- ✅ Bundle size < 70KB gzipped
+- ✅ 100-context project syncs in < 3s, edits in < 500ms
+
+**If any exit criteria fails:** Architecture needs revision before proceeding.
+
+---
 
 ## Architecture Overview
 
@@ -12,23 +105,27 @@ Add real-time cloud sync to ContextFlow using the proven EventStormer architectu
 ┌─────────────────────────────────────────────────────────────┐
 │                     ContextFlow Client                       │
 ├─────────────────────────────────────────────────────────────┤
-│  Zustand Store ←→ Yjs Y.Doc (CRDT)                         │
+│  Zustand Store ← (read-only projection)                     │
+│       ↑                                                      │
+│  Yjs Observer ←── Yjs Y.Doc (CRDT) ←── User Actions         │
 │       ↓                    ↓                                │
 │  React Components    y-partyserver/provider                 │
 │       ↓                    ↓                                │
-│  Dexie (IndexedDB)   WebSocket to Cloudflare               │
-│  (local cache)       (real-time sync)                       │
+│  IndexedDB           WebSocket to Cloudflare                │
+│  (existing persistence.ts + Yjs cache)                      │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
 │              Cloudflare Worker                               │
 ├─────────────────────────────────────────────────────────────┤
 │  YjsRoom (Durable Object)                                   │
-│  - Yjs document persistence (SQLite)                        │
+│  - Yjs document persistence (D1 SQLite)                     │
 │  - Real-time WebSocket sync                                 │
 │  - CRDT conflict resolution                                 │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Key architectural principle:** Yjs is the single source of truth for cloud projects. Zustand is a read-only projection updated via Yjs observers. This prevents race conditions and ensures consistent behavior for local and remote changes.
 
 ## Local Projects vs Cloud Projects
 
@@ -167,41 +264,68 @@ new_sqlite_classes = ["YjsRoom"]
 ### 1.2 New Dependencies
 
 ```bash
-npm install yjs y-partyserver dexie
+npm install yjs y-partyserver
 npm install -D wrangler
 ```
 
-### 1.3 Local Persistence Layer (Dexie)
+**Note:** We intentionally do NOT add Dexie. The existing `persistence.ts` is minimal (~90 lines), working, and sufficient. Adding Dexie would:
 
-**New file:** `src/lib/db.ts`
+- Increase bundle size by ~30KB gzipped (vs ~1KB current)
+- Create two separate IndexedDB databases to maintain
+- Add complexity without clear benefit for cloud sync
+
+### 1.3 Extended Persistence Layer (No New Dependencies)
+
+**Decision:** Extend existing `src/model/persistence.ts` instead of replacing it.
+
+**Rationale:**
+
+- For cloud projects, Yjs is the source of truth - IndexedDB is just an offline cache
+- For local projects, current persistence works perfectly
+- Single database, single schema, simpler migration
+
+**Extend existing schema:**
+
 ```typescript
-import Dexie, { type EntityTable } from 'dexie';
-import type { Project } from '@/model/types';
-
+// In persistence.ts - add these fields to existing ProjectRecord
 interface ProjectRecord {
   id: string;
-  name: string;
   data: Project;
-  updatedAt: string;
-  isCloud: boolean;  // true = synced to cloud, false = local only
+  isCloud: boolean;           // NEW: true = cloud project, false = local
+  yjsStateVector?: Uint8Array; // NEW: optional offline cache for Yjs state
+  lastSyncedAt?: string;       // NEW: when cloud project was last synced
 }
-
-const db = new Dexie('ContextFlowDB') as Dexie & {
-  projects: EntityTable<ProjectRecord, 'id'>;
-};
-
-db.version(1).stores({
-  projects: 'id, updatedAt, isCloud',
-});
-
-export { db };
 ```
 
-**New file:** `src/lib/cloudPersistence.ts`
-- `saveProjectLocal(project)` - save to IndexedDB
-- `loadProjectLocal(id)` - load from IndexedDB
-- `getAllProjectsLocal()` - list local projects
-- `deleteProjectLocal(id)` - delete from IndexedDB
+**New helper functions to add:**
+```typescript
+// Cache Yjs state for offline resilience
+async function saveCachedYjsState(projectId: string, ydoc: Y.Doc): Promise<void> {
+  const state = Y.encodeStateAsUpdate(ydoc);
+  const project = await loadProject(projectId);
+  if (project) {
+    await saveProject({
+      ...project,
+      yjsStateVector: state,
+      lastSyncedAt: new Date().toISOString()
+    });
+  }
+}
+
+// Restore from cache when reconnecting
+async function loadCachedYjsState(projectId: string): Promise<Uint8Array | null> {
+  const project = await loadProject(projectId);
+  return project?.yjsStateVector ?? null;
+}
+```
+
+**Benefits of this approach:**
+
+- ✅ Zero changes to local project persistence
+- ✅ Single database, consistent schema
+- ✅ Simpler migration path
+- ✅ Offline support without new dependencies
+- ✅ Saves ~30KB bundle size
 
 ### 1.4 Collaboration Store
 
@@ -220,26 +344,86 @@ This is the major refactor. Key responsibilities:
 3. Yjs observation → Zustand state updates
 4. All mutations go through Yjs (which then syncs)
 
-### 1.5 Refactor Existing Store
+### 1.5 Mutation Routing Abstraction
 
-**File:** `src/model/store.ts`
+**Critical design decision:** All mutations must route through a single abstraction that handles both local and cloud projects.
 
-Current architecture:
-- Zustand store with direct state mutations
-- IndexedDB persistence via `autosaveIfNeeded()`
+**Problem:** Without this, we'd have duplicate mutation logic:
 
-New architecture:
-- Zustand store for UI state (selections, view mode, etc.)
-- Yjs Y.Doc for project data (contexts, relationships, groups, etc.)
-- Mutations route through Yjs → observers update Zustand
+- Local projects: mutate Zustand directly
+- Cloud projects: mutate Yjs, let observer update Zustand
+- Risk: Logic diverges, bugs fixed in one path but not the other
 
-**Migration strategy:**
-1. Create parallel `useCollabStore` alongside existing `useEditorStore`
-2. Gradually move project data to Yjs
-3. Keep UI state in Zustand (selections, view modes)
-4. Eventually merge or keep separate (UI vs data stores)
+**Solution:** Create `src/model/mutation.ts`:
 
-### 1.6 Data Model Mapping to Yjs
+```typescript
+export type MutationTarget = 'local' | 'cloud';
+
+export interface MutationContext {
+  target: MutationTarget;
+  projectId: string;
+  ydoc?: Y.Doc;  // Only populated if target is 'cloud'
+}
+
+// All action functions use this instead of direct Zustand mutation
+export function applyMutation<T>(
+  context: MutationContext,
+  mutator: (project: Project) => Project
+): void {
+  if (context.target === 'local') {
+    // Apply to Zustand directly, trigger autosave
+    useEditorStore.setState((state) => {
+      const project = state.projects[context.projectId];
+      const updated = mutator(project);
+      return {
+        projects: { ...state.projects, [context.projectId]: updated }
+      };
+    });
+  } else {
+    // Apply to Yjs, observer will update Zustand
+    context.ydoc!.transact(() => {
+      const project = yjsToProject(context.ydoc!);
+      const updated = mutator(project);
+      projectToYjs(updated, context.ydoc!);
+    });
+  }
+}
+```
+
+**Refactoring existing actions:**
+
+```typescript
+// Before (current code in contextActions.ts)
+export function updateContextAction(state: EditorState, contextId: string, updates: Partial<BoundedContext>) {
+  // Direct Zustand mutation
+  return { projects: { ...state.projects, [projectId]: updatedProject } };
+}
+
+// After (unified mutation)
+export function updateContext(context: MutationContext, contextId: string, updates: Partial<BoundedContext>) {
+  applyMutation(context, (project) => ({
+    ...project,
+    contexts: project.contexts.map(c =>
+      c.id === contextId ? { ...c, ...updates } : c
+    )
+  }));
+}
+```
+
+**All mutation entry points to refactor:**
+
+| Entry Point | Current Location | Refactor Needed |
+|-------------|------------------|-----------------|
+| Add context | `contextActions.ts` | Use `applyMutation` |
+| Update context | `contextActions.ts` | Use `applyMutation` |
+| Delete context | `contextActions.ts` | Use `applyMutation` + cascade |
+| Add relationship | `relationshipActions.ts` | Use `applyMutation` |
+| Delete relationship | `relationshipActions.ts` | Use `applyMutation` |
+| Update group | `groupActions.ts` | Use `applyMutation` |
+| Drag context (position) | `store.ts` | Use `applyMutation` |
+| Inspector field edit | Various components | Use `applyMutation` |
+
+### 1.7 Data Model Mapping to Yjs
 
 **Project structure in Yjs:**
 ```typescript
@@ -258,18 +442,20 @@ yproject.set("temporal", Y.Map);
 // ... etc
 ```
 
-### 1.7 UI Changes
+### 1.8 UI Changes
 
 **New components needed:**
+
 - `CloudStatusIndicator` - shows connection status (connected/disconnected/syncing)
 - `CollaboratorsPresence` - shows who else is viewing (cursors optional for v1)
 - `ShareProjectDialog` - copy shareable URL
 
 **Modifications to existing:**
+
 - `ProjectSwitcher` - distinguish local vs cloud projects
 - `App.tsx` - initialize collaboration on project load
 
-### 1.8 URL Scheme for Shareable Projects
+### 1.9 URL Scheme for Shareable Projects
 
 **Format:** `contextflow.app/p/{projectId}`
 
@@ -283,21 +469,25 @@ yproject.set("temporal", Y.Map);
 
 ---
 
-### 1.9 Environment Configuration
+### 1.10 Environment Configuration
 
 **New env vars:**
-```
+
+```bash
 VITE_COLLAB_HOST=contextflow-collab.youraccount.workers.dev  # production
 VITE_COLLAB_HOST=localhost:8787  # development
 ```
 
-### 1.9 Migration for Existing Users
+### 1.11 Migration for Existing Users
 
 Users have projects in current IndexedDB. Migration path:
-1. On app load, detect existing projects in old format
-2. Offer "Keep local" or "Sync to cloud" choice
-3. "Sync to cloud" creates new Yjs room, copies data
-4. Mark migrated projects in new Dexie schema
+
+1. On app load, detect existing projects (all are local by default)
+2. User can "Convert to Cloud" via project menu (explicit action)
+3. "Convert to Cloud" creates new Yjs room, copies data, keeps local copy
+4. Mark converted projects with `isCloud: true` in extended schema
+
+**Important:** No automatic migration. User explicitly chooses per-project.
 
 ---
 
@@ -305,29 +495,31 @@ Users have projects in current IndexedDB. Migration path:
 
 | File | Change Type | Description |
 |------|-------------|-------------|
-| `src/model/store.ts` | Major refactor | Route mutations through Yjs |
-| `src/model/persistence.ts` | Replace | Use Dexie instead of raw IndexedDB |
-| `src/App.tsx` | Modify | Initialize collab on mount |
-| `src/components/ProjectSwitcher.tsx` | Modify | Show local vs cloud projects |
-| `package.json` | Add deps | yjs, y-partyserver, dexie, wrangler |
+| `src/model/store.ts` | Major refactor | Route cloud mutations through Yjs |
+| `src/model/persistence.ts` | Extend | Add `isCloud`, `yjsStateVector` fields |
+| `src/model/actions/*.ts` | Refactor | Add mutation routing for local vs cloud |
+| `src/App.tsx` | Modify | Initialize collaboration on mount, handle URL routing |
+| `src/components/ProjectSwitcher.tsx` | Modify | Show local vs cloud projects with visual distinction |
+| `package.json` | Add deps | yjs, y-partyserver, wrangler |
 
 **New files:**
-- `workers/server.ts`
-- `wrangler.toml`
-- `src/lib/db.ts`
-- `src/lib/cloudPersistence.ts`
-- `src/model/useCollabStore.ts`
-- `src/components/CloudStatusIndicator.tsx`
-- `src/components/ShareProjectDialog.tsx`
+
+- `workers/server.ts` - Cloudflare Worker with YjsRoom Durable Object
+- `wrangler.toml` - Cloudflare configuration
+- `src/model/useCollabStore.ts` - Yjs collaboration state management
+- `src/model/mutation.ts` - Unified mutation routing (local vs cloud)
+- `src/components/CloudStatusIndicator.tsx` - Connection status display
+- `src/components/ShareProjectDialog.tsx` - URL sharing with privacy warning
 
 ---
 
 ## Implementation Order (Incremental, Safety-First)
 
 ### Guiding Principles
+
 - **Feature flag everything** - cloud sync is opt-in, local mode unchanged
-- **Zero changes to existing persistence** until new system proven
-- **Parallel systems** - old IndexedDB continues working alongside new Dexie/Yjs
+- **Extend, don't replace** - add to existing persistence.ts, don't create parallel system
+- **Single source of truth** - Yjs owns cloud project data, Zustand is read-only projection
 - **Test on branch** - all work on feature branch, extensive testing before merge
 - **Protect import/export** - these must continue working throughout
 
@@ -343,18 +535,19 @@ Users have projects in current IndexedDB. Migration path:
 
 ---
 
-### Step 2: Parallel Persistence Layer (Non-Breaking)
-1. Add Dexie dependency
-2. Create `src/lib/db.ts` (new database, separate from existing)
-3. Create `src/lib/cloudPersistence.ts` (new functions)
-4. **DO NOT modify existing `persistence.ts`**
-5. Write tests for new persistence layer
+### Step 2: Extend Persistence Layer (Non-Breaking)
 
-**Key:** Two separate IndexedDB databases:
-- `contextflow` (existing) - untouched
-- `ContextFlowDB` (new Dexie) - for cloud projects only
+1. Add `isCloud`, `yjsStateVector`, `lastSyncedAt` fields to persistence.ts schema
+2. Add `saveCachedYjsState()` and `loadCachedYjsState()` helper functions
+3. Ensure backward compatibility: existing projects load without new fields
+4. Write tests for extended persistence layer
 
-**Checkpoint:** New persistence works in isolation, existing app unchanged
+**Key:** Single IndexedDB database with extended schema:
+
+- Existing projects work unchanged (new fields are optional)
+- Cloud projects use same storage with additional Yjs cache fields
+
+**Checkpoint:** Extended persistence works, existing projects still load correctly
 
 ---
 
@@ -594,9 +787,25 @@ All project data mutations go through Yjs, with observers updating Zustand. This
 
 ### 2. Undo/Redo Strategy
 
-**Decision:** Option C - Scoped to user's own changes (like Miro)
+**Decision:** Phase 1 - Disable undo/redo for cloud projects; Phase 2 - Add collaborative undo
 
-Each client has its own Yjs UndoManager instance tracking only local origins. Ctrl+Z only undoes YOUR changes, not collaborator's changes. This matches how Miro, Figma, and Google Docs handle collaborative undo. Session-scoped (cleared on refresh).
+**Rationale:** Collaborative undo adds significant complexity:
+
+- Two undo systems would conflict (Zustand's undoStack vs Yjs UndoManager)
+- Edge cases: User A undoes while User B is editing same entity
+- Scope questions: Does undo affect just your changes or all changes?
+
+**Phase 1 approach:**
+
+- Local projects: Keep existing undo/redo (unchanged)
+- Cloud projects: Disable undo/redo, show message "Undo not available for collaborative projects"
+- This matches MVP scope and reduces implementation risk
+
+**Phase 2 approach (future):**
+
+- Implement Yjs UndoManager scoped to user's own changes (like Miro/Figma)
+- Ctrl+Z only undoes YOUR changes, not collaborator's
+- Session-scoped (cleared on refresh)
 
 ### 3. Offline Conflict Handling
 
@@ -620,7 +829,7 @@ Use `ydoc.transact()` for all multi-field mutations (e.g., dragging a context up
 
 ## Detailed Yjs Schema Specification
 
-The high-level schema in section 1.6 needs expansion for implementation:
+The high-level schema in section 1.7 needs expansion for implementation:
 
 ### Nested Structure Handling
 
@@ -743,6 +952,7 @@ ykeyframe.set('positions', ypositions);
 ### CloudStatusIndicator
 
 **States:**
+
 | State | Icon | Color | Label | Behavior |
 |-------|------|-------|-------|----------|
 | Connected | ☁️✓ | Green | "Synced" | Auto-hide after 3s |
@@ -751,23 +961,204 @@ ykeyframe.set('positions', ypositions);
 | Error | ☁️⚠ | Red | "Sync error" | Show retry button |
 | Reconnecting | ☁️↻ | Yellow | "Reconnecting..." | Show attempt count |
 
-**Location:** Top bar, next to project name (only for cloud projects)
+**Location:** Header bar, right side, next to project name (only visible for cloud projects)
+
+**Dimensions:** ~120px width, 32px height, fits within existing header
+
+**Interaction:** Click to show connection details dropdown (optional for Phase 1)
 
 ### ShareProjectDialog
 
-**Contents:**
-1. URL display (monospace, selectable): `contextflow.app/p/k7m2n9p4`
-2. One-click "Copy to Clipboard" button with "Copied!" feedback
-3. Privacy warning: "Anyone with this link can view AND edit this project"
+**Trigger:** "Share" button in toolbar (only for cloud projects)
+
+**Dialog Contents:**
+
+1. URL display (monospace, full-width, selectable): `contextflow.app/p/k7m2n9p4`
+2. One-click "Copy to Clipboard" button with "Copied!" feedback (2s duration)
+3. Privacy warning box (yellow background): "Anyone with this link can view AND edit this project"
 4. Optional: QR code for classroom sharing
 5. "Manage access" link (Phase 2: shows active sessions, revoke option)
 
 ### Offline Indicator
 
 **When offline:**
+
 - Banner at top: "You're offline. Changes are saved locally and will sync when reconnected."
 - Pending changes count: "3 changes pending"
 - Visual treatment: Yellow/amber theme
+- Position: Fixed banner below header, full width
+- Dismiss: Cannot dismiss while offline (auto-hides on reconnect)
+
+**On reconnect:**
+
+- Banner changes to: "Reconnected. Syncing X changes..." (green)
+- After sync complete: "All changes synced" (auto-hide after 3s)
+- If merge occurred: Toast notification: "Your changes were merged with recent edits"
+
+### ProjectSwitcher Enhancements
+
+**Layout:**
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│  [Search projects...]                            🔍     │
+├─────────────────────────────────────────────────────────┤
+│  LOCAL PROJECTS                              [+ New]    │
+│  ├── My Architecture Draft        [📁] [•••]           │
+│  │   Last edited: 2 hours ago                          │
+│  └── Confidential Client Map      [📁] [•••]           │
+│       Last edited: Yesterday                            │
+├─────────────────────────────────────────────────────────┤
+│  CLOUD PROJECTS                              [+ New]    │
+│  ├── Team Workshop Map            [☁️] [🔗] [•••]      │
+│  │   Last synced: Just now  •  2 collaborators         │
+│  └── DDD Training Exercise        [☁️] [🔗] [•••]      │
+│       Last synced: 5 min ago                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Features:**
+
+- Search by project name (filter as you type)
+- Sections collapsible (remember state)
+- [•••] menu: Rename, Export, Delete, Convert to Cloud (local only)
+- [🔗] quick-share button (copies URL with toast feedback)
+- Show "Last edited" for local, "Last synced" for cloud
+- Empty state: "No projects yet. Create your first project!"
+
+**Scale handling:**
+
+- Virtualized list for 50+ projects
+- "Show more" pagination if > 20 in a section
+- Sort by: Recent (default), Name A-Z, Name Z-A
+
+### New Project Flow
+
+**When user clicks "+ New Project":**
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│                   Create New Project                     │
+├─────────────────────────────────────────────────────────┤
+│  Project Name: [________________________]               │
+│                                                          │
+│  Where to store?                                         │
+│                                                          │
+│  ┌─────────────────────┐  ┌─────────────────────┐       │
+│  │   📁 Local Only     │  │   ☁️ Cloud Sync     │       │
+│  │                     │  │                     │       │
+│  │  • Works offline    │  │  • Access anywhere  │       │
+│  │  • Private          │  │  • Real-time collab │       │
+│  │  • This device only │  │  • Shareable URL    │       │
+│  │                     │  │                     │       │
+│  │  [Select]           │  │  [Select]           │       │
+│  └─────────────────────┘  └─────────────────────┘       │
+│                                                          │
+│  ℹ️ You can convert local to cloud later                │
+└─────────────────────────────────────────────────────────┘
+```
+
+**First cloud project:** Show additional privacy notice:
+
+```text
+⚠️ Cloud projects are stored on Cloudflare servers.
+Anyone with the project URL can view and edit.
+```
+
+### Pre-Share Confirmation Dialog
+
+**Before showing share URL, require explicit confirmation:**
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│                    Share Project?                        │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ⚠️  ANYONE with this link can:                         │
+│                                                          │
+│      ✓ View all contents                                │
+│      ✓ Edit contexts and relationships                  │
+│      ✓ Delete items                                     │
+│                                                          │
+│  You cannot revoke access once shared.                  │
+│  (Access control coming in a future update)             │
+│                                                          │
+│         [Cancel]              [Share Anyway]            │
+└─────────────────────────────────────────────────────────┘
+```
+
+**After confirmation:** Show ShareProjectDialog with URL
+
+### Cloud Project URL Routing
+
+**When user navigates to `contextflow.app/p/abc123`:**
+
+1. Show loading spinner with "Loading project..."
+2. Attempt WebSocket connection to Cloudflare
+3. On success: Load project, hide spinner, show canvas
+4. On failure: Show error with options:
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│              Couldn't Load Project                       │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ❌ Unable to connect to cloud project                  │
+│                                                          │
+│  Possible reasons:                                       │
+│  • The project URL may be invalid                       │
+│  • The project may have been deleted                    │
+│  • Your internet connection may be down                 │
+│                                                          │
+│     [Retry]    [Open a Local Project]    [Create New]   │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## User Journeys
+
+### Journey 1: First-Time User Creates Cloud Project
+
+1. User lands on app (no existing projects)
+2. Clicks "+ New Project"
+3. Sees local vs cloud choice with explanations
+4. Chooses "Cloud Sync"
+5. Sees privacy notice, clicks "I understand"
+6. Project created, connected, empty canvas shown
+7. CloudStatusIndicator shows "Connected" briefly
+8. User edits, sees "Syncing..." → "Synced" feedback
+
+### Journey 2: Existing User Converts Local to Cloud
+
+1. User has local project they want to share
+2. Opens project menu (•••), clicks "Convert to Cloud"
+3. Sees confirmation: "This will create a cloud copy. Your local version will remain."
+4. Clicks "Convert"
+5. Progress indicator during upload
+6. Success: "Project now available in cloud. Your local copy is unchanged."
+7. Project appears in both Local and Cloud sections
+8. User can delete local copy manually if desired
+
+### Journey 3: Joining Shared Project via URL
+
+1. User receives URL from colleague: `contextflow.app/p/abc123`
+2. Clicks link, app loads
+3. Loading spinner: "Connecting to project..."
+4. Project loads, user sees current state
+5. If others are editing: presence indicators visible
+6. User edits, changes sync in real-time
+
+### Journey 4: Working Offline, Then Reconnecting
+
+1. User is editing cloud project
+2. Internet drops, CloudStatusIndicator → "Offline"
+3. Offline banner appears with pending count
+4. User continues editing (changes cached locally)
+5. Internet returns, banner → "Reconnecting..."
+6. Sync happens automatically
+7. If no conflicts: "All changes synced" (auto-hide)
+8. If merge occurred: Toast "Your changes were merged with recent edits"
 
 ---
 
@@ -776,7 +1167,8 @@ ykeyframe.set('positions', ypositions);
 ### Critical Integration Tests
 
 **Concurrent Editing:**
-```
+
+```gherkin
 Scenario: Two users edit same bounded context simultaneously
 Given: Browser A and Browser B have project "P1" open
 When: Browser A changes context name to "AuthService-v2" at T=0
@@ -787,7 +1179,8 @@ And: No console errors in either browser
 ```
 
 **Network Partition:**
-```
+
+```gherkin
 Scenario: Browser reconnects after offline period with divergent changes
 Given: Browser A is online with project "P1"
 And: Browser B disconnects from network
@@ -800,7 +1193,8 @@ And: Both contexts have valid IDs and positions
 ```
 
 **Large Project Performance:**
-```
+
+```gherkin
 Scenario: Sync performance with large project
 Given: Project with 100 contexts, 80 relationships, 10 groups
 When: User edits a context name
@@ -810,7 +1204,8 @@ And: Memory usage does not exceed baseline + 50MB
 ```
 
 **Reference Integrity:**
-```
+
+```gherkin
 Scenario: Delete context with dependent relationships
 Given: Context "Auth" has 3 incoming relationships
 When: User deletes context "Auth"
@@ -820,6 +1215,96 @@ And: No orphaned relationship references remain
 And: Undo restores both context and relationships
 ```
 
+### Additional Test Scenarios (From Review)
+
+**Concurrent Text Field Editing:**
+
+```gherkin
+Scenario: Two users edit same text field simultaneously
+Given: Browser A and Browser B have context "Auth" selected
+When: Browser A types "Service" in the name field
+And: Browser B types "Module" in the name field at same time
+Then: Final value is deterministic (same in both browsers)
+And: Result is NOT garbled (e.g., not "SeMrodvuilcee")
+Note: Document expected Yjs CRDT behavior before implementation
+```
+
+**Extended Offline Period:**
+
+```gherkin
+Scenario: User offline for extended period with many changes
+Given: Browser A is online, Browser B goes offline
+When: Browser A makes 20 edits over 1 hour
+And: Browser B makes 10 edits while offline
+And: Browser B reconnects after 1 hour
+Then: All 30 changes merge correctly
+And: No data loss on either side
+And: Sync completes within 10 seconds
+```
+
+**Serialization Round-Trip:**
+
+```gherkin
+Scenario: All project fields survive Yjs serialization
+Given: Project with all field types populated:
+  - 50 contexts with all optional fields
+  - 40 relationships
+  - 5 groups
+  - temporal keyframes with positions
+  - viewConfig with all settings
+When: Project is serialized to Yjs and back
+Then: Exported JSON is byte-identical to original
+And: All optional/nullable fields preserved
+```
+
+**Browser Crash Recovery:**
+
+```gherkin
+Scenario: Browser crashes with pending offline changes
+Given: User is editing cloud project offline
+And: Has 5 pending changes in IndexedDB cache
+When: Browser crashes unexpectedly
+And: User reopens app
+Then: Offline cache is loaded from IndexedDB
+And: Changes sync on reconnection
+And: No data loss
+```
+
+**Import/Export Atomicity:**
+
+```gherkin
+Scenario: Import fails mid-stream
+Given: User imports large JSON file (100 contexts)
+When: Network error occurs at 50% import
+Then: Import is rolled back completely
+And: No partial project created
+And: User sees clear error message
+And: Can retry import
+```
+
+**Multi-Tab Sync:**
+
+```gherkin
+Scenario: Same project open in multiple tabs
+Given: User has project open in Tab A and Tab B
+When: User edits context name in Tab A
+Then: Change appears in Tab B within 500ms
+And: No WebSocket connection conflicts
+And: Both tabs show consistent state
+```
+
+**Concurrent Delete Operations:**
+
+```gherkin
+Scenario: Two users delete same context simultaneously
+Given: Browser A and Browser B see context "Payment"
+When: Browser A deletes "Payment" at T=0
+And: Browser B deletes "Payment" at T=50ms
+Then: Context deleted (no duplicate delete errors)
+And: Relationships cascade deleted once
+And: Final state consistent in both browsers
+```
+
 ### Regression Test Matrix
 
 | Feature | Local Project | Cloud Project | Notes |
@@ -827,7 +1312,7 @@ And: Undo restores both context and relationships
 | Create context | ✓ Must work | ✓ Must work | Same UI |
 | Drag context | ✓ Must work | ✓ Must work | Position sync |
 | Edit in inspector | ✓ Must work | ✓ Must work | Field-level sync |
-| Undo/redo | ✓ Current behavior | ✓ Scoped to user | Different impl |
+| Undo/redo | ✓ Current behavior | ✗ Disabled (Phase 1) | Show "not available" message |
 | Import JSON | ✓ Must work | ✓ Must work | Creates local or cloud |
 | Export JSON | ✓ Must work | ✓ Must work | Identical format |
 | View switching | ✓ Must work | ✓ Must work | Position independence |
