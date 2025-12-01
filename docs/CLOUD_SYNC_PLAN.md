@@ -142,10 +142,10 @@ This plan adopts a **cloud-only** approach where all projects sync via Yjs. This
 | Mutation code paths | Two (local + cloud) | One |
 | Undo/redo systems | Two (Zustand + Yjs) | One (Y.UndoManager) |
 | Test scenarios | 2x (every feature tested twice) | 1x |
-| Persistence layer | Dual-purpose IndexedDB | Simple Yjs cache |
+| Persistence layer | Dual-purpose IndexedDB | Cloud-only (no local cache) |
 | Migration code | Convert local↔cloud | One-time auto-migration |
 
-**Offline support is unchanged:** Yjs + IndexedDB caching provides the same offline resilience. Users can edit offline and changes sync when reconnected.
+**Session-only offline support:** Yjs buffers changes in memory during brief disconnections (< 5 min). Extended offline editing is not supported in Phase 1. If user refreshes while offline, they see "Reconnect to continue."
 
 **Privacy approach:** Following industry standard (Miro, Figma, Notion) - data storage covered by Terms of Service and privacy policy, no special consent dialog.
 
@@ -209,36 +209,27 @@ npm install -D wrangler
 - Create two separate IndexedDB databases to maintain
 - Add complexity without clear benefit for cloud sync
 
-### 1.3 Persistence Layer (Yjs Offline Cache)
+### 1.3 Persistence Layer (Session-Only)
 
-IndexedDB serves as an offline cache for Yjs state. The existing `persistence.ts` is simplified:
+Phase 1 uses session-only offline support. IndexedDB is used only for migration backup, not for ongoing offline caching.
 
-```typescript
-// Simplified schema - just caching Yjs state
-interface YjsCacheRecord {
-  projectId: string;
-  yjsState: Uint8Array;      // Yjs document state
-  lastSyncedAt: string;       // When last synced to cloud
-}
+**What this means:**
 
-// Cache Yjs state for offline resilience
-async function cacheYjsState(projectId: string, ydoc: Y.Doc): Promise<void> {
-  const state = Y.encodeStateAsUpdate(ydoc);
-  await db.put('yjs-cache', { projectId, yjsState: state, lastSyncedAt: new Date().toISOString() });
-}
+- Yjs buffers changes in memory during brief disconnections
+- If user refreshes while offline, show "Reconnect to continue" (no local cache load)
+- Cloud is the single source of truth
+- No complex offline sync or cache invalidation logic
 
-// Restore from cache when reconnecting
-async function loadCachedYjsState(projectId: string): Promise<Uint8Array | null> {
-  const record = await db.get('yjs-cache', projectId);
-  return record?.yjsState ?? null;
-}
-```
+**IndexedDB usage:**
+
+- Migration backup only (cleared after 48 hours post-migration)
+- No ongoing Yjs state caching needed
 
 **Benefits:**
 
-- Yjs is the single source of truth
-- IndexedDB is purely an offline cache
-- No dual-purpose schema complexity
+- Simpler architecture (no cache invalidation concerns)
+- Cloud is always authoritative
+- Reduced risk of stale data conflicts
 
 ### 1.4 Collaboration Store
 
@@ -574,7 +565,7 @@ Before implementation, verify these assumptions hold:
 | y-partyserver is stable and maintained | Check npm downloads, GitHub activity, open issues | ☐ Pending |
 | Yjs handles 100+ entity documents performantly | Load test with sample large project | ☐ Pending |
 | Cloudflare Durable Objects persist Yjs state correctly | Deploy test worker, verify state survives restarts | ☐ Pending |
-| Yjs CRDT merge produces acceptable results for text fields | Test concurrent text edits, verify no corruption | ☐ Pending |
+| Yjs CRDT merge produces acceptable results for text fields | Use standard Yjs behavior (no custom handling) | ✅ Decided |
 | WebSocket reconnection is handled by y-partyserver | Test network dropout/reconnect scenarios | ☐ Pending |
 | IndexedDB quota (50MB+) is sufficient for local cache | Measure typical project size, estimate max projects | ☐ Pending |
 
@@ -775,21 +766,26 @@ ykeyframe.set('positions', ypositions);
 4. Optional: QR code for classroom sharing
 5. "Manage access" link (Phase 2: shows active sessions, revoke option)
 
-### Offline Indicator
+### Offline Indicator (Session-Only)
 
-**When offline:**
+Yjs buffers changes during brief disconnections automatically. Extended offline editing is not supported in Phase 1.
 
-- Banner at top: "You're offline. Changes are saved locally and will sync when reconnected."
-- Pending changes count: "3 changes pending"
-- Visual treatment: Yellow/amber theme
-- Position: Fixed banner below header, full width
-- Dismiss: Cannot dismiss while offline (auto-hides on reconnect)
+**When briefly disconnected (< 5 min):**
 
-**On reconnect:**
+- CloudStatusIndicator shows "Offline" (yellow)
+- Editing continues normally (Yjs buffers in memory)
+- On reconnect: changes sync automatically, show "Synced" briefly
 
-- Banner changes to: "Reconnected. Syncing X changes..." (green)
-- After sync complete: "All changes synced" (auto-hide after 3s)
-- If merge occurred: Toast notification: "Your changes were merged with recent edits"
+**When offline and user refreshes browser:**
+
+- Show blocking modal: "You're offline. Please reconnect to continue."
+- Provide "Retry Connection" button
+- Do NOT attempt to load from local cache (simplifies architecture)
+
+**On reconnect after brief disconnection:**
+
+- CloudStatusIndicator changes to "Syncing..." then "Synced"
+- No separate banner needed (status indicator is sufficient)
 
 ### ProjectSwitcher (Simplified)
 
@@ -919,16 +915,20 @@ ykeyframe.set('positions', ypositions);
 5. If others are editing: presence indicators visible
 6. User edits, changes sync in real-time
 
-### Journey 4: Working Offline, Then Reconnecting
+### Journey 4: Brief Disconnection (Session-Only)
 
 1. User is editing project
-2. Internet drops, CloudStatusIndicator → "Offline"
-3. Offline banner appears with pending count
-4. User continues editing (changes cached locally)
-5. Internet returns, banner → "Reconnecting..."
-6. Sync happens automatically
-7. If no conflicts: "All changes synced" (auto-hide)
-8. If merge occurred: Toast "Your changes were merged with recent edits"
+2. Internet drops, CloudStatusIndicator → "Offline" (yellow)
+3. User continues editing (Yjs buffers in memory)
+4. Internet returns within a few minutes
+5. CloudStatusIndicator → "Syncing..." then "Synced"
+6. Changes sync automatically
+
+**If user refreshes while offline:**
+
+1. Show blocking modal: "You're offline. Please reconnect to continue."
+2. Provide "Retry Connection" button
+3. Once online, reload project from cloud
 
 ---
 
@@ -955,10 +955,10 @@ Scenario: Two users edit same bounded context simultaneously
     | Console errors in either browser           | none     |
 ```
 
-**Network Partition:**
+**Brief Network Partition:**
 
 ```gherkin
-Scenario: Browser reconnects after offline period with divergent changes
+Scenario: Browser reconnects after brief disconnection
   Given browsers with different network states
     | Browser   | Status  | Project |
     | Browser A | online  | P1      |
@@ -967,13 +967,15 @@ Scenario: Browser reconnects after offline period with divergent changes
     | Browser   | Action                 |
     | Browser A | Adds "Payment Service" |
     | Browser B | Adds "Billing Service" |
-  And Browser B reconnects after 30 seconds
+  And Browser B reconnects after 2 minutes
   Then within 5 seconds
     | Assertion                         | Expected |
     | Both browsers show both contexts  | true     |
     | Duplicate contexts exist          | false    |
     | All contexts have valid IDs       | true     |
     | All contexts have valid positions | true     |
+
+  Note: This tests brief disconnection (< 5 min). Extended offline is not supported.
 ```
 
 **Large Project Performance:**
@@ -1022,31 +1024,31 @@ Scenario: Two users edit same text field simultaneously
     | Browser A | Service |
     | Browser B | Module  |
   Then CRDT merge produces valid result
-    | Assertion                                 | Expected |
-    | Final value identical in both browsers    | true     |
-    | Result is garbled (e.g., "SeMrodvuilcee") | false    |
-
-  Note: Document expected Yjs CRDT behavior before implementation
+    | Assertion                              | Expected |
+    | Final value identical in both browsers | true     |
+    | Standard Yjs CRDT merge applied        | true     |
 ```
 
-**Extended Offline Period:**
+**Brief Disconnection:**
 
 ```gherkin
-Scenario: User offline for extended period with many changes
+Scenario: User briefly disconnects and reconnects
   Given browsers with different network states
     | Browser   | Status  |
     | Browser A | online  |
     | Browser B | offline |
-  When edits accumulate over time
+  When Browser B makes edits while disconnected
     | Browser   | Edits | Duration |
-    | Browser A | 20    | 1 hour   |
-    | Browser B | 10    | 1 hour   |
-  And Browser B reconnects after 1 hour
-  Then merge completes successfully
-    | Assertion              | Expected |
-    | Total changes merged   | 30       |
-    | Data loss either side  | none     |
-    | Sync completion time   | < 10s    |
+    | Browser B | 5     | 2 min    |
+  And Browser B reconnects
+  Then sync completes successfully
+    | Assertion                      | Expected |
+    | Changes sync to cloud          | true     |
+    | Changes visible in Browser A   | true     |
+    | Sync completion time           | < 5s     |
+
+  Note: Extended offline (hours/days) is out of scope for Phase 1.
+  If user refreshes while offline, UI shows "Reconnect to continue."
 ```
 
 **Serialization Round-Trip:**
@@ -1073,22 +1075,24 @@ Scenario: All project fields survive Yjs serialization
     | Nested positions preserved     | true     |
 ```
 
-**Browser Crash Recovery:**
+**Session Crash Recovery:**
 
 ```gherkin
-Scenario: Browser crashes with pending offline changes
+Scenario: Browser crashes while connected
   Given user editing state
-    | Condition            | Value   |
-    | Network status       | offline |
-    | Pending changes      | 5       |
-    | Changes in IndexedDB | true    |
+    | Condition      | Value   |
+    | Network status | online  |
+    | Recent edits   | 5       |
   When browser crashes unexpectedly
-  And user reopens app
+  And user reopens app (still online)
   Then recovery completes successfully
-    | Assertion                    | Expected |
-    | Offline cache loaded         | true     |
-    | Changes sync on reconnection | true     |
-    | Data loss                    | none     |
+    | Assertion                        | Expected |
+    | Project loads from cloud         | true     |
+    | All synced changes preserved     | true     |
+    | Unsynced in-flight edits         | may be lost (acceptable) |
+
+  Note: Phase 1 does not support offline crash recovery.
+  If user was offline when crash occurred, unsynced changes are lost.
 ```
 
 **Import/Export Atomicity:**
@@ -1254,12 +1258,12 @@ Add structured logging to:
 - [ ] Concurrent add/delete of same entity → consistent state (no orphans, no duplicates)
 - [ ] Reference integrity maintained (deleting context removes related relationships)
 
-### Offline Resilience
+### Offline Resilience (Session-Only)
 
-- [ ] 10+ offline edits sync correctly on reconnect
-- [ ] Offline for 1 hour with cloud changes → merges without data loss
-- [ ] User sees clear "Offline - changes pending" indicator
-- [ ] Offline edits preserved if browser refreshed while offline (via IndexedDB cache)
+- [ ] Brief disconnection (< 5 min) syncs correctly on reconnect
+- [ ] User sees clear "Offline" indicator in CloudStatusIndicator
+- [ ] If user refreshes while offline: blocking modal with "Reconnect to continue"
+- [ ] Extended offline editing (hours/days) explicitly NOT supported in Phase 1
 
 ### Migration
 
@@ -1724,135 +1728,92 @@ Cloudflare Worker rate limits:
 
 ---
 
-## Appendix E: Migration Detailed Algorithm
+## Appendix E: Migration (Simplified)
 
-### E.1 Migration State Machine
+### E.1 Migration Overview
 
-```text
-STATES:
-- NOT_STARTED: Fresh install or migration complete
-- DETECTING: Checking for existing IndexedDB projects
-- MIGRATING: Actively uploading projects
-- PAUSED: Offline or error, will retry
-- COMPLETED: All projects migrated
-- FAILED: Unrecoverable error (manual intervention needed)
+Migration is a one-time process when users upgrade from the pre-cloud version. Since Phase 1 uses session-only offline support, migration is simpler:
 
-TRANSITIONS:
-NOT_STARTED → DETECTING (on app load)
-DETECTING → MIGRATING (if projects found)
-DETECTING → COMPLETED (if no projects)
-MIGRATING → COMPLETED (all uploaded)
-MIGRATING → PAUSED (network error)
-PAUSED → MIGRATING (network restored)
-MIGRATING → FAILED (corrupted data, max retries exceeded)
-```
+- Must be online to migrate (no offline migration)
+- No complex checkpoint/resume logic needed
+- Failed migration = user retries manually
 
-### E.2 Checkpoint Persistence
-
-```typescript
-interface MigrationCheckpoint {
-  version: 1;
-  startedAt: string;
-  completedProjectIds: string[];
-  failedProjectIds: string[];
-  totalProjects: number;
-  lastAttemptAt: string;
-  retryCount: number;
-}
-
-// Store in localStorage (survives IndexedDB clear)
-const CHECKPOINT_KEY = 'contextflow_migration_checkpoint';
-
-function saveMigrationCheckpoint(checkpoint: MigrationCheckpoint): void {
-  localStorage.setItem(CHECKPOINT_KEY, JSON.stringify(checkpoint));
-}
-
-function loadMigrationCheckpoint(): MigrationCheckpoint | null {
-  const stored = localStorage.getItem(CHECKPOINT_KEY);
-  return stored ? JSON.parse(stored) : null;
-}
-
-function clearMigrationCheckpoint(): void {
-  localStorage.removeItem(CHECKPOINT_KEY);
-}
-```
-
-### E.3 Migration Algorithm
+### E.2 Migration Algorithm
 
 ```typescript
 async function runMigration(): Promise<void> {
   // 1. Check if migration needed
-  const checkpoint = loadMigrationCheckpoint();
   const existingProjects = await loadAllProjectsFromIndexedDB();
+  const migratedFlag = localStorage.getItem('contextflow_migrated');
 
-  if (existingProjects.length === 0 && !checkpoint) {
-    return; // Nothing to migrate
+  if (existingProjects.length === 0 || migratedFlag === 'true') {
+    return; // Nothing to migrate or already done
   }
 
-  // 2. Initialize or resume checkpoint
-  const projectsToMigrate = existingProjects.filter(
-    p => !checkpoint?.completedProjectIds.includes(p.id)
-  );
-
-  const state: MigrationCheckpoint = checkpoint ?? {
-    version: 1,
-    startedAt: new Date().toISOString(),
-    completedProjectIds: [],
-    failedProjectIds: [],
-    totalProjects: existingProjects.length,
-    lastAttemptAt: new Date().toISOString(),
-    retryCount: 0,
-  };
+  // 2. Require online connection
+  if (!navigator.onLine) {
+    showMigrationNotice('Connect to internet to sync your existing projects.');
+    return;
+  }
 
   // 3. Show progress UI
-  showMigrationBanner(`Syncing projects to cloud (0/${state.totalProjects})...`);
+  const projectsToMigrate = existingProjects.filter(shouldMigrateProject);
+  showMigrationBanner(`Syncing ${projectsToMigrate.length} projects to cloud...`);
 
   // 4. Migrate each project
+  const results = { success: 0, failed: 0 };
+
   for (const project of projectsToMigrate) {
     try {
-      // 4a. Create cloud room
-      const cloudProjectId = await createCloudProject(project);
+      // 4a. Upload to cloud
+      await uploadProjectToCloud(project.id, project);
 
-      // 4b. Upload Yjs state
-      await uploadProjectToCloud(cloudProjectId, project);
-
-      // 4c. Verify integrity (round-trip check)
-      const downloaded = await downloadProjectFromCloud(cloudProjectId);
+      // 4b. Verify integrity (round-trip check)
+      const downloaded = await downloadProjectFromCloud(project.id);
       if (!projectsAreEqual(project, downloaded)) {
         throw new Error('Integrity check failed');
       }
 
-      // 4d. Update checkpoint
-      state.completedProjectIds.push(project.id);
-      saveMigrationCheckpoint(state);
-
-      // 4e. Update UI
-      const progress = state.completedProjectIds.length;
-      showMigrationBanner(`Syncing projects to cloud (${progress}/${state.totalProjects})...`);
-
+      results.success++;
     } catch (error) {
-      // 4f. Handle failure
-      state.failedProjectIds.push(project.id);
-      state.retryCount++;
-      saveMigrationCheckpoint(state);
-
-      if (state.retryCount > 3) {
-        showMigrationError(`Couldn't sync "${project.name}". Will retry later.`);
-      }
+      results.failed++;
+      console.error(`Migration failed for ${project.name}:`, error);
     }
   }
 
-  // 5. Cleanup on success
-  if (state.failedProjectIds.length === 0) {
-    // Delete old IndexedDB entries
-    await clearLegacyIndexedDB();
-    clearMigrationCheckpoint();
+  // 5. Cleanup
+  if (results.failed === 0) {
+    // All succeeded - schedule backup cleanup after 48 hours
+    localStorage.setItem('contextflow_migrated', 'true');
+    localStorage.setItem('contextflow_migration_date', new Date().toISOString());
     showMigrationSuccess('All projects synced to cloud!');
   } else {
-    showMigrationWarning(`Synced ${state.completedProjectIds.length} of ${state.totalProjects} projects.`);
+    showMigrationWarning(`Synced ${results.success} of ${projectsToMigrate.length} projects. Retry later.`);
+  }
+}
+
+// Cleanup old IndexedDB backup after 48 hours
+async function cleanupMigrationBackup(): Promise<void> {
+  const migrationDate = localStorage.getItem('contextflow_migration_date');
+  if (!migrationDate) return;
+
+  const hoursSinceMigration = (Date.now() - new Date(migrationDate).getTime()) / (1000 * 60 * 60);
+  if (hoursSinceMigration >= 48) {
+    await clearLegacyIndexedDB();
+    localStorage.removeItem('contextflow_migration_date');
   }
 }
 ```
+
+### E.3 Backup Retention Policy
+
+IndexedDB backup is kept until all three conditions are met:
+
+1. Round-trip integrity verified during migration
+2. User has successfully loaded project at least once post-migration
+3. 48 hours have passed since migration
+
+After all conditions are met, backup is deleted automatically on next app load.
 
 ### E.4 Built-in Demo Projects
 
