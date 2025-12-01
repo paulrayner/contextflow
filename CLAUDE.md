@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Note**: This project uses [bd (beads)](https://github.com/steveyegge/beads) for issue tracking during AI coding sessions. Use `bd` commands for tactical work tracking. Human-readable roadmap remains in [docs/TODO.md](docs/TODO.md). See AGENTS.md for workflow details.
+
 ## Quick Reference
 
 For comprehensive documentation, see:
