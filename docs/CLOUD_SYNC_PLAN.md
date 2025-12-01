@@ -326,7 +326,7 @@ Users with projects in current IndexedDB get seamless migration:
 **Key behaviors:**
 - Migration is automatic and silent (no user action required)
 - Existing project URLs work (redirected to cloud version)
-- Built-in demo projects migrate like any other project
+- Built-in demo projects use fork-on-edit (see [Appendix E.4](#e4-built-in-demo-projects-fork-on-edit))
 
 ---
 
@@ -496,7 +496,7 @@ Users with projects in current IndexedDB get seamless migration:
 - [ ] All views render correctly (Flow, Strategic, Distillation)
 - [ ] Inspector panel works for all entity types
 - [ ] Drag and drop works
-- [ ] Built-in demo projects migrate and load correctly
+- [ ] Built-in demo projects load correctly (fork-on-edit, reset works)
 
 ---
 
@@ -1815,25 +1815,70 @@ IndexedDB backup is kept until all three conditions are met:
 
 After all conditions are met, backup is deleted automatically on next app load.
 
-### E.4 Built-in Demo Projects
+### E.4 Built-in Demo Projects (Fork-on-Edit)
 
-**Decision**: Built-in demo projects (ACME E-Commerce) do NOT migrate to cloud.
+**Decision**: Demo projects use fork-on-edit with reset capability.
 
 **Rationale**:
 
-- Demo projects are recreated from hardcoded data on each load
-- Migrating would create duplicates
-- Users who want to keep changes can "Save As" to a new project
+In the cloud-only architecture, all mutations go through Yjs. Non-synced projects would have no mutation path and no undo/redo (since Y.UndoManager replaces the old undo system). Making demos read-only would be confusing. Instead:
+
+- Demo projects load with an in-memory Yjs doc (not yet synced to cloud)
+- First edit triggers cloud sync, forking the demo to a user-owned project
+- Original demo template remains available for reset or creating fresh copies
+
+**Behavior**:
+
+| State | Cloud Sync | Undo/Redo | Persistence |
+|-------|------------|-----------|-------------|
+| Fresh demo (no edits) | Not synced | Works (in-memory Y.Doc) | None (recreated on reload) |
+| After first edit | Synced with new ID | Works (Y.UndoManager) | Cloud + IndexedDB cache |
+| After reset | Returns to fresh demo state | Works | None until next edit |
 
 **Implementation**:
 
 ```typescript
-function shouldMigrateProject(project: Project): boolean {
-  // Skip built-in projects by checking for known IDs or version markers
-  const BUILTIN_PROJECT_IDS = ['acme-ecommerce-demo'];
-  return !BUILTIN_PROJECT_IDS.includes(project.id);
+// Demo project template (hardcoded in code)
+const DEMO_TEMPLATES: Record<string, () => Project> = {
+  'acme-ecommerce': () => loadAcmeEcommerceDemo(),
+};
+
+// On app load: create in-memory Yjs doc for demo (no cloud connection)
+function loadDemoProject(templateId: string): { ydoc: Y.Doc; project: Project } {
+  const project = DEMO_TEMPLATES[templateId]();
+  const ydoc = new Y.Doc();
+  projectToYjs(project, ydoc);
+  // Note: provider NOT connected yet - no cloud sync
+  return { ydoc, project };
+}
+
+// On first edit: fork to cloud
+function forkDemoToCloud(ydoc: Y.Doc, originalProjectId: string): string {
+  const newProjectId = nanoid(8);
+  ydoc.getMap('project').set('id', newProjectId);
+  ydoc.getMap('project').set('forkedFrom', originalProjectId);
+
+  // Connect to cloud
+  const provider = new YProvider(host, newProjectId, ydoc, { connect: true });
+
+  return newProjectId;
+}
+
+// Reset: discard forked project, return to template
+function resetToDemo(templateId: string): void {
+  // Optionally: delete the forked cloud project
+  // Load fresh demo
+  const { ydoc, project } = loadDemoProject(templateId);
+  // Update store with fresh demo state
 }
 ```
+
+**UI Implications**:
+
+- Demo projects show "Sample Project" badge in project list
+- Forked demos show "Reset to original" option in project menu
+- "Sample Projects" section always available to spawn fresh copies
+- Share button works after fork (disabled or hidden before first edit)
 
 ---
 
@@ -1922,7 +1967,8 @@ const latency = endMeasure('context-drag');
 
 - [ ] Migration checkpoint persists in localStorage
 - [ ] Integrity verification after each project upload
-- [ ] Built-in demo projects are NOT migrated (avoid duplicates)
+- [ ] Built-in demo projects use fork-on-edit (sync only after first edit)
+- [ ] Demo reset option restores original template state
 - [ ] Failed migrations can be retried on next session
 - [ ] Progress indicator shows "X of Y projects syncing..."
 
