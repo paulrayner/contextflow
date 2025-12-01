@@ -25,13 +25,13 @@ The original plan proposed adding Dexie for IndexedDB management. After review, 
 
 The existing `persistence.ts` is minimal (~90 lines), working, and sufficient. For cloud projects, Yjs is the source of truth - IndexedDB is just an offline cache.
 
-### Critical Blockers Added
+### Architecture Validated by EventStormer
 
-Three items MUST be validated before implementation:
+The core stack is already proven in production by EventStormer (`~/Documents/EventStormer`):
 
-1. **y-partyserver + Cloudflare compatibility** - Plan uses PartyKit API, may not work with raw Cloudflare
-2. **Yjs CRDT text merge behavior** - Concurrent text edits could produce garbled results
-3. **Cloudflare Durable Objects persistence** - State must survive worker restarts
+- **y-partyserver + Cloudflare**: Working with `routePartykitRequest` ✅
+- **Durable Objects persistence**: Yjs state survives restarts automatically ✅
+- **Bundle size**: ~60KB gzipped (yjs + y-partyserver) ✅
 
 ### Architectural Additions
 
@@ -53,49 +53,57 @@ Added 8 new test scenarios covering:
 
 ---
 
-## Pre-Implementation Blockers
+## Proven Architecture (EventStormer Reference)
 
-**These items MUST be validated before writing any implementation code.**
+**The core architecture is already validated** by EventStormer (`~/Documents/EventStormer`), which uses the same stack in production:
 
-### Critical Blockers (Cannot Proceed Without)
+| Concern | EventStormer Proof | Status |
+|---------|-------------------|--------|
+| y-partyserver + Cloudflare | Working in production with `routePartykitRequest` | ✅ Proven |
+| Durable Objects persistence | Yjs state survives worker restarts automatically | ✅ Proven |
+| WebSocket connection | YProvider connects reliably to Cloudflare Workers | ✅ Proven |
+| Bundle size | yjs (~50KB) + y-partyserver (~10KB) = ~60KB gzipped | ✅ Acceptable |
 
-| Blocker | Risk | Validation Task | Status |
-|---------|------|-----------------|--------|
-| y-partyserver + Cloudflare compatibility | Plan uses `routePartykitRequest` which is PartyKit API - may not work with raw Cloudflare Workers | Deploy test worker, verify WebSocket connects | ☐ Not started |
-| Yjs CRDT text merge behavior | Two users editing same `context.name` could produce garbled merge | Test concurrent text edits, document expected outcomes | ☐ Not started |
-| Cloudflare Durable Objects persistence | Yjs state must survive worker restarts | Deploy test worker, edit, restart, verify state persists | ☐ Not started |
+### Key Patterns from EventStormer to Reuse
 
-### Validation Spike (1-2 Days)
+**Minimal server (workers/server.ts):**
 
-Before starting Step 1, complete this spike:
+```typescript
+import { routePartykitRequest } from "partyserver";
+import { YServer } from "y-partyserver";
 
-```bash
-# 1. Verify y-partyserver works with Cloudflare (not just PartyKit)
-# Create minimal worker, test WebSocket connection from browser
+export class YjsRoom extends YServer {
+  // YServer handles all Yjs sync automatically
+}
 
-# 2. Test Yjs CRDT merge for text fields
-# Scenario: Two clients edit same string field concurrently
-# Document: What outcome should users expect?
-
-# 3. Measure bundle size impact
-npm pack yjs y-partyserver --dry-run
-# Target: < 70KB gzipped combined (leaving room for other code)
-
-# 4. Load test with large project
-# Create project: 100 contexts, 80 relationships, 10 groups
-# Measure: initial sync time, memory usage, edit latency
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return (await routePartykitRequest(request, env)) ||
+           new Response("Not Found", { status: 404 });
+  }
+};
 ```
 
-### Exit Criteria for Spike
+**Client connection:**
 
-- ✅ WebSocket connects from browser to Cloudflare Worker
-- ✅ Yjs sync works between two browser tabs
-- ✅ State persists after Durable Object restart
-- ✅ Concurrent text edits produce deterministic (not garbled) result
-- ✅ Bundle size < 70KB gzipped
-- ✅ 100-context project syncs in < 3s, edits in < 500ms
+```typescript
+import YProvider from "y-partyserver/provider";
 
-**If any exit criteria fails:** Architecture needs revision before proceeding.
+const provider = new YProvider(host, projectId, ydoc, {
+  connect: true,
+  party: "yjs-room",
+});
+```
+
+### Remaining Validation (During Implementation)
+
+These items should be tested during Step 3, not as blockers:
+
+| Item | Validation | When |
+|------|------------|------|
+| Yjs CRDT text merge | Test concurrent edits on `context.name` field | Step 3 |
+| Large project performance | Test with 100+ contexts | Step 4 |
+| ContextFlow-specific serialization | Verify `Project` ↔ Yjs round-trip | Step 3 |
 
 ---
 
