@@ -957,49 +957,74 @@ ykeyframe.set('positions', ypositions);
 
 ```gherkin
 Scenario: Two users edit same bounded context simultaneously
-Given: Browser A and Browser B have project "P1" open
-When: Browser A changes context name to "AuthService-v2" at T=0
-And: Browser B changes context name to "AuthService-Enterprise" at T=50ms
-Then: Within 2 seconds, both browsers show identical name
-And: The name is one of the two values (not a merge/corruption)
-And: No console errors in either browser
+  Given both browsers have project "P1" open
+    | Browser   | Status |
+    | Browser A | online |
+    | Browser B | online |
+  When users edit the same context name concurrently
+    | Browser   | Time   | New Value              |
+    | Browser A | T=0    | AuthService-v2         |
+    | Browser B | T=50ms | AuthService-Enterprise |
+  Then within 2 seconds
+    | Assertion                                  | Expected |
+    | Both browsers show identical name          | true     |
+    | Name is one of the two values (not merged) | true     |
+    | Console errors in either browser           | none     |
 ```
 
 **Network Partition:**
 
 ```gherkin
 Scenario: Browser reconnects after offline period with divergent changes
-Given: Browser A is online with project "P1"
-And: Browser B disconnects from network
-When: Browser A adds context "Payment Service"
-And: Browser B (offline) adds context "Billing Service"
-And: Browser B reconnects after 30 seconds
-Then: Both browsers show both contexts within 5 seconds
-And: No duplicate contexts
-And: Both contexts have valid IDs and positions
+  Given browsers with different network states
+    | Browser   | Status  | Project |
+    | Browser A | online  | P1      |
+    | Browser B | offline | P1      |
+  When each browser adds a context while disconnected
+    | Browser   | Action                 |
+    | Browser A | Adds "Payment Service" |
+    | Browser B | Adds "Billing Service" |
+  And Browser B reconnects after 30 seconds
+  Then within 5 seconds
+    | Assertion                         | Expected |
+    | Both browsers show both contexts  | true     |
+    | Duplicate contexts exist          | false    |
+    | All contexts have valid IDs       | true     |
+    | All contexts have valid positions | true     |
 ```
 
 **Large Project Performance:**
 
 ```gherkin
 Scenario: Sync performance with large project
-Given: Project with 100 contexts, 80 relationships, 10 groups
-When: User edits a context name
-Then: Change visible in second browser within 500ms
-And: UI remains responsive (no frame drops > 100ms)
-And: Memory usage does not exceed baseline + 50MB
+  Given a project with the following entities
+    | Entity        | Count |
+    | contexts      | 100   |
+    | relationships | 80    |
+    | groups        | 10    |
+  When user edits a context name
+  Then sync completes within performance targets
+    | Metric                      | Target  |
+    | Change visible in Browser B | < 500ms |
+    | Frame drops > 100ms         | 0       |
+    | Memory increase             | < 50MB  |
 ```
 
 **Reference Integrity:**
 
 ```gherkin
 Scenario: Delete context with dependent relationships
-Given: Context "Auth" has 3 incoming relationships
-When: User deletes context "Auth"
-Then: Context is removed from all browsers
-And: All 3 relationships are also removed
-And: No orphaned relationship references remain
-And: Undo restores both context and relationships
+  Given context "Auth" with dependencies
+    | Dependency Type        | Count |
+    | Incoming relationships | 3     |
+  When user deletes context "Auth"
+  Then cascade delete occurs correctly
+    | Assertion                         | Expected |
+    | Context removed from all browsers | true     |
+    | All 3 relationships removed       | true     |
+    | Orphaned references remain        | false    |
+    | Undo restores context             | true     |
+    | Undo restores all relationships   | true     |
 ```
 
 ### Additional Test Scenarios (From Review)
@@ -1008,88 +1033,127 @@ And: Undo restores both context and relationships
 
 ```gherkin
 Scenario: Two users edit same text field simultaneously
-Given: Browser A and Browser B have context "Auth" selected
-When: Browser A types "Service" in the name field
-And: Browser B types "Module" in the name field at same time
-Then: Final value is deterministic (same in both browsers)
-And: Result is NOT garbled (e.g., not "SeMrodvuilcee")
-Note: Document expected Yjs CRDT behavior before implementation
+  Given both browsers have context "Auth" selected
+  When users type in the name field at the same time
+    | Browser   | Types   |
+    | Browser A | Service |
+    | Browser B | Module  |
+  Then CRDT merge produces valid result
+    | Assertion                                 | Expected |
+    | Final value identical in both browsers    | true     |
+    | Result is garbled (e.g., "SeMrodvuilcee") | false    |
+
+  Note: Document expected Yjs CRDT behavior before implementation
 ```
 
 **Extended Offline Period:**
 
 ```gherkin
 Scenario: User offline for extended period with many changes
-Given: Browser A is online, Browser B goes offline
-When: Browser A makes 20 edits over 1 hour
-And: Browser B makes 10 edits while offline
-And: Browser B reconnects after 1 hour
-Then: All 30 changes merge correctly
-And: No data loss on either side
-And: Sync completes within 10 seconds
+  Given browsers with different network states
+    | Browser   | Status  |
+    | Browser A | online  |
+    | Browser B | offline |
+  When edits accumulate over time
+    | Browser   | Edits | Duration |
+    | Browser A | 20    | 1 hour   |
+    | Browser B | 10    | 1 hour   |
+  And Browser B reconnects after 1 hour
+  Then merge completes successfully
+    | Assertion              | Expected |
+    | Total changes merged   | 30       |
+    | Data loss either side  | none     |
+    | Sync completion time   | < 10s    |
 ```
 
 **Serialization Round-Trip:**
 
 ```gherkin
 Scenario: All project fields survive Yjs serialization
-Given: Project with all field types populated:
-  - 50 contexts with all optional fields
-  - 40 relationships
-  - 5 groups
-  - temporal keyframes with positions
-  - viewConfig with all settings
-When: Project is serialized to Yjs and back
-Then: Exported JSON is byte-identical to original
-And: All optional/nullable fields preserved
+  Given a project with all field types populated
+    | Entity             | Count | Notes                   |
+    | contexts           | 50    | all optional fields set |
+    | relationships      | 40    |                         |
+    | groups             | 5     |                         |
+    | temporal keyframes | 3     | with position maps      |
+    | flowStages         | 4     |                         |
+    | users              | 5     |                         |
+    | userNeeds          | 8     |                         |
+    | repos              | 6     |                         |
+    | teams              | 3     |                         |
+  When project is serialized to Yjs and back
+  Then data integrity is preserved
+    | Assertion                      | Expected |
+    | Exported JSON matches original | true     |
+    | Optional fields preserved      | true     |
+    | Nullable fields preserved      | true     |
+    | Nested positions preserved     | true     |
 ```
 
 **Browser Crash Recovery:**
 
 ```gherkin
 Scenario: Browser crashes with pending offline changes
-Given: User is editing project offline
-And: Has 5 pending changes in IndexedDB cache
-When: Browser crashes unexpectedly
-And: User reopens app
-Then: Offline cache is loaded from IndexedDB
-And: Changes sync on reconnection
-And: No data loss
+  Given user editing state
+    | Condition            | Value   |
+    | Network status       | offline |
+    | Pending changes      | 5       |
+    | Changes in IndexedDB | true    |
+  When browser crashes unexpectedly
+  And user reopens app
+  Then recovery completes successfully
+    | Assertion                    | Expected |
+    | Offline cache loaded         | true     |
+    | Changes sync on reconnection | true     |
+    | Data loss                    | none     |
 ```
 
 **Import/Export Atomicity:**
 
 ```gherkin
 Scenario: Import fails mid-stream
-Given: User imports large JSON file (100 contexts)
-When: Network error occurs at 50% import
-Then: Import is rolled back completely
-And: No partial project created
-And: User sees clear error message
-And: Can retry import
+  Given user imports a large JSON file
+    | Property | Value |
+    | contexts | 100   |
+  When network error occurs at 50% import
+  Then import is rolled back atomically
+    | Assertion               | Expected |
+    | Partial project created | false    |
+    | Error message shown     | true     |
+    | Retry option available  | true     |
 ```
 
 **Multi-Tab Sync:**
 
 ```gherkin
 Scenario: Same project open in multiple tabs
-Given: User has project open in Tab A and Tab B
-When: User edits context name in Tab A
-Then: Change appears in Tab B within 500ms
-And: No WebSocket connection conflicts
-And: Both tabs show consistent state
+  Given user has project open in multiple tabs
+    | Tab   | Project |
+    | Tab A | P1      |
+    | Tab B | P1      |
+  When user edits context name in Tab A
+  Then sync occurs correctly
+    | Assertion                      | Target  |
+    | Change appears in Tab B        | < 500ms |
+    | WebSocket connection conflicts | none    |
+    | State consistent across tabs   | true    |
 ```
 
 **Concurrent Delete Operations:**
 
 ```gherkin
 Scenario: Two users delete same context simultaneously
-Given: Browser A and Browser B see context "Payment"
-When: Browser A deletes "Payment" at T=0
-And: Browser B deletes "Payment" at T=50ms
-Then: Context deleted (no duplicate delete errors)
-And: Relationships cascade deleted once
-And: Final state consistent in both browsers
+  Given both browsers see context "Payment"
+  When users delete the same context
+    | Browser   | Time   | Action           |
+    | Browser A | T=0    | Delete "Payment" |
+    | Browser B | T=50ms | Delete "Payment" |
+  Then delete resolves without errors
+    | Assertion                          | Expected |
+    | Context deleted                    | true     |
+    | Duplicate delete errors            | none     |
+    | Relationships cascade deleted once | true     |
+    | Final state consistent             | true     |
 ```
 
 ### Regression Test Matrix
