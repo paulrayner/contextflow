@@ -98,6 +98,29 @@ The Elan Extended Warranty project now includes a full teaching case study for D
 
 ---
 
+## Why ContextFlow?
+
+Generic diagramming tools (Miro, Lucidchart, draw.io) can draw boxes and arrows, but they don't understand domain-driven design. ContextFlow is purpose-built for strategic modeling:
+
+| Capability | ContextFlow | Generic Diagramming |
+|------------|-------------|---------------------|
+| DDD relationship patterns (ACL, OHS, etc.) | Built-in with visual indicators | Manual shapes/stickers |
+| Issues/Hotspots with severity | First-class entities | Sticky notes (easily lost) |
+| Team assignment to contexts | Native with Team Topologies | Manual annotations |
+| Evolution/maturity tracking | Wardley-style axis | Not supported |
+| Strategic classification | Core/Supporting/Generic built-in | Manual color-coding |
+| Integrated complementary views | Value Stream, Strategic, Domain Distillation | Single view only |
+| Educational tooltips | DDD concepts on hover | None |
+| Ownership categorization | Built-in with color coding | Manual |
+
+---
+
+## Upgrading
+
+Project data is automatically migrated to the latest schema. Your existing projects will continue to work seamlessly.
+
+---
+
 ## By the Numbers
 
 ### Since v0.6.2 (7 days)
