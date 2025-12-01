@@ -262,19 +262,29 @@ This is the major refactor. Key responsibilities:
 **Project structure in Yjs:**
 ```typescript
 const yproject = ydoc.getMap("project");
-yproject.set("id", string);
-yproject.set("name", string);
-yproject.set("contexts", Y.Array<BoundedContext>);
-yproject.set("relationships", Y.Array<Relationship>);
-yproject.set("groups", Y.Array<Group>);
-yproject.set("repos", Y.Array<Repository>);
-yproject.set("teams", Y.Array<Team>);
-yproject.set("users", Y.Array<User>);
-yproject.set("userNeeds", Y.Array<UserNeed>);
-yproject.set("viewConfig", Y.Map);
-yproject.set("temporal", Y.Map);
-// ... etc
+
+// Scalar fields
+yproject.set("id", projectId);
+yproject.set("name", projectName);
+
+// Entity arrays (each element is a nested Y.Map)
+const ycontexts = new Y.Array<Y.Map<unknown>>();
+yproject.set("contexts", ycontexts);
+
+const yrelationships = new Y.Array<Y.Map<unknown>>();
+yproject.set("relationships", yrelationships);
+
+// ... similar for groups, repos, teams, users, userNeeds
+
+// Nested config objects (use nested Y.Map, not dot-notation)
+const yviewConfig = new Y.Map();
+yproject.set("viewConfig", yviewConfig);
+
+const ytemporal = new Y.Map();
+yproject.set("temporal", ytemporal);
 ```
+
+**Important:** Use nested Y.Map objects for hierarchical data, NOT dot-notation keys. See [Appendix A.2](#a2-nested-ymap-structure) for complete implementation examples.
 
 ### 1.8 UI Changes
 
@@ -642,59 +652,32 @@ Use `ydoc.transact()` for all multi-field mutations (e.g., dragging a context up
 
 ## Detailed Yjs Schema Specification
 
-The high-level schema in section 1.7 needs expansion for implementation:
+The high-level schema in section 1.5 needs expansion for implementation. See [Appendix A](#appendix-a-yjs-schema-implementation-guide) for complete TypeScript examples.
 
-### Nested Structure Handling
+### Key Design Decision: Nested Y.Map Objects
 
-**Problem:** `BoundedContext.positions` is 4 levels deep:
+For nested data like `BoundedContext.positions`, use nested Y.Map objects (NOT dot-notation string keys):
+
 ```typescript
-positions: {
-  flow: { x: number; y: number };
-  strategic: { x: number; y: number };
-  shared: { y: number };
-}
-```
+// ✅ CORRECT: Nested Y.Map objects
+const ypositions = new Y.Map();
+const yflow = new Y.Map();
+yflow.set('x', 100);
+yflow.set('y', 200);
+ypositions.set('flow', yflow);
+ycontext.set('positions', ypositions);
 
-**Solution:** Flatten to Y.Map with dot-notation keys:
-```typescript
-// In Yjs
-const ycontext = new Y.Map();
-ycontext.set('id', 'ctx-123');
-ycontext.set('name', 'Payment Service');
+// ❌ WRONG: Dot-notation keys (loses CRDT benefits)
 ycontext.set('positions.flow.x', 100);
-ycontext.set('positions.flow.y', 200);
-ycontext.set('positions.strategic.x', 150);
-ycontext.set('positions.strategic.y', 200);
-ycontext.set('positions.shared.y', 200);
-// ... other fields
 ```
 
-**Serialization functions:**
-```typescript
-function contextToYMap(context: BoundedContext): Y.Map<unknown> {
-  const ymap = new Y.Map();
-  ymap.set('id', context.id);
-  ymap.set('name', context.name);
-  ymap.set('positions.flow.x', context.positions.flow.x);
-  ymap.set('positions.flow.y', context.positions.flow.y);
-  // ... flatten all nested fields
-  return ymap;
-}
+**Why nested Y.Map?**
 
-function yMapToContext(ymap: Y.Map<unknown>): BoundedContext {
-  return {
-    id: ymap.get('id') as string,
-    name: ymap.get('name') as string,
-    positions: {
-      flow: {
-        x: ymap.get('positions.flow.x') as number,
-        y: ymap.get('positions.flow.y') as number,
-      },
-      // ... reconstruct nested structure
-    },
-  };
-}
-```
+- Preserves CRDT conflict resolution at each level
+- Allows fine-grained observation of nested changes
+- Idiomatic Yjs pattern used by production apps
+
+See [Appendix A.2](#a2-nested-ymap-structure) for complete BoundedContext serialization.
 
 ### Array Entity Types
 
@@ -1318,7 +1301,7 @@ This section provides concrete TypeScript implementation examples for the Yjs sc
 
 ### A.2 Nested Y.Map Structure
 
-The plan's dot-notation (`ycontext.set('positions.flow.x', 100)`) is NOT idiomatic Yjs. Instead, use nested Y.Map objects:
+For nested data structures, use nested Y.Map objects (not dot-notation string keys like `'positions.flow.x'`):
 
 ```typescript
 import * as Y from 'yjs';
