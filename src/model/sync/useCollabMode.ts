@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person } from '../types';
 import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -39,6 +39,15 @@ export interface CollabMutations {
   deleteKeyframe(keyframeId: string): void;
   updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void;
   toggleTemporal(enabled: boolean): void;
+  addTeam(team: Team): void;
+  updateTeam(teamId: string, updates: Partial<Team>): void;
+  deleteTeam(teamId: string): void;
+  addRepo(repo: Repo): void;
+  updateRepo(repoId: string, updates: Partial<Repo>): void;
+  deleteRepo(repoId: string): void;
+  addPerson(person: Person): void;
+  updatePerson(personId: string, updates: Partial<Person>): void;
+  deletePerson(personId: string): void;
 }
 
 export interface CollabUndoRedo {
@@ -176,6 +185,33 @@ export function getCollabMutations(): CollabMutations {
     },
     toggleTemporal(enabled: boolean): void {
       collabStore?.toggleTemporal(enabled);
+    },
+    addTeam(team: Team): void {
+      collabStore?.addTeam(team);
+    },
+    updateTeam(teamId: string, updates: Partial<Team>): void {
+      collabStore?.updateTeam(teamId, updates);
+    },
+    deleteTeam(teamId: string): void {
+      collabStore?.deleteTeam(teamId);
+    },
+    addRepo(repo: Repo): void {
+      collabStore?.addRepo(repo);
+    },
+    updateRepo(repoId: string, updates: Partial<Repo>): void {
+      collabStore?.updateRepo(repoId, updates);
+    },
+    deleteRepo(repoId: string): void {
+      collabStore?.deleteRepo(repoId);
+    },
+    addPerson(person: Person): void {
+      collabStore?.addPerson(person);
+    },
+    updatePerson(personId: string, updates: Partial<Person>): void {
+      collabStore?.updatePerson(personId, updates);
+    },
+    deletePerson(personId: string): void {
+      collabStore?.deletePerson(personId);
     },
   };
 }

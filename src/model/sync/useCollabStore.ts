@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -54,6 +54,17 @@ import {
   updateKeyframeContextPositionMutation,
   toggleTemporalMutation,
 } from './keyframeMutations';
+import {
+  addTeamMutation,
+  updateTeamMutation,
+  deleteTeamMutation,
+  addRepoMutation,
+  updateRepoMutation,
+  deleteRepoMutation,
+  addPersonMutation,
+  updatePersonMutation,
+  deletePersonMutation,
+} from './metadataMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -97,6 +108,15 @@ export interface CollabStore {
   deleteKeyframe(keyframeId: string): void;
   updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void;
   toggleTemporal(enabled: boolean): void;
+  addTeam(team: Team): void;
+  updateTeam(teamId: string, updates: Partial<Team>): void;
+  deleteTeam(teamId: string): void;
+  addRepo(repo: Repo): void;
+  updateRepo(repoId: string, updates: Partial<Repo>): void;
+  deleteRepo(repoId: string): void;
+  addPerson(person: Person): void;
+  updatePerson(personId: string, updates: Partial<Person>): void;
+  deletePerson(personId: string): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -267,6 +287,42 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     toggleTemporal(enabled: boolean): void {
       toggleTemporalMutation(ydoc, enabled);
+    },
+
+    addTeam(team: Team): void {
+      addTeamMutation(ydoc, team);
+    },
+
+    updateTeam(teamId: string, updates: Partial<Team>): void {
+      updateTeamMutation(ydoc, teamId, updates);
+    },
+
+    deleteTeam(teamId: string): void {
+      deleteTeamMutation(ydoc, teamId);
+    },
+
+    addRepo(repo: Repo): void {
+      addRepoMutation(ydoc, repo);
+    },
+
+    updateRepo(repoId: string, updates: Partial<Repo>): void {
+      updateRepoMutation(ydoc, repoId, updates);
+    },
+
+    deleteRepo(repoId: string): void {
+      deleteRepoMutation(ydoc, repoId);
+    },
+
+    addPerson(person: Person): void {
+      addPersonMutation(ydoc, person);
+    },
+
+    updatePerson(personId: string, updates: Partial<Person>): void {
+      updatePersonMutation(ydoc, personId, updates);
+    },
+
+    deletePerson(personId: string): void {
+      deletePersonMutation(ydoc, personId);
     },
 
     canUndo(): boolean {

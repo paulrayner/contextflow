@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, FlowStageMarker } from './types'
+import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, FlowStageMarker, Team } from './types'
 import { saveProject, loadProject } from './persistence'
 import { config } from '../config'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../utils/analytics'
@@ -19,14 +19,7 @@ import {
   addContextIssueAction,
   updateContextIssueAction,
   deleteContextIssueAction,
-  assignTeamToContextAction,
-  unassignTeamFromContextAction
 } from './actions/contextActions'
-import {
-  updateTeamAction,
-  addTeamAction,
-  deleteTeamAction,
-} from './actions/teamActions'
 import { createProjectAction, deleteProjectAction, renameProjectAction, duplicateProjectAction } from './actions/projectActions'
 import {
   addUserAction,
@@ -341,105 +334,24 @@ export const useEditorStore = create<EditorState>((set) => ({
     return result
   }),
 
-  assignTeamToContext: (contextId, teamId) => set((state) => {
-    const result = assignTeamToContextAction(state, contextId, teamId)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  assignTeamToContext: (contextId, teamId) => set(() => {
+    getCollabMutations().updateContext(contextId, { teamId })
+    return {}
   }),
 
-  unassignTeamFromContext: (contextId) => set((state) => {
-    const result = unassignTeamFromContextAction(state, contextId)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  unassignTeamFromContext: (contextId) => set(() => {
+    getCollabMutations().updateContext(contextId, { teamId: undefined })
+    return {}
   }),
 
-  assignRepoToContext: (repoId, contextId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const repoIndex = project.repos.findIndex(r => r.id === repoId)
-    if (repoIndex === -1) return state
-
-    const repo = project.repos[repoIndex]
-    const oldContextId = repo.contextId
-
-    const command: EditorCommand = {
-      type: 'assignRepo',
-      payload: {
-        repoId,
-        oldContextId,
-        newContextId: contextId,
-      },
-    }
-
-    const updatedRepos = [...project.repos]
-    updatedRepos[repoIndex] = {
-      ...repo,
-      contextId,
-    }
-
-    const updatedProject = {
-      ...project,
-      repos: updatedRepos,
-    }
-
-    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+  assignRepoToContext: (repoId, contextId) => set(() => {
+    getCollabMutations().updateRepo(repoId, { contextId })
+    return {}
   }),
 
-  unassignRepo: (repoId) => set((state) => {
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const repoIndex = project.repos.findIndex(r => r.id === repoId)
-    if (repoIndex === -1) return state
-
-    const repo = project.repos[repoIndex]
-    const oldContextId = repo.contextId
-
-    const command: EditorCommand = {
-      type: 'unassignRepo',
-      payload: {
-        repoId,
-        oldContextId,
-      },
-    }
-
-    const updatedRepos = [...project.repos]
-    updatedRepos[repoIndex] = {
-      ...repo,
-      contextId: undefined,
-    }
-
-    const updatedProject = {
-      ...project,
-      repos: updatedRepos,
-    }
-
-    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+  unassignRepo: (repoId) => set(() => {
+    getCollabMutations().updateRepo(repoId, { contextId: undefined })
+    return {}
   }),
 
   createGroup: (label, color, notes) => set((state) => {
@@ -559,22 +471,31 @@ export const useEditorStore = create<EditorState>((set) => ({
     selectedNeedContextConnectionId: null,
   }),
 
-  updateTeam: (teamId, updates) => set((state) => {
-    const result = updateTeamAction(state, teamId, updates)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateTeam: (teamId, updates) => set(() => {
+    getCollabMutations().updateTeam(teamId, updates)
+    return {}
   }),
 
-  addTeam: (name) => set((state) => {
-    const result = addTeamAction(state, name)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
-  }),
+  addTeam: (name) => {
+    const newTeam = {
+      id: `team-${Date.now()}`,
+      name,
+      topologyType: 'stream-aligned' as const,
+    }
+    getCollabMutations().addTeam(newTeam)
+    useEditorStore.setState({
+      selectedTeamId: newTeam.id,
+      selectedContextId: null,
+      selectedGroupId: null,
+      selectedRelationshipId: null,
+      selectedStageIndex: null,
+    })
+    return newTeam.id
+  },
 
   deleteTeam: (teamId) => set((state) => {
-    const result = deleteTeamAction(state, teamId)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().deleteTeam(teamId)
+    return state.selectedTeamId === teamId ? { selectedTeamId: null } : {}
   }),
 
   addUser: (name) => set((state) => {
