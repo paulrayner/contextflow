@@ -194,6 +194,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   exportProject: vi.fn(),
   importProject: vi.fn(),
   reset: vi.fn(),
+  loadSharedProject: vi.fn(),
   toggleTemporalMode: vi.fn(),
   setCurrentDate: vi.fn(),
   setActiveKeyframe: vi.fn(),

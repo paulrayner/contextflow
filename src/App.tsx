@@ -8,6 +8,7 @@ import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { WelcomeModal } from './components/WelcomeModal'
 import { Users, X } from 'lucide-react'
 import { trackEvent } from './utils/analytics'
+import { useUrlRouter } from './hooks/useUrlRouter'
 
 const MILLISECONDS_PER_SECOND = 1000
 
@@ -30,9 +31,27 @@ function App() {
   const dismissWelcome = useEditorStore(s => s.dismissWelcome)
   const setActiveProject = useEditorStore(s => s.setActiveProject)
   const createProject = useEditorStore(s => s.createProject)
+  const loadSharedProject = useEditorStore(s => s.loadSharedProject)
+
+  const { route, params, navigate } = useUrlRouter()
 
   const [showGroupDialog, setShowGroupDialog] = React.useState(false)
-  const showWelcomeModal = !hasSeenWelcome
+  const [isLoadingSharedProject, setIsLoadingSharedProject] = React.useState(false)
+  const showWelcomeModal = !hasSeenWelcome && route !== 'shared-project'
+
+  // Handle shared project URL routing
+  React.useEffect(() => {
+    if (route === 'shared-project' && params.projectId) {
+      const sharedProjectId = params.projectId
+      // Only load if not already active
+      if (projectId !== sharedProjectId) {
+        setIsLoadingSharedProject(true)
+        loadSharedProject(sharedProjectId).finally(() => {
+          setIsLoadingSharedProject(false)
+        })
+      }
+    }
+  }, [route, params.projectId, projectId, loadSharedProject])
 
   // Track project lifecycle (project_closed event)
   React.useEffect(() => {
@@ -132,6 +151,18 @@ function App() {
           }}
           onClose={dismissWelcome}
         />
+      )}
+
+      {/* Loading overlay for shared projects */}
+      {isLoadingSharedProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl px-8 py-6 flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Connecting to shared project...
+            </div>
+          </div>
+        </div>
       )}
 
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>

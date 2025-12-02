@@ -950,6 +950,62 @@ export const useEditorStore = create<EditorState>((set) => ({
     redoStack: [],
   }),
 
+  loadSharedProject: async (projectId: string) => {
+    // Create a placeholder project for the shared project
+    const placeholderProject: Project = {
+      id: projectId,
+      name: 'Loading...',
+      contexts: [],
+      relationships: [],
+      repos: [],
+      people: [],
+      teams: [],
+      groups: [],
+      users: [],
+      userNeeds: [],
+      userNeedConnections: [],
+      needContextConnections: [],
+      viewConfig: {
+        flowStages: [],
+      },
+    }
+
+    // Add placeholder to projects and set as active
+    useEditorStore.setState((state) => ({
+      projects: {
+        ...state.projects,
+        [projectId]: placeholderProject,
+      },
+      activeProjectId: projectId,
+      selectedContextId: null,
+      selectedGroupId: null,
+      selectedTeamId: null,
+      selectedUserId: null,
+      selectedUserNeedId: null,
+      selectedUserNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
+      selectedContextIds: [],
+      undoStack: [],
+      redoStack: [],
+    }))
+
+    // Initialize collab mode which will sync from cloud
+    destroyCollabMode()
+    const onProjectChange = (updatedProject: Project): void => {
+      useEditorStore.setState((s) => ({
+        projects: {
+          ...s.projects,
+          [updatedProject.id]: updatedProject,
+        },
+      }))
+    }
+    initializeCollabMode(placeholderProject, { onProjectChange })
+
+    // Also update localStorage to remember this project
+    localStorage.setItem('contextflow.activeProjectId', projectId)
+  },
+
   // Temporal actions
   toggleTemporalMode: () => set((state) => {
     const projectId = state.activeProjectId

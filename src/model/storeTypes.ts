@@ -177,4 +177,5 @@ export interface EditorState {
   exportProject: () => void
   importProject: (project: Project) => void
   reset: () => void
+  loadSharedProject: (projectId: string) => Promise<void>
 }
