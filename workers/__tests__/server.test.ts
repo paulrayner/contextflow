@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock y-partyserver since it uses Cloudflare-specific imports
+// Mock partyserver and y-partyserver since they use Cloudflare-specific imports
+vi.mock('partyserver', () => ({
+  routePartykitRequest: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock('y-partyserver', () => ({
   YServer: class YServer {},
-  routePartykitRequest: vi.fn(),
 }));
 
 describe('YjsRoom Worker', () => {

@@ -1,0 +1,13 @@
+name = "contextflow-collab"
+main = "workers/server.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat_v2"]
+
+# Durable Objects for room state
+[[durable_objects.bindings]]
+name = "YjsRoom"
+class_name = "YjsRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["YjsRoom"]
