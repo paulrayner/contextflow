@@ -1,9 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useCollabStore, ConnectionState } from '../collabStore';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { useCollabStore, ConnectionState, getCollabHost } from '../collabStore';
 
 describe('collabStore', () => {
   beforeEach(() => {
     useCollabStore.getState().reset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   describe('initial state', () => {
@@ -148,6 +152,104 @@ describe('collabStore', () => {
       expect(state.error).toBeNull();
       expect(state.ydoc).toBeNull();
       expect(state.provider).toBeNull();
+    });
+  });
+
+  describe('getCollabHost', () => {
+    it('returns localhost:8787 as default when VITE_COLLAB_HOST is not set', () => {
+      vi.stubEnv('VITE_COLLAB_HOST', '');
+      const host = getCollabHost();
+      expect(host).toBe('localhost:8787');
+    });
+
+    it('returns configured host from environment variable', () => {
+      vi.stubEnv('VITE_COLLAB_HOST', 'contextflow-collab.workers.dev');
+      const host = getCollabHost();
+      expect(host).toBe('contextflow-collab.workers.dev');
+    });
+  });
+
+  describe('connectToProject', () => {
+    it('sets state to connecting when called', async () => {
+      const store = useCollabStore.getState();
+
+      // Start connection (it will fail without actual server, but state should update)
+      const promise = store.connectToProject('test-project-123');
+
+      // Connection state should immediately be 'connecting'
+      expect(useCollabStore.getState().connectionState).toBe('connecting');
+      expect(useCollabStore.getState().activeProjectId).toBe('test-project-123');
+
+      // Wait for promise to settle (will fail in test env, that's ok)
+      await promise.catch(() => {});
+    });
+
+    it('creates a new Y.Doc for the project', async () => {
+      const store = useCollabStore.getState();
+
+      await store.connectToProject('test-project-456').catch(() => {});
+
+      // Y.Doc should be created regardless of connection success
+      expect(useCollabStore.getState().ydoc).not.toBeNull();
+    });
+
+    it('disconnects existing connection before creating new one', async () => {
+      const store = useCollabStore.getState();
+
+      // Simulate an existing connection
+      store.setConnectionState('connected');
+      store.setActiveProjectId('old-project');
+
+      await store.connectToProject('new-project').catch(() => {});
+
+      expect(useCollabStore.getState().activeProjectId).toBe('new-project');
+    });
+  });
+
+  describe('disconnect', () => {
+    it('sets state to disconnected', () => {
+      const store = useCollabStore.getState();
+
+      store.setConnectionState('connected');
+      store.setActiveProjectId('project-123');
+
+      store.disconnect();
+
+      expect(useCollabStore.getState().connectionState).toBe('disconnected');
+    });
+
+    it('clears activeProjectId', () => {
+      const store = useCollabStore.getState();
+
+      store.setActiveProjectId('project-123');
+
+      store.disconnect();
+
+      expect(useCollabStore.getState().activeProjectId).toBeNull();
+    });
+
+    it('clears ydoc reference', () => {
+      const store = useCollabStore.getState();
+
+      // Create a mock ydoc
+      const mockYDoc = { destroy: vi.fn() } as any;
+      store.setYDoc(mockYDoc);
+
+      store.disconnect();
+
+      expect(useCollabStore.getState().ydoc).toBeNull();
+    });
+
+    it('clears provider reference', () => {
+      const store = useCollabStore.getState();
+
+      // Create a mock provider
+      const mockProvider = { destroy: vi.fn() } as any;
+      store.setProvider(mockProvider);
+
+      store.disconnect();
+
+      expect(useCollabStore.getState().provider).toBeNull();
     });
   });
 });
