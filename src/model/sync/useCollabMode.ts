@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection } from '../types';
 import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -28,6 +28,12 @@ export interface CollabMutations {
   updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void;
   deleteUserNeed(userNeedId: string): void;
   updateUserNeedPosition(userNeedId: string, position: number): void;
+  addUserNeedConnection(connection: UserNeedConnection): void;
+  updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void;
+  deleteUserNeedConnection(connectionId: string): void;
+  addNeedContextConnection(connection: NeedContextConnection): void;
+  updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void;
+  deleteNeedContextConnection(connectionId: string): void;
 }
 
 export interface CollabUndoRedo {
@@ -132,6 +138,24 @@ export function getCollabMutations(): CollabMutations {
     },
     updateUserNeedPosition(userNeedId: string, position: number): void {
       collabStore?.updateUserNeedPosition(userNeedId, position);
+    },
+    addUserNeedConnection(connection: UserNeedConnection): void {
+      collabStore?.addUserNeedConnection(connection);
+    },
+    updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void {
+      collabStore?.updateUserNeedConnection(connectionId, updates);
+    },
+    deleteUserNeedConnection(connectionId: string): void {
+      collabStore?.deleteUserNeedConnection(connectionId);
+    },
+    addNeedContextConnection(connection: NeedContextConnection): void {
+      collabStore?.addNeedContextConnection(connection);
+    },
+    updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void {
+      collabStore?.updateNeedContextConnection(connectionId, updates);
+    },
+    deleteNeedContextConnection(connectionId: string): void {
+      collabStore?.deleteNeedContextConnection(connectionId);
     },
   };
 }

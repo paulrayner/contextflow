@@ -1,10 +1,29 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useEditorStore } from '../store'
+import { initializeCollabMode, destroyCollabMode } from '../sync/useCollabMode'
+import type { Project } from '../types'
 
 describe('Store - User-Need-Context Connection Management', () => {
   beforeEach(() => {
     const { reset } = useEditorStore.getState()
     reset()
+
+    // Initialize collab mode for the active project
+    const state = useEditorStore.getState()
+    const project = state.projects[state.activeProjectId!]
+    const onProjectChange = (updatedProject: Project): void => {
+      useEditorStore.setState((s) => ({
+        projects: {
+          ...s.projects,
+          [updatedProject.id]: updatedProject,
+        },
+      }))
+    }
+    initializeCollabMode(project, { onProjectChange })
+  })
+
+  afterEach(() => {
+    destroyCollabMode()
   })
 
   describe('createUserNeedConnection', () => {
@@ -33,8 +52,7 @@ describe('Store - User-Need-Context Connection Management', () => {
       }
     })
 
-    // TODO(collab): Re-enable once userNeedConnections are wired through Yjs
-    it.skip('should support undo/redo for user-need connections', () => {
+    it('should support undo/redo for user-need connections', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { createUserNeedConnection, addUserNeed, undo, redo } = state
@@ -90,8 +108,7 @@ describe('Store - User-Need-Context Connection Management', () => {
       }
     })
 
-    // TODO(collab): Re-enable once userNeedConnections are wired through Yjs
-    it.skip('should support undo/redo for deleting user-need connections', () => {
+    it('should support undo/redo for deleting user-need connections', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { createUserNeedConnection, deleteUserNeedConnection, addUserNeed, undo, redo } = state
@@ -149,8 +166,7 @@ describe('Store - User-Need-Context Connection Management', () => {
       }
     })
 
-    // TODO(collab): Re-enable once needContextConnections are wired through Yjs
-    it.skip('should support undo/redo for need-context connections', () => {
+    it('should support undo/redo for need-context connections', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { createNeedContextConnection, addUserNeed, undo, redo } = state
@@ -206,8 +222,7 @@ describe('Store - User-Need-Context Connection Management', () => {
       }
     })
 
-    // TODO(collab): Re-enable once needContextConnections are wired through Yjs
-    it.skip('should support undo/redo for deleting need-context connections', () => {
+    it('should support undo/redo for deleting need-context connections', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { createNeedContextConnection, deleteNeedContextConnection, addUserNeed, undo, redo } = state

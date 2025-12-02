@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -39,6 +39,14 @@ import {
   deleteUserNeedMutation,
   updateUserNeedPositionMutation,
 } from './userNeedMutations';
+import {
+  addUserNeedConnectionMutation,
+  updateUserNeedConnectionMutation,
+  deleteUserNeedConnectionMutation,
+  addNeedContextConnectionMutation,
+  updateNeedContextConnectionMutation,
+  deleteNeedContextConnectionMutation,
+} from './connectionMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -71,6 +79,12 @@ export interface CollabStore {
   updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void;
   deleteUserNeed(userNeedId: string): void;
   updateUserNeedPosition(userNeedId: string, position: number): void;
+  addUserNeedConnection(connection: UserNeedConnection): void;
+  updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void;
+  deleteUserNeedConnection(connectionId: string): void;
+  addNeedContextConnection(connection: NeedContextConnection): void;
+  updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void;
+  deleteNeedContextConnection(connectionId: string): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -197,6 +211,30 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     updateUserNeedPosition(userNeedId: string, position: number): void {
       updateUserNeedPositionMutation(ydoc, userNeedId, position);
+    },
+
+    addUserNeedConnection(connection: UserNeedConnection): void {
+      addUserNeedConnectionMutation(ydoc, connection);
+    },
+
+    updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void {
+      updateUserNeedConnectionMutation(ydoc, connectionId, updates);
+    },
+
+    deleteUserNeedConnection(connectionId: string): void {
+      deleteUserNeedConnectionMutation(ydoc, connectionId);
+    },
+
+    addNeedContextConnection(connection: NeedContextConnection): void {
+      addNeedContextConnectionMutation(ydoc, connection);
+    },
+
+    updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void {
+      updateNeedContextConnectionMutation(ydoc, connectionId, updates);
+    },
+
+    deleteNeedContextConnection(connectionId: string): void {
+      deleteNeedContextConnectionMutation(ydoc, connectionId);
     },
 
     canUndo(): boolean {

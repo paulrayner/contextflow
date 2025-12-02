@@ -37,12 +37,6 @@ import {
   deleteUserNeedAction,
   updateUserNeedAction,
   updateUserNeedPositionAction,
-  createUserNeedConnectionAction,
-  deleteUserNeedConnectionAction,
-  updateUserNeedConnectionAction,
-  createNeedContextConnectionAction,
-  deleteNeedContextConnectionAction,
-  updateNeedContextConnectionAction
 } from './actions/userActions'
 import {
   toggleTemporalModeAction,
@@ -599,6 +593,16 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   deleteUser: (userId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
+    const project = state.projects[projectId]
+    if (!project) return {}
+
+    const userNeedConnections = (project.userNeedConnections || []).filter(c => c.userId === userId)
+    for (const conn of userNeedConnections) {
+      getCollabMutations().deleteUserNeedConnection(conn.id)
+    }
+
     getCollabMutations().deleteUser(userId)
     return state.selectedUserId === userId ? { selectedUserId: null } : {}
   }),
@@ -646,6 +650,21 @@ export const useEditorStore = create<EditorState>((set) => ({
   },
 
   deleteUserNeed: (userNeedId) => set((state) => {
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
+    const project = state.projects[projectId]
+    if (!project) return {}
+
+    const userNeedConnections = (project.userNeedConnections || []).filter(c => c.userNeedId === userNeedId)
+    const needContextConnections = (project.needContextConnections || []).filter(c => c.userNeedId === userNeedId)
+
+    for (const conn of userNeedConnections) {
+      getCollabMutations().deleteUserNeedConnection(conn.id)
+    }
+    for (const conn of needContextConnections) {
+      getCollabMutations().deleteNeedContextConnection(conn.id)
+    }
+
     getCollabMutations().deleteUserNeed(userNeedId)
     return state.selectedUserNeedId === userNeedId ? { selectedUserNeedId: null } : {}
   }),
@@ -701,48 +720,76 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   createUserNeedConnection: (userId, userNeedId) => {
     const state = useEditorStore.getState()
-    const { newState, newConnectionId } = createUserNeedConnectionAction(state, userId, userNeedId)
+    const projectId = state.activeProjectId
+    if (!projectId) return null
+    const project = state.projects[projectId]
+    if (!project) return null
 
-    autosaveIfNeeded(state.activeProjectId, newState.projects)
-    useEditorStore.setState(newState)
-    return newConnectionId
+    const newConnection = {
+      id: `user-need-conn-${Date.now()}`,
+      userId,
+      userNeedId,
+    }
+
+    getCollabMutations().addUserNeedConnection(newConnection)
+
+    trackEvent('user_need_connection_created', project, {
+      entity_type: 'user_need_connection',
+      entity_id: newConnection.id,
+      metadata: {
+        user_id: userId,
+        user_need_id: userNeedId
+      }
+    })
+
+    return newConnection.id
   },
 
-  deleteUserNeedConnection: (connectionId) => set((state) => {
-    const result = deleteUserNeedConnectionAction(state, connectionId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  deleteUserNeedConnection: (connectionId) => set(() => {
+    getCollabMutations().deleteUserNeedConnection(connectionId)
+    return {}
   }),
 
-  updateUserNeedConnection: (connectionId, updates) => set((state) => {
-    const result = updateUserNeedConnectionAction(state, connectionId, updates)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateUserNeedConnection: (connectionId, updates) => set(() => {
+    getCollabMutations().updateUserNeedConnection(connectionId, updates)
+    return {}
   }),
 
   createNeedContextConnection: (userNeedId, contextId) => {
     const state = useEditorStore.getState()
-    const { newState, newConnectionId } = createNeedContextConnectionAction(state, userNeedId, contextId)
+    const projectId = state.activeProjectId
+    if (!projectId) return null
+    const project = state.projects[projectId]
+    if (!project) return null
 
-    autosaveIfNeeded(state.activeProjectId, newState.projects)
-    useEditorStore.setState(newState)
-    return newConnectionId
+    const newConnection = {
+      id: `need-context-conn-${Date.now()}`,
+      userNeedId,
+      contextId,
+    }
+
+    getCollabMutations().addNeedContextConnection(newConnection)
+
+    trackEvent('need_context_connection_created', project, {
+      entity_type: 'need_context_connection',
+      entity_id: newConnection.id,
+      metadata: {
+        user_need_id: userNeedId,
+        context_id: contextId
+      }
+    })
+
+    return newConnection.id
   },
 
-  deleteNeedContextConnection: (connectionId) => set((state) => {
-    const result = deleteNeedContextConnectionAction(state, connectionId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  deleteNeedContextConnection: (connectionId) => set(() => {
+    getCollabMutations().deleteNeedContextConnection(connectionId)
+    return {}
   }),
 
-  updateNeedContextConnection: (connectionId, updates) => set((state) => {
-    const result = updateNeedContextConnectionAction(state, connectionId, updates)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateNeedContextConnection: (connectionId, updates) => set(() => {
+    getCollabMutations().updateNeedContextConnection(connectionId, updates)
+    return {}
   }),
 
   toggleShowGroups: () => set((state) => {
