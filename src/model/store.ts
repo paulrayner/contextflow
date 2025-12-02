@@ -7,7 +7,6 @@ import { classifyFromDistillationPosition, classifyFromStrategicPosition } from 
 import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
 import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
 import {
-  isCollabModeActive,
   getCollabMutations,
   getCollabUndoRedo,
   initializeCollabMode,
@@ -222,18 +221,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       project_origin: origin
     })
 
-    if (isCollabModeActive()) {
-      destroyCollabMode()
-      const onProjectChange = (updatedProject: Project): void => {
-        useEditorStore.setState((s) => ({
-          projects: {
-            ...s.projects,
-            [updatedProject.id]: updatedProject,
-          },
-        }))
-      }
-      initializeCollabMode(project, { onProjectChange })
+    destroyCollabMode()
+    const onProjectChange = (updatedProject: Project): void => {
+      useEditorStore.setState((s) => ({
+        projects: {
+          ...s.projects,
+          [updatedProject.id]: updatedProject,
+        },
+      }))
     }
+    initializeCollabMode(project, { onProjectChange })
 
     localStorage.setItem('contextflow.activeProjectId', projectId)
     return {
@@ -1101,3 +1098,17 @@ export const useEditorStore = create<EditorState>((set) => ({
 }))
 
 initializeBuiltInProjects(useEditorStore.setState)
+
+// Initialize collab mode for the active project at startup
+const initialState = useEditorStore.getState()
+if (initialState.activeProjectId && initialState.projects[initialState.activeProjectId]) {
+  const onProjectChange = (updatedProject: Project): void => {
+    useEditorStore.setState((s) => ({
+      projects: {
+        ...s.projects,
+        [updatedProject.id]: updatedProject,
+      },
+    }))
+  }
+  initializeCollabMode(initialState.projects[initialState.activeProjectId], { onProjectChange })
+}
