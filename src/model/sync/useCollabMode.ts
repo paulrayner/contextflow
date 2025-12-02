@@ -1,4 +1,4 @@
-import type { Project, BoundedContext } from '../types';
+import type { Project, BoundedContext, Relationship } from '../types';
 import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -8,6 +8,9 @@ export interface CollabMutations {
   updateContext(contextId: string, updates: Partial<BoundedContext>): void;
   deleteContext(contextId: string): void;
   updateContextPosition(contextId: string, positions: BoundedContext['positions']): void;
+  addRelationship(relationship: Relationship): void;
+  updateRelationship(relationshipId: string, updates: Partial<Relationship>): void;
+  deleteRelationship(relationshipId: string): void;
 }
 
 export interface CollabUndoRedo {
@@ -52,6 +55,15 @@ export function getCollabMutations(): CollabMutations {
     },
     updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
       collabStore?.updateContextPosition(contextId, positions);
+    },
+    addRelationship(relationship: Relationship): void {
+      collabStore?.addRelationship(relationship);
+    },
+    updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
+      collabStore?.updateRelationship(relationshipId, updates);
+    },
+    deleteRelationship(relationshipId: string): void {
+      collabStore?.deleteRelationship(relationshipId);
     },
   };
 }

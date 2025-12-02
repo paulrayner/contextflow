@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext } from '../types';
+import type { Project, BoundedContext, Relationship } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -9,6 +9,11 @@ import {
   deleteContextMutation,
   updateContextPositionMutation,
 } from './contextMutations';
+import {
+  addRelationshipMutation,
+  updateRelationshipMutation,
+  deleteRelationshipMutation,
+} from './relationshipMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -21,6 +26,9 @@ export interface CollabStore {
   updateContext(contextId: string, updates: Partial<BoundedContext>): void;
   deleteContext(contextId: string): void;
   updateContextPosition(contextId: string, positions: BoundedContext['positions']): void;
+  addRelationship(relationship: Relationship): void;
+  updateRelationship(relationshipId: string, updates: Partial<Relationship>): void;
+  deleteRelationship(relationshipId: string): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -67,6 +75,18 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
       updateContextPositionMutation(ydoc, contextId, positions);
+    },
+
+    addRelationship(relationship: Relationship): void {
+      addRelationshipMutation(ydoc, relationship);
+    },
+
+    updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
+      updateRelationshipMutation(ydoc, relationshipId, updates);
+    },
+
+    deleteRelationship(relationshipId: string): void {
+      deleteRelationshipMutation(ydoc, relationshipId);
     },
 
     canUndo(): boolean {

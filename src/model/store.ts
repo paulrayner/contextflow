@@ -512,6 +512,17 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addRelationship: (fromContextId, toContextId, pattern, description) => set((state) => {
+    if (isCollabModeActive()) {
+      const newRelationship = {
+        id: `rel-${Date.now()}`,
+        fromContextId,
+        toContextId,
+        pattern,
+        description,
+      }
+      getCollabMutations().addRelationship(newRelationship)
+      return {}
+    }
     const result = addRelationshipAction(state, fromContextId, toContextId, pattern, description)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
@@ -519,6 +530,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   deleteRelationship: (relationshipId) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().deleteRelationship(relationshipId)
+      return state.selectedRelationshipId === relationshipId ? { selectedRelationshipId: null } : {}
+    }
     const result = deleteRelationshipAction(state, relationshipId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
@@ -526,6 +541,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   updateRelationship: (relationshipId, updates) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().updateRelationship(relationshipId, updates)
+      return {}
+    }
     const result = updateRelationshipAction(state, relationshipId, updates)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
@@ -533,6 +552,19 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   swapRelationshipDirection: (relationshipId) => set((state) => {
+    if (isCollabModeActive()) {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      const rel = project.relationships.find(r => r.id === relationshipId)
+      if (!rel) return {}
+      getCollabMutations().updateRelationship(relationshipId, {
+        fromContextId: rel.toContextId,
+        toContextId: rel.fromContextId,
+      })
+      return {}
+    }
     const result = swapRelationshipDirectionAction(state, relationshipId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)

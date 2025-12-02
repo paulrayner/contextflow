@@ -247,4 +247,147 @@ describe('Store Collab Integration', () => {
       expect(state2.projects[testProject.id].contexts[0].positions.flow.x).toBe(100);
     });
   });
+
+  describe('relationship mutations route through Yjs when collab mode active', () => {
+    beforeEach(() => {
+      // Add a second context for relationships
+      testProject.contexts.push({
+        id: 'ctx-2',
+        name: 'Context Two',
+        evolutionStage: 'genesis',
+        positions: {
+          flow: { x: 50 },
+          strategic: { x: 60 },
+          distillation: { x: 70, y: 80 },
+          shared: { y: 90 },
+        },
+      });
+
+      useEditorStore.setState({
+        activeProjectId: testProject.id,
+        projects: { [testProject.id]: testProject },
+        undoStack: [],
+        redoStack: [],
+      });
+
+      const onProjectChange = (project: Project): void => {
+        useEditorStore.setState((state) => ({
+          projects: {
+            ...state.projects,
+            [project.id]: project,
+          },
+        }));
+      };
+      initializeCollabMode(testProject, { onProjectChange });
+    });
+
+    it('addRelationship routes through Yjs and updates Zustand state', () => {
+      expect(isCollabModeActive()).toBe(true);
+
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+
+      const state = useEditorStore.getState();
+      const project = state.projects[testProject.id];
+
+      expect(project.relationships).toHaveLength(1);
+      expect(project.relationships[0].fromContextId).toBe('ctx-1');
+      expect(project.relationships[0].toContextId).toBe('ctx-2');
+      expect(project.relationships[0].pattern).toBe('customer-supplier');
+    });
+
+    it('updateRelationship routes through Yjs and updates Zustand state', () => {
+      // First add a relationship
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+
+      const state1 = useEditorStore.getState();
+      const relId = state1.projects[testProject.id].relationships[0].id;
+
+      // Then update it
+      useEditorStore.getState().updateRelationship(relId, { pattern: 'partnership' });
+
+      const state2 = useEditorStore.getState();
+      const project = state2.projects[testProject.id];
+
+      expect(project.relationships[0].pattern).toBe('partnership');
+    });
+
+    it('deleteRelationship routes through Yjs and updates Zustand state', () => {
+      // First add a relationship
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+
+      const state1 = useEditorStore.getState();
+      const relId = state1.projects[testProject.id].relationships[0].id;
+
+      // Then delete it
+      useEditorStore.getState().deleteRelationship(relId);
+
+      const state2 = useEditorStore.getState();
+      const project = state2.projects[testProject.id];
+
+      expect(project.relationships).toHaveLength(0);
+    });
+
+    it('swapRelationshipDirection routes through Yjs and updates Zustand state', () => {
+      // First add a relationship
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+
+      const state1 = useEditorStore.getState();
+      const relId = state1.projects[testProject.id].relationships[0].id;
+
+      // Then swap direction
+      useEditorStore.getState().swapRelationshipDirection(relId);
+
+      const state2 = useEditorStore.getState();
+      const project = state2.projects[testProject.id];
+
+      expect(project.relationships[0].fromContextId).toBe('ctx-2');
+      expect(project.relationships[0].toContextId).toBe('ctx-1');
+    });
+
+    it('undo reverts relationship addition via CollabUndoManager', () => {
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+
+      const state1 = useEditorStore.getState();
+      expect(state1.projects[testProject.id].relationships).toHaveLength(1);
+
+      useEditorStore.getState().undo();
+
+      const state2 = useEditorStore.getState();
+      expect(state2.projects[testProject.id].relationships).toHaveLength(0);
+    });
+
+    it('undo reverts relationship update via CollabUndoManager', () => {
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+
+      const state1 = useEditorStore.getState();
+      const relId = state1.projects[testProject.id].relationships[0].id;
+
+      useEditorStore.getState().updateRelationship(relId, { pattern: 'partnership' });
+
+      const state2 = useEditorStore.getState();
+      expect(state2.projects[testProject.id].relationships[0].pattern).toBe('partnership');
+
+      useEditorStore.getState().undo();
+
+      const state3 = useEditorStore.getState();
+      expect(state3.projects[testProject.id].relationships[0].pattern).toBe('customer-supplier');
+    });
+
+    it('undo reverts relationship deletion via CollabUndoManager', () => {
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+
+      const state1 = useEditorStore.getState();
+      const relId = state1.projects[testProject.id].relationships[0].id;
+
+      useEditorStore.getState().deleteRelationship(relId);
+
+      const state2 = useEditorStore.getState();
+      expect(state2.projects[testProject.id].relationships).toHaveLength(0);
+
+      useEditorStore.getState().undo();
+
+      const state3 = useEditorStore.getState();
+      expect(state3.projects[testProject.id].relationships).toHaveLength(1);
+    });
+  });
 });
