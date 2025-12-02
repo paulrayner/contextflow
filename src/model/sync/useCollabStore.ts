@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -27,6 +27,18 @@ import {
   updateFlowStageMutation,
   deleteFlowStageMutation,
 } from './flowMutations';
+import {
+  addUserMutation,
+  updateUserMutation,
+  deleteUserMutation,
+  updateUserPositionMutation,
+} from './userMutations';
+import {
+  addUserNeedMutation,
+  updateUserNeedMutation,
+  deleteUserNeedMutation,
+  updateUserNeedPositionMutation,
+} from './userNeedMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -51,6 +63,14 @@ export interface CollabStore {
   addFlowStage(stage: FlowStageMarker): void;
   updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void;
   deleteFlowStage(stageIndex: number): void;
+  addUser(user: User): void;
+  updateUser(userId: string, updates: Partial<User>): void;
+  deleteUser(userId: string): void;
+  updateUserPosition(userId: string, position: number): void;
+  addUserNeed(userNeed: UserNeed): void;
+  updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void;
+  deleteUserNeed(userNeedId: string): void;
+  updateUserNeedPosition(userNeedId: string, position: number): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -145,6 +165,38 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     deleteFlowStage(stageIndex: number): void {
       deleteFlowStageMutation(ydoc, stageIndex);
+    },
+
+    addUser(user: User): void {
+      addUserMutation(ydoc, user);
+    },
+
+    updateUser(userId: string, updates: Partial<User>): void {
+      updateUserMutation(ydoc, userId, updates);
+    },
+
+    deleteUser(userId: string): void {
+      deleteUserMutation(ydoc, userId);
+    },
+
+    updateUserPosition(userId: string, position: number): void {
+      updateUserPositionMutation(ydoc, userId, position);
+    },
+
+    addUserNeed(userNeed: UserNeed): void {
+      addUserNeedMutation(ydoc, userNeed);
+    },
+
+    updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void {
+      updateUserNeedMutation(ydoc, userNeedId, updates);
+    },
+
+    deleteUserNeed(userNeedId: string): void {
+      deleteUserNeedMutation(ydoc, userNeedId);
+    },
+
+    updateUserNeedPosition(userNeedId: string, position: number): void {
+      updateUserNeedPositionMutation(ydoc, userNeedId, position);
     },
 
     canUndo(): boolean {

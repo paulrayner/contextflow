@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed } from '../types';
 import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -20,6 +20,14 @@ export interface CollabMutations {
   addFlowStage(stage: FlowStageMarker): void;
   updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void;
   deleteFlowStage(stageIndex: number): void;
+  addUser(user: User): void;
+  updateUser(userId: string, updates: Partial<User>): void;
+  deleteUser(userId: string): void;
+  updateUserPosition(userId: string, position: number): void;
+  addUserNeed(userNeed: UserNeed): void;
+  updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void;
+  deleteUserNeed(userNeedId: string): void;
+  updateUserNeedPosition(userNeedId: string, position: number): void;
 }
 
 export interface CollabUndoRedo {
@@ -100,6 +108,30 @@ export function getCollabMutations(): CollabMutations {
     },
     deleteFlowStage(stageIndex: number): void {
       collabStore?.deleteFlowStage(stageIndex);
+    },
+    addUser(user: User): void {
+      collabStore?.addUser(user);
+    },
+    updateUser(userId: string, updates: Partial<User>): void {
+      collabStore?.updateUser(userId, updates);
+    },
+    deleteUser(userId: string): void {
+      collabStore?.deleteUser(userId);
+    },
+    updateUserPosition(userId: string, position: number): void {
+      collabStore?.updateUserPosition(userId, position);
+    },
+    addUserNeed(userNeed: UserNeed): void {
+      collabStore?.addUserNeed(userNeed);
+    },
+    updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void {
+      collabStore?.updateUserNeed(userNeedId, updates);
+    },
+    deleteUserNeed(userNeedId: string): void {
+      collabStore?.deleteUserNeed(userNeedId);
+    },
+    updateUserNeedPosition(userNeedId: string, position: number): void {
+      collabStore?.updateUserNeedPosition(userNeedId, position);
     },
   };
 }

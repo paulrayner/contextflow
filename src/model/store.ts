@@ -583,31 +583,34 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addUser: (name) => set((state) => {
-    const result = addUserAction(state, name)
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
+    const project = state.projects[projectId]
+    if (!project) return {}
 
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      name,
+      position: 50,
+    }
+
+    getCollabMutations().addUser(newUser)
+    return { selectedUserId: newUser.id }
   }),
 
   deleteUser: (userId) => set((state) => {
-    const result = deleteUserAction(state, userId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().deleteUser(userId)
+    return state.selectedUserId === userId ? { selectedUserId: null } : {}
   }),
 
-  updateUser: (userId, updates) => set((state) => {
-    const result = updateUserAction(state, userId, updates)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateUser: (userId, updates) => set(() => {
+    getCollabMutations().updateUser(userId, updates)
+    return {}
   }),
 
-  updateUserPosition: (userId, newPosition) => set((state) => {
-    const result = updateUserPositionAction(state, userId, newPosition)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateUserPosition: (userId, newPosition) => set(() => {
+    getCollabMutations().updateUserPosition(userId, newPosition)
+    return {}
   }),
 
   setSelectedUser: (userId) => set({
@@ -625,31 +628,36 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   addUserNeed: (name) => {
     const state = useEditorStore.getState()
-    const { newState, newUserNeedId } = addUserNeedAction(state, name)
-    autosaveIfNeeded(state.activeProjectId, newState.projects)
-    useEditorStore.setState(newState)
-    return newUserNeedId
+    const projectId = state.activeProjectId
+    if (!projectId) return null
+    const project = state.projects[projectId]
+    if (!project) return null
+
+    const newUserNeed: UserNeed = {
+      id: `need-${Date.now()}`,
+      name,
+      position: 50,
+      visibility: true,
+    }
+
+    getCollabMutations().addUserNeed(newUserNeed)
+    useEditorStore.setState({ selectedUserNeedId: newUserNeed.id })
+    return newUserNeed.id
   },
 
   deleteUserNeed: (userNeedId) => set((state) => {
-    const result = deleteUserNeedAction(state, userNeedId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().deleteUserNeed(userNeedId)
+    return state.selectedUserNeedId === userNeedId ? { selectedUserNeedId: null } : {}
   }),
 
-  updateUserNeed: (userNeedId, updates) => set((state) => {
-    const result = updateUserNeedAction(state, userNeedId, updates)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateUserNeed: (userNeedId, updates) => set(() => {
+    getCollabMutations().updateUserNeed(userNeedId, updates)
+    return {}
   }),
 
-  updateUserNeedPosition: (userNeedId, newPosition) => set((state) => {
-    const result = updateUserNeedPositionAction(state, userNeedId, newPosition)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateUserNeedPosition: (userNeedId, newPosition) => set(() => {
+    getCollabMutations().updateUserNeedPosition(userNeedId, newPosition)
+    return {}
   }),
 
   setSelectedUserNeed: (userNeedId) => set({

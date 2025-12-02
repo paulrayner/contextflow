@@ -7,6 +7,18 @@ export {
   deleteContextMutation,
   updateContextPositionMutation,
 } from './contextMutations';
+export {
+  addUserMutation,
+  updateUserMutation,
+  deleteUserMutation,
+  updateUserPositionMutation,
+} from './userMutations';
+export {
+  addUserNeedMutation,
+  updateUserNeedMutation,
+  deleteUserNeedMutation,
+  updateUserNeedPositionMutation,
+} from './userNeedMutations';
 export { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 export {
   initializeCollabMode,
