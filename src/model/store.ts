@@ -471,6 +471,20 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   createGroup: (label, color, notes) => set((state) => {
+    if (isCollabModeActive()) {
+      const newGroup = {
+        id: `group-${Date.now()}`,
+        label,
+        color: color || '#3b82f6',
+        contextIds: state.selectedContextIds,
+        notes,
+      }
+      getCollabMutations().addGroup(newGroup)
+      return {
+        selectedGroupId: newGroup.id,
+        selectedContextIds: [],
+      }
+    }
     const result = createGroupAction(state, label, color, notes)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
@@ -478,12 +492,20 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   updateGroup: (groupId, updates) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().updateGroup(groupId, updates)
+      return {}
+    }
     const result = updateGroupAction(state, groupId, updates)
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   deleteGroup: (groupId) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().deleteGroup(groupId)
+      return state.selectedGroupId === groupId ? { selectedGroupId: null } : {}
+    }
     const result = deleteGroupAction(state, groupId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
@@ -491,6 +513,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   removeContextFromGroup: (groupId, contextId) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().removeContextFromGroup(groupId, contextId)
+      return {}
+    }
     const result = removeContextFromGroupAction(state, groupId, contextId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
@@ -498,6 +524,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addContextToGroup: (groupId, contextId) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().addContextToGroup(groupId, contextId)
+      return {}
+    }
     const result = addContextToGroupAction(state, groupId, contextId)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)
@@ -505,6 +535,12 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addContextsToGroup: (groupId, contextIds) => set((state) => {
+    if (isCollabModeActive()) {
+      for (const contextId of contextIds) {
+        getCollabMutations().addContextToGroup(groupId, contextId)
+      }
+      return {}
+    }
     const result = addContextsToGroupAction(state, groupId, contextIds)
 
     autosaveIfNeeded(state.activeProjectId, result.projects)

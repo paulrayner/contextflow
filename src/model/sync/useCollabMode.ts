@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, Relationship } from '../types';
+import type { Project, BoundedContext, Relationship, Group } from '../types';
 import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -11,6 +11,11 @@ export interface CollabMutations {
   addRelationship(relationship: Relationship): void;
   updateRelationship(relationshipId: string, updates: Partial<Relationship>): void;
   deleteRelationship(relationshipId: string): void;
+  addGroup(group: Group): void;
+  updateGroup(groupId: string, updates: Partial<Group>): void;
+  deleteGroup(groupId: string): void;
+  addContextToGroup(groupId: string, contextId: string): void;
+  removeContextFromGroup(groupId: string, contextId: string): void;
 }
 
 export interface CollabUndoRedo {
@@ -64,6 +69,21 @@ export function getCollabMutations(): CollabMutations {
     },
     deleteRelationship(relationshipId: string): void {
       collabStore?.deleteRelationship(relationshipId);
+    },
+    addGroup(group: Group): void {
+      collabStore?.addGroup(group);
+    },
+    updateGroup(groupId: string, updates: Partial<Group>): void {
+      collabStore?.updateGroup(groupId, updates);
+    },
+    deleteGroup(groupId: string): void {
+      collabStore?.deleteGroup(groupId);
+    },
+    addContextToGroup(groupId: string, contextId: string): void {
+      collabStore?.addContextToGroup(groupId, contextId);
+    },
+    removeContextFromGroup(groupId: string, contextId: string): void {
+      collabStore?.removeContextFromGroup(groupId, contextId);
     },
   };
 }

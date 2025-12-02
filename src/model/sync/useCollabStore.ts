@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship } from '../types';
+import type { Project, BoundedContext, Relationship, Group } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -14,6 +14,13 @@ import {
   updateRelationshipMutation,
   deleteRelationshipMutation,
 } from './relationshipMutations';
+import {
+  addGroupMutation,
+  updateGroupMutation,
+  deleteGroupMutation,
+  addContextToGroupMutation,
+  removeContextFromGroupMutation,
+} from './groupMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -29,6 +36,11 @@ export interface CollabStore {
   addRelationship(relationship: Relationship): void;
   updateRelationship(relationshipId: string, updates: Partial<Relationship>): void;
   deleteRelationship(relationshipId: string): void;
+  addGroup(group: Group): void;
+  updateGroup(groupId: string, updates: Partial<Group>): void;
+  deleteGroup(groupId: string): void;
+  addContextToGroup(groupId: string, contextId: string): void;
+  removeContextFromGroup(groupId: string, contextId: string): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -87,6 +99,26 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     deleteRelationship(relationshipId: string): void {
       deleteRelationshipMutation(ydoc, relationshipId);
+    },
+
+    addGroup(group: Group): void {
+      addGroupMutation(ydoc, group);
+    },
+
+    updateGroup(groupId: string, updates: Partial<Group>): void {
+      updateGroupMutation(ydoc, groupId, updates);
+    },
+
+    deleteGroup(groupId: string): void {
+      deleteGroupMutation(ydoc, groupId);
+    },
+
+    addContextToGroup(groupId: string, contextId: string): void {
+      addContextToGroupMutation(ydoc, groupId, contextId);
+    },
+
+    removeContextFromGroup(groupId: string, contextId: string): void {
+      removeContextFromGroupMutation(ydoc, groupId, contextId);
     },
 
     canUndo(): boolean {
