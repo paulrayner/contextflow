@@ -4,6 +4,7 @@ import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, H
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
+import { CloudStatusIndicator } from './CloudStatusIndicator'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { ProjectListModal } from './ProjectListModal'
 import { ImportConflictDialog } from './ImportConflictDialog'
@@ -332,6 +333,10 @@ export function TopBar() {
             icon={<Upload size={16} />}
           />
         </SimpleTooltip>
+
+        <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
+
+        <CloudStatusIndicator />
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
