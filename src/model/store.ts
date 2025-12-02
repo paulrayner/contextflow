@@ -38,7 +38,6 @@ import {
   updateUserNeedAction,
   updateUserNeedPositionAction,
 } from './actions/userActions'
-import { toggleTemporalModeAction } from './actions/temporalActions'
 import {
   validateKeyframeDate,
   checkDuplicateKeyframe,
@@ -1035,10 +1034,16 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   // Temporal actions
   toggleTemporalMode: () => set((state) => {
-    const result = toggleTemporalModeAction(state)
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
 
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    const project = state.projects[projectId]
+    if (!project) return {}
+
+    const currentlyEnabled = project.temporal?.enabled || false
+    getCollabMutations().toggleTemporal(!currentlyEnabled)
+
+    return {}
   }),
 
   setCurrentDate: (date) => set((state) => ({

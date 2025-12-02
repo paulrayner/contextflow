@@ -7,6 +7,7 @@ import {
   updateKeyframeMutation,
   deleteKeyframeMutation,
   updateKeyframeContextPositionMutation,
+  toggleTemporalMutation,
 } from '../keyframeMutations';
 import type { Project, TemporalKeyframe } from '../../types';
 
@@ -284,6 +285,56 @@ describe('keyframeMutations', () => {
     });
   });
 
+  describe('toggleTemporalMutation', () => {
+    it('should enable temporal mode when disabled', () => {
+      const disabledProject: Project = {
+        ...createTestProject(),
+        temporal: {
+          enabled: false,
+          keyframes: [],
+        },
+      };
+      const disabledYdoc = projectToYDoc(disabledProject);
+
+      toggleTemporalMutation(disabledYdoc, true);
+
+      const result = yDocToProject(disabledYdoc);
+      expect(result.temporal?.enabled).toBe(true);
+    });
+
+    it('should disable temporal mode when enabled', () => {
+      toggleTemporalMutation(ydoc, false);
+
+      const result = yDocToProject(ydoc);
+      expect(result.temporal?.enabled).toBe(false);
+    });
+
+    it('should preserve keyframes when toggling', () => {
+      toggleTemporalMutation(ydoc, false);
+
+      const result = yDocToProject(ydoc);
+      expect(result.temporal?.enabled).toBe(false);
+      expect(result.temporal?.keyframes).toHaveLength(2);
+    });
+
+    it('should handle toggling back on', () => {
+      toggleTemporalMutation(ydoc, false);
+      toggleTemporalMutation(ydoc, true);
+
+      const result = yDocToProject(ydoc);
+      expect(result.temporal?.enabled).toBe(true);
+      expect(result.temporal?.keyframes).toHaveLength(2);
+    });
+
+    it('should be idempotent when setting same value', () => {
+      toggleTemporalMutation(ydoc, true);
+
+      const result = yDocToProject(ydoc);
+      expect(result.temporal?.enabled).toBe(true);
+      expect(result.temporal?.keyframes).toHaveLength(2);
+    });
+  });
+
   describe('undo integration', () => {
     it('should undo keyframe addition', async () => {
       const { createUndoManager } = await import('../undoManager');
@@ -369,6 +420,30 @@ describe('keyframeMutations', () => {
       undoManager.redo();
 
       expect(yDocToProject(ydoc).temporal?.keyframes).toHaveLength(1);
+    });
+
+    it('should undo temporal mode toggle', async () => {
+      const { createUndoManager } = await import('../undoManager');
+      const undoManager = createUndoManager(ydoc);
+
+      expect(yDocToProject(ydoc).temporal?.enabled).toBe(true);
+
+      toggleTemporalMutation(ydoc, false);
+      expect(yDocToProject(ydoc).temporal?.enabled).toBe(false);
+
+      undoManager.undo();
+      expect(yDocToProject(ydoc).temporal?.enabled).toBe(true);
+    });
+
+    it('should redo temporal mode toggle', async () => {
+      const { createUndoManager } = await import('../undoManager');
+      const undoManager = createUndoManager(ydoc);
+
+      toggleTemporalMutation(ydoc, false);
+      undoManager.undo();
+      undoManager.redo();
+
+      expect(yDocToProject(ydoc).temporal?.enabled).toBe(false);
     });
   });
 });

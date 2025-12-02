@@ -38,6 +38,7 @@ export interface CollabMutations {
   updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void;
   deleteKeyframe(keyframeId: string): void;
   updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void;
+  toggleTemporal(enabled: boolean): void;
 }
 
 export interface CollabUndoRedo {
@@ -172,6 +173,9 @@ export function getCollabMutations(): CollabMutations {
     },
     updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void {
       collabStore?.updateKeyframeContextPosition(keyframeId, contextId, position);
+    },
+    toggleTemporal(enabled: boolean): void {
+      collabStore?.toggleTemporal(enabled);
     },
   };
 }

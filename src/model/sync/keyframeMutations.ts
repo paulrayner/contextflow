@@ -57,6 +57,13 @@ export function updateKeyframeContextPositionMutation(
   });
 }
 
+export function toggleTemporalMutation(ydoc: Y.Doc, enabled: boolean): void {
+  const yTemporal = getTemporalMap(ydoc);
+  if (!yTemporal) return;
+
+  yTemporal.set('enabled', enabled);
+}
+
 function getTemporalMap(ydoc: Y.Doc): Y.Map<unknown> | null {
   const yProject = ydoc.getMap('project');
   const yTemporal = yProject.get('temporal');

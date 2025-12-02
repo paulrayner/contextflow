@@ -52,6 +52,7 @@ import {
   updateKeyframeMutation,
   deleteKeyframeMutation,
   updateKeyframeContextPositionMutation,
+  toggleTemporalMutation,
 } from './keyframeMutations';
 
 export interface CollabStoreOptions {
@@ -95,6 +96,7 @@ export interface CollabStore {
   updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void;
   deleteKeyframe(keyframeId: string): void;
   updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void;
+  toggleTemporal(enabled: boolean): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -261,6 +263,10 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void {
       updateKeyframeContextPositionMutation(ydoc, keyframeId, contextId, position);
+    },
+
+    toggleTemporal(enabled: boolean): void {
+      toggleTemporalMutation(ydoc, enabled);
     },
 
     canUndo(): boolean {
