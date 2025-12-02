@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from '../types';
 import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -34,6 +34,10 @@ export interface CollabMutations {
   addNeedContextConnection(connection: NeedContextConnection): void;
   updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void;
   deleteNeedContextConnection(connectionId: string): void;
+  addKeyframe(keyframe: TemporalKeyframe): void;
+  updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void;
+  deleteKeyframe(keyframeId: string): void;
+  updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void;
 }
 
 export interface CollabUndoRedo {
@@ -156,6 +160,18 @@ export function getCollabMutations(): CollabMutations {
     },
     deleteNeedContextConnection(connectionId: string): void {
       collabStore?.deleteNeedContextConnection(connectionId);
+    },
+    addKeyframe(keyframe: TemporalKeyframe): void {
+      collabStore?.addKeyframe(keyframe);
+    },
+    updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void {
+      collabStore?.updateKeyframe(keyframeId, updates);
+    },
+    deleteKeyframe(keyframeId: string): void {
+      collabStore?.deleteKeyframe(keyframeId);
+    },
+    updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void {
+      collabStore?.updateKeyframeContextPosition(keyframeId, contextId, position);
     },
   };
 }

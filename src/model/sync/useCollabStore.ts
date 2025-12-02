@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -47,6 +47,12 @@ import {
   updateNeedContextConnectionMutation,
   deleteNeedContextConnectionMutation,
 } from './connectionMutations';
+import {
+  addKeyframeMutation,
+  updateKeyframeMutation,
+  deleteKeyframeMutation,
+  updateKeyframeContextPositionMutation,
+} from './keyframeMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -85,6 +91,10 @@ export interface CollabStore {
   addNeedContextConnection(connection: NeedContextConnection): void;
   updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void;
   deleteNeedContextConnection(connectionId: string): void;
+  addKeyframe(keyframe: TemporalKeyframe): void;
+  updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void;
+  deleteKeyframe(keyframeId: string): void;
+  updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -235,6 +245,22 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     deleteNeedContextConnection(connectionId: string): void {
       deleteNeedContextConnectionMutation(ydoc, connectionId);
+    },
+
+    addKeyframe(keyframe: TemporalKeyframe): void {
+      addKeyframeMutation(ydoc, keyframe);
+    },
+
+    updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void {
+      updateKeyframeMutation(ydoc, keyframeId, updates);
+    },
+
+    deleteKeyframe(keyframeId: string): void {
+      deleteKeyframeMutation(ydoc, keyframeId);
+    },
+
+    updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void {
+      updateKeyframeContextPositionMutation(ydoc, keyframeId, contextId, position);
     },
 
     canUndo(): boolean {

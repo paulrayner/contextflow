@@ -38,13 +38,15 @@ import {
   updateUserNeedAction,
   updateUserNeedPositionAction,
 } from './actions/userActions'
+import { toggleTemporalModeAction } from './actions/temporalActions'
 import {
-  toggleTemporalModeAction,
-  addKeyframeAction,
-  deleteKeyframeAction,
-  updateKeyframeAction,
-  updateKeyframeContextPositionAction
-} from './actions/temporalActions'
+  validateKeyframeDate,
+  checkDuplicateKeyframe,
+  shouldWarnFarFuture,
+  captureContextPositions,
+  shouldAutoCreateCurrentKeyframe,
+  createCurrentKeyframe,
+} from './actions/keyframeHelpers'
 import { autosaveIfNeeded, migrateProject, deleteProject as deleteProjectFromDB } from './persistence'
 import { determineProjectOrigin } from './builtInProjects'
 import { calculateKeyframeTransition } from './keyframes'
@@ -1068,32 +1070,107 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   addKeyframe: (date, label) => {
     const state = useEditorStore.getState()
-    const { newState, newKeyframeId } = addKeyframeAction(state, date, label)
+    const projectId = state.activeProjectId
+    if (!projectId) return null
 
-    autosaveIfNeeded(state.activeProjectId, newState.projects)
-    useEditorStore.setState(newState)
-    return newKeyframeId
+    const project = state.projects[projectId]
+    if (!project) return null
+
+    const validation = validateKeyframeDate(date)
+    if (!validation.valid) {
+      console.error(validation.error)
+      return null
+    }
+
+    const existingKeyframes = project.temporal?.keyframes || []
+    if (checkDuplicateKeyframe(date, existingKeyframes)) {
+      console.error('Duplicate keyframe date:', date)
+      return null
+    }
+
+    const farFutureCheck = shouldWarnFarFuture(date)
+    if (farFutureCheck.shouldWarn) {
+      console.warn(farFutureCheck.message)
+    }
+
+    const currentYear = new Date().getFullYear()
+    const keyframeYear = parseInt(date.split('-')[0])
+    const positions = captureContextPositions(project.contexts)
+
+    if (shouldAutoCreateCurrentKeyframe(existingKeyframes, keyframeYear, currentYear, date)) {
+      const nowKeyframe = createCurrentKeyframe(currentYear, positions, project.contexts.map(c => c.id))
+      getCollabMutations().addKeyframe(nowKeyframe)
+    }
+
+    const newKeyframe: TemporalKeyframe = {
+      id: `keyframe-${Date.now()}`,
+      date,
+      label,
+      positions,
+      activeContextIds: project.contexts.map(c => c.id),
+    }
+    getCollabMutations().addKeyframe(newKeyframe)
+
+    trackEvent('keyframe_created', project, {
+      entity_type: 'keyframe',
+      entity_id: newKeyframe.id,
+      metadata: {
+        date: newKeyframe.date,
+        context_count: Object.keys(newKeyframe.positions).length,
+        auto_created_now_keyframe: shouldAutoCreateCurrentKeyframe(existingKeyframes, keyframeYear, currentYear, date)
+      }
+    })
+
+    return newKeyframe.id
   },
 
   deleteKeyframe: (keyframeId) => set((state) => {
-    const result = deleteKeyframeAction(state, keyframeId)
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
 
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    const project = state.projects[projectId]
+    if (!project || !project.temporal) return {}
+
+    const keyframeToDelete = project.temporal.keyframes.find(kf => kf.id === keyframeId)
+    if (!keyframeToDelete) return {}
+
+    getCollabMutations().deleteKeyframe(keyframeId)
+
+    trackEvent('keyframe_deleted', project, {
+      entity_type: 'keyframe',
+      entity_id: keyframeId,
+      metadata: {
+        date: keyframeToDelete.date
+      }
+    })
+
+    return {}
   }),
 
-  updateKeyframe: (keyframeId, updates) => set((state) => {
-    const result = updateKeyframeAction(state, keyframeId, updates)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateKeyframe: (keyframeId, updates) => set(() => {
+    getCollabMutations().updateKeyframe(keyframeId, updates)
+    return {}
   }),
 
   updateKeyframeContextPosition: (keyframeId, contextId, x, y) => set((state) => {
-    const result = updateKeyframeContextPositionAction(state, keyframeId, contextId, x, y)
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
 
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    const project = state.projects[projectId]
+    if (!project) return {}
+
+    getCollabMutations().updateKeyframeContextPosition(keyframeId, contextId, { x, y })
+
+    trackEvent('keyframe_context_position_changed', project, {
+      entity_type: 'keyframe',
+      entity_id: keyframeId,
+      metadata: {
+        context_id: contextId,
+        keyframe_id: keyframeId
+      }
+    })
+
+    return {}
   }),
 }))
 
