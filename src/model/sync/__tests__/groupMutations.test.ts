@@ -285,11 +285,13 @@ describe('groupMutations', () => {
       expect(result.groups[0].contextIds).toEqual(['ctx-1']);
     });
 
-    it('should allow duplicate contextIds (no deduplication)', () => {
+    it('should prevent duplicate contextIds', () => {
+      // ctx-1 is already in the group from test setup
       addContextToGroupMutation(ydoc, 'grp-1', 'ctx-1');
 
       const result = yDocToProject(ydoc);
-      expect(result.groups[0].contextIds).toEqual(['ctx-1', 'ctx-1']);
+      // Should still be just one ctx-1, not two
+      expect(result.groups[0].contextIds).toEqual(['ctx-1']);
     });
   });
 
@@ -327,14 +329,12 @@ describe('groupMutations', () => {
       expect(result.groups[0].contextIds).toEqual(['ctx-1']);
     });
 
-    it('should remove only first occurrence if duplicates exist', () => {
-      // Add duplicate
+    it('should not add duplicates (adding existing context is no-op)', () => {
+      // Try to add duplicate (should be no-op)
       addContextToGroupMutation(ydoc, 'grp-1', 'ctx-1');
 
-      // Remove one occurrence
-      removeContextFromGroupMutation(ydoc, 'grp-1', 'ctx-1');
-
       const result = yDocToProject(ydoc);
+      // Still only one ctx-1
       expect(result.groups[0].contextIds).toEqual(['ctx-1']);
     });
   });

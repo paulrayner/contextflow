@@ -215,9 +215,21 @@ describe('Store Collab Integration', () => {
     });
   });
 
-  describe('non-collab mode continues to work', () => {
-    it('mutations work normally when collab mode is not active', () => {
-      expect(isCollabModeActive()).toBe(false);
+  describe('collab mode is required for mutations', () => {
+    beforeEach(() => {
+      const onProjectChange = (project: Project): void => {
+        useEditorStore.setState((state) => ({
+          projects: {
+            ...state.projects,
+            [project.id]: project,
+          },
+        }));
+      };
+      initializeCollabMode(testProject, { onProjectChange });
+    });
+
+    it('mutations route through Yjs when collab mode is active', () => {
+      expect(isCollabModeActive()).toBe(true);
 
       useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' });
 
@@ -227,7 +239,7 @@ describe('Store Collab Integration', () => {
       expect(project.contexts[0].name).toBe('Updated Name');
     });
 
-    it('undo/redo uses command stack when collab mode is not active', () => {
+    it('undo/redo uses CollabUndoManager', () => {
       const newPositions = {
         flow: { x: 500 },
         strategic: { x: 600 },
@@ -239,7 +251,6 @@ describe('Store Collab Integration', () => {
 
       const state1 = useEditorStore.getState();
       expect(state1.projects[testProject.id].contexts[0].positions.flow.x).toBe(500);
-      expect(state1.undoStack.length).toBe(1);
 
       useEditorStore.getState().undo();
 

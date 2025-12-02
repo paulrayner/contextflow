@@ -6,7 +6,11 @@
 
 ## Backlog
 
-### Next release - SAAS Cloud Edition
+### Next release - SAAS Cloud Edition - Collaborative Editing
+
+- [ ] Collaborative editing of projects together, so a team could work on them together
+
+### SAAS Cloud Edition
 
 - [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
 - [ ] Implement SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md
@@ -17,9 +21,6 @@
 - [ ] Implement ANALYTICS_PLAN.md
 - [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
 
-### Collaborative Editing
-
-- [ ] Collaborative editing of projects together, so a team could work on them together
 
 ### Integrations
 

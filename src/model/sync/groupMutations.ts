@@ -43,7 +43,30 @@ export function addContextToGroupMutation(
   if (!yGroup) return;
 
   const yContextIds = yGroup.get('contextIds') as Y.Array<string>;
+
+  // Skip if context already in group
+  if (findContextIdIndex(yContextIds, contextId) !== -1) return;
+
   yContextIds.push([contextId]);
+}
+
+export function addContextsToGroupMutation(
+  ydoc: Y.Doc,
+  groupId: string,
+  contextIds: string[]
+): void {
+  ydoc.transact(() => {
+    const yGroup = findGroupById(ydoc, groupId);
+    if (!yGroup) return;
+
+    const yContextIds = yGroup.get('contextIds') as Y.Array<string>;
+
+    for (const contextId of contextIds) {
+      // Skip if context already in group
+      if (findContextIdIndex(yContextIds, contextId) !== -1) continue;
+      yContextIds.push([contextId]);
+    }
+  });
 }
 
 export function removeContextFromGroupMutation(
