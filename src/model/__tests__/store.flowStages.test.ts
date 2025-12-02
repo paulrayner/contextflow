@@ -1,11 +1,29 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useEditorStore } from '../store'
-import { FlowStageMarker } from '../types'
+import { initializeCollabMode, destroyCollabMode } from '../sync/useCollabMode'
+import type { Project } from '../types'
 
 describe('Store - Flow Stage Management', () => {
   beforeEach(() => {
     const { reset } = useEditorStore.getState()
     reset()
+
+    // Initialize collab mode for the active project
+    const state = useEditorStore.getState()
+    const project = state.projects[state.activeProjectId!]
+    const onProjectChange = (updatedProject: Project): void => {
+      useEditorStore.setState((s) => ({
+        projects: {
+          ...s.projects,
+          [updatedProject.id]: updatedProject,
+        },
+      }))
+    }
+    initializeCollabMode(project, { onProjectChange })
+  })
+
+  afterEach(() => {
+    destroyCollabMode()
   })
 
   describe('updateFlowStage', () => {

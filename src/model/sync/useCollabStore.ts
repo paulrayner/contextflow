@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -19,8 +19,14 @@ import {
   updateGroupMutation,
   deleteGroupMutation,
   addContextToGroupMutation,
+  addContextsToGroupMutation,
   removeContextFromGroupMutation,
 } from './groupMutations';
+import {
+  addFlowStageMutation,
+  updateFlowStageMutation,
+  deleteFlowStageMutation,
+} from './flowMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -40,7 +46,11 @@ export interface CollabStore {
   updateGroup(groupId: string, updates: Partial<Group>): void;
   deleteGroup(groupId: string): void;
   addContextToGroup(groupId: string, contextId: string): void;
+  addContextsToGroup(groupId: string, contextIds: string[]): void;
   removeContextFromGroup(groupId: string, contextId: string): void;
+  addFlowStage(stage: FlowStageMarker): void;
+  updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void;
+  deleteFlowStage(stageIndex: number): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -117,8 +127,24 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
       addContextToGroupMutation(ydoc, groupId, contextId);
     },
 
+    addContextsToGroup(groupId: string, contextIds: string[]): void {
+      addContextsToGroupMutation(ydoc, groupId, contextIds);
+    },
+
     removeContextFromGroup(groupId: string, contextId: string): void {
       removeContextFromGroupMutation(ydoc, groupId, contextId);
+    },
+
+    addFlowStage(stage: FlowStageMarker): void {
+      addFlowStageMutation(ydoc, stage);
+    },
+
+    updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void {
+      updateFlowStageMutation(ydoc, stageIndex, updates);
+    },
+
+    deleteFlowStage(stageIndex: number): void {
+      deleteFlowStageMutation(ydoc, stageIndex);
     },
 
     canUndo(): boolean {

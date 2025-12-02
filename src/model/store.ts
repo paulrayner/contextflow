@@ -6,7 +6,6 @@ import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone
 import { classifyFromDistillationPosition, classifyFromStrategicPosition } from './classification'
 import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
 import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
-import { applyUndo, applyRedo } from './undoRedo'
 import {
   isCollabModeActive,
   getCollabMutations,
@@ -15,33 +14,14 @@ import {
   destroyCollabMode,
 } from './sync/useCollabMode'
 import { calculateNextStagePosition } from './stagePosition'
-import { getGridPosition, needsRedistribution } from '../lib/distillationGrid'
+import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition, findFirstUnoccupiedFlowPosition } from '../lib/distillationGrid'
 import {
-  updateContextAction,
-  updateContextPositionAction,
-  updateMultipleContextPositionsAction,
-  addContextAction,
-  deleteContextAction,
   addContextIssueAction,
   updateContextIssueAction,
   deleteContextIssueAction,
   assignTeamToContextAction,
   unassignTeamFromContextAction
 } from './actions/contextActions'
-import {
-  createGroupAction,
-  updateGroupAction,
-  deleteGroupAction,
-  removeContextFromGroupAction,
-  addContextToGroupAction,
-  addContextsToGroupAction
-} from './actions/groupActions'
-import {
-  addRelationshipAction,
-  deleteRelationshipAction,
-  updateRelationshipAction,
-  swapRelationshipDirectionAction
-} from './actions/relationshipActions'
 import {
   updateTeamAction,
   addTeamAction,
@@ -163,30 +143,21 @@ export const useEditorStore = create<EditorState>((set) => ({
   undoStack: [],
   redoStack: [],
 
-  updateContext: (contextId, updates) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().updateContext(contextId, updates)
-      return {}
-    }
-    const result = updateContextAction(state, contextId, updates)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateContext: (contextId, updates) => set(() => {
+    getCollabMutations().updateContext(contextId, updates)
+    return {}
   }),
 
-  updateContextPosition: (contextId, newPositions) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().updateContextPosition(contextId, newPositions)
-      return {}
-    }
-    const result = updateContextPositionAction(state, contextId, newPositions)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateContextPosition: (contextId, newPositions) => set(() => {
+    getCollabMutations().updateContextPosition(contextId, newPositions)
+    return {}
   }),
 
-  updateMultipleContextPositions: (positionsMap) => set((state) => {
-    const result = updateMultipleContextPositionsAction(state, positionsMap)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateMultipleContextPositions: (positionsMap) => set(() => {
+    for (const [contextId, positions] of Object.entries(positionsMap)) {
+      getCollabMutations().updateContextPosition(contextId, positions)
+    }
+    return {}
   }),
 
   setSelectedContext: (contextId) => set({
@@ -329,26 +300,32 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addContext: (name) => set((state) => {
-    if (isCollabModeActive()) {
-      const result = addContextAction(state, name)
-      if (result.newContext) {
-        getCollabMutations().addContext(result.newContext)
-      }
-      return { selectedContextId: result.selectedContextId }
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
+    const project = state.projects[projectId]
+    if (!project) return {}
+
+    const flowPos = findFirstUnoccupiedFlowPosition(project.contexts)
+    const newContext: BoundedContext = {
+      id: `context-${Date.now()}`,
+      name,
+      positions: {
+        flow: { x: flowPos.x },
+        strategic: { x: flowPos.x },
+        distillation: findFirstUnoccupiedGridPosition(project.contexts),
+        shared: { y: flowPos.y },
+      },
+      strategicClassification: 'supporting',
+      evolutionStage: 'custom-built',
     }
-    const result = addContextAction(state, name)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+
+    getCollabMutations().addContext(newContext)
+    return { selectedContextId: newContext.id }
   }),
 
   deleteContext: (contextId) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().deleteContext(contextId)
-      return state.selectedContextId === contextId ? { selectedContextId: null } : {}
-    }
-    const result = deleteContextAction(state, contextId)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().deleteContext(contextId)
+    return state.selectedContextId === contextId ? { selectedContextId: null } : {}
   }),
 
   addContextIssue: (contextId, title, severity) => set((state) => {
@@ -471,140 +448,79 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   createGroup: (label, color, notes) => set((state) => {
-    if (isCollabModeActive()) {
-      const newGroup = {
-        id: `group-${Date.now()}`,
-        label,
-        color: color || '#3b82f6',
-        contextIds: state.selectedContextIds,
-        notes,
-      }
-      getCollabMutations().addGroup(newGroup)
-      return {
-        selectedGroupId: newGroup.id,
-        selectedContextIds: [],
-      }
+    const newGroup = {
+      id: `group-${Date.now()}`,
+      label,
+      color: color || '#3b82f6',
+      contextIds: state.selectedContextIds,
+      notes,
     }
-    const result = createGroupAction(state, label, color, notes)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().addGroup(newGroup)
+    return {
+      selectedGroupId: newGroup.id,
+      selectedContextIds: [],
+    }
   }),
 
-  updateGroup: (groupId, updates) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().updateGroup(groupId, updates)
-      return {}
-    }
-    const result = updateGroupAction(state, groupId, updates)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateGroup: (groupId, updates) => set(() => {
+    getCollabMutations().updateGroup(groupId, updates)
+    return {}
   }),
 
   deleteGroup: (groupId) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().deleteGroup(groupId)
-      return state.selectedGroupId === groupId ? { selectedGroupId: null } : {}
-    }
-    const result = deleteGroupAction(state, groupId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().deleteGroup(groupId)
+    return state.selectedGroupId === groupId ? { selectedGroupId: null } : {}
   }),
 
-  removeContextFromGroup: (groupId, contextId) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().removeContextFromGroup(groupId, contextId)
-      return {}
-    }
-    const result = removeContextFromGroupAction(state, groupId, contextId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  removeContextFromGroup: (groupId, contextId) => set(() => {
+    getCollabMutations().removeContextFromGroup(groupId, contextId)
+    return {}
   }),
 
-  addContextToGroup: (groupId, contextId) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().addContextToGroup(groupId, contextId)
-      return {}
-    }
-    const result = addContextToGroupAction(state, groupId, contextId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  addContextToGroup: (groupId, contextId) => set(() => {
+    getCollabMutations().addContextToGroup(groupId, contextId)
+    return {}
   }),
 
-  addContextsToGroup: (groupId, contextIds) => set((state) => {
-    if (isCollabModeActive()) {
-      for (const contextId of contextIds) {
-        getCollabMutations().addContextToGroup(groupId, contextId)
-      }
-      return {}
-    }
-    const result = addContextsToGroupAction(state, groupId, contextIds)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  addContextsToGroup: (groupId, contextIds) => set(() => {
+    getCollabMutations().addContextsToGroup(groupId, contextIds)
+    return {}
   }),
 
-  addRelationship: (fromContextId, toContextId, pattern, description) => set((state) => {
-    if (isCollabModeActive()) {
-      const newRelationship = {
-        id: `rel-${Date.now()}`,
-        fromContextId,
-        toContextId,
-        pattern,
-        description,
-      }
-      getCollabMutations().addRelationship(newRelationship)
-      return {}
+  addRelationship: (fromContextId, toContextId, pattern, description) => set(() => {
+    const newRelationship = {
+      id: `rel-${Date.now()}`,
+      fromContextId,
+      toContextId,
+      pattern,
+      description,
     }
-    const result = addRelationshipAction(state, fromContextId, toContextId, pattern, description)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().addRelationship(newRelationship)
+    return {}
   }),
 
   deleteRelationship: (relationshipId) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().deleteRelationship(relationshipId)
-      return state.selectedRelationshipId === relationshipId ? { selectedRelationshipId: null } : {}
-    }
-    const result = deleteRelationshipAction(state, relationshipId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    getCollabMutations().deleteRelationship(relationshipId)
+    return state.selectedRelationshipId === relationshipId ? { selectedRelationshipId: null } : {}
   }),
 
-  updateRelationship: (relationshipId, updates) => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabMutations().updateRelationship(relationshipId, updates)
-      return {}
-    }
-    const result = updateRelationshipAction(state, relationshipId, updates)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateRelationship: (relationshipId, updates) => set(() => {
+    getCollabMutations().updateRelationship(relationshipId, updates)
+    return {}
   }),
 
   swapRelationshipDirection: (relationshipId) => set((state) => {
-    if (isCollabModeActive()) {
-      const projectId = state.activeProjectId
-      if (!projectId) return {}
-      const project = state.projects[projectId]
-      if (!project) return {}
-      const rel = project.relationships.find(r => r.id === relationshipId)
-      if (!rel) return {}
-      getCollabMutations().updateRelationship(relationshipId, {
-        fromContextId: rel.toContextId,
-        toContextId: rel.fromContextId,
-      })
-      return {}
-    }
-    const result = swapRelationshipDirectionAction(state, relationshipId)
-
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+    const projectId = state.activeProjectId
+    if (!projectId) return {}
+    const project = state.projects[projectId]
+    if (!project) return {}
+    const rel = project.relationships.find(r => r.id === relationshipId)
+    if (!rel) return {}
+    getCollabMutations().updateRelationship(relationshipId, {
+      fromContextId: rel.toContextId,
+      toContextId: rel.fromContextId,
+    })
+    return {}
   }),
 
   setSelectedRelationship: (relationshipId) => set({
@@ -875,13 +791,13 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   updateFlowStage: (index, updates) => set((state) => {
     const projectId = state.activeProjectId
-    if (!projectId) return state
+    if (!projectId) return {}
 
     const project = state.projects[projectId]
-    if (!project) return state
+    if (!project) return {}
 
     const stages = project.viewConfig.flowStages
-    if (index < 0 || index >= stages.length) return state
+    if (index < 0 || index >= stages.length) return {}
 
     const oldStage = stages[index]
     const newName = updates.name !== undefined ? updates.name : oldStage.name
@@ -895,63 +811,28 @@ export const useEditorStore = create<EditorState>((set) => ({
       validateStagePosition(stages, newPosition, index)
     }
 
-    const newStage: FlowStageMarker = {
-      name: newName,
-      position: newPosition,
-      description: updates.description !== undefined ? updates.description : oldStage.description,
-      owner: updates.owner !== undefined ? updates.owner : oldStage.owner,
-      notes: updates.notes !== undefined ? updates.notes : oldStage.notes,
-    }
-    const updatedStages = [...stages]
-    updatedStages[index] = newStage
-
-    const updatedProject = {
-      ...project,
-      viewConfig: {
-        ...project.viewConfig,
-        flowStages: updatedStages,
-      },
-    }
-
-    const command: EditorCommand = {
-      type: 'updateFlowStage',
-      payload: {
-        flowStageIndex: index,
-        oldFlowStage: oldStage,
-        newFlowStage: newStage,
-      },
-    }
-
     // Track analytics - track position changes (moves)
     if (newPosition !== oldStage.position) {
-      trackEvent('flow_stage_moved', updatedProject, {
+      trackEvent('flow_stage_moved', project, {
         entity_type: 'flow_stage',
         metadata: {
-          name: newStage.name,
+          name: newName,
           old_position: oldStage.position,
           new_position: newPosition
         }
       })
     }
 
-    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
-    }
+    getCollabMutations().updateFlowStage(index, updates)
+    return {}
   }),
 
   addFlowStage: (name, position?) => set((state) => {
     const projectId = state.activeProjectId
-    if (!projectId) return state
+    if (!projectId) return {}
 
     const project = state.projects[projectId]
-    if (!project) return state
+    if (!project) return {}
 
     const stages = project.viewConfig.flowStages
 
@@ -962,24 +843,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     validateStagePosition(stages, finalPosition)
 
     const newStage: FlowStageMarker = { name, position: finalPosition }
-    const updatedStages = [...stages, newStage]
 
-    const updatedProject = {
-      ...project,
-      viewConfig: {
-        ...project.viewConfig,
-        flowStages: updatedStages,
-      },
-    }
-
-    const command: EditorCommand = {
-      type: 'addFlowStage',
-      payload: {
-        flowStage: newStage,
-      },
-    }
-
-    trackEvent('flow_stage_created', updatedProject, {
+    trackEvent('flow_stage_created', project, {
       entity_type: 'flow_stage',
       metadata: {
         name: newStage.name,
@@ -987,16 +852,12 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     })
 
-    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
+    getCollabMutations().addFlowStage(newStage)
 
-    // Auto-select the new stage (it's added at the end, so index is length - 1)
-    const newStageIndex = updatedStages.length - 1
+    // Auto-select the new stage (it's added at the end, so index is length)
+    const newStageIndex = stages.length
 
     return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
       selectedStageIndex: newStageIndex,
       selectedContextId: null,
       selectedContextIds: [],
@@ -1006,39 +867,20 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
     }
   }),
 
   deleteFlowStage: (index) => set((state) => {
     const projectId = state.activeProjectId
-    if (!projectId) return state
+    if (!projectId) return {}
 
     const project = state.projects[projectId]
-    if (!project) return state
+    if (!project) return {}
 
     const stages = project.viewConfig.flowStages
-    if (index < 0 || index >= stages.length) return state
+    if (index < 0 || index >= stages.length) return {}
 
     const deletedStage = stages[index]
-    const updatedStages = stages.filter((_, i) => i !== index)
-
-    const updatedProject = {
-      ...project,
-      viewConfig: {
-        ...project.viewConfig,
-        flowStages: updatedStages,
-      },
-    }
-
-    const command: EditorCommand = {
-      type: 'deleteFlowStage',
-      payload: {
-        flowStageIndex: index,
-        flowStage: deletedStage,
-      },
-    }
 
     trackEvent('flow_stage_deleted', project, {
       entity_type: 'flow_stage',
@@ -1048,7 +890,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       }
     })
 
-    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
+    getCollabMutations().deleteFlowStage(index)
 
     // Clear selection if deleted stage was selected, or adjust index if needed
     let newSelectedStageIndex = state.selectedStageIndex
@@ -1061,88 +903,18 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
       selectedStageIndex: newSelectedStageIndex,
-      undoStack: [...state.undoStack, command],
-      redoStack: [],
     }
   }),
 
-  undo: () => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabUndoRedo().undo()
-      return {}
-    }
-
-    if (state.undoStack.length === 0) return state
-
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const command = state.undoStack[state.undoStack.length - 1]
-    const newUndoStack = state.undoStack.slice(0, -1)
-
-    // Track undo usage
-    trackEvent('undo_used', project, {
-      action_undone: command.type
-    })
-
-    const updatedProject = applyUndo(project, command)
-
-    // Autosave
-    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: newUndoStack,
-      redoStack: [...state.redoStack, command],
-    }
+  undo: () => set(() => {
+    getCollabUndoRedo().undo()
+    return {}
   }),
 
-  redo: () => set((state) => {
-    if (isCollabModeActive()) {
-      getCollabUndoRedo().redo()
-      return {}
-    }
-
-    if (state.redoStack.length === 0) return state
-
-    const projectId = state.activeProjectId
-    if (!projectId) return state
-
-    const project = state.projects[projectId]
-    if (!project) return state
-
-    const command = state.redoStack[state.redoStack.length - 1]
-    const newRedoStack = state.redoStack.slice(0, -1)
-
-    // Track redo usage
-    trackEvent('redo_used', project, {
-      action_redone: command.type
-    })
-
-    const updatedProject = applyRedo(project, command)
-
-    // Autosave
-    autosaveIfNeeded(projectId, { [projectId]: updatedProject })
-
-    return {
-      projects: {
-        ...state.projects,
-        [projectId]: updatedProject,
-      },
-      undoStack: [...state.undoStack, command],
-      redoStack: newRedoStack,
-    }
+  redo: () => set(() => {
+    getCollabUndoRedo().redo()
+    return {}
   }),
 
   fitToMap: () => {

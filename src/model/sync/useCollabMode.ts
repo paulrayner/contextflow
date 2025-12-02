@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, Relationship, Group } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker } from '../types';
 import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -15,7 +15,11 @@ export interface CollabMutations {
   updateGroup(groupId: string, updates: Partial<Group>): void;
   deleteGroup(groupId: string): void;
   addContextToGroup(groupId: string, contextId: string): void;
+  addContextsToGroup(groupId: string, contextIds: string[]): void;
   removeContextFromGroup(groupId: string, contextId: string): void;
+  addFlowStage(stage: FlowStageMarker): void;
+  updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void;
+  deleteFlowStage(stageIndex: number): void;
 }
 
 export interface CollabUndoRedo {
@@ -82,8 +86,20 @@ export function getCollabMutations(): CollabMutations {
     addContextToGroup(groupId: string, contextId: string): void {
       collabStore?.addContextToGroup(groupId, contextId);
     },
+    addContextsToGroup(groupId: string, contextIds: string[]): void {
+      collabStore?.addContextsToGroup(groupId, contextIds);
+    },
     removeContextFromGroup(groupId: string, contextId: string): void {
       collabStore?.removeContextFromGroup(groupId, contextId);
+    },
+    addFlowStage(stage: FlowStageMarker): void {
+      collabStore?.addFlowStage(stage);
+    },
+    updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void {
+      collabStore?.updateFlowStage(stageIndex, updates);
+    },
+    deleteFlowStage(stageIndex: number): void {
+      collabStore?.deleteFlowStage(stageIndex);
     },
   };
 }
