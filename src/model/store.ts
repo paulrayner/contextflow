@@ -7,6 +7,13 @@ import { classifyFromDistillationPosition, classifyFromStrategicPosition } from 
 import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
 import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
 import { applyUndo, applyRedo } from './undoRedo'
+import {
+  isCollabModeActive,
+  getCollabMutations,
+  getCollabUndoRedo,
+  initializeCollabMode,
+  destroyCollabMode,
+} from './sync/useCollabMode'
 import { calculateNextStagePosition } from './stagePosition'
 import { getGridPosition, needsRedistribution } from '../lib/distillationGrid'
 import {
@@ -157,12 +164,20 @@ export const useEditorStore = create<EditorState>((set) => ({
   redoStack: [],
 
   updateContext: (contextId, updates) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().updateContext(contextId, updates)
+      return {}
+    }
     const result = updateContextAction(state, contextId, updates)
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   updateContextPosition: (contextId, newPositions) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().updateContextPosition(contextId, newPositions)
+      return {}
+    }
     const result = updateContextPositionAction(state, contextId, newPositions)
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
@@ -248,6 +263,19 @@ export const useEditorStore = create<EditorState>((set) => ({
       project_origin: origin
     })
 
+    if (isCollabModeActive()) {
+      destroyCollabMode()
+      const onProjectChange = (updatedProject: Project): void => {
+        useEditorStore.setState((s) => ({
+          projects: {
+            ...s.projects,
+            [updatedProject.id]: updatedProject,
+          },
+        }))
+      }
+      initializeCollabMode(project, { onProjectChange })
+    }
+
     localStorage.setItem('contextflow.activeProjectId', projectId)
     return {
       activeProjectId: projectId,
@@ -301,12 +329,23 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addContext: (name) => set((state) => {
+    if (isCollabModeActive()) {
+      const result = addContextAction(state, name)
+      if (result.newContext) {
+        getCollabMutations().addContext(result.newContext)
+      }
+      return { selectedContextId: result.selectedContextId }
+    }
     const result = addContextAction(state, name)
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
   }),
 
   deleteContext: (contextId) => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabMutations().deleteContext(contextId)
+      return state.selectedContextId === contextId ? { selectedContextId: null } : {}
+    }
     const result = deleteContextAction(state, contextId)
     autosaveIfNeeded(state.activeProjectId, result.projects)
     return result
@@ -965,6 +1004,11 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   undo: () => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabUndoRedo().undo()
+      return {}
+    }
+
     if (state.undoStack.length === 0) return state
 
     const projectId = state.activeProjectId
@@ -997,6 +1041,11 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   redo: () => set((state) => {
+    if (isCollabModeActive()) {
+      getCollabUndoRedo().redo()
+      return {}
+    }
+
     if (state.redoStack.length === 0) return state
 
     const projectId = state.activeProjectId
