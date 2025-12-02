@@ -1,5 +1,5 @@
 import React from 'react'
-import { X } from 'lucide-react'
+import { X, Cloud } from 'lucide-react'
 
 interface ProjectCreateDialogProps {
   onConfirm: (name: string) => void
@@ -48,6 +48,14 @@ export function ProjectCreateDialog({ onConfirm, onCancel }: ProjectCreateDialog
               autoFocus
               className="w-full text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
             />
+          </div>
+
+          {/* Cloud sync info */}
+          <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <Cloud size={16} className="text-blue-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              Your project syncs automatically across devices and can be shared with collaborators.
+            </p>
           </div>
 
           {/* Actions */}
