@@ -1,16 +1,18 @@
 import * as Y from 'yjs';
 import type { BoundedContext, Issue } from '../types';
 
-export function contextToYMap(context: BoundedContext): Y.Map<unknown> {
-  const tempDoc = new Y.Doc();
-  const yMap = tempDoc.getMap('context');
-
+export function populateContextYMap(yMap: Y.Map<unknown>, context: BoundedContext): void {
   setRequiredFields(yMap, context);
   setOptionalFields(yMap, context);
   setPositions(yMap, context.positions);
   setCodeSize(yMap, context.codeSize);
   setIssues(yMap, context.issues);
+}
 
+export function contextToYMap(context: BoundedContext): Y.Map<unknown> {
+  const tempDoc = new Y.Doc();
+  const yMap = tempDoc.getMap('context');
+  populateContextYMap(yMap, context);
   return yMap;
 }
 
