@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target, ChevronDown } from 'lucide-react'
+import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target, ChevronDown, Share2 } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { CloudStatusIndicator } from './CloudStatusIndicator'
+import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { ProjectListModal } from './ProjectListModal'
 import { ImportConflictDialog } from './ImportConflictDialog'
@@ -57,6 +58,7 @@ export function TopBar() {
   const [showSettings, setShowSettings] = useState(false)
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
   const [showProjectList, setShowProjectList] = useState(false)
+  const [showShareDialog, setShowShareDialog] = useState(false)
   const [importConflict, setImportConflict] = useState<{
     importedProject: Project
     existingProject: Project
@@ -321,6 +323,12 @@ export function TopBar() {
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
+        <SimpleTooltip text="Share project">
+          <IconButton
+            onClick={() => setShowShareDialog(true)}
+            icon={<Share2 size={16} />}
+          />
+        </SimpleTooltip>
         <SimpleTooltip text="Export project JSON">
           <IconButton
             onClick={handleExport}
@@ -600,6 +608,15 @@ export function TopBar() {
           onReplace={handleImportReplace}
           onImportAsNew={handleImportAsNew}
           onCancel={() => setImportConflict(null)}
+        />
+      )}
+
+      {/* Share Project Dialog */}
+      {showShareDialog && projectId && project && (
+        <ShareProjectDialog
+          projectId={projectId}
+          projectName={project.name}
+          onClose={() => setShowShareDialog(false)}
         />
       )}
     </header>
