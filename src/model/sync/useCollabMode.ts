@@ -1,5 +1,6 @@
+import * as Y from 'yjs';
 import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person } from '../types';
-import { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
+import { useCollabStore, createCollabStoreFromYDoc, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
 
@@ -62,6 +63,17 @@ export function initializeCollabMode(project: Project, options: CollabStoreOptio
     collabStore.destroy();
   }
   collabStore = useCollabStore(project, options);
+}
+
+/**
+ * Initialize collab mode with an existing Y.Doc from a network provider.
+ * Use this when connecting to a shared project via WebSocket.
+ */
+export function initializeCollabModeWithYDoc(ydoc: Y.Doc, options: CollabStoreOptions = {}): void {
+  if (collabStore) {
+    collabStore.destroy();
+  }
+  collabStore = createCollabStoreFromYDoc(ydoc, options);
 }
 
 export function destroyCollabMode(): void {

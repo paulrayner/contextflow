@@ -364,3 +364,243 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
   return store;
 }
+
+/**
+ * Creates a CollabStore from an existing Y.Doc.
+ * Use this when you have a Y.Doc from a network provider and want to attach mutation handlers.
+ */
+export function createCollabStoreFromYDoc(ydoc: Y.Doc, options: CollabStoreOptions = {}): CollabStore {
+  let syncManager: SyncManager | null = null;
+  let undoManager: CollabUndoManager | null = null;
+  let isDestroyed = false;
+
+  const handleProjectChange = (updatedProject: Project): void => {
+    if (options.onProjectChange) {
+      options.onProjectChange(updatedProject);
+    }
+  };
+
+  syncManager = new SyncManager(ydoc, handleProjectChange);
+  undoManager = createUndoManager(ydoc);
+
+  const store: CollabStore = {
+    getYDoc(): Y.Doc {
+      return ydoc;
+    },
+
+    getProject(): Project {
+      return yDocToProject(ydoc);
+    },
+
+    addContext(context: BoundedContext): void {
+      addContextMutation(ydoc, context);
+    },
+
+    updateContext(contextId: string, updates: Partial<BoundedContext>): void {
+      updateContextMutation(ydoc, contextId, updates);
+    },
+
+    deleteContext(contextId: string): void {
+      deleteContextMutation(ydoc, contextId);
+    },
+
+    updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
+      updateContextPositionMutation(ydoc, contextId, positions);
+    },
+
+    addRelationship(relationship: Relationship): void {
+      addRelationshipMutation(ydoc, relationship);
+    },
+
+    updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
+      updateRelationshipMutation(ydoc, relationshipId, updates);
+    },
+
+    deleteRelationship(relationshipId: string): void {
+      deleteRelationshipMutation(ydoc, relationshipId);
+    },
+
+    addGroup(group: Group): void {
+      addGroupMutation(ydoc, group);
+    },
+
+    updateGroup(groupId: string, updates: Partial<Group>): void {
+      updateGroupMutation(ydoc, groupId, updates);
+    },
+
+    deleteGroup(groupId: string): void {
+      deleteGroupMutation(ydoc, groupId);
+    },
+
+    addContextToGroup(groupId: string, contextId: string): void {
+      addContextToGroupMutation(ydoc, groupId, contextId);
+    },
+
+    addContextsToGroup(groupId: string, contextIds: string[]): void {
+      addContextsToGroupMutation(ydoc, groupId, contextIds);
+    },
+
+    removeContextFromGroup(groupId: string, contextId: string): void {
+      removeContextFromGroupMutation(ydoc, groupId, contextId);
+    },
+
+    addFlowStage(stage: FlowStageMarker): void {
+      addFlowStageMutation(ydoc, stage);
+    },
+
+    updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void {
+      updateFlowStageMutation(ydoc, stageIndex, updates);
+    },
+
+    deleteFlowStage(stageIndex: number): void {
+      deleteFlowStageMutation(ydoc, stageIndex);
+    },
+
+    addUser(user: User): void {
+      addUserMutation(ydoc, user);
+    },
+
+    updateUser(userId: string, updates: Partial<User>): void {
+      updateUserMutation(ydoc, userId, updates);
+    },
+
+    deleteUser(userId: string): void {
+      deleteUserMutation(ydoc, userId);
+    },
+
+    updateUserPosition(userId: string, position: number): void {
+      updateUserPositionMutation(ydoc, userId, position);
+    },
+
+    addUserNeed(userNeed: UserNeed): void {
+      addUserNeedMutation(ydoc, userNeed);
+    },
+
+    updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void {
+      updateUserNeedMutation(ydoc, userNeedId, updates);
+    },
+
+    deleteUserNeed(userNeedId: string): void {
+      deleteUserNeedMutation(ydoc, userNeedId);
+    },
+
+    updateUserNeedPosition(userNeedId: string, position: number): void {
+      updateUserNeedPositionMutation(ydoc, userNeedId, position);
+    },
+
+    addUserNeedConnection(connection: UserNeedConnection): void {
+      addUserNeedConnectionMutation(ydoc, connection);
+    },
+
+    updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void {
+      updateUserNeedConnectionMutation(ydoc, connectionId, updates);
+    },
+
+    deleteUserNeedConnection(connectionId: string): void {
+      deleteUserNeedConnectionMutation(ydoc, connectionId);
+    },
+
+    addNeedContextConnection(connection: NeedContextConnection): void {
+      addNeedContextConnectionMutation(ydoc, connection);
+    },
+
+    updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void {
+      updateNeedContextConnectionMutation(ydoc, connectionId, updates);
+    },
+
+    deleteNeedContextConnection(connectionId: string): void {
+      deleteNeedContextConnectionMutation(ydoc, connectionId);
+    },
+
+    addKeyframe(keyframe: TemporalKeyframe): void {
+      addKeyframeMutation(ydoc, keyframe);
+    },
+
+    updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void {
+      updateKeyframeMutation(ydoc, keyframeId, updates);
+    },
+
+    deleteKeyframe(keyframeId: string): void {
+      deleteKeyframeMutation(ydoc, keyframeId);
+    },
+
+    updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void {
+      updateKeyframeContextPositionMutation(ydoc, keyframeId, contextId, position);
+    },
+
+    toggleTemporal(enabled: boolean): void {
+      toggleTemporalMutation(ydoc, enabled);
+    },
+
+    addTeam(team: Team): void {
+      addTeamMutation(ydoc, team);
+    },
+
+    updateTeam(teamId: string, updates: Partial<Team>): void {
+      updateTeamMutation(ydoc, teamId, updates);
+    },
+
+    deleteTeam(teamId: string): void {
+      deleteTeamMutation(ydoc, teamId);
+    },
+
+    addRepo(repo: Repo): void {
+      addRepoMutation(ydoc, repo);
+    },
+
+    updateRepo(repoId: string, updates: Partial<Repo>): void {
+      updateRepoMutation(ydoc, repoId, updates);
+    },
+
+    deleteRepo(repoId: string): void {
+      deleteRepoMutation(ydoc, repoId);
+    },
+
+    addPerson(person: Person): void {
+      addPersonMutation(ydoc, person);
+    },
+
+    updatePerson(personId: string, updates: Partial<Person>): void {
+      updatePersonMutation(ydoc, personId, updates);
+    },
+
+    deletePerson(personId: string): void {
+      deletePersonMutation(ydoc, personId);
+    },
+
+    canUndo(): boolean {
+      return undoManager?.canUndo() ?? false;
+    },
+
+    canRedo(): boolean {
+      return undoManager?.canRedo() ?? false;
+    },
+
+    undo(): void {
+      undoManager?.undo();
+    },
+
+    redo(): void {
+      undoManager?.redo();
+    },
+
+    reset(newProject: Project): void {
+      // For network-connected docs, reset is not supported
+      // The Y.Doc is managed by the network provider
+      console.warn('reset() is not supported for network-connected CollabStore');
+    },
+
+    destroy(): void {
+      if (isDestroyed) return;
+      isDestroyed = true;
+
+      syncManager?.destroy();
+      syncManager = null;
+
+      undoManager?.destroy();
+      undoManager = null;
+    },
+  };
+
+  return store;
+}

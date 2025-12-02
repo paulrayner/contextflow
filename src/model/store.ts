@@ -10,8 +10,11 @@ import {
   getCollabMutations,
   getCollabUndoRedo,
   initializeCollabMode,
+  initializeCollabModeWithYDoc,
   destroyCollabMode,
 } from './sync/useCollabMode'
+import { populateYDocWithProject } from './sync/projectSync'
+import { useCollabStore as useNetworkCollabStore } from './collabStore'
 import { calculateNextStagePosition } from './stagePosition'
 import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition, findFirstUnoccupiedFlowPosition } from '../lib/distillationGrid'
 import {
@@ -990,17 +993,30 @@ export const useEditorStore = create<EditorState>((set) => ({
       redoStack: [],
     }))
 
-    // Initialize collab mode which will sync from cloud
+    // Destroy any existing collab mode
     destroyCollabMode()
-    const onProjectChange = (updatedProject: Project): void => {
-      useEditorStore.setState((s) => ({
-        projects: {
-          ...s.projects,
-          [updatedProject.id]: updatedProject,
-        },
-      }))
+
+    // Connect to the network using collabStore
+    const networkStore = useNetworkCollabStore.getState()
+    await networkStore.connectToProject(projectId)
+
+    // Get the network-connected Y.Doc and use it for mutations
+    const ydoc = useNetworkCollabStore.getState().ydoc
+    if (ydoc) {
+      // Initialize the Y.Doc with placeholder project structure if it's empty (new room)
+      // This is needed because the Y.Doc from network may be empty on first connection
+      populateYDocWithProject(ydoc, placeholderProject)
+
+      const onProjectChange = (updatedProject: Project): void => {
+        useEditorStore.setState((s) => ({
+          projects: {
+            ...s.projects,
+            [updatedProject.id]: updatedProject,
+          },
+        }))
+      }
+      initializeCollabModeWithYDoc(ydoc, { onProjectChange })
     }
-    initializeCollabMode(placeholderProject, { onProjectChange })
 
     // Also update localStorage to remember this project
     localStorage.setItem('contextflow.activeProjectId', projectId)

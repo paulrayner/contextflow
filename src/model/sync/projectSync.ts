@@ -20,14 +20,27 @@ import {
 
 export function projectToYDoc(project: Project): Y.Doc {
   const doc = new Y.Doc();
+  populateYDocWithProject(doc, project);
+  return doc;
+}
+
+/**
+ * Populates an existing Y.Doc with project data.
+ * Use this to initialize a network-connected Y.Doc that may be empty.
+ * Only populates if the Y.Doc doesn't already have an 'id' field.
+ */
+export function populateYDocWithProject(doc: Y.Doc, project: Project): void {
   const yProject = doc.getMap('project');
+
+  // Only populate if the doc is empty (no id set)
+  if (yProject.has('id')) {
+    return;
+  }
 
   setScalarFields(yProject, project);
   setEntityArrays(yProject, project);
   setViewConfig(yProject, project);
   setTemporal(yProject, project);
-
-  return doc;
 }
 
 export function yDocToProject(doc: Y.Doc): Project {

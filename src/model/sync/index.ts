@@ -1,4 +1,4 @@
-export { projectToYDoc, yDocToProject } from './projectSync';
+export { projectToYDoc, yDocToProject, populateYDocWithProject } from './projectSync';
 export { SyncManager } from './syncManager';
 export { CollabUndoManager, createUndoManager } from './undoManager';
 export {
@@ -19,9 +19,10 @@ export {
   deleteUserNeedMutation,
   updateUserNeedPositionMutation,
 } from './userNeedMutations';
-export { useCollabStore, type CollabStore, type CollabStoreOptions } from './useCollabStore';
+export { useCollabStore, createCollabStoreFromYDoc, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 export {
   initializeCollabMode,
+  initializeCollabModeWithYDoc,
   destroyCollabMode,
   getCollabStore,
   isCollabModeActive,
