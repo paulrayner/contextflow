@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as Y from 'yjs';
+import { trackEvent } from '../utils/analytics';
 
 /**
  * Type stub for y-partyserver provider.
@@ -52,6 +53,45 @@ function computeIsOnline(connectionState: ConnectionState): boolean {
   return ONLINE_STATES.includes(connectionState);
 }
 
+function logStateTransition(
+  previousState: ConnectionState,
+  newState: ConnectionState,
+  error?: string | null
+): void {
+  if (previousState === newState) return;
+
+  if (error) {
+    console.debug('[collab]', previousState, '→', newState, { error });
+  } else {
+    console.debug('[collab]', previousState, '→', newState);
+  }
+}
+
+function trackConnectionEvent(
+  newState: ConnectionState,
+  projectId: string | null,
+  reconnectAttempts: number,
+  error?: string | null
+): void {
+  switch (newState) {
+    case 'connected':
+      trackEvent('collab_connected', null, { project_id: projectId });
+      break;
+    case 'reconnecting':
+      trackEvent('collab_reconnecting', null, {
+        project_id: projectId,
+        attempt: reconnectAttempts,
+      });
+      break;
+    case 'offline':
+      trackEvent('collab_offline', null, { project_id: projectId });
+      break;
+    case 'error':
+      trackEvent('collab_error', null, { project_id: projectId, error });
+      break;
+  }
+}
+
 function waitForInitialSync(
   provider: { on: (event: string, callback: () => void) => void },
   onSynced: () => void,
@@ -93,6 +133,18 @@ export const useCollabStore = create<CollabState>((set, get) => ({
   ...initialState,
 
   setConnectionState: (connectionState) => {
+    const currentState = get();
+    const previousState = currentState.connectionState;
+
+    if (previousState === connectionState) return;
+
+    logStateTransition(previousState, connectionState);
+    trackConnectionEvent(
+      connectionState,
+      currentState.activeProjectId,
+      currentState.reconnectAttempts
+    );
+
     const updates: Partial<CollabState> = {
       connectionState,
       isOnline: computeIsOnline(connectionState),
@@ -112,9 +164,18 @@ export const useCollabStore = create<CollabState>((set, get) => ({
   setProvider: (provider) => set({ provider }),
 
   setError: (error) => {
+    const currentState = get();
+    const previousState = currentState.connectionState;
+    const newState = error !== null ? 'error' : currentState.connectionState;
+
+    if (error !== null) {
+      logStateTransition(previousState, 'error', error);
+      trackConnectionEvent('error', currentState.activeProjectId, currentState.reconnectAttempts, error);
+    }
+
     set({
       error,
-      connectionState: error !== null ? 'error' : get().connectionState,
+      connectionState: newState,
     });
   },
 
@@ -209,6 +270,8 @@ export const useCollabStore = create<CollabState>((set, get) => ({
 
   disconnect: () => {
     const state = get();
+
+    trackEvent('collab_disconnected', null, { project_id: state.activeProjectId });
 
     // Destroy provider first
     if (state.provider) {
