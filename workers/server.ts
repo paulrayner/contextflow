@@ -1,8 +1,36 @@
 import { routePartykitRequest } from 'partyserver';
 import { YServer } from 'y-partyserver';
+import * as Y from 'yjs';
+
+const STORAGE_KEY = 'yjs-document';
 
 export class YjsRoom extends YServer {
-  // YServer handles all Yjs sync protocol automatically
+  static callbackOptions = {
+    debounceWait: 2000,
+    debounceMaxWait: 10000,
+    timeout: 5000,
+  };
+
+  async onLoad(): Promise<void> {
+    try {
+      const stored = await this.ctx.storage.get<Uint8Array>(STORAGE_KEY);
+      if (stored) {
+        Y.applyUpdate(this.document, stored);
+      }
+    } catch (error) {
+      console.error(`[YjsRoom] Error loading document for room ${this.name}:`, error);
+    }
+  }
+
+  async onSave(): Promise<void> {
+    try {
+      const update = Y.encodeStateAsUpdate(this.document);
+      await this.ctx.storage.put(STORAGE_KEY, update);
+    } catch (error) {
+      console.error(`[YjsRoom] Error saving document for room ${this.name}:`, error);
+      throw error;
+    }
+  }
 }
 
 interface Env {
