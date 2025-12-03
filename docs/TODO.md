@@ -46,8 +46,11 @@
 
 ### Docs
 
-- [ ] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...)
-- [ ] Update ARCHITECTURE.md, UX_GUIDELINES.md
+- [x] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...) - moved to docs/done/
+- [x] Update ARCHITECTURE.md with cloud sync architecture
+- [x] Update README.md with cloud sync features
+- [x] Update VISION.md with cloud sync positioning
+- [ ] Update UX_GUIDELINES.md
 - [ ] Update README.md with fresh images
 
 ### Temporal Evolution Enhancements

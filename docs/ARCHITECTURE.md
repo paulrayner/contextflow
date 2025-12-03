@@ -24,9 +24,10 @@ This document defines how we build it.
   - Handles pan/zoom, nodes, edges, selection
 - Animation: Framer Motion
   - Smoothly animate node horizontal position when switching Flow ↔ Strategic views
-- State: Zustand store for editor state
-- Persistence: localStorage (Milestone 1), IndexedDB (Milestone 2) for autosave, plus explicit JSON import/export
-- No backend service in MVP
+- State: Zustand store for editor state (read-only projection of Yjs)
+- Persistence: Yjs + Cloudflare Durable Objects for real-time cloud sync
+- Collaboration: Yjs CRDT for conflict-free real-time editing
+- Backend: Cloudflare Workers with y-partyserver for WebSocket sync
 
 ---
 
@@ -322,19 +323,14 @@ When a group is selected:
 
 ## Editor/global state
 
-We maintain a Zustand store shaped like:
+We maintain a Zustand store as a **read-only projection** of the Yjs document:
 
 ```ts
 export type ViewMode = 'flow' | 'strategic';
 
-interface EditorCommand {
-  type: string;
-  payload: any;
-}
-
 interface EditorState {
   activeProjectId: string | null;
-  projects: Record<string, Project>;
+  projects: Record<string, Project>;  // Populated from Yjs observers
 
   activeViewMode: ViewMode;
 
@@ -347,29 +343,66 @@ interface EditorState {
     strategic: { zoom: number; panX: number; panY: number };
   };
 
-  undoStack: EditorCommand[];
-  redoStack: EditorCommand[];
+  // Connection state (managed by collabStore)
+  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
 }
 ```
 
-Undo/redo applies to structural actions only:
-- add/move/delete context
-- add/delete relationship
-- assign/unassign repo
-- create/delete group
+**Key principle:** Yjs is the single source of truth. Zustand is updated via Yjs observers. All mutations go through Yjs, which then triggers observer callbacks to update Zustand.
 
-Text edits in the InspectorPanel (notes, boundaryNotes, etc.) are *not* undoable; they autosave directly.
+**Undo/redo** uses Y.UndoManager:
+- Scoped to user's own changes (like Figma/Miro)
+- Ctrl+Z only undoes YOUR changes, not collaborator's
+- Session-scoped (cleared on refresh)
+- Applies to all structural actions (add/move/delete context, relationships, groups, etc.)
 
 ---
 
-## Persistence
-- After each state mutation, we serialize the active `Project` and store it locally
-  - Milestone 1: localStorage
-  - Milestone 2: migrate to IndexedDB for better performance with larger projects
-- We maintain a list of recently opened projects
-- On startup, `<ProjectPicker />` lists those projects (Miro-style "recent boards")
+## Cloud Sync Architecture
+
+**Data flow:**
+
+```txt
+User Action → Yjs Y.Doc → WebSocket → Cloudflare Durable Object
+                ↓
+           Observer callback
+                ↓
+           Zustand store → React components
+```
+
+**Key components:**
+
+- **Yjs Y.Doc** – CRDT document, single source of truth for project data
+- **y-partyserver provider** – WebSocket connection to Cloudflare
+- **Cloudflare Workers + Durable Objects** – Serverless backend for sync
+- **Zustand store** – Read-only projection updated via Yjs observers
+
+**Persistence:**
+
+- All projects sync to cloud by default (Cloudflare Durable Objects)
+- IndexedDB used only for migration backup (legacy data from pre-cloud versions)
+- No local-only projects; cloud sync is always enabled
 - Export → download current `Project` as `project.json`
-- Import → upload `project.json`, add to store, select it
+- Import → upload `project.json`, creates new cloud-synced project
+
+**Offline behavior:**
+
+- Brief disconnections handled automatically with reconnection backoff
+- Session-only offline support (changes queue locally during disconnection)
+- Refresh while offline shows blocking modal (must reconnect to continue)
+- No persistent offline mode; cloud is required for data access
+
+**Project sharing:**
+
+- Projects are accessed via URL containing project ID
+- Anyone with the URL can view and edit (Phase 1, no auth)
+- Real-time collaboration: multiple users see changes immediately
+
+**Migration:**
+
+- Existing IndexedDB projects auto-migrate to cloud on first load
+- Migration backup stored locally for 30 days before cleanup
+- Cloud data verified before deleting local backup
 
 ---
 
