@@ -143,10 +143,24 @@ export async function cleanupMigrationBackup(): Promise<void> {
     const projects = await loadAllProjects();
     const userProjects = filterMigratableProjects(projects);
 
+    const { downloadProjectFromCloud } = await import('./cloudUploader');
+
+    let allVerified = true;
     for (const project of userProjects) {
-      await deleteFromIndexedDB(project.id);
+      try {
+        const cloudProject = await downloadProjectFromCloud(project.id);
+        if (projectsAreEqual(project, cloudProject)) {
+          await deleteFromIndexedDB(project.id);
+        } else {
+          allVerified = false;
+        }
+      } catch {
+        allVerified = false;
+      }
     }
 
-    localStorage.removeItem(MIGRATION_DATE_KEY);
+    if (allVerified) {
+      localStorage.removeItem(MIGRATION_DATE_KEY);
+    }
   }
 }

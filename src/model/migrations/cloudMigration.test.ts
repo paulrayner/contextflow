@@ -363,5 +363,103 @@ describe('cloudMigration', () => {
 
       expect(localStorage.getItem('contextflow_migration_date')).toBeNull();
     });
+
+    it('does not delete local data if cloud verification fails', async () => {
+      const oldDate = new Date(Date.now() - 49 * 60 * 60 * 1000);
+      localStorage.setItem('contextflow_migration_date', oldDate.toISOString());
+
+      const userProject = createTestProject({ id: 'user-project-1', name: 'My Project' });
+      const deleteProject = vi.fn().mockResolvedValue(undefined);
+
+      vi.doMock('../persistence', () => ({
+        loadAllProjects: vi.fn().mockResolvedValue([userProject]),
+        deleteProject,
+      }));
+
+      vi.doMock('./cloudUploader', () => ({
+        downloadProjectFromCloud: vi.fn().mockRejectedValue(new Error('Download timeout')),
+      }));
+
+      const { cleanupMigrationBackup } = await import('./cloudMigration');
+      await cleanupMigrationBackup();
+
+      expect(deleteProject).not.toHaveBeenCalled();
+      expect(localStorage.getItem('contextflow_migration_date')).not.toBeNull();
+    });
+
+    it('does not delete local data if cloud data does not match', async () => {
+      const oldDate = new Date(Date.now() - 49 * 60 * 60 * 1000);
+      localStorage.setItem('contextflow_migration_date', oldDate.toISOString());
+
+      const userProject = createTestProject({ id: 'user-project-1', name: 'My Project' });
+      const corruptedProject = createTestProject({ id: 'user-project-1', name: 'Different Name' });
+      const deleteProject = vi.fn().mockResolvedValue(undefined);
+
+      vi.doMock('../persistence', () => ({
+        loadAllProjects: vi.fn().mockResolvedValue([userProject]),
+        deleteProject,
+      }));
+
+      vi.doMock('./cloudUploader', () => ({
+        downloadProjectFromCloud: vi.fn().mockResolvedValue(corruptedProject),
+      }));
+
+      const { cleanupMigrationBackup } = await import('./cloudMigration');
+      await cleanupMigrationBackup();
+
+      expect(deleteProject).not.toHaveBeenCalled();
+      expect(localStorage.getItem('contextflow_migration_date')).not.toBeNull();
+    });
+
+    it('only deletes local data after successful cloud verification', async () => {
+      const oldDate = new Date(Date.now() - 49 * 60 * 60 * 1000);
+      localStorage.setItem('contextflow_migration_date', oldDate.toISOString());
+
+      const userProject = createTestProject({ id: 'user-project-1', name: 'My Project' });
+      const deleteProject = vi.fn().mockResolvedValue(undefined);
+
+      vi.doMock('../persistence', () => ({
+        loadAllProjects: vi.fn().mockResolvedValue([userProject]),
+        deleteProject,
+      }));
+
+      vi.doMock('./cloudUploader', () => ({
+        downloadProjectFromCloud: vi.fn().mockResolvedValue(userProject),
+      }));
+
+      const { cleanupMigrationBackup } = await import('./cloudMigration');
+      await cleanupMigrationBackup();
+
+      expect(deleteProject).toHaveBeenCalledWith('user-project-1');
+      expect(localStorage.getItem('contextflow_migration_date')).toBeNull();
+    });
+
+    it('skips deletion for projects that fail verification but continues with others', async () => {
+      const oldDate = new Date(Date.now() - 49 * 60 * 60 * 1000);
+      localStorage.setItem('contextflow_migration_date', oldDate.toISOString());
+
+      const project1 = createTestProject({ id: 'project-1', name: 'Project 1' });
+      const project2 = createTestProject({ id: 'project-2', name: 'Project 2' });
+      const deleteProject = vi.fn().mockResolvedValue(undefined);
+
+      vi.doMock('../persistence', () => ({
+        loadAllProjects: vi.fn().mockResolvedValue([project1, project2]),
+        deleteProject,
+      }));
+
+      vi.doMock('./cloudUploader', () => ({
+        downloadProjectFromCloud: vi.fn()
+          .mockRejectedValueOnce(new Error('Download timeout'))
+          .mockResolvedValueOnce(project2),
+      }));
+
+      const { cleanupMigrationBackup } = await import('./cloudMigration');
+      await cleanupMigrationBackup();
+
+      expect(deleteProject).toHaveBeenCalledTimes(1);
+      expect(deleteProject).toHaveBeenCalledWith('project-2');
+      // Migration date should remain since not all projects were cleaned up
+      expect(localStorage.getItem('contextflow_migration_date')).not.toBeNull();
+    });
   });
 });
