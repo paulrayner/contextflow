@@ -31,13 +31,24 @@ function measureBundleSize(): BundleMetrics | null {
     return null;
   }
 
-  // Find the main JS bundle (index-*.js)
+  // Find the largest JS bundle (main application chunk)
   const files = fs.readdirSync(distDir);
-  const mainBundle = files.find(f => f.startsWith('index-') && f.endsWith('.js'));
+  const jsBundles = files.filter(f => f.endsWith('.js'));
 
-  if (!mainBundle) {
-    console.error('❌ Main bundle (index-*.js) not found in dist/assets');
+  if (jsBundles.length === 0) {
+    console.error('❌ No JS bundles found in dist/assets');
     return null;
+  }
+
+  // Find the largest bundle (the main application chunk)
+  let mainBundle = '';
+  let maxSize = 0;
+  for (const bundle of jsBundles) {
+    const size = fs.statSync(path.join(distDir, bundle)).size;
+    if (size > maxSize) {
+      maxSize = size;
+      mainBundle = bundle;
+    }
   }
 
   const bundlePath = path.join(distDir, mainBundle);
