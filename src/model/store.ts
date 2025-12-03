@@ -215,8 +215,9 @@ export const useEditorStore = create<EditorState>((set) => ({
     return { activeViewMode: mode }
   }),
 
-  setActiveProject: (projectId) => set((state) => {
-    if (!state.projects[projectId]) return state
+  setActiveProject: async (projectId) => {
+    const state = useEditorStore.getState()
+    if (!state.projects[projectId]) return
 
     const project = state.projects[projectId]
     const origin = determineProjectOrigin(projectId, state.activeProjectId === null)
@@ -225,19 +226,10 @@ export const useEditorStore = create<EditorState>((set) => ({
       project_origin: origin
     })
 
-    destroyCollabMode()
-    const onProjectChange = (updatedProject: Project): void => {
-      useEditorStore.setState((s) => ({
-        projects: {
-          ...s.projects,
-          [updatedProject.id]: updatedProject,
-        },
-      }))
-    }
-    initializeCollabMode(project, { onProjectChange })
-
     localStorage.setItem('contextflow.activeProjectId', projectId)
-    return {
+
+    // Update state immediately
+    useEditorStore.setState(() => ({
       activeProjectId: projectId,
       selectedContextId: null,
       selectedGroupId: null,
@@ -250,35 +242,87 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedContextIds: [],
       undoStack: [],
       redoStack: [],
-    }
-  }),
+    }))
 
-  createProject: (name) => set((state) => {
+    // Destroy any existing collab mode
+    destroyCollabMode()
+
+    // Connect to the network using collabStore
+    const networkStore = useNetworkCollabStore.getState()
+    await networkStore.connectToProject(projectId)
+
+    // Get the network-connected Y.Doc and use it for mutations
+    const ydoc = useNetworkCollabStore.getState().ydoc
+    if (ydoc) {
+      // Populate the Y.Doc with the existing project data if network is empty
+      populateYDocWithProject(ydoc, project)
+
+      const updateStoreAndAutosave = (updatedProject: Project): void => {
+        useEditorStore.setState((s) => ({
+          projects: {
+            ...s.projects,
+            [updatedProject.id]: updatedProject,
+          },
+        }))
+        saveProject(updatedProject).catch((err) => {
+          console.error('Failed to autosave cloud project to IndexedDB:', err)
+        })
+      }
+      initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
+    }
+  },
+
+  createProject: async (name) => {
+    const state = useEditorStore.getState()
     const result = createProjectAction(state, name)
-    if (result.activeProjectId && result.projects) {
-      localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
-      autosaveIfNeeded(result.activeProjectId, result.projects)
+    if (!result.activeProjectId || !result.projects) {
+      return
     }
-    return result
-  }),
 
-  createFromTemplate: (templateId) => set((state) => {
+    const newProjectId = result.activeProjectId
+    const newProject = result.projects[newProjectId]
+
+    localStorage.setItem('contextflow.activeProjectId', newProjectId)
+    autosaveIfNeeded(newProjectId, result.projects)
+
+    // Update state immediately with the new project
+    useEditorStore.setState(() => result)
+
+    // Destroy any existing collab mode
+    destroyCollabMode()
+
+    // Connect to the network using collabStore
+    const networkStore = useNetworkCollabStore.getState()
+    await networkStore.connectToProject(newProjectId)
+
+    // Get the network-connected Y.Doc and use it for mutations
+    const ydoc = useNetworkCollabStore.getState().ydoc
+    if (ydoc) {
+      // Populate the Y.Doc with the new empty project data
+      populateYDocWithProject(ydoc, newProject)
+
+      const updateStoreAndAutosave = (updatedProject: Project): void => {
+        useEditorStore.setState((s) => ({
+          projects: {
+            ...s.projects,
+            [updatedProject.id]: updatedProject,
+          },
+        }))
+        saveProject(updatedProject).catch((err) => {
+          console.error('Failed to autosave cloud project to IndexedDB:', err)
+        })
+      }
+      initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
+    }
+  },
+
+  createFromTemplate: async (templateId) => {
     const newProject = createProjectFromTemplate(templateId)
     localStorage.setItem('contextflow.activeProjectId', newProject.id)
     autosaveIfNeeded(newProject.id, { [newProject.id]: newProject })
 
-    destroyCollabMode()
-    const onProjectChange = (updatedProject: Project): void => {
-      useEditorStore.setState((s) => ({
-        projects: {
-          ...s.projects,
-          [updatedProject.id]: updatedProject,
-        },
-      }))
-    }
-    initializeCollabMode(newProject, { onProjectChange })
-
-    return {
+    // Update state immediately with the new project
+    useEditorStore.setState((state) => ({
       projects: {
         ...state.projects,
         [newProject.id]: newProject,
@@ -296,8 +340,35 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedContextIds: [],
       undoStack: [],
       redoStack: [],
+    }))
+
+    // Destroy any existing collab mode
+    destroyCollabMode()
+
+    // Connect to the network using collabStore
+    const networkStore = useNetworkCollabStore.getState()
+    await networkStore.connectToProject(newProject.id)
+
+    // Get the network-connected Y.Doc and use it for mutations
+    const ydoc = useNetworkCollabStore.getState().ydoc
+    if (ydoc) {
+      // Populate the Y.Doc with the template project data
+      populateYDocWithProject(ydoc, newProject)
+
+      const updateStoreAndAutosave = (updatedProject: Project): void => {
+        useEditorStore.setState((s) => ({
+          projects: {
+            ...s.projects,
+            [updatedProject.id]: updatedProject,
+          },
+        }))
+        saveProject(updatedProject).catch((err) => {
+          console.error('Failed to autosave cloud project to IndexedDB:', err)
+        })
+      }
+      initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
     }
-  }),
+  },
 
   deleteProject: (projectId) => set((state) => {
     const result = deleteProjectAction(state, projectId)
