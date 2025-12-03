@@ -23,6 +23,7 @@ import {
   deleteContextIssueAction,
 } from './actions/contextActions'
 import { createProjectAction, deleteProjectAction, renameProjectAction, duplicateProjectAction } from './actions/projectActions'
+import { createProjectFromTemplate } from './templateProjects'
 import {
   addUserAction,
   deleteUserAction,
@@ -259,6 +260,43 @@ export const useEditorStore = create<EditorState>((set) => ({
       autosaveIfNeeded(result.activeProjectId, result.projects)
     }
     return result
+  }),
+
+  createFromTemplate: (templateId) => set((state) => {
+    const newProject = createProjectFromTemplate(templateId)
+    localStorage.setItem('contextflow.activeProjectId', newProject.id)
+    autosaveIfNeeded(newProject.id, { [newProject.id]: newProject })
+
+    destroyCollabMode()
+    const onProjectChange = (updatedProject: Project): void => {
+      useEditorStore.setState((s) => ({
+        projects: {
+          ...s.projects,
+          [updatedProject.id]: updatedProject,
+        },
+      }))
+    }
+    initializeCollabMode(newProject, { onProjectChange })
+
+    return {
+      projects: {
+        ...state.projects,
+        [newProject.id]: newProject,
+      },
+      activeProjectId: newProject.id,
+      selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
+      selectedUserId: null,
+      selectedUserNeedId: null,
+      selectedUserNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
+      selectedTeamId: null,
+      selectedContextIds: [],
+      undoStack: [],
+      redoStack: [],
+    }
   }),
 
   deleteProject: (projectId) => set((state) => {

@@ -112,6 +112,7 @@ export interface EditorState {
   setViewMode: (mode: ViewMode) => void
   setActiveProject: (projectId: string) => void
   createProject: (name: string) => void
+  createFromTemplate: (templateId: string) => void
   deleteProject: (projectId: string) => void
   renameProject: (projectId: string, newName: string) => void
   duplicateProject: (projectId: string) => void
