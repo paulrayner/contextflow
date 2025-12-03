@@ -3,12 +3,15 @@ import { YServer } from 'y-partyserver';
 import * as Y from 'yjs';
 
 const STORAGE_KEY = 'yjs-document';
+const DEBOUNCE_WAIT_MS = 2000;
+const DEBOUNCE_MAX_WAIT_MS = 10000;
+const SAVE_TIMEOUT_MS = 5000;
 
 export class YjsRoom extends YServer {
   static callbackOptions = {
-    debounceWait: 2000,
-    debounceMaxWait: 10000,
-    timeout: 5000,
+    debounceWait: DEBOUNCE_WAIT_MS,
+    debounceMaxWait: DEBOUNCE_MAX_WAIT_MS,
+    timeout: SAVE_TIMEOUT_MS,
   };
 
   async onLoad(): Promise<void> {
