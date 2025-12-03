@@ -42,9 +42,30 @@ interface CollabState {
 }
 
 const ONLINE_STATES: ConnectionState[] = ['connected', 'syncing'];
+const CONNECTION_TIMEOUT_MS = 10000;
 
 function computeIsOnline(connectionState: ConnectionState): boolean {
   return ONLINE_STATES.includes(connectionState);
+}
+
+function waitForInitialSync(
+  provider: { on: (event: string, callback: () => void) => void },
+  onSynced: () => void,
+  onDisconnect: () => void
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error('Connection timeout'));
+    }, CONNECTION_TIMEOUT_MS);
+
+    provider.on('sync', () => {
+      clearTimeout(timeout);
+      onSynced();
+      resolve();
+    });
+
+    provider.on('connection-close', onDisconnect);
+  });
 }
 
 const initialState = {
@@ -127,15 +148,14 @@ export const useCollabStore = create<CollabState>((set, get) => ({
         party: 'yjs-room',
       });
 
-      // Set up connection status listeners
-      const onConnect = () => {
+      const markConnected = () => {
         set({
           connectionState: 'connected',
           isOnline: true,
         });
       };
 
-      const onDisconnect = () => {
+      const markOfflineIfStillActive = () => {
         const currentState = get();
         if (currentState.activeProjectId === projectId) {
           set({
@@ -145,8 +165,7 @@ export const useCollabStore = create<CollabState>((set, get) => ({
         }
       };
 
-      provider.on('sync', onConnect);
-      provider.on('connection-close', onDisconnect);
+      await waitForInitialSync(provider, markConnected, markOfflineIfStillActive);
 
       set({ provider: provider as unknown as YProviderInterface });
     } catch (error) {
