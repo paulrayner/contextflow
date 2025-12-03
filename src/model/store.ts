@@ -1045,15 +1045,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       // This is needed because the Y.Doc from network may be empty on first connection
       populateYDocWithProject(ydoc, placeholderProject)
 
-      const onProjectChange = (updatedProject: Project): void => {
+      const updateStoreAndAutosave = (updatedProject: Project): void => {
         useEditorStore.setState((s) => ({
           projects: {
             ...s.projects,
             [updatedProject.id]: updatedProject,
           },
         }))
+        saveProject(updatedProject).catch((err) => {
+          console.error('Failed to autosave cloud project to IndexedDB:', err)
+        })
       }
-      initializeCollabModeWithYDoc(ydoc, { onProjectChange })
+      initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
     }
 
     // Also update localStorage to remember this project
