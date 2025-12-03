@@ -6,6 +6,8 @@ import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { WelcomeModal } from './components/WelcomeModal'
+import { OfflineBlockingModal } from './components/OfflineBlockingModal'
+import { useCollabStore } from './model/collabStore'
 import { Users, X } from 'lucide-react'
 import { trackEvent } from './utils/analytics'
 import { useUrlRouter } from './hooks/useUrlRouter'
@@ -34,6 +36,8 @@ function App() {
   const loadSharedProject = useEditorStore(s => s.loadSharedProject)
 
   const { route, params, navigate } = useUrlRouter()
+
+  const connectionState = useCollabStore((s) => s.connectionState)
 
   const [showGroupDialog, setShowGroupDialog] = React.useState(false)
   const [isLoadingSharedProject, setIsLoadingSharedProject] = React.useState(false)
@@ -168,6 +172,11 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Offline blocking modal for shared projects */}
+      {route === 'shared-project' && !isLoadingSharedProject && (connectionState === 'offline' || connectionState === 'error') && (
+        <OfflineBlockingModal />
       )}
 
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>
