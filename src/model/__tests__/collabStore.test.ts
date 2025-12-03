@@ -210,37 +210,36 @@ describe('collabStore', () => {
   });
 
   describe('connectToProject', () => {
-    it('sets state to connecting when called', async () => {
+    it('sets state to connecting when called', () => {
       const store = useCollabStore.getState();
 
-      // Start connection (it will fail without actual server, but state should update)
-      const promise = store.connectToProject('test-project-123');
+      // Start connection (don't await - just check immediate state change)
+      store.connectToProject('test-project-123');
 
       // Connection state should immediately be 'connecting'
       expect(useCollabStore.getState().connectionState).toBe('connecting');
       expect(useCollabStore.getState().activeProjectId).toBe('test-project-123');
-
-      // Wait for promise to settle (will fail in test env, that's ok)
-      await promise.catch(() => {});
     });
 
-    it('creates a new Y.Doc for the project', async () => {
+    it('creates a new Y.Doc for the project', () => {
       const store = useCollabStore.getState();
 
-      await store.connectToProject('test-project-456').catch(() => {});
+      // Start connection (don't await)
+      store.connectToProject('test-project-456');
 
-      // Y.Doc should be created regardless of connection success
+      // Y.Doc should be created immediately
       expect(useCollabStore.getState().ydoc).not.toBeNull();
     });
 
-    it('disconnects existing connection before creating new one', async () => {
+    it('disconnects existing connection before creating new one', () => {
       const store = useCollabStore.getState();
 
       // Simulate an existing connection
       store.setConnectionState('connected');
       store.setActiveProjectId('old-project');
 
-      await store.connectToProject('new-project').catch(() => {});
+      // Start new connection (don't await)
+      store.connectToProject('new-project');
 
       expect(useCollabStore.getState().activeProjectId).toBe('new-project');
     });
