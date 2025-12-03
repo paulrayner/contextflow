@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useCollabStore, ConnectionState, getCollabHost } from '../collabStore';
+import * as analytics from '../../utils/analytics';
 
 describe('collabStore', () => {
   beforeEach(() => {
@@ -289,6 +290,173 @@ describe('collabStore', () => {
       store.disconnect();
 
       expect(useCollabStore.getState().provider).toBeNull();
+    });
+  });
+
+  describe('monitoring and logging', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let consoleDebugSpy: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let trackEventSpy: any;
+
+    beforeEach(() => {
+      consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      trackEventSpy = vi.spyOn(analytics, 'trackEvent').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleDebugSpy.mockRestore();
+      trackEventSpy.mockRestore();
+    });
+
+    describe('console logging', () => {
+      it('logs state transitions with previous and new state', () => {
+        const store = useCollabStore.getState();
+
+        store.setConnectionState('connecting');
+
+        expect(consoleDebugSpy).toHaveBeenCalledWith(
+          '[collab]',
+          'disconnected',
+          '→',
+          'connecting'
+        );
+      });
+
+      it('logs each state transition separately', () => {
+        const store = useCollabStore.getState();
+
+        store.setConnectionState('connecting');
+        store.setConnectionState('connected');
+
+        expect(consoleDebugSpy).toHaveBeenCalledTimes(2);
+        expect(consoleDebugSpy).toHaveBeenNthCalledWith(
+          1,
+          '[collab]',
+          'disconnected',
+          '→',
+          'connecting'
+        );
+        expect(consoleDebugSpy).toHaveBeenNthCalledWith(
+          2,
+          '[collab]',
+          'connecting',
+          '→',
+          'connected'
+        );
+      });
+
+      it('does not log when state is unchanged', () => {
+        const store = useCollabStore.getState();
+
+        store.setConnectionState('disconnected');
+
+        expect(consoleDebugSpy).not.toHaveBeenCalled();
+      });
+
+      it('logs error details when transitioning to error state', () => {
+        const store = useCollabStore.getState();
+
+        store.setError('Connection timeout');
+
+        expect(consoleDebugSpy).toHaveBeenCalledWith(
+          '[collab]',
+          'disconnected',
+          '→',
+          'error',
+          { error: 'Connection timeout' }
+        );
+      });
+    });
+
+    describe('analytics tracking', () => {
+      it('tracks collab_connected when transitioning to connected', () => {
+        const store = useCollabStore.getState();
+        store.setActiveProjectId('test-project');
+
+        store.setConnectionState('connected');
+
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          'collab_connected',
+          null,
+          { project_id: 'test-project' }
+        );
+      });
+
+      it('tracks collab_disconnected when intentionally disconnecting', () => {
+        const store = useCollabStore.getState();
+        store.setActiveProjectId('test-project');
+        store.setConnectionState('connected');
+        trackEventSpy.mockClear();
+
+        store.disconnect();
+
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          'collab_disconnected',
+          null,
+          { project_id: 'test-project' }
+        );
+      });
+
+      it('tracks collab_reconnecting with attempt count', () => {
+        const store = useCollabStore.getState();
+        store.setActiveProjectId('test-project');
+        useCollabStore.setState({ reconnectAttempts: 2 });
+
+        store.setConnectionState('reconnecting');
+
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          'collab_reconnecting',
+          null,
+          { project_id: 'test-project', attempt: 2 }
+        );
+      });
+
+      it('tracks collab_error with error message', () => {
+        const store = useCollabStore.getState();
+        store.setActiveProjectId('test-project');
+
+        store.setError('WebSocket connection failed');
+
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          'collab_error',
+          null,
+          { project_id: 'test-project', error: 'WebSocket connection failed' }
+        );
+      });
+
+      it('tracks collab_offline when max reconnect attempts exceeded', () => {
+        const store = useCollabStore.getState();
+        store.setActiveProjectId('test-project');
+
+        store.setConnectionState('offline');
+
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          'collab_offline',
+          null,
+          { project_id: 'test-project' }
+        );
+      });
+
+      it('does not track analytics for connecting state', () => {
+        const store = useCollabStore.getState();
+        store.setActiveProjectId('test-project');
+
+        store.setConnectionState('connecting');
+
+        expect(trackEventSpy).not.toHaveBeenCalled();
+      });
+
+      it('does not track analytics for syncing state', () => {
+        const store = useCollabStore.getState();
+        store.setActiveProjectId('test-project');
+        store.setConnectionState('connected');
+        trackEventSpy.mockClear();
+
+        store.setConnectionState('syncing');
+
+        expect(trackEventSpy).not.toHaveBeenCalled();
+      });
     });
   });
 });
