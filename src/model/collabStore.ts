@@ -21,6 +21,7 @@ export type ConnectionState =
   | 'connected'
   | 'syncing'
   | 'offline'
+  | 'reconnecting'
   | 'error';
 
 interface CollabState {
@@ -30,6 +31,7 @@ interface CollabState {
   provider: YProviderInterface | null;
   error: string | null;
   isOnline: boolean;
+  reconnectAttempts: number;
 
   setConnectionState: (state: ConnectionState) => void;
   setActiveProjectId: (projectId: string | null) => void;
@@ -43,6 +45,8 @@ interface CollabState {
 
 const ONLINE_STATES: ConnectionState[] = ['connected', 'syncing'];
 const CONNECTION_TIMEOUT_MS = 10000;
+const MAX_BACKOFF_TIME_MS = 5000;
+const MAX_RECONNECT_ATTEMPTS = 5;
 
 function computeIsOnline(connectionState: ConnectionState): boolean {
   return ONLINE_STATES.includes(connectionState);
@@ -75,6 +79,7 @@ const initialState = {
   provider: null as YProviderInterface | null,
   error: null as string | null,
   isOnline: false,
+  reconnectAttempts: 0,
 };
 
 const DEFAULT_COLLAB_HOST = 'localhost:8787';
@@ -135,6 +140,7 @@ export const useCollabStore = create<CollabState>((set, get) => ({
       ydoc,
       provider: null,
       error: null,
+      reconnectAttempts: 0,
     });
 
     // Dynamically import y-partyserver provider to avoid bundling issues
@@ -146,26 +152,49 @@ export const useCollabStore = create<CollabState>((set, get) => ({
       const provider = new YProvider(host, projectId, ydoc, {
         connect: true,
         party: 'yjs-room',
+        maxBackoffTime: MAX_BACKOFF_TIME_MS,
       });
 
       const markConnected = () => {
         set({
           connectionState: 'connected',
           isOnline: true,
+          reconnectAttempts: 0,
+          error: null,
         });
       };
 
-      const markOfflineIfStillActive = () => {
+      const handleDisconnect = () => {
         const currentState = get();
-        if (currentState.activeProjectId === projectId) {
+        if (currentState.activeProjectId !== projectId) return;
+
+        const attempts = currentState.reconnectAttempts + 1;
+
+        if (attempts > MAX_RECONNECT_ATTEMPTS) {
+          // Give up after max attempts
           set({
             connectionState: 'offline',
             isOnline: false,
+            error: 'Connection lost. Click retry to reconnect.',
+          });
+        } else {
+          // Provider will auto-reconnect with exponential backoff
+          set({
+            connectionState: 'reconnecting',
+            isOnline: false,
+            reconnectAttempts: attempts,
           });
         }
       };
 
-      await waitForInitialSync(provider, markConnected, markOfflineIfStillActive);
+      // Listen for sync events (fires on initial connect AND reconnections)
+      provider.on('sync', markConnected);
+
+      // Listen for disconnections
+      provider.on('connection-close', handleDisconnect);
+
+      // Wait for initial sync with timeout
+      await waitForInitialSync(provider, markConnected, handleDisconnect);
 
       set({ provider: provider as unknown as YProviderInterface });
     } catch (error) {
@@ -199,6 +228,7 @@ export const useCollabStore = create<CollabState>((set, get) => ({
       ydoc: null,
       provider: null,
       error: null,
+      reconnectAttempts: 0,
     });
   },
 

@@ -56,6 +56,27 @@ describe('OfflineBlockingModal', () => {
 
       expect(screen.getByText("You're Offline")).toBeInTheDocument()
     })
+
+    it('renders when connection state is reconnecting', () => {
+      useCollabStore.getState().setConnectionState('reconnecting')
+
+      render(<OfflineBlockingModal />)
+
+      expect(screen.getByRole('heading', { name: 'Reconnecting...' })).toBeInTheDocument()
+    })
+
+    it('does not render when connection state is reconnecting but then connects', () => {
+      useCollabStore.getState().setConnectionState('reconnecting')
+
+      const { rerender } = render(<OfflineBlockingModal />)
+
+      expect(screen.getByRole('heading', { name: 'Reconnecting...' })).toBeInTheDocument()
+
+      useCollabStore.getState().setConnectionState('connected')
+      rerender(<OfflineBlockingModal />)
+
+      expect(screen.queryByRole('heading', { name: 'Reconnecting...' })).not.toBeInTheDocument()
+    })
   })
 
   describe('content', () => {
@@ -133,6 +154,38 @@ describe('OfflineBlockingModal', () => {
 
       // Button text should not change since no projectId to connect to
       expect(screen.getByRole('button', { name: /Retry Connection/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('reconnecting state', () => {
+    it('shows reconnecting header and attempt count', () => {
+      const store = useCollabStore.getState()
+      store.setConnectionState('reconnecting')
+      // Manually set reconnectAttempts by accessing the internal state
+      useCollabStore.setState({ reconnectAttempts: 2 })
+
+      render(<OfflineBlockingModal />)
+
+      expect(screen.getByRole('heading', { name: 'Reconnecting...' })).toBeInTheDocument()
+      expect(screen.getByText(/Attempting to reconnect \(attempt 2 of 5\)/)).toBeInTheDocument()
+    })
+
+    it('disables retry button during reconnecting', () => {
+      useCollabStore.getState().setConnectionState('reconnecting')
+      useCollabStore.getState().setActiveProjectId('test-project-123')
+
+      render(<OfflineBlockingModal />)
+
+      const button = screen.getByRole('button')
+      expect(button).toBeDisabled()
+    })
+
+    it('does not show sync message during reconnecting', () => {
+      useCollabStore.getState().setConnectionState('reconnecting')
+
+      render(<OfflineBlockingModal />)
+
+      expect(screen.queryByText(/Your changes will sync automatically/)).not.toBeInTheDocument()
     })
   })
 })

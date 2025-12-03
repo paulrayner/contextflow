@@ -50,6 +50,13 @@ const STATUS_CONFIG: Record<ConnectionState, StatusConfig> = {
     tooltip: 'Offline - changes will sync when reconnected',
     color: 'text-amber-500',
   },
+  reconnecting: {
+    icon: <Loader2 size={14} />,
+    label: '',
+    tooltip: 'Reconnecting...',
+    color: 'text-amber-500',
+    animate: true,
+  },
   error: {
     icon: <AlertCircle size={14} />,
     label: '',
