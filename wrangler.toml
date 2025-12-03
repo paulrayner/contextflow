@@ -11,3 +11,15 @@ class_name = "YjsRoom"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["YjsRoom"]
+
+# Staging environment - completely isolated from production
+[env.staging]
+name = "contextflow-collab-staging"
+
+[[env.staging.durable_objects.bindings]]
+name = "YjsRoom"
+class_name = "YjsRoom"
+
+[[env.staging.migrations]]
+tag = "v1"
+new_sqlite_classes = ["YjsRoom"]
