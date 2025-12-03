@@ -4,15 +4,24 @@ This document captures baseline performance metrics for ContextFlow to help iden
 
 ## Bundle Size
 
-**Measured:** 2025-12-02
+**Measured:** 2025-12-03 (post-Yjs integration)
 
 ### Production Build
 
 ```text
-dist/assets/index-BH7vKgC-.js
-  Raw: 733.40 KB
-  Gzipped: 196.11 KB
+dist/assets/index-d21vVEBq.js
+  Raw: 846.52 KB
+  Gzipped: 230.43 KB
 ```
+
+### Historical Comparison
+
+| Date | Version | Raw | Gzipped | Notes |
+|------|---------|-----|---------|-------|
+| 2025-12-02 | pre-Yjs | 733.40 KB | 196.11 KB | Baseline before collaboration |
+| 2025-12-03 | post-Yjs | 846.52 KB | 230.43 KB | Added Yjs, y-indexeddb, y-webrtc |
+
+**Delta:** +113 KB raw (+15.4%), +34 KB gzipped (+17.5%) - expected growth from CRDT collaboration dependencies.
 
 ### Measurement Steps
 
@@ -25,13 +34,13 @@ npm run perf
 
 ## Load Performance
 
-**Measured:** TBD - measure manually
+**Measured:** 2025-12-03
 
-### Empty Project Load Time
+### Page Load Time
 
-Time from navigation to interactive canvas with sample project loaded.
+Time from navigation to interactive canvas (production build).
 
-**Metric:** TBD ms
+**Metric:** 884 ms (median of 3 samples: 957ms, 858ms, 884ms)
 
 ### Measurement Steps (Load Time)
 
@@ -52,26 +61,19 @@ Time from navigation to interactive canvas with sample project loaded.
 
 ## Memory Usage
 
-**Measured:** TBD - measure manually
+**Measured:** 2025-12-03
 
 ### Baseline Heap Size
 
-Memory usage after initial render with sample project (empty state).
+Memory usage after initial render (empty canvas).
 
-**Metric:** TBD MB
-
-### Measurement Steps (Memory)
-
-1. Open application in Chrome
-2. Open DevTools → Memory tab
-3. Click "Take heap snapshot"
-4. Note "Shallow Size" total at bottom of snapshot view
+**Metric:** 6 MB
 
 ### With Sample Project
 
-Memory usage with `examples/sample.project.json` loaded (13 contexts, 8 relationships, 2 groups).
+Memory usage with ACME E-Commerce project loaded (19 contexts, multiple relationships and groups).
 
-**Metric:** TBD MB
+**Metric:** 11-13 MB
 
 ## Measurement Guidelines
 
