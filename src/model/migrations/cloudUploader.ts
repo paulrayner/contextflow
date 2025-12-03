@@ -3,8 +3,11 @@ import type { Project } from '../types';
 import { populateYDocWithProject, yDocToProject } from '../sync/projectSync';
 import { getCollabHost } from '../collabStore';
 
-const UPLOAD_TIMEOUT_MS = 30000;
+// Total timeout allows for multiple reconnection attempts with exponential backoff
+// Provider uses built-in reconnection with maxBackoffTime between attempts
+const UPLOAD_TIMEOUT_MS = 60000;
 const SYNC_DELAY_MS = 500;
+const MAX_BACKOFF_TIME_MS = 5000;
 
 export async function uploadProjectToCloud(project: Project): Promise<void> {
   return new Promise<void>((resolve, reject) => {
@@ -20,6 +23,7 @@ export async function uploadProjectToCloud(project: Project): Promise<void> {
         const provider = new YProvider(host, project.id, ydoc, {
           connect: true,
           party: 'yjs-room',
+          maxBackoffTime: MAX_BACKOFF_TIME_MS,
         });
 
         const timeout = setTimeout(() => {
@@ -37,12 +41,8 @@ export async function uploadProjectToCloud(project: Project): Promise<void> {
           }, SYNC_DELAY_MS);
         });
 
-        provider.on('connection-error', () => {
-          clearTimeout(timeout);
-          provider.destroy();
-          ydoc.destroy();
-          reject(new Error('Connection failed'));
-        });
+        // Note: No connection-error handler - let provider's built-in
+        // exponential backoff reconnection work within the timeout window
       })
       .catch((error: Error) => {
         ydoc.destroy();
@@ -63,6 +63,7 @@ export async function downloadProjectFromCloud(projectId: string): Promise<Proje
         const provider = new YProvider(host, projectId, ydoc, {
           connect: true,
           party: 'yjs-room',
+          maxBackoffTime: MAX_BACKOFF_TIME_MS,
         });
 
         const timeout = setTimeout(() => {
@@ -85,12 +86,8 @@ export async function downloadProjectFromCloud(projectId: string): Promise<Proje
           }
         });
 
-        provider.on('connection-error', () => {
-          clearTimeout(timeout);
-          provider.destroy();
-          ydoc.destroy();
-          reject(new Error('Connection failed'));
-        });
+        // Note: No connection-error handler - let provider's built-in
+        // exponential backoff reconnection work within the timeout window
       })
       .catch((error: Error) => {
         ydoc.destroy();
