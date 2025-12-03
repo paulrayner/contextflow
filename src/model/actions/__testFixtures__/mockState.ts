@@ -132,6 +132,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   setViewMode: vi.fn(),
   setActiveProject: vi.fn(),
   createProject: vi.fn(),
+  createFromTemplate: vi.fn(),
   deleteProject: vi.fn(),
   renameProject: vi.fn(),
   duplicateProject: vi.fn(),

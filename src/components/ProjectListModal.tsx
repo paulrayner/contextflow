@@ -3,6 +3,7 @@ import { X, Layers, Plus, Trash2, Copy, Pencil, Link2, Check, Search } from 'luc
 import type { Project } from '../model/types'
 import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
+import { isTemplateProject } from '../model/templateProjects'
 import { ProjectCreateDialog } from './ProjectCreateDialog'
 import { ProjectDeleteDialog } from './ProjectDeleteDialog'
 
@@ -16,6 +17,7 @@ interface ProjectListModalProps {
   activeProjectId: string | null
   onSelectProject: (projectId: string) => void
   onCreateProject: (name: string) => void
+  onCreateFromTemplate: (templateId: string) => void
   onDeleteProject: (projectId: string) => void
   onRenameProject: (projectId: string, newName: string) => void
   onDuplicateProject: (projectId: string) => void
@@ -27,6 +29,7 @@ export function ProjectListModal({
   activeProjectId,
   onSelectProject,
   onCreateProject,
+  onCreateFromTemplate,
   onDeleteProject,
   onRenameProject,
   onDuplicateProject,
@@ -60,7 +63,11 @@ export function ProjectListModal({
 
   const handleSelectProject = (projectId: string) => {
     if (editingProjectId) return
-    onSelectProject(projectId)
+    if (isTemplateProject(projectId)) {
+      onCreateFromTemplate(projectId)
+    } else {
+      onSelectProject(projectId)
+    }
     onClose()
   }
 

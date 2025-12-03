@@ -23,6 +23,7 @@ export function TopBar() {
   const setViewMode = useEditorStore(s => s.setViewMode)
   const setActiveProject = useEditorStore(s => s.setActiveProject)
   const createProject = useEditorStore(s => s.createProject)
+  const createFromTemplate = useEditorStore(s => s.createFromTemplate)
   const deleteProject = useEditorStore(s => s.deleteProject)
   const renameProject = useEditorStore(s => s.renameProject)
   const duplicateProject = useEditorStore(s => s.duplicateProject)
@@ -593,6 +594,7 @@ export function TopBar() {
           activeProjectId={projectId}
           onSelectProject={setActiveProject}
           onCreateProject={createProject}
+          onCreateFromTemplate={createFromTemplate}
           onDeleteProject={deleteProject}
           onRenameProject={renameProject}
           onDuplicateProject={duplicateProject}
