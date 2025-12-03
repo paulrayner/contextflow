@@ -68,7 +68,9 @@ All three views analyze the same system — different lenses, different strategi
 
 ### Built for practitioners
 
-- Browser-based, no backend required
+- Browser-based with cloud sync for cross-device access
+- Real-time collaboration for workshops and team sessions
+- Share projects via URL (anyone with link can view and edit)
 - Import/export as JSON
 - Drag repos onto contexts, link teams to boards
 - Full editing: drag nodes, create relationships, organize into groups
@@ -107,7 +109,7 @@ All three views analyze the same system — different lenses, different strategi
 - **Multi-project support** with project switcher dropdown
 - Undo/redo for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes)
 - Theme toggle (light/dark mode)
-- IndexedDB persistence with autosave
+- **Cloud sync** with real-time collaboration (Yjs + Cloudflare)
 - Import/export project JSON
 
 **Planned:**
@@ -141,14 +143,14 @@ The app includes multiple example projects:
 - Drag repos from the left sidebar onto contexts
 - Multi-select contexts (Shift+click) and drag as a group
 - Create relationships by dragging from one context to another
-- Your changes autosave to IndexedDB
+- Your changes sync to cloud automatically
 
 ## Project Structure
 
 - `src/` – React app code (TypeScript + Vite)
 - `src/model/` – Core types and Zustand store
 - `examples/` – Demo project data (`sample.project.json`, `cbioportal.project.json`, `elan.project.json`, `empty.project.json`)
-- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [SPEC.md](docs/SPEC.md), [PLAN.md](docs/PLAN.md), [TODO.md](docs/TODO.md)
+- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [TODO.md](docs/TODO.md)
 
 ## Project Status
 
@@ -158,9 +160,9 @@ The app includes multiple example projects:
 - ✅ M5: Wardley Map value chain (actors, user needs, 2-hop highlighting)
 - 🚧 M6: Organic blob-based group rendering (in progress)
 
-Includes temporal evolution mode, CodeCohesion API integration, and multi-project support. Ready for field testing with real projects.
+Includes temporal evolution mode, CodeCohesion API integration, real-time collaboration, and multi-project support. Ready for field testing with real projects.
 
-See [PLAN.md](docs/PLAN.md) for the full roadmap and [TODO.md](docs/TODO.md) for current development tasks.
+See [TODO.md](docs/TODO.md) for current development tasks.
 
 ## Foundations & Resources
 

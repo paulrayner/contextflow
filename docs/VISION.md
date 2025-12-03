@@ -38,15 +38,24 @@ ContextFlow sits in the middle:
 
 The user experience is designed to make domain visualization intuitive, expressive, and professional.
 
-## Why browser-based with offline capability?
-ContextFlow works entirely in your browser. No server required. Data stays local by default.
+## Why browser-based with cloud sync?
 
-This design is particularly valuable for consulting scenarios:
-- Working under NDA on-site or in restricted network environments
-- Analyzing architecture from code repositories without production access
-- Mapping "how things really are" without uploading sensitive data to external services
+ContextFlow runs in your browser with automatic cloud sync for seamless collaboration and cross-device access.
 
-ContextFlow runs in the browser, autosaves to local storage, and lets you import/export a single `project.json` file. Nothing leaves your machine unless you explicitly share it. This "private by default" stance builds immediate trust when working with sensitive organizational data.
+**Cloud-first benefits:**
+
+- Real-time collaboration for workshops and team sessions
+- Share projects via URL (anyone with link can view and edit)
+- Work from any device without manual file transfers
+- No local installation required
+
+**Data handling:**
+
+- Projects sync to Cloudflare infrastructure (industry-standard approach like Figma/Miro)
+- Import/export as JSON for backups or migration
+- Brief disconnections handled automatically (session-only offline support)
+
+For consulting scenarios requiring local-only data, export projects as JSON files and share them manually rather than via URL.
 
 ## Why three views?
 Because you need different conversations with different stakeholders:
@@ -60,7 +69,11 @@ Because you need different conversations with different stakeholders:
 All three views use the same underlying model of bounded contexts, relationships, teams, and repos. That is the unlock.
 
 ## Current capabilities (beyond original vision)
+
 ContextFlow has evolved significantly:
+
+- **Real-time collaboration** – Multiple users can edit the same project simultaneously with conflict-free sync
+- **Cloud sync** – Projects sync to cloud automatically, accessible from any device via URL
 - **Temporal evolution mode** – Timeline slider with keyframes showing how architecture changes over time
 - **Live repository data** – CodeCohesion API integration for contributor statistics and ownership signals
 - **Multi-project support** – Switch between projects with full autosave and isolation
@@ -68,13 +81,15 @@ ContextFlow has evolved significantly:
 - **Three analytical models** – Value Stream (context mapping), Distillation (domain classification), Strategic (Wardley mapping)
 
 ## Future direction
+
 Beyond the current beta, ContextFlow can:
+
 - Auto-extract contributors from each repo's last 90 days of commits and surface likely "who really touches this in prod" (partially implemented via CodeCohesion API)
 - Detect boundary integrity risk (e.g. a context marked "strong boundary" but multiple other contexts directly read its DB)
 - Add Team Topologies alignment (stream-aligned vs platform vs enabling, etc.)
 - Track change velocity and hotspots
 - Surface organizational ownership drift ("repo assigned to Portal team but top committers aren't on Portal team anymore")
 - Enhanced import/export (C4 diagrams, Mermaid, PlantUML interop)
-- Collaborative editing with conflict resolution
+- User authentication and access control for projects
 
 The focus remains: make the map first, then enable analytics on top of that foundation.
