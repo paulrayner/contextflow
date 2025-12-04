@@ -43,24 +43,20 @@ function App() {
   const [isLoadingSharedProject, setIsLoadingSharedProject] = React.useState(false)
   const showWelcomeModal = !hasSeenWelcome && route !== 'shared-project'
 
-  // Track whether we've initialized the shared project in this session
-  const [sharedProjectInitialized, setSharedProjectInitialized] = React.useState(false)
+  const [initializedSharedProjectId, setInitializedSharedProjectId] = React.useState<string | null>(null)
 
-  // Handle shared project URL routing
   React.useEffect(() => {
     if (route === 'shared-project' && params.projectId) {
       const sharedProjectId = params.projectId
-      // Always load on first render for shared projects (to establish network connection)
-      // or if projectId changed
-      if (!sharedProjectInitialized || projectId !== sharedProjectId) {
+      if (initializedSharedProjectId !== sharedProjectId) {
         setIsLoadingSharedProject(true)
         loadSharedProject(sharedProjectId).finally(() => {
           setIsLoadingSharedProject(false)
-          setSharedProjectInitialized(true)
+          setInitializedSharedProjectId(sharedProjectId)
         })
       }
     }
-  }, [route, params.projectId, projectId, loadSharedProject, sharedProjectInitialized])
+  }, [route, params.projectId, loadSharedProject, initializedSharedProjectId])
 
   // Track project lifecycle (project_closed event)
   React.useEffect(() => {

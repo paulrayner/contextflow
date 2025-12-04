@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
 import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target, ChevronDown, Share2 } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
+import { useUrlRouter } from '../hooks/useUrlRouter'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { CloudStatusIndicator } from './CloudStatusIndicator'
@@ -56,6 +57,7 @@ export function TopBar() {
   const temporalEnabled = project?.temporal?.enabled || false
 
   const { theme, toggleTheme } = useTheme()
+  const { route, navigate } = useUrlRouter()
   const [showSettings, setShowSettings] = useState(false)
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
   const [showProjectList, setShowProjectList] = useState(false)
@@ -81,6 +83,13 @@ export function TopBar() {
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showSettings])
+
+  const selectProjectAndExitSharedMode = (newProjectId: string) => {
+    if (route === 'shared-project') {
+      navigate('/')
+    }
+    setActiveProject(newProjectId)
+  }
 
   const handleExport = () => {
     if (!project) return
@@ -581,7 +590,7 @@ export function TopBar() {
         <GettingStartedGuideModal
           onClose={() => setShowGettingStartedGuide(false)}
           onViewSample={() => {
-            setActiveProject('acme-ecommerce')
+            selectProjectAndExitSharedMode('acme-ecommerce')
             setShowGettingStartedGuide(false)
           }}
         />
@@ -592,7 +601,7 @@ export function TopBar() {
         <ProjectListModal
           projects={projects}
           activeProjectId={projectId}
-          onSelectProject={setActiveProject}
+          onSelectProject={selectProjectAndExitSharedMode}
           onCreateProject={createProject}
           onCreateFromTemplate={createFromTemplate}
           onDeleteProject={deleteProject}
