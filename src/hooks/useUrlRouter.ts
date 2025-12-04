@@ -38,7 +38,7 @@ export function useUrlRouter() {
 
   const navigate = useCallback((path: string) => {
     window.history.pushState(null, '', path)
-    setRouteMatch(parseRoute(path))
+    window.dispatchEvent(new PopStateEvent('popstate'))
   }, [])
 
   return {
