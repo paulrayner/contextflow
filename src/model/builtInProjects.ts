@@ -78,15 +78,16 @@ BUILT_IN_PROJECTS.forEach(project => {
   })
 })
 
-// Get last active project from localStorage, or default to sample
-const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
-export const initialActiveProjectId = storedProjectId || sampleProject.id
-
 // Build initial projects map from array
 export const initialProjects = BUILT_IN_PROJECTS.reduce((acc, project) => {
   acc[project.id] = project
   return acc
 }, {} as Record<string, Project>)
+
+// Get last active project from localStorage, validating it exists in initial projects
+const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
+const storedProjectExistsLocally = storedProjectId && initialProjects[storedProjectId]
+export const initialActiveProjectId = storedProjectExistsLocally ? storedProjectId : sampleProject.id
 
 type ProjectOrigin = 'sample' | 'empty' | 'imported' | 'continued'
 
