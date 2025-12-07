@@ -12,6 +12,11 @@
 
 ### SAAS Cloud Edition
 
+- Legend for colors
+- In ~/Documents/EventStormer, you enter your name when you join a board and then you can see other people's cursors with their names moving around on the board. Enable this for ContextFlow
+- Add text link to discord in README (so someone can search the page for it)
+- "Add Team" button in top menu?
+- "Add Repo" button in top menu?
 - [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
 - [ ] Implement SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md
 - [ ] Repo management
@@ -20,6 +25,7 @@
 - [ ] Add logo
 - [ ] Implement ANALYTICS_PLAN.md
 - [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
+- [ ] Susanne Kaiser feature ideas: flow overlays, blocker visualization, value stream types, team boundaries (see [Susanne_Kaiser_Feature_Ideas.md](Susanne_Kaiser_Feature_Ideas.md))
 
 
 ### Integrations
