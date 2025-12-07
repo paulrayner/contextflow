@@ -8,6 +8,8 @@ const DEBOUNCE_MAX_WAIT_MS = 10000;
 const SAVE_TIMEOUT_MS = 5000;
 
 export class YjsRoom extends YServer {
+  static options = { hibernate: true };
+
   static callbackOptions = {
     debounceWait: DEBOUNCE_WAIT_MS,
     debounceMaxWait: DEBOUNCE_MAX_WAIT_MS,
