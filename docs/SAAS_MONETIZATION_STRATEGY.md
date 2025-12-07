@@ -18,17 +18,52 @@ This document outlines research and recommendations for monetizing ContextFlow a
 
 ## Table of Contents
 
-1. [Payment & Subscription Platforms](#payment--subscription-platforms)
-2. [Authentication Solutions](#authentication-solutions)
-3. [Analytics Options](#analytics-options)
-4. [Recommended Stack](#recommended-stack)
-5. [Multi-Tenancy Strategy](#multi-tenancy-strategy)
-6. [Storage Architecture](#storage-architecture-resolved)
-7. [Phased Rollout Plan](#phased-rollout-plan)
-8. [Pricing Strategy](#pricing-strategy)
-9. [Cost Analysis](#cost-analysis)
-10. [Decision Framework](#decision-framework)
-11. [Enterprise Features & Compliance](#enterprise-features--compliance)
+1. [Competitor Pricing Analysis](#competitor-pricing-analysis)
+2. [Payment & Subscription Platforms](#payment--subscription-platforms)
+3. [Authentication Solutions](#authentication-solutions)
+4. [Analytics Options](#analytics-options)
+5. [Recommended Stack](#recommended-stack)
+6. [Multi-Tenancy Strategy](#multi-tenancy-strategy)
+7. [Storage Architecture](#storage-architecture-resolved)
+8. [Phased Rollout Plan](#phased-rollout-plan)
+9. [Pricing Strategy](#pricing-strategy)
+10. [Cost Analysis](#cost-analysis)
+11. [Decision Framework](#decision-framework)
+12. [Enterprise Features & Compliance](#enterprise-features--compliance)
+
+---
+
+## Competitor Pricing Analysis
+
+Research conducted December 2025 on comparable tools:
+
+| Product | Free Tier | Paid Tier | Target |
+|---------|-----------|-----------|--------|
+| **Excalidraw+** | Free forever (basic) | $6-7/user/mo (~$72-84/yr) | General whiteboard |
+| **Miro** | 3 boards, unlimited members | $8-16/user/mo ($96-192/yr) | Collaboration |
+| **Lucidchart** | 3 docs, 60 shapes | $7.95/mo individual (~$95/yr) | Diagramming |
+| **Structurizr** | 1 workspace | $5/workspace/mo ($60/yr min) | Architecture (C4) |
+| **Penpot** | Unlimited (generous) | $7/editor/mo (cap $175/mo) | Design tool |
+| **IcePanel** | Free tier available | Paid tiers (team-focused) | C4 model |
+| **Context Mapper** | **FREE (open source)** | N/A | DDD DSL |
+
+### Key Insights
+
+1. **Price range**: Most tools charge $60-100/year for individual plans
+2. **Free tier generosity**: All competitors allow some creation (1-3 projects/boards)
+3. **Context Mapper is free**: The closest DDD-specific tool is open source
+
+### ContextFlow Differentiation vs Context Mapper
+
+| Aspect | Context Mapper | ContextFlow |
+|--------|---------------|-------------|
+| Interface | Text-based DSL | Visual, interactive canvas |
+| Audience | Developers | Architects + stakeholders |
+| Use case | Code-driven modeling | Workshop facilitation |
+| Output | Generated diagrams | Client-ready presentations |
+| Learning curve | Steep (DSL syntax) | Intuitive (drag-and-drop) |
+
+**Value prop**: ContextFlow is the "workshop-ready" tool for DDD practitioners who need to facilitate sessions with non-technical stakeholders, not write DSL code.
 
 ---
 
@@ -390,7 +425,7 @@ Based on indie hacker community research and analysis of successful solo project
 
 - ✅ After you have 100+ paying customers
 - ✅ When you need to decide which features to build next
-- ✅ When you want to A/B test pricing ($299 vs $249)
+- ✅ When you want to A/B test pricing or features
 - ✅ When you need session replay to debug UX issues
 
 **Why NOT for Phase 1:**
@@ -541,9 +576,9 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 **Simple serverless function flow:**
 
 ```text
-1. Customer buys Team plan on Polar
+1. Customer buys Pro plan ($99/year) on Polar
    ↓
-2. Polar webhook → your Vercel/Cloudflare function
+2. Polar webhook → your Cloudflare Worker
    ↓
 3. Webhook handler:
    - Receive subscription_created event
@@ -553,16 +588,15 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
        privateMetadata: {
          subscription: {
            polarId: subscription_id,
-           tier: "team",
+           tier: "pro",
            status: "active"
          }
        }
      })
    ↓
 4. React app checks Clerk metadata
-   - tier === "team" → enable organization features
-   - tier === "pro" → enable editing only
-   - no tier → free/view-only mode
+   - tier === "pro" → unlimited projects/contexts
+   - no tier → free tier limits (1 project, 5 contexts)
 ```
 
 **No backend needed!** Just a simple serverless function (~100 lines of code).
@@ -601,17 +635,13 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
 **Architecture:**
 
 ```text
-Free Tier:
-└─ IndexedDB only (no sync, local-only)
+All Tiers (Current Implementation):
+├─ Yjs CRDT for conflict-free collaboration
+├─ Cloudflare Durable Objects for sync
+└─ IndexedDB for offline persistence
 
-Pro Tier (Solo):
-├─ Supabase storage (user's personal projects)
-└─ IndexedDB cache (offline access)
-
-Team Tier:
-├─ Supabase storage (organization_id scoped tables)
-├─ Real-time collaboration via Supabase Realtime
-└─ IndexedDB cache (offline editing, syncs when online)
+Free Tier: Limited to 1 project, 5 contexts
+Pro Tier: Unlimited projects and contexts
 ```
 
 **Pros:**
@@ -696,19 +726,7 @@ Team Tier:
 - Only offer **single-user licenses** (no team tier)
 - Add cloud export/backup features
 
-**Tiers:**
-
-```text
-Free: View-only, IndexedDB only
-
-Pro ($299/year per user):
-├─ IndexedDB (full editing)
-├─ Cloud backup (export to cloud storage)
-└─ Share via export/import (not real-time)
-
-Enterprise ($5k/year):
-└─ Custom deployment on their infrastructure
-```
+**Note:** This option is superseded by the current Yjs + Cloudflare DO implementation which provides real-time collaboration for all tiers.
 
 **Pros:**
 ✅ **Zero backend work**
@@ -745,18 +763,25 @@ Enterprise ($5k/year):
 
 1. Integrate Clerk authentication
 2. Integrate Polar.sh for payments
-3. Implement feature gates (Free vs Pro tiers)
+3. Implement quantity-based feature gates (project/context limits)
 4. Deploy webhook handler (Cloudflare Worker) for Polar → Clerk sync
 
 **Tiers:**
 
-- **Free:** View-only mode (can view shared projects, cannot create/edit)
-- **Pro ($299/year):** Full editing + creation + JSON export
+| Tier | Price | Limits |
+|------|-------|--------|
+| **Free** | $0 | 1 project, 5 bounded contexts, full collaboration |
+| **Pro** | $99/year | Unlimited projects, unlimited contexts |
+| **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
 
-**No Team tier yet** - validate demand first
+**Key principle:** Collaboration/sync works for ALL tiers. Tiers differ only in quantity limits, not feature lockouts.
+
+**Licensing model:** You pay for what you own, not what you collaborate on. License is tied to project owner - anyone can collaborate on shared projects regardless of their tier.
+
+**No Team tier** - deferred until customers request org/billing features
 
 **Backend required:** Webhook endpoint (Cloudflare Worker)
-**Messaging:** "Professional diagramming tool for individual software architects"
+**Messaging:** "Professional DDD context mapping for software architects"
 
 ---
 
@@ -853,45 +878,25 @@ Before defining tiers, consider whether a Team tier is necessary. Penpot (a comp
 #### Free Tier
 
 - **Price:** $0
+- **Limits:** 1 project, 5 bounded contexts (hard limit - warning at 4, block at 6)
 - **Features:**
-  - View-only mode
-  - Load example projects
-  - Explore canvas
-- **Limitations:**
-  - No editing
-  - No export
-  - No saving projects
-- **Goal:** Lead generation, viral sharing
+  - Full editing and collaboration on allowed projects
+  - Real-time sync with collaborators
+  - Export to JSON
+  - Collaborate on unlimited Pro-owned projects (no license needed to join)
+- **Goal:** Demonstrate value, natural upgrade when users need more contexts for real work
 
 ---
 
-#### Pro Tier (Solo)
+#### Pro Tier
 
-- **Price:** $299/year (~$25/month annual)
+- **Price:** $99/year
 - **Target:** Individual software architects, consultants
+- **Limits:** Unlimited projects, unlimited contexts
 - **Features:**
-  - Full editing capabilities
-  - Unlimited projects
-  - Export to JSON/images
-  - Cloud backup (export to storage)
-  - Personal workspace only
-- **Positioning:** "Professional tool for serious architects"
-
----
-
-#### Team Tier (Later - Phase 3+)
-
-- **Price:** $999/year (unlimited seats)
-  - OR $199/year per seat (5 seat minimum)
-- **Target:** Architecture teams, consulting firms
-- **Features:**
-  - Everything in Pro
-  - Shared team workspace
-  - Real-time collaboration (if using Dexie/Supabase)
-  - Invite unlimited team members
-  - Organization-level projects
+  - Everything in Free, without limits
   - Priority support
-- **Positioning:** "Collaborate with your entire team"
+- **Positioning:** "Unlimited DDD context mapping"
 
 ---
 
@@ -900,13 +905,15 @@ Before defining tiers, consider whether a Team tier is necessary. Penpot (a comp
 - **Price:** Custom ($5k-50k/year)
 - **Target:** Large enterprises, regulated industries
 - **Features:**
-  - Everything in Team
-  - Self-hosted deployment
+  - Everything in Pro
   - SSO/SAML integration (via Clerk)
+  - Audit logging
   - Custom SLA
   - Dedicated support
   - Custom contracts/invoicing
-- **Positioning:** "Secure, compliant, on-premises"
+- **Positioning:** "Secure, compliant, enterprise-ready"
+
+**Deferred:** Team tier - revisit only if customers request org/billing features
 
 ---
 
@@ -1261,47 +1268,42 @@ Beyond general enterprise needs, financial institutions may require:
 
 ---
 
-### Updated Pricing Strategy (Penpot-Style)
+### Final Pricing Strategy
 
-Based on research, simplified flat pricing with capped monthly costs:
+Based on competitor research (see [Competitor Pricing Analysis](#competitor-pricing-analysis)):
 
-| Tier | Price | Features |
-|------|-------|----------|
-| Free | $0 | View-only, IndexedDB local storage |
-| Pro | $299/year | Full editing, export, cloud backup |
-| Team | Max $175/mo (capped) | Shared workspace, unlimited users, premium support |
-| Enterprise | Max $950/mo (capped) | SSO/SAML, audit logs, SLA, priority support |
+| Tier | Price | Limits |
+|------|-------|--------|
+| **Free** | $0 | 1 project, 5 bounded contexts, full collaboration |
+| **Pro** | $99/year | Unlimited projects, unlimited contexts |
+| **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
 
-**Key principles**:
+**Key principles:**
 
-- NO per-seat/per-user pricing - flat rate covers entire organization
-- Capped monthly pricing gives enterprises budget predictability
-- Cloud-only (no self-hosted option initially)
+- Collaboration/sync works for ALL tiers (already built)
+- Tiers differ only in quantity limits, not feature lockouts
+- License tied to project owner - collaborators don't need licenses
+- $99/year is competitive with Miro/Excalidraw ($72-96/year range)
+- Team tier deferred until customer demand validates it
 
 ---
 
-### Updated Implementation Phases
+### Implementation Phases
 
-#### Phase 1: Validation (Current Strategy)
+#### Phase 1: Validation (Current)
 
 - Polar.sh + Clerk + Simple Analytics
 - Free + Pro tiers only
-- No enterprise features yet
+- Quantity-based limits (projects, contexts)
 
-#### Phase 2: Team Tier (After 10+ Pro customers)
-
-- Enable Clerk Organizations for team workspaces
-- Add cloud sync (Dexie Cloud or Supabase)
-- Launch Team tier ($175/mo capped)
-
-#### Phase 3: Enterprise-Ready (When demanded)
+#### Phase 2: Enterprise-Ready (When demanded)
 
 - Enable Clerk SSO/SAML (already available in Clerk Pro)
 - Integrate Retraced for audit logging (free, OSS)
-- Launch Enterprise tier ($950/mo capped)
+- Launch Enterprise tier
 - Create security questionnaire responses
 
-#### Phase 4: SOC 2 (When required for deals)
+#### Phase 3: SOC 2 (When required for deals)
 
 - Complete SOC 2 Type II certification ($15-30k)
 - Switch to Paddle/FastSpring if enterprise billing needed
@@ -1326,6 +1328,36 @@ Based on research, simplified flat pricing with capped monthly costs:
 
 - [Retraced GitHub](https://github.com/retracedhq/retraced)
 - [Enterprise Ready Audit Log Guide](https://www.enterpriseready.io/features/audit-log/)
+
+---
+
+## Technical Requirements (Blocking Issues)
+
+### Durable Object Authentication (CRITICAL)
+
+**Current state:** `workers/server.ts` has NO user authentication.
+
+**Issue:** The `YjsRoom` class extends `YServer` with no auth checks:
+
+- Anyone with a project ID can connect and edit
+- No user ID associated with projects
+- No tier verification at sync layer
+
+**This is a blocking security issue** - must be fixed before SaaS launch.
+
+**Required changes:**
+
+1. Add auth token verification in `onConnect()` hook
+2. Associate projects with owner user ID in metadata
+3. Verify user tier before accepting write operations
+4. Implement project access control (owner, collaborator, viewer)
+
+**Implementation approach:**
+
+- Pass Clerk JWT in WebSocket connection params
+- Verify JWT in Durable Object before accepting connection
+- Store project ownership in DO metadata
+- Check tier limits before allowing project creation
 
 ---
 

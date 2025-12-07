@@ -38,6 +38,19 @@ ContextFlow sits in the middle:
 
 The user experience is designed to make domain visualization intuitive, expressive, and professional.
 
+## Why Collaboration is Core
+
+> "ContextFlow, for now, facilitates the visualization, but the hard work is still on the person using the software. Indeed, the value is in the conversations, workshops, and collaborations to model flow. I wouldn't use ContextFlow to replace that but to put it in a way that can evolve without the pain of maintaining 200 Miro disconnected and outdated Boards."
+> — Aleix Morgadas
+
+The tool doesn't replace the workshop - it captures and maintains the output. The real value comes from the **conversations and collaborations** that happen when people model together. ContextFlow's job is to make that output:
+
+- **Evolvable** – can be updated as understanding grows
+- **Connected** – not 200 disconnected Miro boards
+- **Current** – not outdated snapshots from last quarter's offsite
+
+This is why collaboration is free for all users, regardless of tier. Gating collaboration would undermine the tool's core purpose.
+
 ## Why browser-based with cloud sync?
 
 ContextFlow runs in your browser with automatic cloud sync for seamless collaboration and cross-device access.

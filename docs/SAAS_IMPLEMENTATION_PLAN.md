@@ -6,6 +6,30 @@
 
 ---
 
+## Open Questions (Review Before Implementation)
+
+### Critical Technical Issues
+
+- [ ] **No auth in Durable Objects** - `workers/server.ts` has zero authentication. Anyone with a project ID can connect and edit. Must add JWT verification in `onConnect()`.
+- [ ] **No webhook handler** - Need to implement `workers/webhook.ts` for Polar → Clerk sync with signature verification and replay protection.
+- [ ] **No monitoring/observability** - No logs, alerts, or dashboards. Need structured logging, Cloudflare Logpush, and basic alerting.
+- [ ] **No backup/recovery** - No soft-delete, no snapshots. Need 30-day retention and recovery runbook.
+- [ ] **Yjs mutation rejection** - Yjs CRDTs don't support conditional mutations. Accept client-side gates as primary defense, server-side is audit-only.
+
+### Infrastructure Setup
+
+- [ ] **Environment separation** - Need separate Clerk apps (dev/staging/prod) and Polar products (test/live mode).
+- [ ] **Secret management** - Document how to set `CLERK_SECRET_KEY`, `POLAR_WEBHOOK_SECRET` via wrangler secrets.
+- [ ] **Local webhook testing** - Document ngrok/cloudflared tunnel setup for testing Polar webhooks locally.
+
+### Product Decisions (Deferred)
+
+- [ ] **Project limit enforcement** - How to handle when free user hits 1 project limit? Block creation or show upgrade prompt?
+- [ ] **Downgrade behavior** - When Pro user downgrades to Free with multiple projects, which project stays editable?
+- [ ] **Anonymous → authenticated migration** - What happens to anonymous user's edits when they sign up?
+
+---
+
 ## Philosophy
 
 **Build by complete user journey, not technical component.**
@@ -24,12 +48,40 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 
 - Job: "Make the invisible visible" in 2-4 hour client workshops
 - Conversion trigger: First successful workshop + client asks to share the map
-- Why $299/year: Tool pays for itself in 1-2 hours of saved time
+- Why $99/year: Competitive with Miro/Excalidraw ($72-96/year range), pays for itself quickly
 
 **Secondary:** Internal architecture lead at mid-size company
 
 - Job: Communicate system boundaries to non-technical stakeholders
 - Conversion trigger: Leadership asks for "living documentation"
+
+---
+
+## Pricing Model
+
+| Tier | Price | Limits |
+|------|-------|--------|
+| **Free** | $0 | 1 project, 5 bounded contexts, full collaboration |
+| **Pro** | $99/year | Unlimited projects, unlimited contexts |
+| **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
+
+**Key principle:** Collaboration/sync works for ALL tiers. Tiers differ only in quantity limits, not feature lockouts. Users upgrade naturally when they need more projects.
+
+### Licensing Model
+
+**You pay for what you own, not what you collaborate on.**
+
+- License is tied to the **project owner**, not collaborators
+- Anyone can collaborate on a shared project, regardless of their own tier
+- Free users can participate in unlimited Pro-owned workshops
+- Free users hit limits only when creating their **own** projects
+
+### Context Limit Enforcement
+
+- **Warning** at 4 contexts: "You're approaching your free tier limit"
+- **Upgrade prompt** at 5 contexts: "Upgrade to Pro for unlimited contexts"
+- **Hard block** at 6 contexts: Cannot add more until upgraded or contexts deleted
+- Limit is **concurrent**, not lifetime (deleting a context frees up the slot)
 
 ---
 
@@ -67,28 +119,30 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 
 ### Flow 2: Sign Up → Free Tier Experience
 
-**Goal:** Get user signed in, establish baseline "free" experience
+**Goal:** Get user signed in, establish baseline "free" experience with limited creation
 
 ```text
 [Click "Sign In"] → [Clerk sign-up form] → [Create account]
-→ [Return to app as Free user] → [Can still view sample projects]
-→ [Try to create project] → [See "Upgrade to Pro" prompt]
-→ [Try to export] → [See "Upgrade to Pro" prompt]
+→ [Return to app as Free user] → [Can create 1 project]
+→ [Create first project] → [Add up to ~5 bounded contexts]
+→ [Try to create second project] → [See "Upgrade to Pro" prompt]
+→ [Try to add 6th context] → [See "Upgrade to Pro" prompt]
 ```
 
 **What to build:**
 
 1. Clerk integration (ClerkProvider, sign in/out UI)
 2. User state in Zustand store (userId, tier, isLoading)
-3. Free tier = view-only (same as anonymous, but tracked)
-4. Upgrade prompts at gate points
+3. Free tier limits: 1 project, ~5 bounded contexts
+4. Upgrade prompts when hitting limits
 
 **E2E Test:**
 
 - User can sign up via Clerk
 - After sign-up, returns to app with identity preserved
-- Free tier user sees same view-only experience
-- Attempting create/edit/export shows upgrade prompt
+- Free tier user can create and edit 1 project
+- Free tier user can add up to 5 bounded contexts
+- Attempting to exceed limits shows upgrade prompt
 - User appears in Clerk dashboard
 
 **Files:**
@@ -107,11 +161,11 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 **Goal:** Complete purchase flow, prove payment → feature unlock works
 
 ```text
-[Free user clicks "Upgrade to Pro"] → [See pricing/benefits]
-→ [Click "Subscribe $299/year"] → [Polar checkout opens]
+[Free user hits project/context limit] → [See "Upgrade to Pro" prompt]
+→ [Click "Subscribe $99/year"] → [Polar checkout opens]
 → [Enter payment (test card 4242...)] → [Payment succeeds]
 → [Webhook fires] → [Clerk metadata updated] → [Return to app]
-→ [Pro features unlocked] → [Create first project]
+→ [Pro features unlocked] → [Create unlimited projects]
 ```
 
 **What to build:**
@@ -181,22 +235,22 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 ```text
 [Pro user clicks "Share"] → [Copy project URL] → [Send to colleague]
 → [Colleague opens URL] → [Project loads (no sign-in required)]
-→ [Colleague explores in view-only mode]
-→ [Colleague tries to edit] → [See "Get Pro to collaborate" prompt]
+→ [Colleague can view and collaborate on shared project]
+→ [Colleague signs up] → [Gets Free tier: can create their own project]
 ```
 
 **What to build:**
 
 1. Shareable project URLs (already implemented via ShareProjectDialog)
-2. Anonymous/free users can view shared projects
-3. Edit attempts on shared projects show upgrade prompt
+2. Anonymous/free users can view AND collaborate on shared projects
+3. Signing up gives them their own Free tier quota (1 project)
 
 **E2E Test:**
 
 - Pro user generates share link
 - Anonymous recipient can open link and view project
-- View-only mode enforced for non-Pro viewers
-- Upgrade prompt shown when trying to edit
+- Recipient can collaborate (edit) on the shared project
+- Recipient signs up → gets own Free tier with 1 project quota
 
 **Files:**
 
@@ -218,8 +272,8 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 - Pro user's subscription lapses
 - Polar webhook fires (subscription_cancelled)
 - Clerk metadata updated to tier: "free"
-- Next app load shows view-only mode
-- Existing projects preserved (read-only)
+- Next app load enforces Free tier limits
+- Existing projects preserved but user can only edit 1 project (oldest or most recent)
 
 ### Edge Case C: Payment Fails
 
@@ -241,7 +295,7 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 ### External Accounts
 
 - [ ] Clerk: Create "ContextFlow Dev" and "ContextFlow Prod" apps
-- [ ] Polar.sh: Create test product ($299/year)
+- [ ] Polar.sh: Create test product ($99/year)
 
 ### Environment Variables
 
@@ -270,8 +324,8 @@ wrangler secret put CLERK_SECRET_KEY --env staging
 ### Flow 2 Complete
 
 - [ ] User can sign up via Clerk
-- [ ] Free tier enforced (view-only)
-- [ ] Upgrade prompts appear at gate points
+- [ ] Free tier can create 1 project with ~5 bounded contexts
+- [ ] Upgrade prompts appear when hitting limits
 
 ### Flow 3 Complete
 
@@ -287,7 +341,8 @@ wrangler secret put CLERK_SECRET_KEY --env staging
 ### Flow 5 Complete
 
 - [ ] Share URL works for anonymous recipients
-- [ ] View-only enforced for non-Pro viewers
+- [ ] Recipients can collaborate on shared projects
+- [ ] Signing up gives recipient their own Free tier quota
 
 ---
 
