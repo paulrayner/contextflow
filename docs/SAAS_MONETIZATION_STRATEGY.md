@@ -6,6 +6,27 @@
 
 ---
 
+## Outstanding Issues
+
+See **[SAAS_IMPLEMENTATION_PLAN.md - Outstanding Issues](SAAS_IMPLEMENTATION_PLAN.md#outstanding-issues-master-list)** for the consolidated master list of all review findings organized by theme:
+
+1. **Security & Authentication** - 3 critical, 3 high, 2 medium issues
+2. **Revenue Model & Pricing** - 2 critical, 3 high, 3 medium issues
+3. **User Experience & Product** - 2 critical, 3 high, 5 medium issues
+4. **Infrastructure & Operations** - 8 high, 6 medium issues
+5. **Legal & Compliance** - 5 high, 4 medium, 2 low issues
+6. **Metrics & Analytics** - 3 medium, 1 low issues
+
+**Key blockers before launch:**
+
+- Fix free tier arbitrage (revenue model broken)
+- Add authentication to Durable Objects (security)
+- Implement rate limiting (cost attack prevention)
+- Define first-run experience (conversion funnel)
+- Create Terms of Service (legal protection)
+
+---
+
 ## Executive Summary
 
 This document outlines research and recommendations for monetizing ContextFlow as an open-core SaaS application with both hosted and self-hosted options. The primary focus is on **validation-first approach** using turnkey solutions to minimize time to market while maintaining control over branding and user experience.
@@ -1396,7 +1417,9 @@ export default {
 
 **Problem:** The original plan stated "Accept client-side gates as primary defense, server-side is audit-only." This is trivially bypassed by modifying JavaScript or replaying WebSocket messages.
 
-**Solution:** Validate BEFORE applying Yjs updates in `onMessage()`:
+**CRDT Constraint:** You cannot simply "reject" Yjs updates - this breaks CRDT eventual consistency and causes permanent data desync between clients. Instead, use **compensating transactions**.
+
+**Solution:** Accept updates, detect violations, then undo via compensating transaction:
 
 ```typescript
 // workers/server.ts - YjsRoom class
@@ -1404,24 +1427,28 @@ async onMessage(connection: Connection, message: Uint8Array): Promise<void> {
   const userId = connection.metadata.userId;
   const userTier = this.userTiers.get(userId);
 
-  // Decode Yjs message to inspect what's changing
-  const decoded = decodeYjsUpdate(message);
+  // 1. ALWAYS apply the update first (maintain CRDT consistency)
+  await super.onMessage(connection, message);
 
-  if (decoded.type === 'update') {
-    // Simulate update on temporary doc to check tier violation
-    const wouldViolate = await this.wouldViolatePolicy(decoded, userId, userTier);
+  // 2. Detect violation in resulting state
+  const violation = this.detectTierViolation(userId, userTier);
 
-    if (wouldViolate) {
-      connection.send(JSON.stringify({
-        type: 'error',
-        code: 'TIER_LIMIT_EXCEEDED',
-        message: 'Upgrade to Pro for unlimited contexts'
-      }));
-      return; // Don't apply the update
-    }
+  if (violation) {
+    // 3. Apply compensating transaction to undo the violation
+    this.document.transact(() => {
+      // Remove the excess context that violated the tier limit
+      const contexts = this.document.getMap('contexts');
+      contexts.delete(violation.entityId);
+    });
+
+    // 4. Notify the user
+    connection.send(JSON.stringify({
+      type: 'error',
+      code: 'TIER_LIMIT_EXCEEDED',
+      message: 'Upgrade to Pro for unlimited contexts',
+      undone: violation.entityId
+    }));
   }
-
-  super.onMessage(connection, message);
 }
 ```
 
@@ -1455,6 +1482,46 @@ async onMessage(connection: Connection, message: Uint8Array): Promise<void> {
 | `subscription_cancelled` | Set tier: "free" in Clerk metadata |
 | `subscription_updated` | Update tier based on new plan |
 
+**Cache invalidation:** After updating Clerk metadata, webhook should call a cache invalidation endpoint on the relevant Durable Object(s) to flush stale tier data. Otherwise users may see "Free tier" for seconds/minutes after paying.
+
+---
+
+### Rate Limiting (Required for Phase 0)
+
+**Problem:** Without rate limiting, attackers can DoS the service via:
+
+- Excessive WebSocket connections (exhaust DO limits)
+- Rapid project/context creation (storage exhaustion)
+- Large Yjs update messages (memory exhaustion)
+
+**Solution:** Implement rate limits at Worker layer:
+
+```typescript
+// Rate limit configuration
+const LIMITS = {
+  wsConnectionsPerUser: 10,      // Max concurrent WebSocket connections
+  projectsPerMinute: 5,          // Max project creations per minute
+  contextsPerMinute: 20,         // Max context additions per minute
+  maxMessageSize: 1024 * 1024,   // 1MB max Yjs update size
+};
+```
+
+**Implementation:** Use Cloudflare Rate Limiting or KV-based counters with sliding window.
+
+---
+
+### Token Security
+
+**Problem:** Stolen JWTs remain valid until natural expiration. With long-lived tokens (e.g., 24hr), this is a significant security risk.
+
+**Options:**
+
+1. **Short-lived tokens (recommended):** 15-minute access tokens with refresh tokens. More complex but industry standard.
+2. **Token blocklist:** Store revoked token IDs in KV namespace. Check on each request. Adds latency.
+3. **Accept the risk:** For MVP, use 1-hour tokens and accept the window of exposure.
+
+**Recommendation:** Start with Option 3 for MVP, implement Option 1 before enterprise launch.
+
 ---
 
 ### Pricing Validation (BEFORE Launch)
@@ -1472,6 +1539,25 @@ async onMessage(connection: Connection, message: Uint8Array): Promise<void> {
 - $299/year (still easy to expense, signals professionalism)
 - $29/month ($348/year effective, lower initial commitment)
 - $99/year + $49/project (usage-based component)
+
+---
+
+### Free Tier Limits Validation (BEFORE Launch)
+
+**Risk:** The 5-context limit for Free tier is arbitrary and unvalidated. If real DDD workshops typically need 8-12 contexts, Free users will hit the wall too early (frustrating) or upgrade pressure will feel punitive.
+
+**Validation steps:**
+
+1. Analyze 10 real-world DDD context maps (from books, conference talks, blog posts)
+2. Count bounded contexts in each - what's the median? What's the 80th percentile?
+3. Set Free tier limit at ~50% of median (enough to explore, not enough for production use)
+4. Survey beta users: "How many contexts did you need for your last workshop?"
+
+**If typical workshops need 10+ contexts:**
+
+- Consider raising Free limit to 7-8 contexts
+- Or keep at 5 but emphasize "unlimited on Pro" more prominently
+- Or add "workshop mode" that temporarily unlocks limits (converts to upgrade prompt after)
 
 ---
 
@@ -1497,4 +1583,4 @@ async onMessage(connection: Connection, message: Uint8Array): Promise<void> {
 
 ---
 
-*Last updated: 2025-12-07*
+*Last updated: 2025-12-07 (multi-agent review incorporated)*
