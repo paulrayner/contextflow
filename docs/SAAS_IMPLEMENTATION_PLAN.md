@@ -1,8 +1,28 @@
 # SaaS Monetization: User-Flow-First Implementation
 
 **Created:** 2025-12-07
-**Status:** Ready for Implementation
+**Status:** Reviewed - Requires Phase 0 Security Foundation
 **Prerequisites:** Cloud sync via Yjs + Cloudflare Durable Objects (already implemented)
+
+---
+
+## Review Findings (2025-12-07)
+
+Multi-agent critical review identified issues requiring attention before implementation:
+
+| Category | Grade | Key Finding |
+|----------|-------|-------------|
+| **Security** | D | Server has zero auth - anyone with project ID can edit |
+| **Technical** | B- | Auth approach incorrect, webhook security incomplete |
+| **Product** | C+ | Pricing/conversion triggers unvalidated |
+| **UX** | C | Payment flow gaps, edge cases undefined |
+
+**Critical blockers:**
+
+1. Must implement Phase 0 security foundation BEFORE user flows
+2. Auth must happen in Worker fetch handler, NOT in onConnect()
+3. Server-side tier enforcement required (client-side gates are bypassable)
+4. Downgrade behavior and anonymous migration must be defined NOW
 
 ---
 
@@ -10,11 +30,14 @@
 
 ### Critical Technical Issues
 
-- [ ] **No auth in Durable Objects** - `workers/server.ts` has zero authentication. Anyone with a project ID can connect and edit. Must add JWT verification in `onConnect()`.
-- [ ] **No webhook handler** - Need to implement `workers/webhook.ts` for Polar → Clerk sync with signature verification and replay protection.
+- [ ] **No auth in Durable Objects** - `workers/server.ts` has zero authentication. Anyone with a project ID can connect and edit. **FIX:** Validate JWT in Worker fetch handler BEFORE routing to DO (y-partyserver doesn't support onConnect auth).
+- [ ] **No project ownership storage** - Need D1 database for `project_ownership` and `project_collaborators` tables, with DO cache for fast access checks.
+- [ ] **No webhook handler** - Need to implement `workers/webhook.ts` for Polar → Clerk sync with signature verification, timestamp validation, idempotency (KV namespace), and retry logic.
+- [ ] **No server-side tier enforcement** - Client-side gates are trivially bypassed. **FIX:** Validate in `onMessage()` BEFORE applying Yjs updates - simulate update on temp Y.Doc, reject if tier violation.
+- [ ] **No CORS configuration** - Required for browser WebSocket connections to Durable Objects.
+- [ ] **Feature gates in wrong layer** - Plan said "gate in store.ts" but Zustand is read-only projection. **FIX:** Three-layer architecture: UI (disabled buttons) → Yjs mutation helpers (throw errors) → Server validation (reject messages).
 - [ ] **No monitoring/observability** - No logs, alerts, or dashboards. Need structured logging, Cloudflare Logpush, and basic alerting.
 - [ ] **No backup/recovery** - No soft-delete, no snapshots. Need 30-day retention and recovery runbook.
-- [ ] **Yjs mutation rejection** - Yjs CRDTs don't support conditional mutations. Accept client-side gates as primary defense, server-side is audit-only.
 
 ### Infrastructure Setup
 
@@ -22,11 +45,11 @@
 - [ ] **Secret management** - Document how to set `CLERK_SECRET_KEY`, `POLAR_WEBHOOK_SECRET` via wrangler secrets.
 - [ ] **Local webhook testing** - Document ngrok/cloudflared tunnel setup for testing Polar webhooks locally.
 
-### Product Decisions (Deferred)
+### Product Decisions (RESOLVED - Cannot Defer)
 
-- [ ] **Project limit enforcement** - How to handle when free user hits 1 project limit? Block creation or show upgrade prompt?
-- [ ] **Downgrade behavior** - When Pro user downgrades to Free with multiple projects, which project stays editable?
-- [ ] **Anonymous → authenticated migration** - What happens to anonymous user's edits when they sign up?
+- [x] **Project limit enforcement** - Show upgrade modal when limit reached, allow user to cancel action. No hard block mid-action that loses work.
+- [x] **Downgrade behavior** - Most recently edited project stays editable, others become read-only. User can switch active project in settings. Clear UI showing which project is "active."
+- [x] **Anonymous → authenticated migration** - On sign-up, show "Save this project to your account?" prompt. Transfer demo project ownership to new user. If declined, project remains anonymous (eventually garbage collected).
 
 ---
 
@@ -50,6 +73,8 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 - Conversion trigger: First successful workshop + client asks to share the map
 - Why $99/year: Competitive with Miro/Excalidraw ($72-96/year range), pays for itself quickly
 
+> **⚠️ NEEDS VALIDATION:** The assumed trigger "first successful workshop + client asks to share" may be incorrect. Consultants likely pay BEFORE workshops to avoid friction in front of clients. The real trigger may be "I have a client workshop scheduled next week." Validate with 10 user interviews before launch.
+
 **Secondary:** Internal architecture lead at mid-size company
 
 - Job: Communicate system boundaries to non-technical stakeholders
@@ -65,6 +90,14 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 | **Pro** | $99/year | Unlimited projects, unlimited contexts |
 | **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
 
+> **⚠️ PRICING NEEDS VALIDATION:** $99/year is 4-8 minutes of billable time for target persona ($150-300/hr). This may signal "toy tool" rather than "professional instrument." Consider testing:
+>
+> - $299/year (still easy to expense, signals professionalism)
+> - $29/month ($348/year effective, lower commitment)
+> - $99/year + $49/project (usage-based component)
+>
+> A/B test on landing page before committing to price.
+
 **Key principle:** Collaboration/sync works for ALL tiers. Tiers differ only in quantity limits, not feature lockouts. Users upgrade naturally when they need more projects.
 
 ### Licensing Model
@@ -78,10 +111,62 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 
 ### Context Limit Enforcement
 
-- **Warning** at 4 contexts: "You're approaching your free tier limit"
-- **Upgrade prompt** at 5 contexts: "Upgrade to Pro for unlimited contexts"
-- **Hard block** at 6 contexts: Cannot add more until upgraded or contexts deleted
+- **Progress indicator**: Always show "X/5 contexts used" in UI (visible, not hidden)
+- **Warning** at 3 contexts: "You're approaching your free tier limit" (earlier warning to avoid mid-workshop surprise)
+- **Upgrade prompt** at 5 contexts: Modal with "Upgrade to Pro for unlimited contexts"
+- **Grace context**: Allow 6th context creation with 7-day countdown to upgrade or delete (don't block momentum)
 - Limit is **concurrent**, not lifetime (deleting a context frees up the slot)
+
+---
+
+## Phase 0: Security Foundation (BEFORE User Flows)
+
+**Goal:** Establish secure infrastructure that all user flows depend on. This MUST be completed before implementing any user-facing flows.
+
+**What to build:**
+
+1. **Auth validation in Worker layer** - Verify Clerk JWT in fetch handler BEFORE routing to Durable Object
+2. **D1 database schema** - Tables for `project_ownership` and `project_collaborators`
+3. **Webhook handler** - Signature verification, timestamp validation, idempotency (KV), retry logic
+4. **Server-side Yjs validation** - Intercept in `onMessage()`, reject tier-violating updates
+5. **CORS configuration** - Required for browser WebSocket connections
+6. **Structured logging** - JSON format for Cloudflare Logpush integration
+
+**D1 Schema:**
+
+```sql
+CREATE TABLE project_ownership (
+  project_id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  tier TEXT NOT NULL,  -- 'free' | 'pro' | 'enterprise'
+  context_count INTEGER DEFAULT 0
+);
+CREATE INDEX idx_owner ON project_ownership(owner_user_id);
+
+CREATE TABLE project_collaborators (
+  project_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  role TEXT NOT NULL,  -- 'owner' | 'editor' | 'viewer'
+  added_at INTEGER NOT NULL,
+  PRIMARY KEY (project_id, user_id)
+);
+```
+
+**Files:**
+
+- `workers/server.ts` - auth in fetch handler, onMessage validation, CORS
+- `workers/webhook.ts` - Polar webhook handler (new file)
+- `wrangler.toml` - D1 database, KV namespace bindings
+- `migrations/` - D1 schema migrations
+
+**E2E Test:**
+
+- Unauthenticated WebSocket connection is rejected with 401
+- Invalid JWT is rejected with 401
+- User without project access is rejected with 403
+- Webhook with invalid signature is rejected
+- Duplicate webhook (same event ID) is handled idempotently
 
 ---
 
@@ -172,26 +257,30 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 
 1. Polar.sh product setup (test mode)
 2. Checkout link integration (pass clerk_user_id in metadata)
-3. Webhook handler (Cloudflare Worker)
+3. Webhook handler (Cloudflare Worker) - already built in Phase 0
 4. Clerk metadata update on payment
-5. Real-time tier update in app (or refresh)
+5. **Payment success page** with tier verification polling
+6. **"Processing..." state** while waiting for webhook (retry every 2s, max 30s)
+7. **Fallback UX**: "Payment received, refreshing..." if webhook delayed beyond 30s
 
 **E2E Test:**
 
 - Free user clicks upgrade, sees Polar checkout
 - Payment with test card succeeds
-- Webhook logged in Cloudflare
-- Clerk user metadata shows tier: "pro"
+- User returns to success page, sees "Verifying payment..."
+- Webhook processes, Clerk metadata updated
+- Success page detects tier change, redirects to app
 - App shows Pro features unlocked
 - User can create new project
-- User can export JSON
+- **Edge case:** Webhook delayed 45 seconds - user sees helpful message, not error
 
 **Files:**
 
-- `workers/webhook.ts` - new Polar webhook handler
+- `workers/webhook.ts` - Polar webhook handler (Phase 0)
 - `wrangler.toml` - webhook worker config
+- `src/pages/PaymentSuccess.tsx` - success page with polling (new)
 - `src/components/UpgradePrompt.tsx` - checkout link
-- `src/utils/featureGates.ts` - tier checking helpers
+- `src/utils/featureGates.ts` - tier checking helpers (UI layer)
 
 ---
 
@@ -220,11 +309,15 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 - Changes sync to cloud (verify in DO)
 - Reopening browser shows same project
 
-**Files:**
+**Files (Three-Layer Gate Architecture):**
 
-- `src/model/store.ts` - gate mutations by tier
-- `src/components/ContextNode.tsx` - respect edit gates
-- `src/components/InspectorPanel.tsx` - show/hide edit controls
+- `src/utils/featureGates.ts` - tier checking helpers (UI layer - disabled buttons, upgrade prompts)
+- `src/model/mutations.ts` - Yjs mutation wrappers with tier checks (developer safety layer - throw errors)
+- `workers/server.ts` - onMessage validation (security layer - reject WebSocket messages)
+- `src/components/ContextNode.tsx` - respect UI gates
+- `src/components/InspectorPanel.tsx` - show/hide edit controls based on tier
+
+**Note:** Do NOT add mutation logic to `store.ts` - Zustand is a read-only projection per ARCHITECTURE.md.
 
 ---
 
@@ -378,6 +471,32 @@ wrangler secret put CLERK_SECRET_KEY --env staging
 ### Flow 5 (Sharing)
 
 - Minimal changes (verify existing ShareProjectDialog works)
+
+### Phase 0 (Security Foundation)
+
+- `workers/server.ts` - auth, CORS, onMessage validation
+- `workers/webhook.ts` - Polar webhook handler
+- `wrangler.toml` - D1 database, KV namespace bindings
+- `migrations/0001_project_ownership.sql` - D1 schema
+
+---
+
+## Success Metrics (Define BEFORE Launch)
+
+| Metric | Target | How to Measure |
+|--------|--------|----------------|
+| **CAC** | <$50 | Marketing spend / new paying customers |
+| **Conversion rate** | 10% in 90 days | Free users who upgrade to Pro |
+| **Churn rate** | <20% annual | Subscriptions cancelled / total active |
+| **Activation rate** | 70% in 7 days | Signups who create a project |
+
+**Review cadence:** Check metrics at 50 and 100 paying customers.
+
+**If targets not met:**
+
+- Conversion <5%: Revisit conversion triggers, interview churned users
+- Churn >30%: Add pause/resume billing, investigate seasonal patterns
+- Activation <50%: Improve onboarding, add templates
 
 ---
 

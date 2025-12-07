@@ -1345,19 +1345,155 @@ Based on competitor research (see [Competitor Pricing Analysis](#competitor-pric
 
 **This is a blocking security issue** - must be fixed before SaaS launch.
 
-**Required changes:**
+---
 
-1. Add auth token verification in `onConnect()` hook
-2. Associate projects with owner user ID in metadata
-3. Verify user tier before accepting write operations
-4. Implement project access control (owner, collaborator, viewer)
+### Correct Authentication Architecture
 
-**Implementation approach:**
+**Problem:** The original plan suggested "add JWT verification in `onConnect()`" but y-partyserver doesn't provide an `onConnect()` hook for pre-flight validation. WebSocket connections are established before you can validate.
 
-- Pass Clerk JWT in WebSocket connection params
-- Verify JWT in Durable Object before accepting connection
-- Store project ownership in DO metadata
-- Check tier limits before allowing project creation
+**Solution:** Validate in Worker fetch handler BEFORE routing to Durable Object:
+
+```typescript
+// workers/server.ts - fetch handler
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    if (request.headers.get('Upgrade') === 'websocket') {
+      const url = new URL(request.url);
+      const token = url.searchParams.get('token');
+
+      if (!token) {
+        return new Response('Unauthorized: Missing token', { status: 401 });
+      }
+
+      // Verify Clerk JWT BEFORE routing to DO
+      const verified = await verifyClerkJWT(token, env.CLERK_SECRET_KEY);
+      const userId = verified.sub;
+
+      // Check project access against D1
+      const projectId = url.searchParams.get('room');
+      const hasAccess = await checkProjectAccess(projectId, userId, env);
+      if (!hasAccess) {
+        return new Response('Forbidden: No access to project', { status: 403 });
+      }
+
+      // Pass verified userId to DO (DO trusts Worker validation)
+    }
+
+    return await routePartykitRequest(request, env);
+  }
+}
+```
+
+**Required infrastructure:**
+
+- D1 database for `project_ownership` + `project_collaborators` tables
+- KV namespace for webhook idempotency
+- Clerk SDK for JWT verification in Worker
+
+---
+
+### Server-Side Tier Enforcement (CRITICAL)
+
+**Problem:** The original plan stated "Accept client-side gates as primary defense, server-side is audit-only." This is trivially bypassed by modifying JavaScript or replaying WebSocket messages.
+
+**Solution:** Validate BEFORE applying Yjs updates in `onMessage()`:
+
+```typescript
+// workers/server.ts - YjsRoom class
+async onMessage(connection: Connection, message: Uint8Array): Promise<void> {
+  const userId = connection.metadata.userId;
+  const userTier = this.userTiers.get(userId);
+
+  // Decode Yjs message to inspect what's changing
+  const decoded = decodeYjsUpdate(message);
+
+  if (decoded.type === 'update') {
+    // Simulate update on temporary doc to check tier violation
+    const wouldViolate = await this.wouldViolatePolicy(decoded, userId, userTier);
+
+    if (wouldViolate) {
+      connection.send(JSON.stringify({
+        type: 'error',
+        code: 'TIER_LIMIT_EXCEEDED',
+        message: 'Upgrade to Pro for unlimited contexts'
+      }));
+      return; // Don't apply the update
+    }
+  }
+
+  super.onMessage(connection, message);
+}
+```
+
+**Three-layer gate architecture:**
+
+| Layer | Purpose | Location |
+|-------|---------|----------|
+| **UI** | User feedback (disabled buttons) | `src/utils/featureGates.ts` |
+| **Yjs helpers** | Developer safety (throw errors) | `src/model/mutations.ts` |
+| **Server** | Security (reject WebSocket messages) | `workers/server.ts` |
+
+---
+
+### Webhook Handler Requirements
+
+**File:** `workers/webhook.ts`
+
+**Security requirements:**
+
+1. **HMAC-SHA256 signature verification** - Verify `X-Polar-Signature` header
+2. **Timestamp validation** - Reject if >5 minutes old (prevent replay attacks)
+3. **Idempotency** - Store processed event IDs in KV namespace (7-day TTL)
+4. **Retry logic** - Exponential backoff (1s, 2s, 4s) if Clerk API fails
+5. **Failed webhook queue** - Store in KV or D1 for manual resolution
+
+**Events to handle:**
+
+| Event | Action |
+|-------|--------|
+| `subscription_created` | Set tier: "pro" in Clerk metadata |
+| `subscription_cancelled` | Set tier: "free" in Clerk metadata |
+| `subscription_updated` | Update tier based on new plan |
+
+---
+
+### Pricing Validation (BEFORE Launch)
+
+**Risk:** $99/year may be too low for target persona. At $150-300/hr, this is 4-8 minutes of billable time - signals "toy tool" not "professional instrument."
+
+**Validation steps:**
+
+1. Interview 10 target consultants: "How much would you pay?"
+2. A/B test landing page: $99/year vs $299/year
+3. Ask beta users: "What's your max price before you wouldn't buy?"
+
+**Alternative pricing to test:**
+
+- $299/year (still easy to expense, signals professionalism)
+- $29/month ($348/year effective, lower initial commitment)
+- $99/year + $49/project (usage-based component)
+
+---
+
+### Product Gaps to Address
+
+**Workshop facilitation features (if this is the value prop vs Context Mapper):**
+
+- Presentation mode (hide UI chrome, full-screen canvas)
+- Facilitator controls (lock/unlock editing for participants)
+- Workshop templates (pre-built starter maps)
+- Timer/agenda integration
+
+**Virality mechanics (critical for word-of-mouth growth):**
+
+- "Made with ContextFlow" footer on Free tier projects
+- Referral program ("Invite 3 consultants, get 3 months free")
+- Public gallery of example maps (SEO + social proof)
+
+**Data portability:**
+
+- Local-only project mode for compliance-sensitive clients
+- GDPR data export endpoint (all user data, not just current project)
 
 ---
 
