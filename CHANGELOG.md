@@ -4,6 +4,27 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.7.0] - 2025-12-01
+
+- Issues/Hotspots with severity levels (info/warning/critical) visible on bounded contexts
+- Team management with context assignment and Team Topology classifications
+- Full project management: create, rename, duplicate, and delete projects via modal interface
+- Users and User Needs visible in Value Stream view (complete value chain visibility)
+- Ownership categorization with optional color coding (project/internal/external)
+- Educational tooltips for DDD and Wardley Mapping concepts throughout the interface
+- Guided getting started experience with approach selector (User Journey First vs Systems First)
+- Relationship pattern visual enhancements: ACL/OHS indicator boxes, Patterns Guide modal, bidirectional arrows
+- Drag-to-connect workflows between contexts for creating relationships
+- Problem space / solution space visual separation with warm background band
+- Multi-select contexts with shift-click and batch group operations
+- Canvas intelligence: bounds constraints, overlap prevention, auto-positioning
+- Elan Extended Warranty teaching case study for DDD workshops
+- "Actor" renamed to "User" throughout for clearer terminology
+- Reorganized Settings dialog: View Options first, then Help, Display, Integrations
+- Toggle switches replacing pill buttons for Legacy/External context flags
+- Hover-based delete on flow stage labels
+- Fixed TypeScript errors across codebase
+
 ## [0.6.2] - 2025-11-23
 
 - Comprehensive product analytics with Simple Analytics (all 5 implementation slices complete)
