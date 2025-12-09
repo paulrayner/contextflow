@@ -9,8 +9,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 For comprehensive documentation, see:
 - **Product vision & goals**: [docs/VISION.md](docs/VISION.md)
 - **Technical architecture & data model**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- **Behavioral requirements**: [docs/SPEC.md](docs/SPEC.md)
-- **Implementation roadmap**: [docs/PLAN.md](docs/PLAN.md)
 - **UX principles**: [docs/UX_GUIDELINES.md](docs/UX_GUIDELINES.md)
 - **Getting started**: [README.md](README.md)
 
@@ -83,20 +81,11 @@ Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-cor
 - Use `InfoTooltip` for educational DDD concept tooltips (requires `ConceptDefinition` object, respects `showHelpTooltips` setting)
 - NEVER use native `title` attribute (has browser-imposed delay)
 
-### Current Milestone
-
-**Milestone 1**: Flow View core (see [docs/Milestone1_Prompt.md](docs/Milestone1_Prompt.md))
-- Demo project: `examples/sample.project.json` (ACME E-Commerce platform)
-- Focus: Visual canvas rendering with read-only inspector
-- Not yet implemented: editing, dragging, repo assignment, undo/redo
-
 ### When Working on Features
 
-1. Check [docs/PLAN.md](docs/PLAN.md) for milestone context and deliverables
-2. Refer to [docs/SPEC.md](docs/SPEC.md) for behavioral requirements and validation rules
-3. Follow architectural patterns in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-4. Match aesthetic guidelines in [docs/UX_GUIDELINES.md](docs/UX_GUIDELINES.md)
-5. Preserve product vision and positioning from [docs/VISION.md](docs/VISION.md)
+1. Follow architectural patterns in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+2. Match aesthetic guidelines in [docs/UX_GUIDELINES.md](docs/UX_GUIDELINES.md)
+3. Preserve product vision and positioning from [docs/VISION.md](docs/VISION.md)
 
 ## Important Constraints
 
