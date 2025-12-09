@@ -20,7 +20,26 @@ For comprehensive documentation, see:
 npm install     # Install dependencies
 npm run dev     # Start local dev server
 npm run build   # Build for production
+npm test        # Run tests
 ```
+
+## Deployment
+
+**Staging** (for testing before production):
+
+```bash
+VITE_COLLAB_HOST=contextflow-collab-staging.paul-162.workers.dev npm run build
+npx wrangler pages deploy dist --project-name contextflow-staging --branch main
+```
+
+**Production**:
+
+```bash
+VITE_COLLAB_HOST=contextflow-collab.paul-162.workers.dev npm run build
+npx wrangler pages deploy dist --project-name contextflow --branch main
+```
+
+The `VITE_COLLAB_HOST` environment variable is required at build time to configure which collaboration server the app connects to. Without it, the app defaults to `localhost:8787`.
 
 ## Project-Specific Conventions
 

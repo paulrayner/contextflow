@@ -616,8 +616,8 @@ Clerk provides **built-in multi-tenancy** via Organizations feature:
      })
    ↓
 4. React app checks Clerk metadata
-   - tier === "pro" → unlimited projects/contexts
-   - no tier → free tier limits (1 project, 5 contexts)
+   - tier === "pro" → unlimited projects
+   - no tier → free tier limits (1 project)
 ```
 
 **No backend needed!** Just a simple serverless function (~100 lines of code).
@@ -661,8 +661,8 @@ All Tiers (Current Implementation):
 ├─ Cloudflare Durable Objects for sync
 └─ IndexedDB for offline persistence
 
-Free Tier: Limited to 1 project, 5 contexts
-Pro Tier: Unlimited projects and contexts
+Free Tier: Limited to 1 project (unlimited contexts)
+Pro Tier: Unlimited projects
 ```
 
 **Pros:**
@@ -784,15 +784,15 @@ Pro Tier: Unlimited projects and contexts
 
 1. Integrate Clerk authentication
 2. Integrate Polar.sh for payments
-3. Implement quantity-based feature gates (project/context limits)
+3. Implement project-based feature gates (project limits only)
 4. Deploy webhook handler (Cloudflare Worker) for Polar → Clerk sync
 
 **Tiers:**
 
 | Tier | Price | Limits |
 |------|-------|--------|
-| **Free** | $0 | 1 project, 5 bounded contexts, full collaboration |
-| **Pro** | $99/year | Unlimited projects, unlimited contexts |
+| **Free** | $0 | 1 project, unlimited contexts, full collaboration |
+| **Pro** | $99/year | Unlimited projects |
 | **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
 
 **Key principle:** Collaboration/sync works for ALL tiers. Tiers differ only in quantity limits, not feature lockouts.
@@ -899,13 +899,14 @@ Before defining tiers, consider whether a Team tier is necessary. Penpot (a comp
 #### Free Tier
 
 - **Price:** $0
-- **Limits:** 1 project, 5 bounded contexts (hard limit - warning at 4, block at 6)
+- **Limits:** 1 project (unlimited contexts)
 - **Features:**
-  - Full editing and collaboration on allowed projects
+  - Full editing and collaboration on your project
   - Real-time sync with collaborators
   - Export to JSON
   - Collaborate on unlimited Pro-owned projects (no license needed to join)
-- **Goal:** Demonstrate value, natural upgrade when users need more contexts for real work
+  - Access and edit sample projects (don't count against limit)
+- **Goal:** Demonstrate full value, natural upgrade when users need multiple projects
 
 ---
 
@@ -913,11 +914,11 @@ Before defining tiers, consider whether a Team tier is necessary. Penpot (a comp
 
 - **Price:** $99/year
 - **Target:** Individual software architects, consultants
-- **Limits:** Unlimited projects, unlimited contexts
+- **Limits:** Unlimited projects
 - **Features:**
-  - Everything in Free, without limits
+  - Everything in Free, without project limits
   - Priority support
-- **Positioning:** "Unlimited DDD context mapping"
+- **Positioning:** "Unlimited projects for professional DDD practitioners"
 
 ---
 
@@ -1295,16 +1296,17 @@ Based on competitor research (see [Competitor Pricing Analysis](#competitor-pric
 
 | Tier | Price | Limits |
 |------|-------|--------|
-| **Free** | $0 | 1 project, 5 bounded contexts, full collaboration |
-| **Pro** | $99/year | Unlimited projects, unlimited contexts |
+| **Free** | $0 | 1 project, unlimited contexts, full collaboration |
+| **Pro** | $99/year | Unlimited projects |
 | **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
 
 **Key principles:**
 
 - Collaboration/sync works for ALL tiers (already built)
-- Tiers differ only in quantity limits, not feature lockouts
+- Tiers differ only in project count, not context limits or feature lockouts
 - License tied to project owner - collaborators don't need licenses
-- $99/year is competitive with Miro/Excalidraw ($72-96/year range)
+- Sample projects don't count against limits (platform-owned, editable by all)
+- $99/year is competitive with Miro/Excalidraw ($72-96/year range) and much cheaper than Structurizr ($300/year min)
 - Team tier deferred until customer demand validates it
 
 ---
@@ -1315,7 +1317,7 @@ Based on competitor research (see [Competitor Pricing Analysis](#competitor-pric
 
 - Polar.sh + Clerk + Simple Analytics
 - Free + Pro tiers only
-- Quantity-based limits (projects, contexts)
+- Project-based limits only (no context limits)
 
 #### Phase 2: Enterprise-Ready (When demanded)
 
@@ -1413,52 +1415,38 @@ export default {
 
 ---
 
-### Server-Side Tier Enforcement (CRITICAL)
+### Server-Side Tier Enforcement (Simplified)
 
 **Problem:** The original plan stated "Accept client-side gates as primary defense, server-side is audit-only." This is trivially bypassed by modifying JavaScript or replaying WebSocket messages.
 
-**CRDT Constraint:** You cannot simply "reject" Yjs updates - this breaks CRDT eventual consistency and causes permanent data desync between clients. Instead, use **compensating transactions**.
+**Simplified with project-based limits:** Since we only limit project count (not contexts), server-side enforcement is simpler:
 
-**Solution:** Accept updates, detect violations, then undo via compensating transaction:
+1. **Project creation** - Check owned project count before allowing new project creation
+2. **No context enforcement needed** - Contexts are unlimited on all tiers
+
+**Solution:** Enforce project limits at project creation time (not per-message):
 
 ```typescript
-// workers/server.ts - YjsRoom class
-async onMessage(connection: Connection, message: Uint8Array): Promise<void> {
-  const userId = connection.metadata.userId;
-  const userTier = this.userTiers.get(userId);
-
-  // 1. ALWAYS apply the update first (maintain CRDT consistency)
-  await super.onMessage(connection, message);
-
-  // 2. Detect violation in resulting state
-  const violation = this.detectTierViolation(userId, userTier);
-
-  if (violation) {
-    // 3. Apply compensating transaction to undo the violation
-    this.document.transact(() => {
-      // Remove the excess context that violated the tier limit
-      const contexts = this.document.getMap('contexts');
-      contexts.delete(violation.entityId);
-    });
-
-    // 4. Notify the user
-    connection.send(JSON.stringify({
-      type: 'error',
-      code: 'TIER_LIMIT_EXCEEDED',
-      message: 'Upgrade to Pro for unlimited contexts',
-      undone: violation.entityId
-    }));
+// workers/server.ts - before creating new project room
+async createProject(userId: string, userTier: Tier): Promise<Response> {
+  if (userTier !== 'pro') {
+    const ownedCount = await this.getOwnedProjectCount(userId);
+    if (ownedCount >= 1) {
+      return new Response('Upgrade to Pro for unlimited projects', { status: 403 });
+    }
   }
+  // Proceed with project creation...
 }
 ```
 
-**Three-layer gate architecture:**
+**Two-layer gate architecture:**
 
 | Layer | Purpose | Location |
 |-------|---------|----------|
-| **UI** | User feedback (disabled buttons) | `src/utils/featureGates.ts` |
-| **Yjs helpers** | Developer safety (throw errors) | `src/model/mutations.ts` |
-| **Server** | Security (reject WebSocket messages) | `workers/server.ts` |
+| **UI** | User feedback (disabled buttons, upgrade prompts) | `src/utils/featureGates.ts` |
+| **Server** | Security (block project creation) | `workers/server.ts` |
+
+**Note:** Yjs mutation helpers are no longer needed for tier enforcement since there are no context limits to enforce.
 
 ---
 
@@ -1501,7 +1489,6 @@ async onMessage(connection: Connection, message: Uint8Array): Promise<void> {
 const LIMITS = {
   wsConnectionsPerUser: 10,      // Max concurrent WebSocket connections
   projectsPerMinute: 5,          // Max project creations per minute
-  contextsPerMinute: 20,         // Max context additions per minute
   maxMessageSize: 1024 * 1024,   // 1MB max Yjs update size
 };
 ```
@@ -1542,22 +1529,18 @@ const LIMITS = {
 
 ---
 
-### Free Tier Limits Validation (BEFORE Launch)
+### Free Tier Limits - RESOLVED
 
-**Risk:** The 5-context limit for Free tier is arbitrary and unvalidated. If real DDD workshops typically need 8-12 contexts, Free users will hit the wall too early (frustrating) or upgrade pressure will feel punitive.
+**Decision:** Free tier has unlimited contexts, limited to 1 project.
 
-**Validation steps:**
+**Rationale:** After analyzing Structurizr (no collaboration on free tier, $300/year minimum for paid) and ContextFlow's collaborative workshop value proposition, we determined:
 
-1. Analyze 10 real-world DDD context maps (from books, conference talks, blog posts)
-2. Count bounded contexts in each - what's the median? What's the 80th percentile?
-3. Set Free tier limit at ~50% of median (enough to explore, not enough for production use)
-4. Survey beta users: "How many contexts did you need for your last workshop?"
+1. Context limits conflicted with sample projects (9-23 contexts)
+2. DDD workshops need full context maps to be useful
+3. Limiting projects (not contexts) creates a natural upgrade trigger for consultants with multiple clients
+4. Full collaboration on free tier showcases ContextFlow's core differentiator vs Structurizr
 
-**If typical workshops need 10+ contexts:**
-
-- Consider raising Free limit to 7-8 contexts
-- Or keep at 5 but emphasize "unlimited on Pro" more prominently
-- Or add "workshop mode" that temporarily unlocks limits (converts to upgrade prompt after)
+**Conversion trigger:** User needs a second project (second client, second domain).
 
 ---
 
@@ -1583,4 +1566,4 @@ const LIMITS = {
 
 ---
 
-*Last updated: 2025-12-07 (multi-agent review incorporated)*
+*Last updated: 2025-12-08 (project-based limits decision, Structurizr comparison)*

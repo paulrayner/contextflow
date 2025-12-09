@@ -17,6 +17,7 @@
 - Add text link to discord in README (so someone can search the page for it)
 - "Add Team" button in top menu?
 - "Add Repo" button in top menu?
+- Add Architecture for Flow example as sample? (get permission for this)
 - [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
 - [ ] Implement SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md
 - [ ] Repo management
