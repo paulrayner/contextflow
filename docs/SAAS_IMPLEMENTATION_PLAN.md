@@ -6,122 +6,6 @@
 
 ---
 
-## Outstanding Issues (Master List)
-
-All issues from critical reviews, organized by theme. Address these before or during implementation.
-
-### 1. Security & Authentication
-
-These MUST be fixed before any user-facing flows (Phase 0).
-
-| Priority | Issue | Details |
-|----------|-------|---------|
-| **CRITICAL** | No auth in Durable Objects | `workers/server.ts` has zero authentication. Anyone with project ID can connect and edit. **FIX:** Validate JWT in Worker fetch handler BEFORE routing to DO. |
-| **CRITICAL** | Rate limiting missing | WebSocket bomb or project spam can create $5k+ Cloudflare bill. Need per-IP and per-user limits on connections and project creation. |
-| **CRITICAL** | No server-side tier enforcement | Client-side gates are trivially bypassed. **FIX:** Use compensating transactions in `onMessage()` - accept update, detect violation, apply undo transaction. |
-| HIGH | No input validation | Yjs update messages need max size validation (1MB limit) to prevent DoS. |
-| HIGH | No token revocation | Stolen JWTs valid until expiration. Consider short-lived tokens (15min) with refresh, or KV blocklist. |
-| HIGH | JWT expiry during WebSocket sessions | Long workshops (hours) outlive JWT tokens. Need refresh strategy or long-lived WebSocket tokens. |
-| MEDIUM | DO cache invalidation endpoint unprotected | Webhook calls cache invalidation - needs authentication to prevent abuse. |
-| MEDIUM | No CORS configuration | Required for browser WebSocket connections to Durable Objects. |
-
-### 2. Revenue Model & Pricing
-
-Fundamental business model issues that could tank the company.
-
-| Priority | Issue | Details |
-|----------|-------|---------|
-| **CRITICAL** | Free tier arbitrage | "You pay for what you own" + unlimited collaboration = 50 consultants share 1 Pro license. **FIX:** Add collaborator limits (Free: 3, Pro: 50) OR seat-based pricing. |
-| **CRITICAL** | No acquisition strategy | CAC <$50 target but zero marketing/growth plan. Where do customers come from? Pick ONE channel and commit. |
-| HIGH | Market size unknown | No TAM/SAM/SOM analysis. Is addressable market 2k or 200k people? If 2k × $99 = $198k ARR ceiling max. |
-| HIGH | "Use once" churn risk | DDD maps created in workshop, rarely updated. Why pay year 2 for tool used once? Need retention mechanics. |
-| HIGH | Annual-only pricing barrier | $99/year upfront is commitment. Offer $12/month option. Also $99 anchors enterprise too low. |
-| MEDIUM | No viral loop | Free tier is cost center, not growth driver. No templates, public gallery, referral program, or "Made with ContextFlow" branding. |
-| MEDIUM | Enterprise tier unrealistic | Solo founder can't realistically sell $5k-50k contracts requiring sales calls, custom demos, legal review. |
-| LOW | No "declare failure" criteria | When do you pivot? Define: "If <10 customers in 90 days, revisit strategy." |
-
-### 3. User Experience & Product
-
-Gaps in user journey and product decisions.
-
-| Priority | Issue | Details |
-|----------|-------|---------|
-| **CRITICAL** | First-run experience undefined | First 60 seconds (landing → "aha moment") not designed. What do new users see? How do they understand the three-view concept? |
-| **CRITICAL** | Project ownership transfer missing | Free user creates project, Pro consultant needs to take over for workshop. No transfer mechanism exists. |
-| HIGH | Conversion trigger unvalidated | Assumed "after successful workshop" but consultants likely pay BEFORE to avoid friction with clients. Interview 10 users. |
-| HIGH | Missing "vs Context Mapper" comparison | It's free, we're $99. Need explicit value prop on landing page showing why visual > DSL. |
-| MEDIUM | Multi-tab upgrade detection | User pays in Tab A, Tab B still shows Free tier for 0-60s. Use BroadcastChannel + forced refresh. |
-| MEDIUM | Anonymous collaboration abuse | No per-project connection limits. 500 people could join one session. |
-| MEDIUM | "Configurable flow stages" undefined | Marketing claim but no UI exists to customize stages. |
-| MEDIUM | Over-limit downgrade UX | Pro user with 5 projects downgrades - which becomes the 1 active project? |
-| LOW | "Made with ContextFlow" branding | Not implemented for free tier shared projects. |
-
-### 4. Infrastructure & Operations
-
-Running the service as a solo founder.
-
-| Priority | Issue | Details |
-|----------|-------|---------|
-| HIGH | No project ownership storage | Need D1 database for `project_ownership` and `project_collaborators` tables. |
-| HIGH | No webhook handler | Need `workers/webhook.ts` for Polar → Clerk sync with signature verification, timestamp validation, idempotency. |
-| HIGH | No monitoring/observability | No logs, alerts, dashboards. Need structured logging + Cloudflare Logpush + billing alerts ($50/day threshold). |
-| HIGH | No backup/recovery | No soft-delete, no snapshots. What if DO corrupts? Need R2 daily snapshots + recovery runbook. |
-| HIGH | Yjs schema versioning missing | Breaking schema change + old client = data corruption. Need version in doc + force-refresh for old clients. |
-| HIGH | Abandoned project garbage collection | No cleanup policy. Storage costs grow unbounded. Add `lastAccessedAt` + 90-day cleanup with email warning. |
-| HIGH | Clerk outage = total failure | No degraded mode. Consider: cache JWTs for 1hr, allow anonymous mode as fallback. |
-| HIGH | Webhook failure detection | If Polar webhooks fail, tier enforcement breaks silently. Need monitoring + manual replay endpoint. |
-| MEDIUM | Environment separation | Need separate Clerk apps (dev/staging/prod) and Polar products (test/live mode). |
-| MEDIUM | Local dev complexity | Requires 4+ services (Clerk, Polar, ngrok, Wrangler) - 2-4hr onboarding. Document setup or provide mocks. |
-| MEDIUM | Client/server version mismatch | Deploy new version, old tabs still open. Need version check + "Please refresh" prompt. |
-| MEDIUM | WebSocket limits unknown | Max concurrent connections per DO not documented. Load test before launch. |
-| MEDIUM | D1 costs at scale | Unvalidated. Model costs at 1k, 10k, 100k users. |
-| MEDIUM | Polar.sh exit strategy | Newer platform. What if they pivot/shutdown? Abstract payment provider, keep subscription state in D1. |
-| LOW | No Polar test → live transition plan | Document how to switch from test mode to production. |
-
-### 5. Legal & Compliance
-
-Things that could get you sued or fined.
-
-| Priority | Issue | Details |
-|----------|-------|---------|
-| HIGH | Data sensitivity undefined | Users map confidential architecture. Who is liable if leaked? Need data classification in Terms. |
-| HIGH | IP ownership ambiguous | Collaboration creates joint work. Terms must state: "User retains all IP rights to content." |
-| HIGH | GDPR deletion path missing | No procedure to delete user data across DO + D1 + Clerk + Polar within 30 days. Build deletion flow. |
-| HIGH | Collaboration consent missing | User A joins User B's project. Is A's data controlled by B? Need consent modal for GDPR co-controller compliance. |
-| HIGH | Data retention on subscription lapse | Conflicts with GDPR deletion rights. Define: "Downgraded projects kept X days, then deleted unless exported." |
-| MEDIUM | Refund policy undefined | EU requires 14-day cooling-off period. Document in Terms. |
-| MEDIUM | Enterprise invoicing unknown | Does Polar support POs, Net-30? Verify before promising Enterprise tier. |
-| MEDIUM | Open source status undefined | Is repo public? What license? How does OSS relate to SaaS? |
-| MEDIUM | Cross-border data transfers | Cloudflare global edge vs Schrems II. Need SCCs for EU users. Check UK GDPR separately. |
-| LOW | Accessibility untested | WCAG 2.1 AA for canvas UI. Run audit before enterprise sales. |
-| LOW | Multi-region data residency | Not supported. May block regulated industry sales. |
-
-### 6. Metrics & Analytics
-
-Measuring success and knowing when to pivot.
-
-| Priority | Issue | Details |
-|----------|-------|---------|
-| MEDIUM | No instrumentation plan | Success metrics defined but no plan for how to measure CAC, conversion, churn, activation. |
-| MEDIUM | Payment funnel not tracked | Polar checkout is off-site. Can't see where users drop off. Add custom events. |
-| MEDIUM | Tier state sync unclear | Where is authoritative tier state? Clerk metadata? Zustand? DO cache? Define + document sync flow. |
-| LOW | E2E payment testing unsolved | Webhook delivery to GitHub Actions doesn't work. Document manual QA process or staging-only tests. |
-
----
-
-### Resolved Decisions
-
-These have been decided and don't need further discussion:
-
-- **Project-based limits** - Free tier limited to 1 owned project with unlimited contexts. Context limits removed. Simpler model that lets users experience full DDD workshops.
-- **Sample project handling** - Samples are platform-owned, editable by all users, don't count against project limit. Changes saved to user's local IndexedDB.
-- **Project limit enforcement** - Show upgrade modal when limit reached, allow user to cancel. No hard block mid-action.
-- **Downgrade behavior** - Most recently edited project stays editable, others read-only. User can switch active project in settings.
-- **Anonymous → authenticated migration** - On sign-up, show "Save this project?" prompt. Transfer ownership or GC if declined.
-- **Feature gate architecture** - Three layers: UI (disabled buttons) → Yjs mutation helpers (throw errors) → Server validation (project count only).
-
----
-
 ## Philosophy
 
 **Build by complete user journey, not technical component.**
@@ -323,16 +207,41 @@ Before launching Milestone 0, configure in Cloudflare dashboard (no code):
 
 This milestone adds production-grade infrastructure that's overkill for early validation but necessary for scale.
 
-**What to build:**
+### Security & Auth
 
-1. **Auth validation in Worker layer** - Verify Clerk JWT in fetch handler BEFORE routing to Durable Object
-2. **D1 database schema** - Tables for `project_ownership` and `project_collaborators`
-3. **Webhook handler** - Signature verification, timestamp validation, idempotency (KV), retry logic, cache invalidation call
-4. **Server-side Yjs validation** - Use compensating transactions in `onMessage()` (accept update, detect violation, undo)
-5. **CORS configuration** - Required for browser WebSocket connections
-6. **Structured logging** - JSON format for Cloudflare Logpush integration
-7. **Rate limiting** - Per-connection and per-operation limits to prevent DoS
-8. **Input validation** - Max message size (1MB) for Yjs updates
+| Item | Details |
+|------|---------|
+| Auth validation in Worker layer | Verify Clerk JWT in fetch handler BEFORE routing to Durable Object |
+| Server-side tier enforcement | Use compensating transactions in `onMessage()` - accept update, detect violation, apply undo |
+| Input validation | Max message size (1MB) for Yjs updates to prevent DoS |
+| Token revocation | Short-lived tokens (15min) with refresh, or KV blocklist for stolen JWTs |
+| JWT expiry during WebSocket | Long workshops outlive tokens. Need refresh strategy or long-lived WebSocket tokens |
+| Rate limiting (code) | Per-connection and per-operation limits beyond dashboard config |
+| CORS configuration | Required for browser WebSocket connections |
+| Cache invalidation auth | Protect webhook cache invalidation endpoint |
+
+### Infrastructure
+
+| Item | Details |
+|------|---------|
+| D1 database | Tables for `project_ownership` and `project_collaborators` (Clerk metadata insufficient at scale) |
+| Webhook hardening | Signature verification, timestamp validation, idempotency (KV), retry logic |
+| Structured logging | JSON format for Cloudflare Logpush integration |
+| Monitoring/observability | Logs, alerts, dashboards. Billing alerts ($50/day threshold) |
+| Backup/recovery | R2 daily snapshots + recovery runbook for DO corruption |
+| Yjs schema versioning | Version in doc + force-refresh for old clients to prevent data corruption |
+| Garbage collection | `lastAccessedAt` + 90-day cleanup with email warning for abandoned projects |
+| Clerk outage fallback | Cache JWTs for 1hr, allow anonymous mode as degraded fallback |
+| Webhook failure detection | Monitoring + manual replay endpoint if Polar webhooks fail silently |
+
+### Operations
+
+| Item | Details |
+|------|---------|
+| Environment separation | Separate Clerk apps (dev/staging/prod) and Polar products (test/live mode) |
+| Local dev docs | Document 4+ service setup or provide mocks |
+| Client/server version mismatch | Version check + "Please refresh" prompt for old tabs |
+| WebSocket limits | Load test max concurrent connections per DO before launch |
 
 **D1 Schema:**
 
@@ -674,12 +583,51 @@ wrangler secret put CLERK_SECRET_KEY --env staging
 
 - Minimal changes (verify existing ShareProjectDialog works)
 
-### Phase 0 (Security Foundation)
+---
 
-- `workers/server.ts` - auth, CORS, onMessage validation
-- `workers/webhook.ts` - Polar webhook handler
-- `wrangler.toml` - D1 database, KV namespace bindings
-- `migrations/0001_project_ownership.sql` - D1 schema
+## Pre-Launch Checklist
+
+> **When to address:** Before marketing or accepting real payments. Not blockers for M0/M1 validation.
+
+### Legal & Compliance
+
+| Item | Details |
+|------|---------|
+| Terms of Service | Data classification, IP ownership ("User retains all IP rights to content"), liability |
+| Privacy Policy | GDPR-compliant, data retention on subscription lapse |
+| GDPR deletion flow | Procedure to delete user data across DO + D1 + Clerk + Polar within 30 days |
+| Collaboration consent | Consent modal for GDPR co-controller compliance when joining others' projects |
+| Refund policy | EU 14-day cooling-off period |
+| Cross-border data | Cloudflare global edge vs Schrems II. SCCs for EU users |
+
+### UX Polish
+
+| Item | Details |
+|------|---------|
+| First-run experience | First 60 seconds (landing → "aha moment"). What do new users see? |
+| Project ownership transfer | Free user creates project, Pro consultant takes over for workshop |
+| Multi-tab upgrade detection | BroadcastChannel + forced refresh when tier changes |
+| Over-limit downgrade UX | Which project stays editable when Pro → Free? |
+| Per-project connection limits | Prevent 500 people joining one session |
+
+### Business Validation (Ongoing)
+
+| Item | Details |
+|------|---------|
+| Conversion trigger validation | Interview 10 users. Is it "after workshop" or "before workshop"? |
+| Acquisition strategy | Pick ONE channel and commit. Where do customers come from? |
+| Pricing validation | A/B test $99 vs $299 vs $29/month on landing page |
+| Free tier arbitrage | Monitor if collaborator limits needed (50 consultants sharing 1 Pro license) |
+| Churn risk | "Use once" tools need retention mechanics. Why pay year 2? |
+| Failure criteria | Define: "If <10 customers in 90 days, revisit strategy" |
+
+### Analytics
+
+| Item | Details |
+|------|---------|
+| Instrumentation plan | How to measure CAC, conversion, churn, activation |
+| Payment funnel tracking | Custom events for off-site Polar checkout |
+| Tier state sync | Document authoritative source: Clerk metadata → Zustand → DO cache |
 
 ---
 
@@ -699,6 +647,19 @@ wrangler secret put CLERK_SECRET_KEY --env staging
 - Conversion <5%: Revisit conversion triggers, interview churned users
 - Churn >30%: Add pause/resume billing, investigate seasonal patterns
 - Activation <50%: Improve onboarding, add templates
+
+---
+
+## Resolved Decisions
+
+These have been decided and don't need further discussion:
+
+- **Project-based limits** - Free tier limited to 1 owned project with unlimited contexts. Context limits removed. Simpler model that lets users experience full DDD workshops.
+- **Sample project handling** - Samples are platform-owned, editable by all users, don't count against project limit. Changes saved to user's local IndexedDB.
+- **Project limit enforcement** - Show upgrade modal when limit reached, allow user to cancel. No hard block mid-action.
+- **Downgrade behavior** - Most recently edited project stays editable, others read-only. User can switch active project in settings.
+- **Anonymous → authenticated migration** - On sign-up, show "Save this project?" prompt. Transfer ownership or GC if declined.
+- **Feature gate architecture** - Three layers: UI (disabled buttons) → Yjs mutation helpers (throw errors) → Server validation (project count only).
 
 ---
 
