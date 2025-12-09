@@ -186,7 +186,7 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 
 ---
 
-## Milestone 0: Minimal Path (~1 week)
+## Milestone 0: Minimal Path
 
 **Goal:** Ship the core payment journey with minimum infrastructure. Validate that people will pay before building production-grade systems.
 
@@ -198,7 +198,7 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 → [Pays $99] → [Webhook fires] → [Pro unlocked] → [Creates unlimited projects]
 ```
 
-### Day 1: Clerk Integration
+### Step 1: Clerk Integration
 
 **What to build:**
 
@@ -215,7 +215,7 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 - `src/model/storeTypes.ts` - UserState interface
 - `src/hooks/useAuthSync.ts` - sync Clerk → Zustand (new)
 
-### Day 2: Worker Auth + Tier Gates
+### Step 2: Worker Auth + Tier Gates
 
 **What to build:**
 
@@ -243,7 +243,7 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 }
 ```
 
-### Day 3: Polar Webhook
+### Step 3: Polar Webhook
 
 **What to build:**
 
