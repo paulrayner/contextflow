@@ -1,7 +1,7 @@
 # SaaS Monetization: User-Flow-First Implementation
 
 **Created:** 2025-12-07
-**Status:** Reviewed - Requires Phase 0 Security Foundation
+**Status:** Reviewed - Milestone 0 is MVP path
 **Prerequisites:** Cloud sync via Yjs + Cloudflare Durable Objects (already implemented)
 
 ---
@@ -49,12 +49,11 @@ Gaps in user journey and product decisions.
 | **CRITICAL** | First-run experience undefined | First 60 seconds (landing → "aha moment") not designed. What do new users see? How do they understand the three-view concept? |
 | **CRITICAL** | Project ownership transfer missing | Free user creates project, Pro consultant needs to take over for workshop. No transfer mechanism exists. |
 | HIGH | Conversion trigger unvalidated | Assumed "after successful workshop" but consultants likely pay BEFORE to avoid friction with clients. Interview 10 users. |
-| HIGH | Free tier limit (5 contexts) unvalidated | May be too restrictive for real workshops. Analyze 10 real-world context maps to check typical size. |
 | HIGH | Missing "vs Context Mapper" comparison | It's free, we're $99. Need explicit value prop on landing page showing why visual > DSL. |
 | MEDIUM | Multi-tab upgrade detection | User pays in Tab A, Tab B still shows Free tier for 0-60s. Use BroadcastChannel + forced refresh. |
 | MEDIUM | Anonymous collaboration abuse | No per-project connection limits. 500 people could join one session. |
 | MEDIUM | "Configurable flow stages" undefined | Marketing claim but no UI exists to customize stages. |
-| MEDIUM | Over-limit downgrade UX | Pro user with 47 contexts downgrades - can they delete to get under limit? Bulk export? |
+| MEDIUM | Over-limit downgrade UX | Pro user with 5 projects downgrades - which becomes the 1 active project? |
 | LOW | "Made with ContextFlow" branding | Not implemented for free tier shared projects. |
 
 ### 4. Infrastructure & Operations
@@ -114,10 +113,12 @@ Measuring success and knowing when to pivot.
 
 These have been decided and don't need further discussion:
 
+- **Project-based limits** - Free tier limited to 1 owned project with unlimited contexts. Context limits removed. Simpler model that lets users experience full DDD workshops.
+- **Sample project handling** - Samples are platform-owned, editable by all users, don't count against project limit. Changes saved to user's local IndexedDB.
 - **Project limit enforcement** - Show upgrade modal when limit reached, allow user to cancel. No hard block mid-action.
 - **Downgrade behavior** - Most recently edited project stays editable, others read-only. User can switch active project in settings.
 - **Anonymous → authenticated migration** - On sign-up, show "Save this project?" prompt. Transfer ownership or GC if declined.
-- **Feature gate architecture** - Three layers: UI (disabled buttons) → Yjs mutation helpers (throw errors) → Server validation (compensating transactions).
+- **Feature gate architecture** - Three layers: UI (disabled buttons) → Yjs mutation helpers (throw errors) → Server validation (project count only).
 
 ---
 
@@ -154,8 +155,8 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 
 | Tier | Price | Limits |
 |------|-------|--------|
-| **Free** | $0 | 1 project, 5 bounded contexts, full collaboration |
-| **Pro** | $99/year | Unlimited projects, unlimited contexts |
+| **Free** | $0 | 1 project, unlimited contexts, full collaboration |
+| **Pro** | $99/year | Unlimited projects |
 | **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
 
 > **⚠️ PRICING NEEDS VALIDATION:** $99/year is 4-8 minutes of billable time for target persona ($150-300/hr). This may signal "toy tool" rather than "professional instrument." Consider testing:
@@ -177,19 +178,150 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 - Free users can participate in unlimited Pro-owned workshops
 - Free users hit limits only when creating their **own** projects
 
-### Context Limit Enforcement
+### Project Limit Enforcement
 
-- **Progress indicator**: Always show "X/5 contexts used" in UI (visible, not hidden)
-- **Warning** at 3 contexts: "You're approaching your free tier limit" (earlier warning to avoid mid-workshop surprise)
-- **Upgrade prompt** at 5 contexts: Modal with "Upgrade to Pro for unlimited contexts"
-- **Grace context**: Allow 6th context creation with 7-day countdown to upgrade or delete (don't block momentum)
-- Limit is **concurrent**, not lifetime (deleting a context frees up the slot)
+- Free tier: 1 owned project (samples and shared projects don't count)
+- Upgrade prompt when user tries to create second project
+- No context limits on any tier
 
 ---
 
-## Phase 0: Security Foundation (BEFORE User Flows)
+## Milestone 0: Minimal Path (~1 week)
 
-**Goal:** Establish secure infrastructure that all user flows depend on. This MUST be completed before implementing any user-facing flows.
+**Goal:** Ship the core payment journey with minimum infrastructure. Validate that people will pay before building production-grade systems.
+
+**Core journey:**
+
+```text
+[User visits app] → [Signs up via Clerk] → [Creates 1 project (Free tier)]
+→ [Hits project limit] → [Clicks "Upgrade"] → [Polar checkout]
+→ [Pays $99] → [Webhook fires] → [Pro unlocked] → [Creates unlimited projects]
+```
+
+### Day 1: Clerk Integration
+
+**What to build:**
+
+1. `ClerkProvider` wrapper in `src/main.tsx`
+2. `<SignIn>` / `<UserButton>` components in TopBar
+3. User state in Zustand store (`userId`, `email`, `tier`, `isLoading`)
+4. `useAuthSync` hook to sync Clerk → Zustand
+
+**Files:**
+
+- `src/main.tsx` - ClerkProvider wrapper
+- `src/components/TopBar.tsx` - sign in/out UI
+- `src/model/store.ts` - user state fields
+- `src/model/storeTypes.ts` - UserState interface
+- `src/hooks/useAuthSync.ts` - sync Clerk → Zustand (new)
+
+### Day 2: Worker Auth + Tier Gates
+
+**What to build:**
+
+1. JWT validation in `workers/server.ts` fetch handler (before routing to DO)
+2. Extract tier from Clerk JWT claims
+3. Block project creation if free tier + already owns 1 project
+4. Client-side UI gates (disabled buttons, upgrade prompts)
+
+**Files:**
+
+- `workers/server.ts` - JWT validation in fetch handler
+- `src/utils/featureGates.ts` - tier checking helpers (new)
+- `src/components/UpgradePrompt.tsx` - upgrade modal (new)
+
+**Tier storage:** Use Clerk user metadata instead of D1 database:
+
+```typescript
+// Clerk privateMetadata structure
+{
+  "subscription": {
+    "tier": "free" | "pro",
+    "polarSubscriptionId": "sub_xxx"  // optional
+  },
+  "ownedProjects": ["proj_abc123"]  // array of project IDs
+}
+```
+
+### Day 3: Polar Webhook
+
+**What to build:**
+
+1. Create Polar.sh product ($99/year) in test mode
+2. Checkout link that passes `clerk_user_id` in metadata
+3. Simple webhook handler using `@polar-sh/sdk`
+
+**Webhook handler (~50 lines):**
+
+```typescript
+// workers/webhook.ts
+import { validateEvent } from '@polar-sh/sdk/webhooks';
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const signature = request.headers.get('Polar-Signature');
+    const body = await request.text();
+
+    // SDK handles signature verification
+    const event = await validateEvent(body, signature, env.POLAR_WEBHOOK_SECRET);
+
+    if (event.type === 'subscription.created') {
+      const clerkUserId = event.data.metadata?.clerk_user_id;
+      // Update Clerk metadata: tier = "pro"
+      await updateClerkMetadata(clerkUserId, { tier: 'pro' }, env);
+    }
+
+    if (event.type === 'subscription.canceled') {
+      const clerkUserId = event.data.metadata?.clerk_user_id;
+      // Update Clerk metadata: tier = "free"
+      await updateClerkMetadata(clerkUserId, { tier: 'free' }, env);
+    }
+
+    return new Response('OK', { status: 200 });
+  }
+};
+```
+
+**Files:**
+
+- `workers/webhook.ts` - Polar webhook handler (new)
+- `wrangler.toml` - webhook route + secrets
+
+### What to Skip (Defer to Milestone 1)
+
+| Item | Why Skip | When to Add |
+|------|----------|-------------|
+| D1 database | Clerk metadata sufficient for <100 users | Milestone 1 |
+| Server-side Yjs validation | Client-side gates fine for trusted early users | Milestone 1 |
+| Structured logging | console.log works for debugging | Milestone 1 |
+| Rate limiting code | Use Cloudflare dashboard instead (no code) | Milestone 1 |
+| Webhook idempotency (KV) | Polar retries are rare, manual fix OK | Milestone 1 |
+| Input validation (1MB) | Add if abuse detected | Milestone 1 |
+
+### Minimum Security (Do Immediately)
+
+Before launching Milestone 0, configure in Cloudflare dashboard (no code):
+
+1. **Billing alert** - $50/day threshold notification
+2. **Spending cap** - $200/month hard limit
+3. **Rate limiting rule** - 100 requests/min per IP to `/parties/*`
+
+### Milestone 0 Complete When
+
+- [ ] User can sign up via Clerk
+- [ ] Free tier user can create 1 project
+- [ ] Upgrade prompt appears when creating 2nd project
+- [ ] Payment via Polar test mode succeeds
+- [ ] Webhook updates Clerk metadata
+- [ ] Pro user can create unlimited projects
+
+---
+
+## Milestone 1: Production Hardening
+
+> **When to implement:** After 50+ customers, or when manual processes become painful.
+
+This milestone adds production-grade infrastructure that's overkill for early validation but necessary for scale.
 
 **What to build:**
 
@@ -208,9 +340,7 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 CREATE TABLE project_ownership (
   project_id TEXT PRIMARY KEY,
   owner_user_id TEXT NOT NULL,
-  created_at INTEGER NOT NULL,
-  tier TEXT NOT NULL,  -- 'free' | 'pro' | 'enterprise'
-  context_count INTEGER DEFAULT 0
+  created_at INTEGER NOT NULL
 );
 CREATE INDEX idx_owner ON project_ownership(owner_user_id);
 
@@ -240,7 +370,11 @@ CREATE TABLE project_collaborators (
 
 ---
 
-## User Flows (Implementation Sequence)
+## Milestone 2: Full User Flows
+
+> **When to implement:** After Milestone 0 payment flow is validated and working.
+
+Polish the complete user experience with all edge cases handled.
 
 ### Flow 1: Anonymous Visitor → Demo Exploration
 
@@ -279,25 +413,23 @@ CREATE TABLE project_collaborators (
 ```text
 [Click "Sign In"] → [Clerk sign-up form] → [Create account]
 → [Return to app as Free user] → [Can create 1 project]
-→ [Create first project] → [Add up to ~5 bounded contexts]
+→ [Create first project] → [Add unlimited bounded contexts]
 → [Try to create second project] → [See "Upgrade to Pro" prompt]
-→ [Try to add 6th context] → [See "Upgrade to Pro" prompt]
 ```
 
 **What to build:**
 
 1. Clerk integration (ClerkProvider, sign in/out UI)
 2. User state in Zustand store (userId, tier, isLoading)
-3. Free tier limits: 1 project, ~5 bounded contexts
-4. Upgrade prompts when hitting limits
+3. Free tier limits: 1 project (unlimited contexts)
+4. Upgrade prompts when hitting project limit
 
 **E2E Test:**
 
 - User can sign up via Clerk
 - After sign-up, returns to app with identity preserved
-- Free tier user can create and edit 1 project
-- Free tier user can add up to 5 bounded contexts
-- Attempting to exceed limits shows upgrade prompt
+- Free tier user can create and edit 1 project with unlimited contexts
+- Attempting to create second project shows upgrade prompt
 - User appears in Clerk dashboard
 
 **Files:**
@@ -316,7 +448,7 @@ CREATE TABLE project_collaborators (
 **Goal:** Complete purchase flow, prove payment → feature unlock works
 
 ```text
-[Free user hits project/context limit] → [See "Upgrade to Pro" prompt]
+[Free user hits project limit] → [See "Upgrade to Pro" prompt]
 → [Click "Subscribe $99/year"] → [Polar checkout opens]
 → [Enter payment (test card 4242...)] → [Payment succeeds]
 → [Webhook fires] → [Clerk metadata updated] → [Return to app]
@@ -487,8 +619,8 @@ wrangler secret put CLERK_SECRET_KEY --env staging
 ### Flow 2 Complete
 
 - [ ] User can sign up via Clerk
-- [ ] Free tier can create 1 project with ~5 bounded contexts
-- [ ] Upgrade prompts appear when hitting limits
+- [ ] Free tier can create 1 project with unlimited contexts
+- [ ] Upgrade prompt appears when trying to create second project
 
 ### Flow 3 Complete
 
