@@ -4,6 +4,18 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.8.0] - 2025-12-09
+
+- Real-time collaboration allowing multiple users to edit the same project simultaneously
+- Automatic cloud sync for projects (local projects migrated to cloud on first use)
+- Staging environment for testing before production deployment
+- Automatic reconnection with exponential backoff when network connection is lost
+- Offline mode indicator showing when cloud features are unavailable
+- Share project dialog with copyable project URL
+- Cloud status indicator in top bar showing connection state
+- New users and user needs auto-positioned in largest available gap
+- Fixed project data loading when connecting to existing cloud rooms
+
 ## [0.7.0] - 2025-12-01
 
 - Issues/Hotspots with severity levels (info/warning/critical) visible on bounded contexts
