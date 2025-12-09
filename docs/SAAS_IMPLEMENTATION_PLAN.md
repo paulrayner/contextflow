@@ -99,22 +99,20 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 - `src/model/storeTypes.ts` - UserState interface
 - `src/hooks/useAuthSync.ts` - sync Clerk → Zustand (new)
 
-### Step 2: Worker Auth + Tier Gates
+### Step 2: Tier Gates (Client-Side Only)
 
 **What to build:**
 
-1. JWT validation in `workers/server.ts` fetch handler (before routing to DO)
-2. Extract tier from Clerk JWT claims
+1. Read tier from Clerk user metadata (set by webhook)
+2. Client-side UI gates (disabled buttons, upgrade prompts)
 3. Block project creation if free tier + already owns 1 project
-4. Client-side UI gates (disabled buttons, upgrade prompts)
 
 **Files:**
 
-- `workers/server.ts` - JWT validation in fetch handler
 - `src/utils/featureGates.ts` - tier checking helpers (new)
 - `src/components/UpgradePrompt.tsx` - upgrade modal (new)
 
-**Tier storage:** Use Clerk user metadata instead of D1 database:
+**Tier storage:** Use Clerk user metadata (no D1 database needed for M0):
 
 ```typescript
 // Clerk privateMetadata structure
@@ -170,25 +168,6 @@ export default {
 
 - `workers/webhook.ts` - Polar webhook handler (new)
 - `wrangler.toml` - webhook route + secrets
-
-### What to Skip (Defer to Milestone 1)
-
-| Item | Why Skip | When to Add |
-|------|----------|-------------|
-| D1 database | Clerk metadata sufficient for <100 users | Milestone 1 |
-| Server-side Yjs validation | Client-side gates fine for trusted early users | Milestone 1 |
-| Structured logging | console.log works for debugging | Milestone 1 |
-| Rate limiting code | Use Cloudflare dashboard instead (no code) | Milestone 1 |
-| Webhook idempotency (KV) | Polar retries are rare, manual fix OK | Milestone 1 |
-| Input validation (1MB) | Add if abuse detected | Milestone 1 |
-
-### Minimum Security (Do Immediately)
-
-Before launching Milestone 0, configure in Cloudflare dashboard (no code):
-
-1. **Billing alert** - $50/day threshold notification
-2. **Spending cap** - $200/month hard limit
-3. **Rate limiting rule** - 100 requests/min per IP to `/parties/*`
 
 ### Milestone 0 Complete When
 
@@ -279,222 +258,29 @@ CREATE TABLE project_collaborators (
 
 ---
 
-## Milestone 2: Full User Flows
+## Milestone 2: UX Polish
 
-> **When to implement:** After Milestone 0 payment flow is validated and working.
+> **When to implement:** After M0 payment flow validated. These are refinements, not blockers.
 
-Polish the complete user experience with all edge cases handled.
+### Payment Success Page
 
-### Flow 1: Anonymous Visitor → Demo Exploration
+After Polar checkout, user returns to app. Add polling to detect tier change:
 
-**Goal:** Prove the product delivers value before requiring any commitment
+- `src/pages/PaymentSuccess.tsx` - poll Clerk every 2s for tier change (max 30s)
+- Show "Verifying payment..." state
+- Fallback: "Payment received, refreshing..." if webhook delayed
 
-```text
-[Visit contextflow.app] → [See WelcomeModal] → [Load sample project]
-→ [Explore canvas: pan, zoom, switch views] → [Click around for 5-10 min]
-→ [Try to edit something] → [See "Sign in to edit" prompt]
-```
+### Anonymous Demo Experience
 
-**What to build:**
+Add soft prompts for anonymous users exploring sample projects:
 
-1. Anonymous access to sample projects (already works)
-2. Clear "view-only" indicator for anonymous users
-3. Soft prompt when attempting edit: "Sign in to start creating"
-
-**E2E Test:**
-
-- Anonymous user can load sample project
-- Can switch views, click nodes, read inspector
-- Attempting edit shows sign-in prompt (not hard block)
-- No errors in console
-
-**Files:**
-
-- `src/components/TopBar.tsx` - show "Sign In" button when anonymous
-- `src/App.tsx` - handle anonymous state gracefully
+- Clear "view-only" indicator in TopBar
+- Soft prompt on edit attempt: "Sign in to start creating"
+- Already works: anonymous can load/explore samples
 
 ---
 
-### Flow 2: Sign Up → Free Tier Experience
-
-**Goal:** Get user signed in, establish baseline "free" experience with limited creation
-
-```text
-[Click "Sign In"] → [Clerk sign-up form] → [Create account]
-→ [Return to app as Free user] → [Can create 1 project]
-→ [Create first project] → [Add unlimited bounded contexts]
-→ [Try to create second project] → [See "Upgrade to Pro" prompt]
-```
-
-**What to build:**
-
-1. Clerk integration (ClerkProvider, sign in/out UI)
-2. User state in Zustand store (userId, tier, isLoading)
-3. Free tier limits: 1 project (unlimited contexts)
-4. Upgrade prompts when hitting project limit
-
-**E2E Test:**
-
-- User can sign up via Clerk
-- After sign-up, returns to app with identity preserved
-- Free tier user can create and edit 1 project with unlimited contexts
-- Attempting to create second project shows upgrade prompt
-- User appears in Clerk dashboard
-
-**Files:**
-
-- `src/main.tsx` - ClerkProvider wrapper
-- `src/model/store.ts` - user state fields
-- `src/model/storeTypes.ts` - UserState interface
-- `src/hooks/useAuthSync.ts` - sync Clerk → Zustand
-- `src/components/TopBar.tsx` - sign in/out UI
-- `src/components/UpgradePrompt.tsx` - upgrade modal
-
----
-
-### Flow 3: Free User → Purchase → Pro Unlock
-
-**Goal:** Complete purchase flow, prove payment → feature unlock works
-
-```text
-[Free user hits project limit] → [See "Upgrade to Pro" prompt]
-→ [Click "Subscribe $99/year"] → [Polar checkout opens]
-→ [Enter payment (test card 4242...)] → [Payment succeeds]
-→ [Webhook fires] → [Clerk metadata updated] → [Return to app]
-→ [Pro features unlocked] → [Create unlimited projects]
-```
-
-**What to build:**
-
-1. Polar.sh product setup (test mode)
-2. Checkout link integration (pass clerk_user_id in metadata)
-3. Webhook handler (Cloudflare Worker) - already built in Phase 0
-4. Clerk metadata update on payment
-5. **Payment success page** with tier verification polling
-6. **"Processing..." state** while waiting for webhook (retry every 2s, max 30s)
-7. **Fallback UX**: "Payment received, refreshing..." if webhook delayed beyond 30s
-
-**E2E Test:**
-
-- Free user clicks upgrade, sees Polar checkout
-- Payment with test card succeeds
-- User returns to success page, sees "Verifying payment..."
-- Webhook processes, Clerk metadata updated
-- Success page detects tier change, redirects to app
-- App shows Pro features unlocked
-- User can create new project
-- **Edge case:** Webhook delayed 45 seconds - user sees helpful message, not error
-
-**Files:**
-
-- `workers/webhook.ts` - Polar webhook handler (Phase 0)
-- `wrangler.toml` - webhook worker config
-- `src/pages/PaymentSuccess.tsx` - success page with polling (new)
-- `src/components/UpgradePrompt.tsx` - checkout link
-- `src/utils/featureGates.ts` - tier checking helpers (UI layer)
-
----
-
-### Flow 4: Pro User → Create & Edit Project
-
-**Goal:** Prove core Pro experience works end-to-end
-
-```text
-[Pro user opens app] → [Click "New Project"] → [Enter project name]
-→ [Empty canvas appears] → [Add bounded context] → [Edit properties]
-→ [Add relationship] → [Project auto-saves to cloud]
-→ [Close browser] → [Reopen] → [Project persists]
-```
-
-**What to build:**
-
-1. "New Project" flow for Pro users
-2. Feature gates on create/edit/delete actions
-3. Verify cloud sync works with new projects
-
-**E2E Test:**
-
-- Pro user can create new project
-- Can add/edit/delete bounded contexts
-- Can add relationships
-- Changes sync to cloud (verify in DO)
-- Reopening browser shows same project
-
-**Files (Three-Layer Gate Architecture):**
-
-- `src/utils/featureGates.ts` - tier checking helpers (UI layer - disabled buttons, upgrade prompts)
-- `src/model/mutations.ts` - Yjs mutation wrappers with tier checks (developer safety layer - throw errors)
-- `workers/server.ts` - onMessage validation (security layer - reject WebSocket messages)
-- `src/components/ContextNode.tsx` - respect UI gates
-- `src/components/InspectorPanel.tsx` - show/hide edit controls based on tier
-
-**Note:** Do NOT add mutation logic to `store.ts` - Zustand is a read-only projection per ARCHITECTURE.md.
-
----
-
-### Flow 5: Pro User → Share → Recipient Views
-
-**Goal:** Prove viral sharing loop works
-
-```text
-[Pro user clicks "Share"] → [Copy project URL] → [Send to colleague]
-→ [Colleague opens URL] → [Project loads (no sign-in required)]
-→ [Colleague can view and collaborate on shared project]
-→ [Colleague signs up] → [Gets Free tier: can create their own project]
-```
-
-**What to build:**
-
-1. Shareable project URLs (already implemented via ShareProjectDialog)
-2. Anonymous/free users can view AND collaborate on shared projects
-3. Signing up gives them their own Free tier quota (1 project)
-
-**E2E Test:**
-
-- Pro user generates share link
-- Anonymous recipient can open link and view project
-- Recipient can collaborate (edit) on the shared project
-- Recipient signs up → gets own Free tier with 1 project quota
-
-**Files:**
-
-- `src/components/ShareProjectDialog.tsx` - verify works
-- `src/App.tsx` - handle shared project loading for anonymous users
-
----
-
-## Edge Cases (Implement AFTER happy paths work)
-
-### Edge Case A: Returning Pro User
-
-- User with existing Pro subscription returns
-- Clerk loads user → metadata has tier: "pro"
-- App unlocks Pro features immediately
-
-### Edge Case B: Subscription Expires
-
-- Pro user's subscription lapses
-- Polar webhook fires (subscription_cancelled)
-- Clerk metadata updated to tier: "free"
-- Next app load enforces Free tier limits
-- Existing projects preserved but user can only edit 1 project (oldest or most recent)
-
-### Edge Case C: Payment Fails
-
-- User starts checkout but payment fails
-- Polar shows error, user remains on Free tier
-- No webhook fires (nothing to handle)
-
-### Edge Case D: Offline During Purchase
-
-- User completes Polar checkout
-- Network drops before webhook completes
-- Polar retries webhook (built-in)
-- User sees "Payment processing..." until confirmed
-
----
-
-## Environment Setup (Do First)
+## Environment Setup
 
 ### External Accounts
 
@@ -515,73 +301,6 @@ VITE_POLAR_CHECKOUT_URL=https://polar.sh/checkout/...
 wrangler secret put POLAR_WEBHOOK_SECRET --env staging
 wrangler secret put CLERK_SECRET_KEY --env staging
 ```
-
----
-
-## Success Criteria
-
-### Flow 1 Complete
-
-- [ ] Anonymous user can explore sample project
-- [ ] Edit attempt shows sign-in prompt
-
-### Flow 2 Complete
-
-- [ ] User can sign up via Clerk
-- [ ] Free tier can create 1 project with unlimited contexts
-- [ ] Upgrade prompt appears when trying to create second project
-
-### Flow 3 Complete
-
-- [ ] Test purchase completes end-to-end
-- [ ] Webhook updates Clerk metadata
-- [ ] Pro features unlock without manual intervention
-
-### Flow 4 Complete
-
-- [ ] Pro user can create/edit/delete projects
-- [ ] Changes persist across sessions
-
-### Flow 5 Complete
-
-- [ ] Share URL works for anonymous recipients
-- [ ] Recipients can collaborate on shared projects
-- [ ] Signing up gives recipient their own Free tier quota
-
----
-
-## Files Changed (By Flow)
-
-### Flow 1 (Anonymous)
-
-- `src/components/TopBar.tsx`
-- `src/App.tsx`
-
-### Flow 2 (Sign Up + Free Tier)
-
-- `src/main.tsx`
-- `src/model/store.ts`
-- `src/model/storeTypes.ts`
-- `src/hooks/useAuthSync.ts`
-- `src/components/TopBar.tsx`
-- `src/components/UpgradePrompt.tsx`
-
-### Flow 3 (Purchase)
-
-- `workers/webhook.ts` (new)
-- `wrangler.toml`
-- `src/components/UpgradePrompt.tsx`
-- `src/utils/featureGates.ts`
-
-### Flow 4 (Pro Experience)
-
-- `src/model/store.ts`
-- `src/components/ContextNode.tsx`
-- `src/components/InspectorPanel.tsx`
-
-### Flow 5 (Sharing)
-
-- Minimal changes (verify existing ShareProjectDialog works)
 
 ---
 
