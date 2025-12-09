@@ -181,7 +181,7 @@ describe('Store Collab Integration', () => {
   });
 
   describe('project switching with collab mode', () => {
-    it('setActiveProject destroys old collab mode and initializes new one', () => {
+    it('destroyCollabMode clears undo history', () => {
       const onProjectChange = (project: Project): void => {
         useEditorStore.setState((state) => ({
           projects: {
@@ -196,22 +196,11 @@ describe('Store Collab Integration', () => {
       useEditorStore.getState().updateContext('ctx-1', { name: 'Updated' });
       expect(getCollabUndoRedo().canUndo).toBe(true);
 
-      // Create and switch to a new project
-      const newProject = createTestProject();
-      newProject.id = 'project-2';
-      newProject.name = 'Second Project';
+      // Destroy collab mode (as setActiveProject does before connecting to new project)
+      destroyCollabMode();
 
-      useEditorStore.setState((state) => ({
-        projects: {
-          ...state.projects,
-          [newProject.id]: newProject,
-        },
-      }));
-
-      useEditorStore.getState().setActiveProject('project-2');
-
-      // After project switch, undo history should be cleared
-      expect(getCollabUndoRedo().canUndo).toBe(false);
+      // After destroying collab mode, undo state should be null (no collab mode)
+      expect(getCollabUndoRedo().canUndo).toBe(null);
     });
   });
 

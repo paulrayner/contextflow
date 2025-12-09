@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateNextStagePosition } from './stagePosition'
+import { calculateNextStagePosition, calculateNextPosition } from './stagePosition'
 import { FlowStageMarker } from './types'
 
 describe('calculateNextStagePosition', () => {
@@ -90,5 +90,42 @@ describe('calculateNextStagePosition', () => {
     // Gaps: 0-100 (100), 100-100 (0)
     // Largest is 0-100, midpoint = 50
     expect(calculateNextStagePosition(stages)).toBe(50)
+  })
+})
+
+describe('calculateNextPosition', () => {
+  it('returns 50 for empty array', () => {
+    expect(calculateNextPosition([])).toBe(50)
+  })
+
+  it('finds largest gap with one item at center', () => {
+    const items = [{ position: 50 }]
+    expect(calculateNextPosition(items)).toBe(25)
+  })
+
+  it('finds largest gap with item at low position', () => {
+    const items = [{ position: 10 }]
+    expect(calculateNextPosition(items)).toBe(55)
+  })
+
+  it('finds largest gap with multiple items', () => {
+    const items = [{ position: 25 }, { position: 50 }]
+    expect(calculateNextPosition(items)).toBe(75)
+  })
+
+  it('works with User-like objects', () => {
+    const users = [
+      { id: 'u1', name: 'CSR', position: 50 },
+      { id: 'u2', name: 'Admin', position: 75 },
+    ]
+    expect(calculateNextPosition(users)).toBe(25)
+  })
+
+  it('works with UserNeed-like objects', () => {
+    const needs = [
+      { id: 'n1', name: 'Need 1', position: 30, visibility: true },
+      { id: 'n2', name: 'Need 2', position: 60, visibility: true },
+    ]
+    expect(calculateNextPosition(needs)).toBe(80)
   })
 })

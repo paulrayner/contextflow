@@ -1,16 +1,12 @@
 import { FlowStageMarker } from './types'
 
-/**
- * Calculate the next available position for a new flow stage
- * by finding the midpoint of the largest gap between existing stages.
- */
-export function calculateNextStagePosition(stages: FlowStageMarker[]): number {
-  if (stages.length === 0) return 50
+type HasPosition = { position: number }
 
-  // Get sorted positions including boundaries (0 and 100)
-  const positions = [0, ...stages.map(s => s.position).sort((a, b) => a - b), 100]
+export function calculateNextPosition(items: HasPosition[]): number {
+  if (items.length === 0) return 50
 
-  // Find largest gap
+  const positions = [0, ...items.map(s => s.position).sort((a, b) => a - b), 100]
+
   let maxGap = 0
   let gapStart = 0
   for (let i = 0; i < positions.length - 1; i++) {
@@ -21,6 +17,9 @@ export function calculateNextStagePosition(stages: FlowStageMarker[]): number {
     }
   }
 
-  // Return midpoint of largest gap, rounded to integer
   return Math.round(gapStart + maxGap / 2)
+}
+
+export function calculateNextStagePosition(stages: FlowStageMarker[]): number {
+  return calculateNextPosition(stages)
 }

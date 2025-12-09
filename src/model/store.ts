@@ -13,9 +13,9 @@ import {
   initializeCollabModeWithYDoc,
   destroyCollabMode,
 } from './sync/useCollabMode'
-import { populateYDocWithProject } from './sync/projectSync'
+import { populateYDocWithProject, yDocToProject } from './sync/projectSync'
 import { useCollabStore as useNetworkCollabStore } from './collabStore'
-import { calculateNextStagePosition } from './stagePosition'
+import { calculateNextStagePosition, calculateNextPosition } from './stagePosition'
 import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition, findFirstUnoccupiedFlowPosition } from '../lib/distillationGrid'
 import {
   addContextIssueAction,
@@ -60,6 +60,16 @@ let globalFitViewCallback: (() => void) | null = null
 
 export function setFitViewCallback(callback: () => void) {
   globalFitViewCallback = callback
+}
+
+function loadExistingProjectFromYDoc(
+  ydoc: import('yjs').Doc,
+  onProjectLoaded: (project: Project) => void
+): void {
+  const yProject = ydoc.getMap('project')
+  if (yProject.has('id')) {
+    onProjectLoaded(yDocToProject(ydoc))
+  }
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -616,7 +626,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newUser: User = {
       id: `user-${Date.now()}`,
       name,
-      position: 50,
+      position: calculateNextPosition(project.users || []),
     }
 
     getCollabMutations().addUser(newUser)
@@ -671,7 +681,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newUserNeed: UserNeed = {
       id: `need-${Date.now()}`,
       name,
-      position: 50,
+      position: calculateNextPosition(project.userNeeds || []),
       visibility: true,
     }
 
@@ -1128,6 +1138,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         })
       }
       initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
+      loadExistingProjectFromYDoc(ydoc, updateStoreAndAutosave)
     }
 
     // Also update localStorage to remember this project

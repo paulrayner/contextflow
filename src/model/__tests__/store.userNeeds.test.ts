@@ -27,7 +27,7 @@ describe('Store - UserNeed Management', () => {
   })
 
   describe('addUserNeed', () => {
-    it('should add a new user need with default position', () => {
+    it('should add a new user need with calculated position', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
       const { addUserNeed } = state
@@ -44,8 +44,63 @@ describe('Store - UserNeed Management', () => {
       const addedNeed = updatedProject.userNeeds.find(n => n.id === needId)
       expect(addedNeed).toBeDefined()
       expect(addedNeed?.name).toBe('Fast Checkout')
-      expect(addedNeed?.position).toBe(50)
+      expect(addedNeed?.position).toBeTypeOf('number')
       expect(addedNeed?.visibility).toBe(true)
+    })
+
+    it('should place first user need at position 50 when no existing needs', () => {
+      const state = useEditorStore.getState()
+      const project = state.projects[state.activeProjectId!]
+
+      // Clear existing userNeeds for this test
+      useEditorStore.setState((s) => ({
+        projects: {
+          ...s.projects,
+          [s.activeProjectId!]: {
+            ...project,
+            userNeeds: [],
+          },
+        },
+      }))
+
+      // Reinitialize collab mode with cleared project
+      destroyCollabMode()
+      const clearedProject = useEditorStore.getState().projects[state.activeProjectId!]
+      const onProjectChange = (updatedProject: Project): void => {
+        useEditorStore.setState((s) => ({
+          projects: { ...s.projects, [updatedProject.id]: updatedProject },
+        }))
+      }
+      initializeCollabMode(clearedProject, { onProjectChange })
+
+      const { addUserNeed } = useEditorStore.getState()
+      const needId = addUserNeed('First Need')
+
+      const updatedState = useEditorStore.getState()
+      const updatedProject = updatedState.projects[updatedState.activeProjectId!]
+      const addedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+
+      expect(addedNeed?.position).toBe(50)
+    })
+
+    it('should place user need in largest gap when existing needs present', () => {
+      // Get current state which has existing userNeeds from sample project
+      const state = useEditorStore.getState()
+      const project = state.projects[state.activeProjectId!]
+      const existingPositions = project.userNeeds.map(n => n.position)
+
+      const { addUserNeed } = state
+      const needId = addUserNeed('New Need')
+
+      const updatedState = useEditorStore.getState()
+      const updatedProject = updatedState.projects[updatedState.activeProjectId!]
+      const addedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+
+      // The new need should be at a position not occupied by existing needs
+      expect(existingPositions).not.toContain(addedNeed?.position)
+      // Position should be valid (between 0 and 100)
+      expect(addedNeed?.position).toBeGreaterThanOrEqual(0)
+      expect(addedNeed?.position).toBeLessThanOrEqual(100)
     })
   })
 
