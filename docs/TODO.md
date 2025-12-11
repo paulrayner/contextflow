@@ -2,7 +2,6 @@
 
 ## In Progress
 
-- [ ] Errors for repository stats and contributors in Inspector when selecting repository name when CodeCohesion not connected (even when turned off in settings)
 - [ ] Research for SAAS cloud edition
 
 ## Backlog
@@ -74,6 +73,7 @@
 
 ## Done
 
+- [x] Errors for repository stats and contributors in Inspector when selecting repository name when CodeCohesion not connected (even when turned off in settings)
 - [x] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
 - [x] Legend for colors
 - [x] Extensive educational/informational improments to tooltips
