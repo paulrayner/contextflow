@@ -320,6 +320,7 @@ export function TopBar() {
           <IconButton
             onClick={undo}
             icon={<Undo2 size={16} />}
+            ariaLabel="Undo"
             disabled={!canUndo}
           />
         </SimpleTooltip>
@@ -327,6 +328,7 @@ export function TopBar() {
           <IconButton
             onClick={redo}
             icon={<Redo2 size={16} />}
+            ariaLabel="Redo"
             disabled={!canRedo}
           />
         </SimpleTooltip>
@@ -337,18 +339,21 @@ export function TopBar() {
           <IconButton
             onClick={() => setShowShareDialog(true)}
             icon={<Share2 size={16} />}
+            ariaLabel="Share project"
           />
         </SimpleTooltip>
         <SimpleTooltip text="Export project JSON">
           <IconButton
             onClick={handleExport}
             icon={<Download size={16} />}
+            ariaLabel="Export project"
           />
         </SimpleTooltip>
         <SimpleTooltip text="Import project JSON">
           <IconButton
             onClick={handleImport}
             icon={<Upload size={16} />}
+            ariaLabel="Import project"
           />
         </SimpleTooltip>
 
@@ -363,6 +368,7 @@ export function TopBar() {
             <IconButton
               onClick={() => setShowSettings(!showSettings)}
               icon={<Settings size={16} />}
+              ariaLabel="Settings"
             />
           </SimpleTooltip>
 
@@ -638,14 +644,16 @@ interface IconButtonProps {
   onClick: () => void
   icon: React.ReactNode
   label?: string
+  ariaLabel?: string
   disabled?: boolean
 }
 
-function IconButton({ onClick, icon, label, disabled }: IconButtonProps) {
+function IconButton({ onClick, icon, label, ariaLabel, disabled }: IconButtonProps) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      aria-label={label ? undefined : ariaLabel}
       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
         disabled
           ? 'text-slate-300 dark:text-neutral-600 cursor-not-allowed'
