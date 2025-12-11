@@ -2,18 +2,21 @@
 
 ## In Progress
 
-- [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though. (for 0.9.0)
+- [ ] Errors for repository stats and contributors in Inspector when selecting repository name when CodeCohesion not connected (even when turned off in settings)
+- [ ] Research for SAAS cloud edition
 
 ## Backlog
 
+### 0.9.0
+
 - [ ] Organizational Modeling - Teams as first-class entities with many-to-many context ownership (Team X owns contexts A, B, C; Context D has unclear ownership from multiple teams; enables "show all contexts Team X touches" and "which contexts have unclear ownership?") (for 0.9.0)
 - [ ] Not clear how to add a context to a group
-- [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
-- [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?) (for 0.9.0)
-- Add text link to discord in README (so someone can search the page for it) (for 0.9.0)
-- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to (for 0.9.0)
+- [ ] Bug - Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
+- [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
+- Add text link to discord in README (so someone can search the page for it)
+- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
 
-### v.1.0.0
+### v.1.0.0 - SAAS cloud edition (users, auth, pricing)
 
 - [ ] Implement milestone 1 of SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md (for 1.0.0)
 - [ ] Repo management
@@ -71,6 +74,7 @@
 
 ## Done
 
+- [x] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
 - [x] Legend for colors
 - [x] Extensive educational/informational improments to tooltips
 - [x] Collaborative editing of projects together, so a team could work on them together

@@ -1878,10 +1878,10 @@ function RepoCard({
             <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
               Contributors ({dataSource})
             </div>
-            {loadingContributors && (
+            {useAPI && loadingContributors && (
               <div className="text-[10px] text-slate-500 dark:text-slate-400">Loading contributors...</div>
             )}
-            {contributorsError && (
+            {useAPI && contributorsError && (
               <div className="text-[10px] text-red-600 dark:text-red-400">Error loading contributors</div>
             )}
             {!loadingContributors && !contributorsError && contributorsToDisplay.length > 0 && (
