@@ -1159,10 +1159,25 @@ function GroupNode({ data }: NodeProps) {
   const isSelected = data.isSelected as boolean
   const [isHovered, setIsHovered] = React.useState(false)
   const groupOpacity = useEditorStore(s => s.groupOpacity)
+  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
   const blobPath = data.blobPath as string
   const blobBounds = data.blobBounds as { width: number; height: number }
+  const nodeRef = React.useRef<HTMLDivElement>(null)
 
   const isDarkMode = document.documentElement.classList.contains('dark')
+
+  // Calculate tooltip position from node bounds
+  const getTooltipPosition = () => {
+    if (!nodeRef.current) return { x: 0, y: 0 }
+    const rect = nodeRef.current.getBoundingClientRect()
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
+    }
+  }
+
+  const memberCount = group.contextIds?.length || 0
+  const hasTooltipContent = group.notes || memberCount > 0
 
   const groupColor = group.color || '#3b82f6'
 
@@ -1186,6 +1201,7 @@ function GroupNode({ data }: NodeProps) {
 
   return (
     <div
+      ref={nodeRef}
       className="nodrag nopan"
       style={{
         width: '100%',
@@ -1239,6 +1255,32 @@ function GroupNode({ data }: NodeProps) {
       >
         {group.label}
       </div>
+
+      {/* Tooltip on hover */}
+      {showHelpTooltips && isHovered && hasTooltipContent && (() => {
+        const tooltipPos = getTooltipPosition()
+        return createPortal(
+          <div
+            className="fixed z-[9999] pointer-events-none"
+            style={{
+              left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
+              top: tooltipPos.y,
+              transform: 'translateY(-100%)',
+            }}
+          >
+            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+              <div className="font-semibold text-sm mb-1">{group.label}</div>
+              {group.notes && (
+                <div className="text-xs text-slate-300 mb-2">{group.notes}</div>
+              )}
+              <div className="text-xs text-slate-400">
+                {memberCount} {memberCount === 1 ? 'context' : 'contexts'}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      })()}
     </div>
   )
 }
@@ -2106,6 +2148,7 @@ function RelationshipEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
+  const [isIndicatorHovered, setIsIndicatorHovered] = React.useState(false)
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
@@ -2250,12 +2293,11 @@ function RelationshipEdge({
 
       {/* Pattern indicator box (ACL/OHS) */}
       {indicatorConfig && boxPos && (
-        <g>
-          <title>
-            {isACL
-              ? `${EDGE_INDICATORS.acl.title}: ${EDGE_INDICATORS.acl.description}`
-              : `${EDGE_INDICATORS.ohs.title}: ${EDGE_INDICATORS.ohs.description}`}
-          </title>
+        <g
+          onMouseEnter={() => setIsIndicatorHovered(true)}
+          onMouseLeave={() => setIsIndicatorHovered(false)}
+          style={{ cursor: 'help' }}
+        >
           <rect
             x={boxPos.x - indicatorConfig.boxWidth / 2}
             y={boxPos.y - indicatorConfig.boxHeight / 2}
@@ -2280,6 +2322,40 @@ function RelationshipEdge({
           </text>
         </g>
       )}
+      {/* Indicator box tooltip */}
+      {showHelpTooltips && isIndicatorHovered && indicatorConfig && boxPos && (() => {
+        const indicatorContent = isACL ? EDGE_INDICATORS.acl : EDGE_INDICATORS.ohs
+        // Convert canvas coordinates to screen coordinates
+        const screenX = boxPos.x * zoom + vpX
+        const screenY = boxPos.y * zoom + vpY
+
+        const tooltipWidth = 256
+        const tooltipX = Math.max(8, Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8))
+        const tooltipY = Math.max(8, screenY - 8)
+
+        return createPortal(
+          <div
+            className="fixed z-[9999] pointer-events-none"
+            style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
+          >
+            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+              <div className="font-semibold text-sm mb-1">{indicatorContent.title}</div>
+              <div className="text-xs text-slate-300 mb-2">{indicatorContent.description}</div>
+              {indicatorContent.characteristics && indicatorContent.characteristics.length > 0 && (
+                <ul className="text-xs text-slate-300 space-y-0.5">
+                  {indicatorContent.characteristics.map((item, index) => (
+                    <li key={index} className="flex items-start gap-1.5">
+                      <span className="text-slate-500 mt-0.5">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>,
+          document.body
+        )
+      })()}
       {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
