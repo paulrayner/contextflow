@@ -3353,7 +3353,7 @@ function CanvasContent() {
         <GettingStartedGuideModal
           onClose={() => {
             setShowGettingStartedGuide(false)
-            if (isSampleProject(project.id)) {
+            if (isSampleProject(project)) {
               setSeenSampleProjects(prev => new Set(prev).add(project.id))
             } else {
               setDismissedGuideForEmptyProject(true)

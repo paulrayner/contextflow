@@ -57,24 +57,48 @@ describe('isProjectEmpty', () => {
 })
 
 describe('isSampleProject', () => {
-  it('returns true for acme-ecommerce', () => {
-    expect(isSampleProject('acme-ecommerce')).toBe(true)
+  it('returns true for built-in project that is not Empty Project', () => {
+    const project = {
+      ...createBaseMockProject(),
+      name: 'ACME E-Commerce',
+      isBuiltIn: true,
+    }
+    expect(isSampleProject(project)).toBe(true)
   })
 
-  it('returns true for cbioportal', () => {
-    expect(isSampleProject('cbioportal')).toBe(true)
+  it('returns true for cbioportal built-in project', () => {
+    const project = {
+      ...createBaseMockProject(),
+      name: 'cBioPortal',
+      isBuiltIn: true,
+    }
+    expect(isSampleProject(project)).toBe(true)
   })
 
-  it('returns true for elan-warranty', () => {
-    expect(isSampleProject('elan-warranty')).toBe(true)
-  })
-
-  it('returns false for empty-project', () => {
-    expect(isSampleProject('empty-project')).toBe(false)
+  it('returns false for Empty Project even when built-in', () => {
+    const project = {
+      ...createBaseMockProject(),
+      name: 'Empty Project',
+      isBuiltIn: true,
+    }
+    expect(isSampleProject(project)).toBe(false)
   })
 
   it('returns false for user-created projects', () => {
-    expect(isSampleProject('my-custom-project')).toBe(false)
+    const project = {
+      ...createBaseMockProject(),
+      name: 'My Custom Project',
+      isBuiltIn: false,
+    }
+    expect(isSampleProject(project)).toBe(false)
+  })
+
+  it('returns false for projects without isBuiltIn flag', () => {
+    const project = {
+      ...createBaseMockProject(),
+      name: 'Some Project',
+    }
+    expect(isSampleProject(project)).toBe(false)
   })
 })
 
@@ -110,7 +134,9 @@ describe('shouldShowGettingStartedGuide', () => {
   it('returns true for unseen sample project after welcome dismissed', () => {
     const project = {
       ...createBaseMockProject(),
-      id: 'acme-ecommerce',
+      id: 'unique-id-123',
+      name: 'ACME E-Commerce',
+      isBuiltIn: true,
       contexts: [createMockContext()],
     }
 
@@ -120,10 +146,12 @@ describe('shouldShowGettingStartedGuide', () => {
   it('returns false for already-seen sample project', () => {
     const project = {
       ...createBaseMockProject(),
-      id: 'acme-ecommerce',
+      id: 'unique-id-123',
+      name: 'ACME E-Commerce',
+      isBuiltIn: true,
       contexts: [createMockContext()],
     }
-    const seenProjects = new Set(['acme-ecommerce'])
+    const seenProjects = new Set(['unique-id-123'])
 
     expect(shouldShowGettingStartedGuide(project, seenProjects, false, true, false)).toBe(false)
   })

@@ -19,13 +19,6 @@ Object.defineProperty(global, 'navigator', {
   writable: true,
 });
 
-const BUILT_IN_PROJECT_IDS = [
-  'acme-ecommerce',
-  'cbioportal',
-  'empty-project',
-  'elan-warranty',
-];
-
 function createTestProject(overrides: Partial<Project> = {}): Project {
   return {
     id: `test-project-${Date.now()}`,
@@ -71,12 +64,12 @@ describe('cloudMigration', () => {
   });
 
   describe('filterMigratableProjects', () => {
-    it('filters out built-in project IDs', async () => {
+    it('filters out built-in projects', async () => {
       const { filterMigratableProjects } = await import('./cloudMigration');
 
       const projects: Project[] = [
-        createTestProject({ id: 'acme-ecommerce', name: 'ACME' }),
-        createTestProject({ id: 'cbioportal', name: 'CBioPortal' }),
+        createTestProject({ id: 'builtin-1', name: 'ACME', isBuiltIn: true }),
+        createTestProject({ id: 'builtin-2', name: 'CBioPortal', isBuiltIn: true }),
         createTestProject({ id: 'user-project-1', name: 'My Project' }),
       ];
 
@@ -89,9 +82,12 @@ describe('cloudMigration', () => {
     it('returns empty array when all projects are built-in', async () => {
       const { filterMigratableProjects } = await import('./cloudMigration');
 
-      const projects: Project[] = BUILT_IN_PROJECT_IDS.map((id) =>
-        createTestProject({ id, name: id })
-      );
+      const projects: Project[] = [
+        createTestProject({ id: 'builtin-1', name: 'ACME', isBuiltIn: true }),
+        createTestProject({ id: 'builtin-2', name: 'CBioPortal', isBuiltIn: true }),
+        createTestProject({ id: 'builtin-3', name: 'Empty', isBuiltIn: true }),
+        createTestProject({ id: 'builtin-4', name: 'Elan', isBuiltIn: true }),
+      ];
 
       const result = filterMigratableProjects(projects);
       expect(result).toHaveLength(0);
@@ -194,7 +190,7 @@ describe('cloudMigration', () => {
     it('returns false when no user projects exist', async () => {
       vi.doMock('../persistence', () => ({
         loadAllProjects: vi.fn().mockResolvedValue([
-          createTestProject({ id: 'acme-ecommerce' }),
+          createTestProject({ id: 'builtin-1', isBuiltIn: true }),
         ]),
       }));
 
@@ -337,7 +333,7 @@ describe('cloudMigration', () => {
       vi.doMock('../persistence', () => ({
         loadAllProjects: vi.fn().mockResolvedValue([
           createTestProject({ id: 'user-project-1' }),
-          createTestProject({ id: 'acme-ecommerce' }),
+          createTestProject({ id: 'builtin-1', isBuiltIn: true }),
         ]),
         deleteProject,
       }));

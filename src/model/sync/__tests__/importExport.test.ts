@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { projectToYDoc, yDocToProject } from '../projectSync';
 import { validateImportedProject, checkImportConflict, importProjectAsNew } from '../../actions/projectActions';
 import type { Project, BoundedContext, Relationship, Group, Repo, Person, Team, User, UserNeed, UserNeedConnection, NeedContextConnection, FlowStageMarker } from '../../types';

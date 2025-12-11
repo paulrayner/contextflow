@@ -1,9 +1,7 @@
 import type { Project } from './types'
 
-const BUILT_IN_PROJECT_IDS = ['acme-ecommerce', 'cbioportal', 'elan-warranty']
-
-export function isBuiltInProject(projectId: string): boolean {
-  return BUILT_IN_PROJECT_IDS.includes(projectId)
+export function isBuiltInProject(project: Project): boolean {
+  return project.isBuiltIn === true
 }
 
 export function formatRelativeTime(isoString?: string): string {

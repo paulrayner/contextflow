@@ -6,37 +6,26 @@ import elanWarrantyProject from '../../examples/elan-warranty.project.json'
 import { saveProject, loadProject, migrateProject } from './persistence'
 import { classifyFromStrategicPosition } from './classification'
 
-// ============================================================================
-// BUILT-IN PROJECTS
-// ============================================================================
-// To add a new built-in project:
-// 1. Import the JSON file at the top: import newProject from '../../examples/new.project.json'
-// 2. Add it to this array: BUILT_IN_PROJECTS.push(newProject as Project)
-//
-// The project will automatically be:
-// - Initialized with backwards-compatible fields
-// - Migrated for distillation/evolution if needed
-// - Saved to IndexedDB
-// - Loaded from IndexedDB on startup
-// - Available in the project dropdown
-// ============================================================================
-export const BUILT_IN_PROJECTS = [
+const TEMPLATE_PROJECTS = [
   demoProject as Project,
   cbioportalProject as Project,
   emptyProject as Project,
   elanWarrantyProject as Project,
 ]
 
-// For backwards compatibility, create named references
+export const BUILT_IN_PROJECTS = TEMPLATE_PROJECTS.map(template => ({
+  ...template,
+  id: crypto.randomUUID(),
+  isBuiltIn: true,
+}))
+
 export const [sampleProject, cbioportal, empty, elanWarranty] = BUILT_IN_PROJECTS
 
-// Ensure all projects have required arrays (for backwards compatibility)
 BUILT_IN_PROJECTS.forEach(project => {
   if (!project.users) project.users = []
   if (!project.userNeeds) project.userNeeds = []
   if (!project.userNeedConnections) project.userNeedConnections = []
   if (!project.needContextConnections) project.needContextConnections = []
-  // Ensure viewConfig exists with flowStages array
   if (!project.viewConfig) {
     project.viewConfig = { flowStages: [] }
   } else if (!project.viewConfig.flowStages) {
@@ -44,7 +33,6 @@ BUILT_IN_PROJECTS.forEach(project => {
   }
 })
 
-// Migrate contexts to include distillation position and evolution stage if missing
 BUILT_IN_PROJECTS.forEach(project => {
   project.contexts = project.contexts.map(context => {
     const needsDistillation = !context.positions.distillation
@@ -84,7 +72,6 @@ export const initialProjects = BUILT_IN_PROJECTS.reduce((acc, project) => {
   return acc
 }, {} as Record<string, Project>)
 
-// Get last active project from localStorage, validating it exists in initial projects
 const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
 const storedProjectExistsLocally = storedProjectId && initialProjects[storedProjectId]
 export const initialActiveProjectId = storedProjectExistsLocally ? storedProjectId : sampleProject.id
@@ -92,13 +79,11 @@ export const initialActiveProjectId = storedProjectExistsLocally ? storedProject
 type ProjectOrigin = 'sample' | 'empty' | 'imported' | 'continued'
 
 export function determineProjectOrigin(
-  projectId: string,
+  project: Project,
   isFirstLoad: boolean
 ): ProjectOrigin {
-  if (projectId === 'acme-ecommerce' || projectId === 'cbioportal' || projectId === 'elan-warranty') {
-    return 'sample'
-  } else if (projectId === 'empty-project') {
-    return 'empty'
+  if (project.isBuiltIn) {
+    return project.name === 'Empty Project' ? 'empty' : 'sample'
   } else if (isFirstLoad) {
     return 'imported'
   }

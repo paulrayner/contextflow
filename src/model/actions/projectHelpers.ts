@@ -1,12 +1,11 @@
 import type { Project } from '../types'
-import { determineProjectOrigin } from '../builtInProjects'
 
 export function isProjectEmpty(project: Project): boolean {
   return project.contexts.length === 0 && project.users.length === 0
 }
 
-export function isSampleProject(projectId: string): boolean {
-  return determineProjectOrigin(projectId, false) === 'sample'
+export function isSampleProject(project: Project): boolean {
+  return project.isBuiltIn === true && project.name !== 'Empty Project'
 }
 
 export function shouldShowGettingStartedGuide(
@@ -19,6 +18,6 @@ export function shouldShowGettingStartedGuide(
   if (manuallyOpened) return true
   if (!welcomeModalDismissed) return false
   if (isProjectEmpty(project) && !dismissedForEmptyProject) return true
-  if (isSampleProject(project.id) && !seenSampleProjects.has(project.id)) return true
+  if (isSampleProject(project) && !seenSampleProjects.has(project.id)) return true
   return false
 }

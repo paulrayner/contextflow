@@ -12,95 +12,60 @@ const localStorageMock = (() => {
 })();
 Object.defineProperty(global, 'localStorage', { value: localStorageMock });
 
-function createTestProject(overrides: Partial<Project> = {}): Project {
-  return {
-    id: 'test-project',
-    name: 'Test Project',
-    contexts: [],
-    relationships: [],
-    repos: [],
-    people: [],
-    teams: [],
-    groups: [],
-    users: [],
-    userNeeds: [],
-    userNeedConnections: [],
-    needContextConnections: [],
-    viewConfig: { flowStages: [] },
-    ...overrides,
-  };
-}
-
 describe('templateProjects', () => {
   beforeEach(() => {
     localStorageMock.clear();
     vi.resetModules();
   });
 
-  describe('TEMPLATE_PROJECT_IDS', () => {
-    it('contains all built-in project IDs', async () => {
-      const { TEMPLATE_PROJECT_IDS } = await import('./templateProjects');
-      expect(TEMPLATE_PROJECT_IDS).toContain('acme-ecommerce');
-      expect(TEMPLATE_PROJECT_IDS).toContain('cbioportal');
-      expect(TEMPLATE_PROJECT_IDS).toContain('empty-project');
-      expect(TEMPLATE_PROJECT_IDS).toContain('elan-warranty');
-    });
-  });
-
-  describe('isTemplateProject', () => {
-    it('returns true for template project IDs', async () => {
-      const { isTemplateProject } = await import('./templateProjects');
-      expect(isTemplateProject('acme-ecommerce')).toBe(true);
-      expect(isTemplateProject('cbioportal')).toBe(true);
-    });
-
-    it('returns false for user project IDs', async () => {
-      const { isTemplateProject } = await import('./templateProjects');
-      expect(isTemplateProject('user-project-1')).toBe(false);
-      expect(isTemplateProject('random-uuid')).toBe(false);
-    });
-  });
-
-  describe('getTemplateById', () => {
-    it('returns template project for valid ID', async () => {
-      const { getTemplateById } = await import('./templateProjects');
-      const template = getTemplateById('acme-ecommerce');
+  describe('getTemplateByName', () => {
+    it('returns template project for valid name', async () => {
+      const { getTemplateByName } = await import('./templateProjects');
+      const template = getTemplateByName('ACME E-Commerce Platform');
       expect(template).not.toBeNull();
-      expect(template?.id).toBe('acme-ecommerce');
+      expect(template?.name).toBe('ACME E-Commerce Platform');
     });
 
-    it('returns null for invalid ID', async () => {
-      const { getTemplateById } = await import('./templateProjects');
-      const template = getTemplateById('invalid-id');
+    it('returns null for invalid name', async () => {
+      const { getTemplateByName } = await import('./templateProjects');
+      const template = getTemplateByName('invalid-name');
       expect(template).toBeNull();
+    });
+
+    it('returns Empty Project template', async () => {
+      const { getTemplateByName } = await import('./templateProjects');
+      const template = getTemplateByName('Empty Project');
+      expect(template).not.toBeNull();
+      expect(template?.name).toBe('Empty Project');
     });
   });
 
   describe('createProjectFromTemplate', () => {
     it('creates a new project with unique ID', async () => {
-      const { createProjectFromTemplate } = await import('./templateProjects');
-      const newProject = createProjectFromTemplate('acme-ecommerce');
-      expect(newProject.id).not.toBe('acme-ecommerce');
+      const { createProjectFromTemplate, getTemplateByName } = await import('./templateProjects');
+      const template = getTemplateByName('ACME E-Commerce Platform')!;
+      const newProject = createProjectFromTemplate('ACME E-Commerce Platform');
+      expect(newProject.id).not.toBe(template.id);
       expect(newProject.id.length).toBeGreaterThan(0);
     });
 
     it('preserves template content in new project', async () => {
-      const { createProjectFromTemplate, getTemplateById } = await import('./templateProjects');
-      const template = getTemplateById('acme-ecommerce')!;
-      const newProject = createProjectFromTemplate('acme-ecommerce');
+      const { createProjectFromTemplate, getTemplateByName } = await import('./templateProjects');
+      const template = getTemplateByName('ACME E-Commerce Platform')!;
+      const newProject = createProjectFromTemplate('ACME E-Commerce Platform');
 
       expect(newProject.contexts.length).toBe(template.contexts.length);
       expect(newProject.relationships.length).toBe(template.relationships.length);
     });
 
     it('regenerates all entity IDs in new project', async () => {
-      const { createProjectFromTemplate, getTemplateById } = await import('./templateProjects');
-      const template = getTemplateById('acme-ecommerce')!;
-      const newProject = createProjectFromTemplate('acme-ecommerce');
+      const { createProjectFromTemplate, getTemplateByName } = await import('./templateProjects');
+      const template = getTemplateByName('ACME E-Commerce Platform')!;
+      const newProject = createProjectFromTemplate('ACME E-Commerce Platform');
 
       if (template.contexts.length > 0) {
-        const templateContextIds = new Set(template.contexts.map(c => c.id));
-        const newContextIds = new Set(newProject.contexts.map(c => c.id));
+        const templateContextIds = new Set(template.contexts.map((c: { id: string }) => c.id));
+        const newContextIds = new Set(newProject.contexts.map((c: { id: string }) => c.id));
         for (const id of newContextIds) {
           expect(templateContextIds.has(id)).toBe(false);
         }
@@ -110,7 +75,7 @@ describe('templateProjects', () => {
     it('sets createdAt and updatedAt to current time', async () => {
       const { createProjectFromTemplate } = await import('./templateProjects');
       const before = new Date();
-      const newProject = createProjectFromTemplate('acme-ecommerce');
+      const newProject = createProjectFromTemplate('ACME E-Commerce Platform');
       const after = new Date();
 
       const created = new Date(newProject.createdAt!);
@@ -120,9 +85,9 @@ describe('templateProjects', () => {
       expect(updated.getTime()).toBeGreaterThanOrEqual(before.getTime());
     });
 
-    it('throws error for invalid template ID', async () => {
+    it('throws error for invalid template name', async () => {
       const { createProjectFromTemplate } = await import('./templateProjects');
-      expect(() => createProjectFromTemplate('invalid-id')).toThrow();
+      expect(() => createProjectFromTemplate('invalid-name')).toThrow();
     });
   });
 });

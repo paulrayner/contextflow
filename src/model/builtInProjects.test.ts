@@ -1,5 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { initialProjects, initialActiveProjectId, determineProjectOrigin, isBuiltInNewer } from './builtInProjects'
+import type { Project } from './types'
+
+function createTestProject(overrides: Partial<Project> = {}): Project {
+  return {
+    id: 'test-project',
+    name: 'Test Project',
+    contexts: [],
+    relationships: [],
+    repos: [],
+    people: [],
+    teams: [],
+    groups: [],
+    users: [],
+    userNeeds: [],
+    userNeedConnections: [],
+    needContextConnections: [],
+    viewConfig: { flowStages: [] },
+    ...overrides,
+  }
+}
 
 describe('builtInProjects', () => {
   describe('initialProjects', () => {
@@ -35,6 +55,19 @@ describe('builtInProjects', () => {
     it('should have project IDs as keys matching project.id', () => {
       Object.entries(initialProjects).forEach(([key, project]) => {
         expect(key).toBe(project.id)
+      })
+    })
+
+    it('should have isBuiltIn flag set to true for all projects', () => {
+      Object.values(initialProjects).forEach(project => {
+        expect(project.isBuiltIn).toBe(true)
+      })
+    })
+
+    it('should generate unique UUIDs for project IDs', () => {
+      const ids = Object.keys(initialProjects)
+      ids.forEach(id => {
+        expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
       })
     })
   })
@@ -107,9 +140,6 @@ describe('builtInProjects', () => {
     })
 
     it('should use default distillation position (50, 50) when missing', () => {
-      // This test verifies that contexts with missing distillation positions
-      // would get the default value. Since migration happens at module load,
-      // we can only verify the result is valid
       Object.values(initialProjects).forEach(project => {
         project.contexts.forEach(context => {
           expect(context.positions.distillation.x).toBeGreaterThanOrEqual(0)
@@ -132,15 +162,11 @@ describe('builtInProjects', () => {
     })
 
     it('should use localStorage value if available', () => {
-      // This test verifies the behavior described in the code
-      // The actual value depends on localStorage state at module load time
       const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
 
       if (storedProjectId) {
-        // If there was a stored value, it should be used
         expect(initialActiveProjectId).toBe(storedProjectId)
       } else {
-        // Otherwise, it should be the sample project
         expect(initialProjects[initialActiveProjectId]).toBeDefined()
       }
     })
@@ -167,7 +193,6 @@ describe('builtInProjects', () => {
           expect(context.positions.shared).toBeDefined()
           expect(context.positions.distillation).toBeDefined()
 
-          // Verify coordinate types
           expect(context.positions.flow.x).toBeTypeOf('number')
           expect(context.positions.strategic.x).toBeTypeOf('number')
           expect(context.positions.shared.y).toBeTypeOf('number')
@@ -179,28 +204,29 @@ describe('builtInProjects', () => {
   })
 
   describe('determineProjectOrigin', () => {
-    it('returns "sample" for acme-ecommerce', () => {
-      expect(determineProjectOrigin('acme-ecommerce', false)).toBe('sample')
+    it('returns "sample" for built-in project that is not Empty Project', () => {
+      const project = createTestProject({ name: 'ACME E-Commerce', isBuiltIn: true })
+      expect(determineProjectOrigin(project, false)).toBe('sample')
     })
 
-    it('returns "sample" for cbioportal', () => {
-      expect(determineProjectOrigin('cbioportal', false)).toBe('sample')
+    it('returns "sample" for cbioportal built-in project', () => {
+      const project = createTestProject({ name: 'cBioPortal', isBuiltIn: true })
+      expect(determineProjectOrigin(project, false)).toBe('sample')
     })
 
-    it('returns "sample" for elan-warranty', () => {
-      expect(determineProjectOrigin('elan-warranty', false)).toBe('sample')
-    })
-
-    it('returns "empty" for empty-project', () => {
-      expect(determineProjectOrigin('empty-project', false)).toBe('empty')
+    it('returns "empty" for Empty Project', () => {
+      const project = createTestProject({ name: 'Empty Project', isBuiltIn: true })
+      expect(determineProjectOrigin(project, false)).toBe('empty')
     })
 
     it('returns "imported" for first load of custom project', () => {
-      expect(determineProjectOrigin('custom-project', true)).toBe('imported')
+      const project = createTestProject({ name: 'My Project', isBuiltIn: false })
+      expect(determineProjectOrigin(project, true)).toBe('imported')
     })
 
     it('returns "continued" for subsequent load of custom project', () => {
-      expect(determineProjectOrigin('custom-project', false)).toBe('continued')
+      const project = createTestProject({ name: 'My Project', isBuiltIn: false })
+      expect(determineProjectOrigin(project, false)).toBe('continued')
     })
   })
 

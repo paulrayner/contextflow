@@ -2,6 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useEditorStore } from '../store'
 import * as analytics from '../../utils/analytics'
 
+function findProjectByName(projects: Record<string, { name: string }>, name: string): string | undefined {
+  return Object.keys(projects).find(id => projects[id].name === name)
+}
+
 describe('store analytics integration', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let trackEventSpy: any
@@ -74,11 +78,12 @@ describe('store analytics integration', () => {
     it('tracks project_opened event with sample origin for built-in projects', () => {
       const state = useEditorStore.getState()
 
-      // Switch to cbioportal sample project
-      const cbioportalId = 'cbioportal'
-      state.setActiveProject(cbioportalId)
+      const cbioportalId = findProjectByName(state.projects, 'cBioPortal Demo Map')
+      expect(cbioportalId).toBeDefined()
 
-      const project = state.projects[cbioportalId]
+      state.setActiveProject(cbioportalId!)
+
+      const project = state.projects[cbioportalId!]
 
       expect(trackEventSpy).toHaveBeenCalledWith(
         'project_opened',
@@ -89,10 +94,13 @@ describe('store analytics integration', () => {
       )
     })
 
-    it('tracks project_opened with sample origin for acme-ecommerce', () => {
+    it('tracks project_opened with sample origin for ACME E-Commerce Platform', () => {
       const state = useEditorStore.getState()
 
-      state.setActiveProject('acme-ecommerce')
+      const acmeId = findProjectByName(state.projects, 'ACME E-Commerce Platform')
+      expect(acmeId).toBeDefined()
+
+      state.setActiveProject(acmeId!)
 
       expect(trackEventSpy).toHaveBeenCalledWith(
         'project_opened',
@@ -103,10 +111,13 @@ describe('store analytics integration', () => {
       )
     })
 
-    it('tracks project_opened with sample origin for elan-warranty', () => {
+    it('tracks project_opened with sample origin for Elan Extended Warranty', () => {
       const state = useEditorStore.getState()
 
-      state.setActiveProject('elan-warranty')
+      const elanId = findProjectByName(state.projects, 'Elan Extended Warranty')
+      expect(elanId).toBeDefined()
+
+      state.setActiveProject(elanId!)
 
       expect(trackEventSpy).toHaveBeenCalledWith(
         'project_opened',
@@ -117,10 +128,13 @@ describe('store analytics integration', () => {
       )
     })
 
-    it('tracks project_opened with empty origin for empty-project', () => {
+    it('tracks project_opened with empty origin for Empty Project', () => {
       const state = useEditorStore.getState()
 
-      state.setActiveProject('empty-project')
+      const emptyId = findProjectByName(state.projects, 'Empty Project')
+      expect(emptyId).toBeDefined()
+
+      state.setActiveProject(emptyId!)
 
       expect(trackEventSpy).toHaveBeenCalledWith(
         'project_opened',
@@ -134,12 +148,17 @@ describe('store analytics integration', () => {
     it('tracks project_opened with sample origin when switching between sample projects', () => {
       const state = useEditorStore.getState()
 
-      // First open acme-ecommerce (will be 'sample')
-      state.setActiveProject('acme-ecommerce')
+      const acmeId = findProjectByName(state.projects, 'ACME E-Commerce Platform')
+      const cbioportalId = findProjectByName(state.projects, 'cBioPortal Demo Map')
+      expect(acmeId).toBeDefined()
+      expect(cbioportalId).toBeDefined()
+
+      // First open ACME (will be 'sample')
+      state.setActiveProject(acmeId!)
       trackEventSpy.mockClear()
 
       // Then switch to cbioportal (still 'sample' since it's a built-in sample)
-      state.setActiveProject('cbioportal')
+      state.setActiveProject(cbioportalId!)
 
       expect(trackEventSpy).toHaveBeenCalledWith(
         'project_opened',
@@ -163,11 +182,14 @@ describe('store analytics integration', () => {
     it('setActiveProject updates activeProjectId', () => {
       const state = useEditorStore.getState()
 
-      state.setActiveProject('cbioportal')
+      const cbioportalId = findProjectByName(state.projects, 'cBioPortal Demo Map')
+      expect(cbioportalId).toBeDefined()
+
+      state.setActiveProject(cbioportalId!)
 
       // Get fresh state after update
       const updatedState = useEditorStore.getState()
-      expect(updatedState.activeProjectId).toBe('cbioportal')
+      expect(updatedState.activeProjectId).toBe(cbioportalId)
     })
 
     it('setViewMode updates activeViewMode', () => {

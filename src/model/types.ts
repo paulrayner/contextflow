@@ -10,9 +10,10 @@ export interface Issue {
 export interface Project {
   id: string
   name: string
-  version?: number  // Version number for built-in projects (default: 1)
-  createdAt?: string  // ISO timestamp, optional for backwards compatibility
-  updatedAt?: string  // ISO timestamp, optional for backwards compatibility
+  version?: number
+  isBuiltIn?: boolean
+  createdAt?: string
+  updatedAt?: string
 
   contexts: BoundedContext[]
   relationships: Relationship[]

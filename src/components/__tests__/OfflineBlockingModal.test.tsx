@@ -124,23 +124,25 @@ describe('OfflineBlockingModal', () => {
   })
 
   describe('retry functionality', () => {
-    it('renders retry button and updates when clicked', async () => {
+    it('triggers connection when retry button is clicked', async () => {
       useCollabStore.getState().setConnectionState('offline')
       useCollabStore.getState().setActiveProjectId('test-project-123')
+
+      const connectToProjectSpy = vi.spyOn(useCollabStore.getState(), 'connectToProject')
+      connectToProjectSpy.mockResolvedValue()
 
       render(<OfflineBlockingModal />)
 
       const retryButton = screen.getByRole('button', { name: /Retry Connection/i })
       expect(retryButton).toBeInTheDocument()
 
-      // When clicked, the button should exist (either in normal or loading state)
       fireEvent.click(retryButton)
 
-      // Button should still exist in the document after click
       await waitFor(() => {
-        const button = screen.getByRole('button')
-        expect(button).toBeInTheDocument()
+        expect(connectToProjectSpy).toHaveBeenCalledWith('test-project-123')
       })
+
+      connectToProjectSpy.mockRestore()
     })
 
     it('does not attempt retry if no active project id', async () => {

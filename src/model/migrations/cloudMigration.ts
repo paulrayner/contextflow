@@ -4,19 +4,12 @@ import { loadAllProjects, deleteProject as deleteFromIndexedDB } from '../persis
 const MIGRATION_FLAG_KEY = 'contextflow_migrated';
 const MIGRATION_DATE_KEY = 'contextflow_migration_date';
 
-const BUILT_IN_PROJECT_IDS = [
-  'acme-ecommerce',
-  'cbioportal',
-  'empty-project',
-  'elan-warranty',
-];
-
 export function isMigrationComplete(): boolean {
   return localStorage.getItem(MIGRATION_FLAG_KEY) === 'true';
 }
 
 export function filterMigratableProjects(projects: Project[]): Project[] {
-  return projects.filter((project) => !BUILT_IN_PROJECT_IDS.includes(project.id));
+  return projects.filter((project) => !project.isBuiltIn);
 }
 
 export function canPerformMigration(): boolean {

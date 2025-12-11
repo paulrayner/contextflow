@@ -230,7 +230,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     if (!state.projects[projectId]) return
 
     const project = state.projects[projectId]
-    const origin = determineProjectOrigin(projectId, state.activeProjectId === null)
+    const origin = determineProjectOrigin(project, state.activeProjectId === null)
 
     trackEvent('project_opened', project, {
       project_origin: origin
