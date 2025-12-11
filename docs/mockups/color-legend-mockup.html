@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Legend Mockup - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Simulate canvas background */
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image:
+        radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .dark .canvas-bg {
+      background-color: #171717;
+      background-image:
+        radial-gradient(circle, #404040 1px, transparent 1px);
+    }
+
+    /* Tooltip animation */
+    .tooltip {
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.15s, transform 0.15s;
+      pointer-events: none;
+    }
+    .legend-item:hover .tooltip {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-neutral-900 min-h-screen">
+
+  <!-- Controls for demo -->
+  <div class="fixed top-4 right-4 z-50 flex gap-2">
+    <button onclick="toggleDarkMode()" class="px-3 py-1.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700">
+      Toggle Dark Mode
+    </button>
+    <button onclick="toggleColorMode()" class="px-3 py-1.5 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700">
+      Switch to: <span id="mode-toggle-label">Strategic</span>
+    </button>
+  </div>
+
+  <!-- Simulated canvas area -->
+  <div class="canvas-bg min-h-screen relative">
+
+    <!-- Sample bounded contexts to show colors in context -->
+    <div class="absolute top-24 left-1/2 transform -translate-x-1/2 flex gap-8">
+      <!-- Ownership mode contexts -->
+      <div id="ownership-contexts" class="flex gap-6">
+        <div class="w-36 h-24 rounded-lg border-2 border-slate-500 flex items-center justify-center text-xs font-medium text-slate-700 dark:text-slate-800" style="background-color: #d1fae5;">
+          Orders<br><span class="text-[10px] text-slate-500">(Our Team)</span>
+        </div>
+        <div class="w-36 h-24 rounded-lg border-2 border-slate-500 flex items-center justify-center text-xs font-medium text-slate-700 dark:text-slate-800" style="background-color: #dbeafe;">
+          Billing<br><span class="text-[10px] text-slate-500">(Internal)</span>
+        </div>
+        <div class="w-36 h-24 rounded-lg border-2 border-dashed border-slate-500 flex items-center justify-center text-xs font-medium text-slate-700 dark:text-slate-800" style="background-color: #fed7aa;">
+          Stripe<br><span class="text-[10px] text-slate-500">(External)</span>
+        </div>
+      </div>
+
+      <!-- Strategic mode contexts (hidden by default) -->
+      <div id="strategic-contexts" class="hidden flex gap-6">
+        <div class="w-36 h-24 rounded-lg border-2 border-slate-500 flex items-center justify-center text-xs font-medium text-slate-700 dark:text-slate-800" style="background-color: #f8e7a1;">
+          Orders<br><span class="text-[10px] text-slate-500">(Core)</span>
+        </div>
+        <div class="w-36 h-24 rounded-lg border-2 border-slate-500 flex items-center justify-center text-xs font-medium text-slate-700 dark:text-slate-800" style="background-color: #dbeafe;">
+          Notifications<br><span class="text-[10px] text-slate-500">(Supporting)</span>
+        </div>
+        <div class="w-36 h-24 rounded-lg border-2 border-slate-500 flex items-center justify-center text-xs font-medium text-slate-700 dark:text-slate-800" style="background-color: #f3f4f6;">
+          Logging<br><span class="text-[10px] text-slate-500">(Generic)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- COLOR LEGEND - Bottom Left -->
+    <!-- ========================================== -->
+    <div id="color-legend" class="absolute bottom-4 left-4 z-30">
+      <div class="bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-md overflow-hidden" style="width: 200px;">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-neutral-700">
+          <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            Context Colors
+          </span>
+          <button onclick="toggleLegend()" class="p-0.5 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+            <svg id="collapse-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Legend Content -->
+        <div id="legend-content" class="p-2 space-y-1">
+
+          <!-- Ownership Legend (default) -->
+          <div id="ownership-legend">
+            <!-- Our Team -->
+            <div class="legend-item relative flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-neutral-700/50 cursor-help">
+              <div class="w-3.5 h-3.5 rounded flex-shrink-0 border border-slate-300 dark:border-slate-500" style="background-color: #d1fae5;"></div>
+              <span class="text-xs text-slate-700 dark:text-slate-300">Our Team</span>
+
+              <!-- Tooltip -->
+              <div class="tooltip absolute left-full ml-2 top-1/2 -translate-y-1/2 w-56 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg z-50">
+                <div class="text-xs font-semibold mb-1">Our Team</div>
+                <div class="text-[11px] text-slate-300 mb-2">Your team builds and owns this bounded context.</div>
+                <ul class="text-[10px] text-slate-400 space-y-0.5">
+                  <li>- You control the roadmap and priorities</li>
+                  <li>- Your team maintains the codebase</li>
+                  <li>- You can make changes without external coordination</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Internal -->
+            <div class="legend-item relative flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-neutral-700/50 cursor-help">
+              <div class="w-3.5 h-3.5 rounded flex-shrink-0 border border-slate-300 dark:border-slate-500" style="background-color: #dbeafe;"></div>
+              <span class="text-xs text-slate-700 dark:text-slate-300">Internal (Other Team)</span>
+
+              <!-- Tooltip -->
+              <div class="tooltip absolute left-full ml-2 top-1/2 -translate-y-1/2 w-56 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg z-50">
+                <div class="text-xs font-semibold mb-1">Internal (Other Team)</div>
+                <div class="text-[11px] text-slate-300 mb-2">Another team within your organization owns this context.</div>
+                <ul class="text-[10px] text-slate-400 space-y-0.5">
+                  <li>- Requires coordination for changes</li>
+                  <li>- You may be a consumer/downstream</li>
+                  <li>- Internal SLAs and contracts apply</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- External -->
+            <div class="legend-item relative flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-neutral-700/50 cursor-help">
+              <div class="w-3.5 h-3.5 rounded flex-shrink-0 border border-dashed border-slate-400 dark:border-slate-500" style="background-color: #fed7aa;"></div>
+              <span class="text-xs text-slate-700 dark:text-slate-300">External (Third Party)</span>
+
+              <!-- Tooltip -->
+              <div class="tooltip absolute left-full ml-2 top-1/2 -translate-y-1/2 w-56 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg z-50">
+                <div class="text-xs font-semibold mb-1">External (Third Party)</div>
+                <div class="text-[11px] text-slate-300 mb-2">A third-party or external organization owns this context.</div>
+                <ul class="text-[10px] text-slate-400 space-y-0.5">
+                  <li>- Limited or no ability to request changes</li>
+                  <li>- Typically requires anti-corruption layer</li>
+                  <li>- Subject to external contracts/SLAs</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategic Legend (hidden by default) -->
+          <div id="strategic-legend" class="hidden">
+            <!-- Core -->
+            <div class="legend-item relative flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-neutral-700/50 cursor-help">
+              <div class="w-3.5 h-3.5 rounded flex-shrink-0 border border-slate-300 dark:border-slate-500" style="background-color: #f8e7a1;"></div>
+              <span class="text-xs text-slate-700 dark:text-slate-300">Core Domain</span>
+
+              <!-- Tooltip -->
+              <div class="tooltip absolute left-full ml-2 top-1/2 -translate-y-1/2 w-56 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg z-50">
+                <div class="text-xs font-semibold mb-1">Core Domain</div>
+                <div class="text-[11px] text-slate-300 mb-2">What makes your business unique. Invest most heavily here.</div>
+                <ul class="text-[10px] text-slate-400 space-y-0.5">
+                  <li>- Source of competitive advantage</li>
+                  <li>- Build and maintain in-house</li>
+                  <li>- Attract your best talent here</li>
+                  <li>- Worth significant investment</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Supporting -->
+            <div class="legend-item relative flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-neutral-700/50 cursor-help">
+              <div class="w-3.5 h-3.5 rounded flex-shrink-0 border border-slate-300 dark:border-slate-500" style="background-color: #dbeafe;"></div>
+              <span class="text-xs text-slate-700 dark:text-slate-300">Supporting Subdomain</span>
+
+              <!-- Tooltip -->
+              <div class="tooltip absolute left-full ml-2 top-1/2 -translate-y-1/2 w-56 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg z-50">
+                <div class="text-xs font-semibold mb-1">Supporting Subdomain</div>
+                <div class="text-[11px] text-slate-300 mb-2">Necessary for the business but not a differentiator.</div>
+                <ul class="text-[10px] text-slate-400 space-y-0.5">
+                  <li>- Supports core domain functionality</li>
+                  <li>- Custom-built but not competitive advantage</li>
+                  <li>- Consider outsourcing if complex</li>
+                  <li>- Keep simple where possible</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Generic -->
+            <div class="legend-item relative flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-neutral-700/50 cursor-help">
+              <div class="w-3.5 h-3.5 rounded flex-shrink-0 border border-slate-300 dark:border-slate-500" style="background-color: #f3f4f6;"></div>
+              <span class="text-xs text-slate-700 dark:text-slate-300">Generic Subdomain</span>
+
+              <!-- Tooltip -->
+              <div class="tooltip absolute left-full ml-2 top-1/2 -translate-y-1/2 w-56 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg z-50">
+                <div class="text-xs font-semibold mb-1">Generic Subdomain</div>
+                <div class="text-[11px] text-slate-300 mb-2">Common capabilities that many businesses need.</div>
+                <ul class="text-[10px] text-slate-400 space-y-0.5">
+                  <li>- Not unique to your business</li>
+                  <li>- Well-solved problems exist</li>
+                  <li>- Buy, rent, or use open source</li>
+                  <li>- Minimize custom development</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Mode indicator -->
+        <div class="px-3 py-1.5 border-t border-slate-100 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-900/50">
+          <span class="text-[10px] text-slate-400 dark:text-slate-500">
+            Coloring by: <span id="mode-label" class="font-medium text-slate-500 dark:text-slate-400">Ownership</span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Simulated ReactFlow controls (bottom right) -->
+    <div class="absolute bottom-4 right-4 flex flex-col gap-1">
+      <button class="w-8 h-8 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded flex items-center justify-center text-slate-500 hover:bg-slate-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+      </button>
+      <button class="w-8 h-8 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded flex items-center justify-center text-slate-500 hover:bg-slate-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+        </svg>
+      </button>
+      <button class="w-8 h-8 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded flex items-center justify-center text-slate-500 hover:bg-slate-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Instructions -->
+    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center">
+      <p class="text-xs text-slate-400 dark:text-slate-500">
+        Hover over legend items to see educational tooltips
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    let isCollapsed = false;
+    let colorMode = 'ownership';
+
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    function toggleColorMode() {
+      colorMode = colorMode === 'ownership' ? 'strategic' : 'ownership';
+
+      // Toggle legend visibility
+      document.getElementById('ownership-legend').classList.toggle('hidden');
+      document.getElementById('strategic-legend').classList.toggle('hidden');
+
+      // Toggle sample contexts
+      document.getElementById('ownership-contexts').classList.toggle('hidden');
+      document.getElementById('strategic-contexts').classList.toggle('hidden');
+
+      // Update labels
+      document.getElementById('mode-label').textContent =
+        colorMode === 'ownership' ? 'Ownership' : 'Strategic';
+      document.getElementById('mode-toggle-label').textContent =
+        colorMode === 'ownership' ? 'Strategic' : 'Ownership';
+    }
+
+    function toggleLegend() {
+      isCollapsed = !isCollapsed;
+      const content = document.getElementById('legend-content');
+      const icon = document.getElementById('collapse-icon');
+
+      if (isCollapsed) {
+        content.classList.add('hidden');
+        icon.style.transform = 'rotate(180deg)';
+      } else {
+        content.classList.remove('hidden');
+        icon.style.transform = 'rotate(0deg)';
+      }
+    }
+  </script>
+
+</body>
+</html>
