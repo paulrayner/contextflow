@@ -490,3 +490,79 @@ export const TEAM_TOPOLOGIES: Record<string, ConceptDefinition> = {
     ],
   },
 }
+
+// Relationship Patterns (DDD Context Mapping patterns)
+export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
+  'customer-supplier': {
+    title: 'Customer-Supplier',
+    description: 'Upstream delivers what downstream needs. The upstream team should consider downstream needs when planning.',
+    characteristics: [
+      '↑ Upstream has control over the relationship',
+      'Downstream has negotiating power over priorities',
+      'Clear dependency where one team provides to another',
+    ],
+  },
+  'conformist': {
+    title: 'Conformist',
+    description: 'Downstream fully adopts the upstream model without translation. Appropriate when the upstream model is good enough.',
+    characteristics: [
+      '↑ Upstream has control over the relationship',
+      'No translation layer - downstream accepts upstream model',
+      'Cost of translation outweighs the benefits',
+    ],
+  },
+  'anti-corruption-layer': {
+    title: 'Anti-Corruption Layer',
+    description: 'Downstream protects itself with a translation layer, preventing upstream concepts from "corrupting" its domain model.',
+    characteristics: [
+      '↓ Downstream controls the relationship',
+      'Isolates domain model from external concepts',
+      'Common for legacy or third-party integrations',
+    ],
+  },
+  'open-host-service': {
+    title: 'Open Host Service',
+    description: 'Upstream provides a well-documented, stable API for multiple downstream consumers.',
+    characteristics: [
+      '↑ Upstream has control over the relationship',
+      'Decoupled from individual consumer needs',
+      'Often paired with Published Language',
+    ],
+  },
+  'published-language': {
+    title: 'Published Language',
+    description: 'A shared, well-documented interchange format used for integration between contexts.',
+    characteristics: [
+      '↑ Upstream has control over the relationship',
+      'Versioned and maintained independently',
+      'Examples: event schemas, API contracts, industry standards',
+    ],
+  },
+  'shared-kernel': {
+    title: 'Shared Kernel',
+    description: 'Two or more teams share a common subset of the domain model. Changes require coordination between all teams.',
+    characteristics: [
+      '↔ Mutual dependency',
+      'Creates tight coupling but reduces duplication',
+      'Teams must commit to coordinated changes',
+    ],
+  },
+  'partnership': {
+    title: 'Partnership',
+    description: 'Two contexts have a mutual dependency where both teams must coordinate closely. Neither is upstream or downstream.',
+    characteristics: [
+      '↔ Mutual dependency',
+      'Teams succeed or fail together',
+      'Features often span both contexts',
+    ],
+  },
+  'separate-ways': {
+    title: 'Separate Ways',
+    description: 'A deliberate decision not to integrate. Each context solves its own problems independently.',
+    characteristics: [
+      '○ No integration',
+      'Eliminates integration complexity',
+      'Allows full team autonomy',
+    ],
+  },
+}

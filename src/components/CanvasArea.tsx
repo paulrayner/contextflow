@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import ReactFlow, {
   Node,
   Edge,
@@ -32,7 +33,7 @@ import { SimpleTooltip } from './SimpleTooltip'
 import { ColorLegend } from './ColorLegend'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { InfoTooltip } from './InfoTooltip'
-import { EVOLUTION_STAGES, EDGE_INDICATORS, VALUE_CHAIN_VISIBILITY, DISTILLATION_AXES, DISTILLATION_REGIONS } from '../model/conceptDefinitions'
+import { EVOLUTION_STAGES, EDGE_INDICATORS, VALUE_CHAIN_VISIBILITY, DISTILLATION_AXES, DISTILLATION_REGIONS, RELATIONSHIP_PATTERNS } from '../model/conceptDefinitions'
 import { interpolatePosition, isContextVisibleAtDate, getContextOpacity } from '../lib/temporal'
 import { getIndicatorBoxPosition } from '../lib/edgeUtils'
 import { generateBlobPath } from '../lib/blobShape'
@@ -1925,9 +1926,11 @@ function RelationshipEdge({
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
   const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
+  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
   const isSelected = id === selectedRelationshipId
+  const { x: vpX, y: vpY, zoom } = useViewport()
 
   // Close context menu on outside click
   React.useEffect(() => {
@@ -2126,41 +2129,43 @@ function RelationshipEdge({
       >
         <title>{pattern}</title>
       </path>
-      {/* Tooltip label on hover or when selected */}
-      {(isHovered || isSelected) && (
-        <foreignObject
-          x={labelX - 80}
-          y={labelY - 14}
-          width={160}
-          height={28}
-          style={{ overflow: 'visible', pointerEvents: 'none' }}
-        >
+      {/* Tooltip on hover or when selected - uses portal to render above all layers */}
+      {showHelpTooltips && (isHovered || isSelected) && (() => {
+        const patternContent = RELATIONSHIP_PATTERNS[pattern]
+        if (!patternContent) return null
+
+        // Convert canvas coordinates to screen coordinates
+        const screenX = labelX * zoom + vpX
+        const screenY = labelY * zoom + vpY
+
+        // Position tooltip above the edge label point
+        const tooltipWidth = 256
+        const tooltipX = Math.max(8, Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8))
+        const tooltipY = Math.max(8, screenY - 8) // 8px above the label point
+
+        return createPortal(
           <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '100%',
-              height: '100%',
-            }}
+            className="fixed z-[9999] pointer-events-none"
+            style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
           >
-            <span
-              style={{
-                background: 'rgba(15, 23, 42, 0.92)',
-                color: 'white',
-                fontSize: '11.5px',
-                fontWeight: 500,
-                letterSpacing: '0.01em',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {pattern}
-            </span>
-          </div>
-        </foreignObject>
-      )}
+            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+              <div className="font-semibold text-sm mb-1">{patternContent.title}</div>
+              <div className="text-xs text-slate-300 mb-2">{patternContent.description}</div>
+              {patternContent.characteristics && patternContent.characteristics.length > 0 && (
+                <ul className="text-xs text-slate-300 space-y-0.5">
+                  {patternContent.characteristics.map((item, index) => (
+                    <li key={index} className="flex items-start gap-1.5">
+                      <span className="text-slate-500 mt-0.5">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>,
+          document.body
+        )
+      })()}
       {/* Context Menu */}
       {contextMenu && (
         <foreignObject x={0} y={0} width={1} height={1} style={{ overflow: 'visible' }}>
