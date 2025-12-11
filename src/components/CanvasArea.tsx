@@ -222,9 +222,24 @@ function ContextNode({ data }: NodeProps) {
   const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
   const updateKeyframe = useEditorStore(s => s.updateKeyframe)
   const colorByMode = useEditorStore(s => s.colorByMode)
+  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const nodeRef = React.useRef<HTMLDivElement>(null)
 
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
   const hideDescription = context.codeSize?.bucket === 'tiny' || context.codeSize?.bucket === 'small'
+
+  // Get team name if assigned
+  const team = context.teamId && project?.teams?.find(t => t.id === context.teamId)
+
+  // Calculate tooltip position from node bounds
+  const getTooltipPosition = () => {
+    if (!nodeRef.current) return { x: 0, y: 0 }
+    const rect = nodeRef.current.getBoundingClientRect()
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
+    }
+  }
 
   // Handle context menu
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -336,6 +351,7 @@ function ContextNode({ data }: NodeProps) {
 
   return (
     <div
+      ref={nodeRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{ position: 'relative' }}
@@ -495,6 +511,99 @@ function ContextNode({ data }: NodeProps) {
           </button>
         </div>
       )}
+
+      {/* Rich tooltip on hover */}
+      {showHelpTooltips && isHovered && (() => {
+        const tooltipPos = getTooltipPosition()
+        const ownershipLabels: Record<string, string> = {
+          ours: 'Our Team',
+          internal: 'Internal (Other Team)',
+          external: 'External (Third Party)',
+        }
+        const classificationLabels: Record<string, string> = {
+          core: 'Core Domain',
+          supporting: 'Supporting Subdomain',
+          generic: 'Generic Subdomain',
+        }
+        const evolutionLabels: Record<string, string> = {
+          genesis: 'Genesis',
+          'custom-built': 'Custom-Built',
+          'product/rental': 'Product',
+          'commodity/utility': 'Commodity',
+        }
+        const boundaryLabels: Record<string, string> = {
+          strong: 'Strong',
+          moderate: 'Moderate',
+          weak: 'Weak',
+        }
+
+        const characteristics: string[] = []
+
+        // Ownership + team name
+        const ownership = context.ownership || 'ours'
+        let ownershipText = ownershipLabels[ownership] || ownership
+        if (team && (ownership === 'ours' || ownership === 'internal')) {
+          ownershipText += ` (${team.name})`
+        }
+        characteristics.push(`Ownership: ${ownershipText}`)
+
+        // Strategic classification
+        if (context.strategicClassification) {
+          characteristics.push(`Classification: ${classificationLabels[context.strategicClassification]}`)
+        }
+
+        // Evolution stage
+        characteristics.push(`Evolution: ${evolutionLabels[context.evolutionStage]}`)
+
+        // Boundary integrity
+        if (context.boundaryIntegrity) {
+          characteristics.push(`Boundary: ${boundaryLabels[context.boundaryIntegrity]}`)
+        }
+
+        // Legacy status
+        if (context.isLegacy) {
+          characteristics.push('⚠ Legacy system')
+        }
+
+        // Issue count
+        if (context.issues && context.issues.length > 0) {
+          const criticalCount = context.issues.filter(i => i.severity === 'critical').length
+          const warningCount = context.issues.filter(i => i.severity === 'warning').length
+          const infoCount = context.issues.filter(i => i.severity === 'info').length
+          const parts: string[] = []
+          if (criticalCount > 0) parts.push(`${criticalCount} critical`)
+          if (warningCount > 0) parts.push(`${warningCount} warning`)
+          if (infoCount > 0) parts.push(`${infoCount} info`)
+          characteristics.push(`Issues: ${parts.join(', ')}`)
+        }
+
+        return createPortal(
+          <div
+            className="fixed z-[9999] pointer-events-none"
+            style={{
+              left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
+              top: tooltipPos.y,
+              transform: 'translateY(-100%)',
+            }}
+          >
+            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+              <div className="font-semibold text-sm mb-1">{context.name}</div>
+              {context.purpose && (
+                <div className="text-xs text-slate-300 mb-2">{context.purpose}</div>
+              )}
+              <ul className="text-xs text-slate-300 space-y-0.5">
+                {characteristics.map((item, index) => (
+                  <li key={index} className="flex items-start gap-1.5">
+                    <span className="text-slate-500 mt-0.5">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>,
+          document.body
+        )
+      })()}
     </div>
   )
 }
@@ -1140,8 +1249,25 @@ function UserNode({ data }: NodeProps) {
   const isSelected = data.isSelected as boolean
   const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
+  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const { x: vpX, y: vpY, zoom } = useViewport()
+  const nodeRef = React.useRef<HTMLDivElement>(null)
 
   const isHighlighted = isSelected || isHighlightedByConnection
+
+  // Calculate tooltip position from node bounds
+  const getTooltipPosition = () => {
+    if (!nodeRef.current) return { x: 0, y: 0 }
+    const rect = nodeRef.current.getBoundingClientRect()
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
+    }
+  }
+
+  // Build tooltip content
+  const hasTooltipContent = user.description || user.isExternal
+  const tooltipPos = getTooltipPosition()
 
   return (
     <>
@@ -1149,7 +1275,7 @@ function UserNode({ data }: NodeProps) {
       <Handle type="source" position={Position.Bottom} />
 
       <div
-        title={user.name}
+        ref={nodeRef}
         style={{
           width: 100,
           height: 50,
@@ -1203,6 +1329,31 @@ function UserNode({ data }: NodeProps) {
           </div>
         </div>
       </div>
+
+      {/* Tooltip on hover */}
+      {showHelpTooltips && isHovered && hasTooltipContent && createPortal(
+        <div
+          className="fixed z-[9999] pointer-events-none"
+          style={{
+            left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
+            top: tooltipPos.y,
+            transform: 'translateY(-100%)',
+          }}
+        >
+          <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+            <div className="font-semibold text-sm mb-1 flex items-center gap-2">
+              {user.name}
+              {user.isExternal && (
+                <span className="text-[10px] bg-slate-600 px-1.5 py-0.5 rounded uppercase">External</span>
+              )}
+            </div>
+            {user.description && (
+              <div className="text-xs text-slate-300">{user.description}</div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   )
 }
@@ -1213,8 +1364,23 @@ function UserNeedNode({ data }: NodeProps) {
   const isSelected = data.isSelected as boolean
   const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
+  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const nodeRef = React.useRef<HTMLDivElement>(null)
 
   const isHighlighted = isSelected || isHighlightedByConnection
+
+  // Calculate tooltip position from node bounds
+  const getTooltipPosition = () => {
+    if (!nodeRef.current) return { x: 0, y: 0 }
+    const rect = nodeRef.current.getBoundingClientRect()
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
+    }
+  }
+
+  const hasTooltipContent = !!userNeed.description
+  const tooltipPos = getTooltipPosition()
 
   return (
     <>
@@ -1223,7 +1389,7 @@ function UserNeedNode({ data }: NodeProps) {
       <Handle type="source" position={Position.Bottom} />
 
       <div
-        title={userNeed.name}
+        ref={nodeRef}
         style={{
           width: 100,
           height: 50,
@@ -1262,6 +1428,24 @@ function UserNeedNode({ data }: NodeProps) {
           {userNeed.name}
         </div>
       </div>
+
+      {/* Tooltip on hover */}
+      {showHelpTooltips && isHovered && hasTooltipContent && createPortal(
+        <div
+          className="fixed z-[9999] pointer-events-none"
+          style={{
+            left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
+            top: tooltipPos.y,
+            transform: 'translateY(-100%)',
+          }}
+        >
+          <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+            <div className="font-semibold text-sm mb-1">{userNeed.name}</div>
+            <div className="text-xs text-slate-300">{userNeed.description}</div>
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   )
 }
