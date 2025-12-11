@@ -1642,6 +1642,7 @@ function UserNeedConnectionEdge({
             selectedRelationshipId: null,
             selectedUserId: null,
             selectedUserNeedId: null,
+            selectedStageIndex: null,
           })
         }}
       >
@@ -1729,6 +1730,7 @@ function NeedContextConnectionEdge({
             selectedUserId: null,
             selectedUserNeedId: null,
             selectedUserNeedConnectionId: null,
+            selectedStageIndex: null,
           })
         }}
       >
@@ -2387,6 +2389,7 @@ function RelationshipEdge({
             selectedUserNeedId: null,
             selectedNeedContextConnectionId: null,
             selectedUserNeedConnectionId: null,
+            selectedStageIndex: null,
           })
         }}
         onContextMenu={(e) => {
@@ -2915,6 +2918,7 @@ function CanvasContent() {
         selectedUserNeedId: null,
         selectedUserNeedConnectionId: null,
         selectedNeedContextConnectionId: null,
+        selectedStageIndex: null,
       })
     }
   }, [project])
@@ -2933,6 +2937,7 @@ function CanvasContent() {
         selectedRelationshipId: null,
         selectedUserNeedConnectionId: null,
         selectedNeedContextConnectionId: null,
+        selectedStageIndex: null,
       })
       return
     }
@@ -2955,13 +2960,13 @@ function CanvasContent() {
       useEditorStore.getState().toggleContextSelection(node.id)
     } else {
       // Single select
-      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null })
+      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null, selectedStageIndex: null })
     }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null, selectedTeamId: null })
+    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null, selectedTeamId: null, selectedStageIndex: null })
   }, [])
 
   // Handle edge connection (User → User Need → Context, or Context → Context)

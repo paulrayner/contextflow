@@ -2,13 +2,10 @@
 
 ## In Progress
 
-- [x] Legend for colors
-- [x] Extensive educational/informational improments to tooltips
-- [x] Collaborative editing of projects together, so a team could work on them together
+- [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though. (for 0.9.0)
 
 ## Backlog
 
-- [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though. (for 0.9.0)
 - [ ] Organizational Modeling - Teams as first-class entities with many-to-many context ownership (Team X owns contexts A, B, C; Context D has unclear ownership from multiple teams; enables "show all contexts Team X touches" and "which contexts have unclear ownership?") (for 0.9.0)
 - [ ] Not clear how to add a context to a group
 - [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
@@ -16,7 +13,7 @@
 - Add text link to discord in README (so someone can search the page for it) (for 0.9.0)
 - [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to (for 0.9.0)
 
-## v.1.0.0 
+### v.1.0.0
 
 - [ ] Implement milestone 1 of SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md (for 1.0.0)
 - [ ] Repo management
@@ -26,14 +23,12 @@
 - [ ] Implement ANALYTICS_PLAN.md
 - [ ] Susanne Kaiser feature ideas: flow overlays, blocker visualization, value stream types, team boundaries (see [Susanne_Kaiser_Feature_Ideas.md](Susanne_Kaiser_Feature_Ideas.md))
 
-
 ### Future
 
 - [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
-- [x] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
 - [ ] Add optional user attributes: goal(s), challenges
 - [ ] Accessibility checks
 - [ ] Responsive design
@@ -70,13 +65,16 @@
 - [ ] Export to EventCatalog?
 - [ ] Integrate glossary with Contextive?
 
-
 ### Team Flow
 
 - [ ] Consider developing separate integrated tool for team flow (similar to CodeCohesion https://lnkd.in/grhy_XRp)
 
 ## Done
 
+- [x] Legend for colors
+- [x] Extensive educational/informational improments to tooltips
+- [x] Collaborative editing of projects together, so a team could work on them together
+- [x] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
 - [x] Project management (create, rename, duplicate, delete projects with modal UI and import conflict handling)
 - [x] Fix TypeScript errors across codebase (UserConnection rename, position structures, test fixtures)
 - [x] Team management UI (view, create, update, delete teams with context cleanup)
