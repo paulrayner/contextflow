@@ -2293,11 +2293,19 @@ function RelationshipEdge({
 
       {/* Pattern indicator box (ACL/OHS) */}
       {indicatorConfig && boxPos && (
-        <g
-          onMouseEnter={() => setIsIndicatorHovered(true)}
-          onMouseLeave={() => setIsIndicatorHovered(false)}
-          style={{ cursor: 'help' }}
-        >
+        <g>
+          {/* Invisible hit area for easier hovering */}
+          <rect
+            x={boxPos.x - indicatorConfig.boxWidth / 2 - 4}
+            y={boxPos.y - indicatorConfig.boxHeight / 2 - 4}
+            width={indicatorConfig.boxWidth + 8}
+            height={indicatorConfig.boxHeight + 8}
+            fill="transparent"
+            style={{ cursor: 'help' }}
+            onMouseEnter={() => setIsIndicatorHovered(true)}
+            onMouseLeave={() => setIsIndicatorHovered(false)}
+          />
+          {/* Visible box */}
           <rect
             x={boxPos.x - indicatorConfig.boxWidth / 2}
             y={boxPos.y - indicatorConfig.boxHeight / 2}
@@ -2307,7 +2315,7 @@ function RelationshipEdge({
             fill={indicatorConfig.colors.bg}
             stroke={indicatorConfig.colors.border}
             strokeWidth={1.5}
-            style={{ transition: EDGE_TRANSITION }}
+            style={{ transition: EDGE_TRANSITION, pointerEvents: 'none' }}
           />
           <text
             x={boxPos.x}

@@ -2,54 +2,47 @@
 
 ## In Progress
 
-(nothing currently in progress)
+- [x] Legend for colors
+- [x] Extensive educational/informational improments to tooltips
+- [x] Collaborative editing of projects together, so a team could work on them together
 
 ## Backlog
 
-### Next release - SAAS Cloud Edition - Collaborative Editing
+- [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though. (for 0.9.0)
+- [ ] Organizational Modeling - Teams as first-class entities with many-to-many context ownership (Team X owns contexts A, B, C; Context D has unclear ownership from multiple teams; enables "show all contexts Team X touches" and "which contexts have unclear ownership?") (for 0.9.0)
+- [ ] Not clear how to add a context to a group
+- [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
+- [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?) (for 0.9.0)
+- Add text link to discord in README (so someone can search the page for it) (for 0.9.0)
+- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to (for 0.9.0)
 
-- [ ] Collaborative editing of projects together, so a team could work on them together
+## v.1.0.0 
 
-### SAAS Cloud Edition
-
-- Legend for colors
-- In ~/Documents/EventStormer, you enter your name when you join a board and then you can see other people's cursors with their names moving around on the board. Enable this for ContextFlow
-- Add text link to discord in README (so someone can search the page for it)
-- "Add Team" button in top menu?
-- "Add Repo" button in top menu?
-- Add Architecture for Flow example as sample? (get permission for this)
-- [ ] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
-- [ ] Implement SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md
+- [ ] Implement milestone 1 of SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md (for 1.0.0)
 - [ ] Repo management
 - [ ] Add about page? link to repo? link to VG.com
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
 - [ ] Add logo
 - [ ] Implement ANALYTICS_PLAN.md
-- [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
 - [ ] Susanne Kaiser feature ideas: flow overlays, blocker visualization, value stream types, team boundaries (see [Susanne_Kaiser_Feature_Ideas.md](Susanne_Kaiser_Feature_Ideas.md))
 
 
-### Integrations
-
-- [ ] Import from a Big Picture EventStorming timeline (subprocesses between pivotal events as value stream stages, systems as contexts, actors as users, pivotal events as user needs? hotspots as issues?) exported from EventStormer (eventstormer.virtualgenius.com)
-- [ ] Export to EventCatalog?
-- [ ] Integrate glossary with Contextive?
-
-### UX/Polish
+### Future
 
 - [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
-- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
-- [ ] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
-- [ ] Add optional actor attributes: goal(s), challenges
-- [ ] Not clear how to add a context to a group
-- [ ] Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
+- [x] Add elan working starter project, with sample stages, sample contexts already populated, for training classes. Refine case study for relationship types.
+- [ ] Add optional user attributes: goal(s), challenges
 - [ ] Accessibility checks
 - [ ] Responsive design
 - [ ] Distillation - can a context overlap subdomain boundaries? what would this tell us if it did?
 - [ ] Add search/filter for contexts, repos, teams
+- In ~/Documents/EventStormer, you enter your name when you join a board and then you can see other people's cursors with their names moving around on the board. Enable this for ContextFlow
+- "Add Team" button in top menu?
+- "Add Repo" button in top menu?
+- Add Architecture for Flow example as sample? (get permission for this)
 
 ### Docs
 
@@ -70,6 +63,13 @@
 
 - [ ] Enhance Team Topologies implementation with more substance (currently mostly conceptual)
 - [ ] Add visual team topology rendering on canvas (e.g., interaction modes between teams)
+
+### Integrations
+
+- [ ] Import from a Big Picture EventStorming timeline (subprocesses between pivotal events as value stream stages, systems as contexts, actors as users, pivotal events as user needs? hotspots as issues?) exported from EventStormer (eventstormer.virtualgenius.com)
+- [ ] Export to EventCatalog?
+- [ ] Integrate glossary with Contextive?
+
 
 ### Team Flow
 

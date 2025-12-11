@@ -125,6 +125,17 @@ Each flow is fully E2E testable before moving to the next. This prevents:
 }
 ```
 
+**Project creation flow:**
+
+1. User clicks "New Project" in UI
+2. Client checks `ownedProjects.length` against tier limit
+3. If over limit → show UpgradePrompt, block creation
+4. If allowed → generate project ID, call `addOwnedProject(projectId)`
+5. `addOwnedProject` updates Clerk metadata via Backend API (requires `CLERK_SECRET_KEY`)
+6. Project syncs to Durable Object as normal
+
+**Note:** Step 5 requires a small backend endpoint (Cloudflare Worker) since Clerk privateMetadata can only be modified server-side.
+
 ### Step 3: Polar Webhook
 
 **What to build:**
@@ -244,7 +255,7 @@ CREATE TABLE project_collaborators (
 **Files:**
 
 - `workers/server.ts` - auth in fetch handler, onMessage validation, CORS
-- `workers/webhook.ts` - Polar webhook handler (new file)
+- `workers/webhook.ts` - add hardening (created in M0)
 - `wrangler.toml` - D1 database, KV namespace bindings
 - `migrations/` - D1 schema migrations
 
@@ -374,11 +385,11 @@ wrangler secret put CLERK_SECRET_KEY --env staging
 These have been decided and don't need further discussion:
 
 - **Project-based limits** - Free tier limited to 1 owned project with unlimited contexts. Context limits removed. Simpler model that lets users experience full DDD workshops.
-- **Sample project handling** - Samples are platform-owned, editable by all users, don't count against project limit. Changes saved to user's local IndexedDB.
+- **Sample project handling** - Samples are platform-owned, don't count against project limit. Users can explore and edit samples; changes sync to cloud like normal projects but ownership remains with platform. To keep changes permanently, user must "Save as New Project" which creates an owned copy (counts against limit).
 - **Project limit enforcement** - Show upgrade modal when limit reached, allow user to cancel. No hard block mid-action.
 - **Downgrade behavior** - Most recently edited project stays editable, others read-only. User can switch active project in settings.
 - **Anonymous → authenticated migration** - On sign-up, show "Save this project?" prompt. Transfer ownership or GC if declined.
-- **Feature gate architecture** - Three layers: UI (disabled buttons) → Yjs mutation helpers (throw errors) → Server validation (project count only).
+- **Feature gate architecture** - Two layers: UI (disabled buttons, upgrade prompts) → Server validation (project count at creation time). Yjs mutation helpers not needed since there are no context limits to enforce.
 
 ---
 

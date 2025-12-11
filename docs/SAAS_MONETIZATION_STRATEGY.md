@@ -1,56 +1,28 @@
 # SaaS Monetization Strategy for ContextFlow
 
-**Date:** 2025-01-21 (Updated: 2025-12-07)
-**Status:** Implementation Phase - Cloud Sync Complete, Auth/Payments Next
+**Date:** 2025-01-21 (Updated: 2025-12-09)
+**Status:** Research Complete - See [SAAS_IMPLEMENTATION_PLAN.md](SAAS_IMPLEMENTATION_PLAN.md) for what to build
 **Goal:** Turn-key approach for solo SaaS provider with minimal complexity
 
 ---
 
-## Outstanding Issues
+## Purpose of This Document
 
-See **[SAAS_IMPLEMENTATION_PLAN.md - Outstanding Issues](SAAS_IMPLEMENTATION_PLAN.md#outstanding-issues-master-list)** for the consolidated master list of all review findings organized by theme:
-
-1. **Security & Authentication** - 3 critical, 3 high, 2 medium issues
-2. **Revenue Model & Pricing** - 2 critical, 3 high, 3 medium issues
-3. **User Experience & Product** - 2 critical, 3 high, 5 medium issues
-4. **Infrastructure & Operations** - 8 high, 6 medium issues
-5. **Legal & Compliance** - 5 high, 4 medium, 2 low issues
-6. **Metrics & Analytics** - 3 medium, 1 low issues
-
-**Key blockers before launch:**
-
-- Fix free tier arbitrage (revenue model broken)
-- Add authentication to Durable Objects (security)
-- Implement rate limiting (cost attack prevention)
-- Define first-run experience (conversion funnel)
-- Create Terms of Service (legal protection)
-
----
-
-## Executive Summary
-
-This document outlines research and recommendations for monetizing ContextFlow as an open-core SaaS application with both hosted and self-hosted options. The primary focus is on **validation-first approach** using turnkey solutions to minimize time to market while maintaining control over branding and user experience.
-
-**Key Recommendation:** Start with **Polar.sh + Clerk + Simple Analytics** stack. ✅ **Cloud sync via Yjs + Cloudflare Durable Objects is already implemented** (see `docs/CLOUD_SYNC_PLAN.md`). Next step: add auth/payments layer.
-
-**Why this stack:** Matches what 90% of successful solo founders use (based on 2025 indie hacker research). Simple Analytics used by EventCatalog and other popular open-source projects.
+This document contains **research, comparisons, and rationale** for monetization decisions. For implementation details (what to build, file changes, code examples), see [SAAS_IMPLEMENTATION_PLAN.md](SAAS_IMPLEMENTATION_PLAN.md).
 
 ---
 
 ## Table of Contents
 
 1. [Competitor Pricing Analysis](#competitor-pricing-analysis)
-2. [Payment & Subscription Platforms](#payment--subscription-platforms)
+2. [Payment Platform Comparison](#payment-platform-comparison)
 3. [Authentication Solutions](#authentication-solutions)
 4. [Analytics Options](#analytics-options)
-5. [Recommended Stack](#recommended-stack)
-6. [Multi-Tenancy Strategy](#multi-tenancy-strategy)
-7. [Storage Architecture](#storage-architecture-resolved)
-8. [Phased Rollout Plan](#phased-rollout-plan)
-9. [Pricing Strategy](#pricing-strategy)
-10. [Cost Analysis](#cost-analysis)
-11. [Decision Framework](#decision-framework)
-12. [Enterprise Features & Compliance](#enterprise-features--compliance)
+5. [Storage Architecture Options](#storage-architecture-options)
+6. [Pricing Strategy Rationale](#pricing-strategy-rationale)
+7. [Cost Analysis](#cost-analysis)
+8. [Enterprise Features Research](#enterprise-features-research)
+9. [Resources](#resources)
 
 ---
 
@@ -88,11 +60,11 @@ Research conducted December 2025 on comparable tools:
 
 ---
 
-## Payment & Subscription Platforms
+## Payment Platform Comparison
 
 All options below are **Merchant of Record** (MoR) solutions - they handle tax compliance, VAT, invoicing, and payment processing.
 
-### Option 1: Polar.sh ⭐ RECOMMENDED
+### Polar.sh (CHOSEN)
 
 **Best for:** Developer tools, indie hackers, validation phase
 
@@ -103,216 +75,61 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 - Modern API and beautiful checkout UX
 - Growing fast in indie dev community (2024-2025)
 - Transparent pricing (no hidden fees)
-- Seat-based pricing available (private beta)
-- User feedback: "smoothest, most developer-friendly payment integration"
 
 **Cons:**
 
 - Newer platform (less proven than Paddle/FastSpring)
 - Smaller ecosystem
-- Seat-based pricing in private beta
 
 **Pricing:** 5% + payment processing (~3%) = ~8% total
 
-**Examples:** Growing adoption among developers who "ditched Stripe for Polar" in 2024-2025
+### Alternatives Considered
 
----
-
-### Option 2: Lemon Squeezy
-
-**Best for:** Small businesses, creators, solopreneurs
-
-**Pros:**
-
-- Acquired by Stripe (July 2024) - stable/trusted
-- 5% + 50¢ per transaction (competitive)
-- Large ecosystem of boilerplates (SaasterKit, etc.)
-- Many tutorials available
-- 950+ websites currently using it
-
-**Cons:**
-
-- Stripe acquisition causing integration uncertainty
-- Some users report slower feature development post-acquisition
-- Cannot migrate subscriptions out (lock-in concern)
-
-**Pricing:** 5% + 50¢ per transaction
-
-**Examples:**
-
-- Canvas Supply (Framer templates)
-- Notion template creator ($110k+/month)
-- 950+ SaaS products
-
----
-
-### Option 3: Paddle
-
-**Best for:** B2B/enterprise SaaS from day one
-
-**Pros:**
-
-- Better enterprise invoicing and multi-currency
-- Proven at scale with larger SaaS companies
-- Strong B2B credibility
-- Extensive features for sales-led growth
-- Independent vendor (no acquisition uncertainty)
-
-**Cons:**
-
-- Higher fees: 5% + 50¢ + 3% non-domestic currency = ~8%+
-- More enterprise-oriented (might be overkill for validation)
-
-**Pricing:** 5-8% depending on currency
-
-**Best use case:** If enterprise architects at large companies are primary market
-
----
-
-### Option 4: Gumroad
-
-**Best for:** Ultra-simple validation (then migrate away)
-
-**Pros:**
-
-- Dead simple setup (hours, not days)
-- Built-in marketplace (Discover feature)
-- No coding required
-- Now acts as MoR (as of Jan 2025)
-
-**Cons:**
-
-- **10% + 50¢ fee** (double competitors!)
-- Limited SaaS features
-- **Cannot migrate subscriptions** if you outgrow it
-- Less sophisticated than alternatives
-
-**Pricing:** 10% + 50¢ per transaction
-
-**Recommendation:** Avoid - too expensive long-term
-
----
-
-### Option 5: FastSpring
-
-**Best for:** B2B software with enterprise sales motion
-
-**Pros:**
-
-- Built specifically for B2B SaaS/software companies
-- Sales team features (quotes, custom invoices, POs, net-30 terms)
-- "Most extensive B2B features of any MoR"
-- Handles complex enterprise scenarios
-
-**Cons:**
-
-- Overkill for solo founder starting out
-- Higher fees than Lemon Squeezy/Polar
-- Contact sales for pricing (no transparent pricing)
-
-**Pricing:** Custom (typically higher than 5%)
-
-**When to use:** Selling $5k-50k/year enterprise contracts
-
----
-
-### Option 6: DIY Stripe + Supabase
-
-**Best for:** Maximum control, long-term cost optimization
-
-**Pros:**
-
-- Cheapest at scale: Stripe 2.9% + 30¢
-- Complete control over UX
-- Supabase Auth simpler than before
-- Auth + database + storage bundled
-
-**Cons:**
-
-- **You handle tax compliance** (VAT, sales tax - complex!)
-- Edge functions for webhooks (previous pain point)
-- More ongoing maintenance
-- Longer time to market than turnkey solutions
-
-**Pricing:** $25/mo (Supabase Pro) + 2.9% Stripe fees
-
-**Option:** Use Stripe Tax ($0.50/transaction for compliance)
-
-**Recommendation:** Avoid for validation phase - too complex
+| Platform | Fees | Best For | Why Not Chosen |
+|----------|------|----------|----------------|
+| **Lemon Squeezy** | 5% + 50¢ | Solopreneurs | Stripe acquisition uncertainty, subscription lock-in |
+| **Paddle** | 5-8% | Enterprise B2B | Overkill for validation, higher fees |
+| **Gumroad** | 10% + 50¢ | Quick validation | Too expensive long-term |
+| **FastSpring** | Custom | Enterprise sales | Overkill for solo founder |
+| **DIY Stripe** | 2.9% + 30¢ | Cost optimization | Tax compliance burden, longer time to market |
 
 ---
 
 ## Authentication Solutions
 
-### Clerk ⭐ RECOMMENDED
+### Clerk (CHOSEN)
 
 **Best for:** Drop-in auth, B2B SaaS, fast validation
 
 **Features:**
 
-- Pre-built beautiful UI components (`<SignIn>`, `<UserButton>`, `<OrganizationSwitcher>`)
+- Pre-built UI components (`<SignIn>`, `<UserButton>`, `<OrganizationSwitcher>`)
 - Multi-tenancy built-in via Organizations
 - SSO/SAML support (enterprise-ready)
-- Role-based access control
 - 10k MAU free tier
 
-**Pricing:**
+**Pricing:** Free up to 10k MAU, then ~$25/mo
 
-- Free: 10k MAU
-- Pro: Starts ~$25/mo
-
-**Multi-tenancy:** Built-in Organizations feature significantly reduces custom development work
-
-**Examples:**
-
-- Bucket.co (feature management tool)
-- Multiple Next.js SaaS startups
-
----
-
-### Supabase Auth
-
-**Best for:** Database-integrated apps, cost optimization at scale
+### Supabase Auth (Alternative)
 
 **Features:**
 
-- Free tier: 50k MAU (100k on Pro plan)
-- Bundled with database, storage, edge functions
-- Row Level Security (RLS) for fine-grained authorization
-- Need to build your own UI components
+- 50k MAU free tier (100k on Pro)
+- Bundled with database, storage
+- Row Level Security for authorization
+- Requires building own UI
 
-**Pricing:**
+**When to consider:** Cost optimization at scale, if you need Supabase database anyway
 
-- Free: 50k MAU
-- Pro: $25/mo (includes database, storage, etc.)
-
-**Multi-tenancy:** Requires custom implementation
-
-**Pros:**
-
-- Cheaper at scale if you need database anyway
-- Complete control over UX
-
-**Cons:**
-
-- No pre-built UI components
-- SSO/SAML requires custom setup
-- Steeper learning curve for RLS
-
----
-
-### Comparison Table
+### Comparison
 
 | Feature | Clerk | Supabase Auth |
 |---------|-------|---------------|
-| UI Components | ✅ Pre-built | ❌ Build your own |
-| Free tier | 10k MAU | 50k MAU (100k Pro) |
-| Pricing | ~$25/mo | $25/mo (bundled) |
-| Multi-tenancy | ✅ Built-in Organizations | ❌ Custom implementation |
-| SSO/SAML | ✅ Built-in | ❌ Custom setup |
-| Best for | Fast validation, B2B | Cost optimization, DB apps |
-
-**Recommendation:** Clerk for validation phase (faster), consider Supabase later for cost optimization
+| UI Components | Pre-built | Build your own |
+| Free tier | 10k MAU | 50k MAU |
+| Multi-tenancy | Built-in Organizations | Custom implementation |
+| SSO/SAML | Built-in | Custom setup |
+| Best for | Fast validation, B2B | Cost optimization |
 
 ---
 
@@ -320,1250 +137,210 @@ All options below are **Merchant of Record** (MoR) solutions - they handle tax c
 
 ### What Solo Founders Actually Use (2025 Research)
 
-Based on indie hacker community research and analysis of successful solo projects:
-
-**90% of solo founders use privacy-first analytics:**
+**90% use privacy-first analytics:**
 
 - Simple Analytics, Plausible, or Fathom
-- Cheap ($9-19/mo), simple, privacy-compliant
-- No cookies, GDPR-compliant out-of-the-box
-- Just track: traffic, conversions, basic goals
+- $9-19/mo, simple, GDPR-compliant
+- No cookies needed
 
 **10% add product analytics later:**
 
 - PostHog or Mixpanel
-- Only after they have paying customers
-- When they need to optimize features, not just track visits
+- Only after having paying customers
 
-**Real-world example:** EventCatalog (3.5k+ stars) uses Simple Analytics. See implementation details in Appendix.
+### Simple Analytics (CHOSEN)
 
----
-
-### Polar Dashboard (Built-in)
-
-**Included with Polar.sh:**
-
-- Transaction analytics
-- Revenue metrics (MRR, ARR, growth)
-- Conversion tracking
-- Customer insights
-- Geographic distribution
-- Payment method breakdown
-
-**Pro:** Free, no additional setup
-**Con:** Limited to payment/subscription data (no product usage insights)
-
----
-
-### Simple Analytics ⭐ RECOMMENDED (Phase 1)
-
-**Best for:** Solo founders in validation phase (most common choice)
-
-**Features:**
+**Why:**
 
 - Privacy-first (no cookies, GDPR-compliant)
-- Lightweight script (77x smaller than Google Analytics)
-- Custom event tracking (like EventCatalog uses)
-- Traffic sources, conversions
-- Simple, clean dashboard
-- Can track custom events via API
+- Lightweight script (77x smaller than GA)
+- $9/mo for 10k visitors
+- Used by EventCatalog (3.5k+ stars)
 
-**Pricing:** $9/mo (10k visitors) → $49/mo (1M visitors)
+### Alternatives
 
-**Why solo founders choose this:**
-
-- ✅ Simple setup (drop-in script)
-- ✅ Privacy-compliant (no consent banners)
-- ✅ Cheap and predictable pricing
-- ✅ Zero maintenance
-- ✅ Enough for validation phase
+| Tool | Price | Best For |
+|------|-------|----------|
+| **Plausible** | $9/mo | Most popular in indie community, self-hosted option |
+| **Fathom** | $14/mo | Real-time analytics, polished UX |
+| **PostHog** | Free 1M events | Product analytics, A/B testing (add later) |
 
 ---
 
-### Plausible
+## Storage Architecture Options
 
-**Best for:** Similar to Simple Analytics, slightly more popular
+### Current State: Yjs + Cloudflare Durable Objects (IMPLEMENTED)
 
-**Features:**
-
-- Lightweight, no cookies
-- Beautiful single dashboard
-- GDPR compliant
-- Traffic sources, conversions
-- Open-source option available
-
-**Pricing:** $9/mo (10k pageviews)
-
-**Why choose this:**
-
-- Most mentioned in indie hacker community
-- Quote: *"It's pretty simple, but honestly it's got everything I need"*
-- Self-hosted option available (Plausible CE)
-
----
-
-### Fathom Analytics
-
-**Best for:** Simplicity + real-time analytics
-
-**Features:**
-
-- Privacy-first (no cookies)
-- 2kB script size
-- Real-time analytics
-- Goal tracking
-
-**Pricing:** $14/mo (100k pageviews)
-
-**Why choose this:**
-
-- Used by levelsio (Nomadlist founder - $74k MRR solo)
-- Slightly more expensive but highly polished
-- EU-compliant out of the box
-
----
-
-### PostHog (Optional - Phase 3)
-
-**Best for:** Product analytics when optimizing features (not for validation phase)
-
-**Features:**
-
-- Web analytics + product analytics
-- Session replay (watch user sessions)
-- A/B testing
-- Feature flags
-- Surveys
-- Funnels, cohorts, retention
-- Data warehouse
-
-**Pricing:**
-
-- Free: 1M events/month
-- Pay-as-you-go after free tier
-
-**When to add this:**
-
-- ✅ After you have 100+ paying customers
-- ✅ When you need to decide which features to build next
-- ✅ When you want to A/B test pricing or features
-- ✅ When you need session replay to debug UX issues
-
-**Why NOT for Phase 1:**
-
-- ❌ More complex than you need initially
-- ❌ Steeper learning curve
-- ❌ Overkill when you just need traffic + conversions
-
----
-
-## Recommended Stack
-
-### Primary Recommendation: Polar.sh + Clerk + Simple Analytics ⭐
-
-**Stack:**
-
-- **Payments:** Polar.sh (5% fee, merchant of record)
-- **Auth:** Clerk (drop-in components, multi-tenancy ready)
-- **Analytics:** Simple Analytics ($9/mo)
-
-**Why this combo:**
-✅ Fastest time to market
-✅ Lowest transaction fees (5% + processing)
-✅ No tax/compliance headaches (Polar is MoR)
-✅ No Stripe webhook debugging nightmares
-✅ Enterprise-ready (Clerk SSO/SAML when needed)
-✅ Privacy-first analytics (no cookies, GDPR-compliant)
-✅ **Matches what successful solo founders actually use** (EventCatalog pattern)
-
-**Total cost:** ~$9-50/mo + 8% transaction fee
-
-**This is the most common stack for solo founders in 2025.**
-
----
-
-### Alternative Analytics Options
-
-**If you prefer something else:**
-
-**Option A: Plausible instead of Simple Analytics**
-
-- Same price ($9/mo)
-- More popular in indie hacker community
-- Open-source self-hosted option available
-
-**Option B: Polar + Clerk only (no external analytics initially)**
-
-- Wait until you have 10+ paying customers
-- Polar shows conversions, Clerk shows signups
-- Add Simple Analytics later when you need more insights
-- **Cheapest option:** $0 extra cost
-
-**Option C: Add PostHog for power users**
-
-- If you need A/B testing from day 1
-- If you want session replay to debug issues
-- Free tier (1M events/month)
-- More complex but more powerful
-
----
-
-### Payment Platform Alternatives
-
-**Lemon Squeezy instead of Polar:**
-
-- More proven platform (Stripe-backed)
-- Larger ecosystem (more boilerplates, tutorials)
-- Same pricing as Polar (5% + 50¢)
-- **Trade-off:** Stripe acquisition uncertainty vs Polar's independence
-
-**Paddle for enterprise focus:**
-
-- Better invoicing, PO support, net-30 terms
-- More enterprise credibility
-- Slightly higher fees (~8%) worth it for B2B
-
----
-
-## Multi-Tenancy Strategy
-
-### Clerk Organizations (Turnkey Approach)
-
-Clerk provides **built-in multi-tenancy** via Organizations feature:
-
-**What you get out-of-the-box:**
-
-- `<OrganizationSwitcher />` - users create/switch teams
-- `<OrganizationProfile />` - manage team members, send invites
-- Role-based access control (admin, member, guest)
-- User invitations via email
-- Organization-level metadata storage
-
-**Setup:** Toggle "Organizations" on in Clerk Dashboard → add 2 React components → done
-
-**Time savings:** Eliminates need for custom multi-tenancy implementation
-
----
-
-### Licensing Models with Polar
-
-#### Option A: Seat-Based Pricing (Ideal for Team tier)
-
-**How it works:**
-
-1. Customer buys "Team plan - 5 seats" for $999/year
-2. Polar provides billing manager interface
-3. Billing manager assigns seats to team members by email
-4. Each seat holder gets license key/entitlement
-5. Sync to Clerk Organizations via webhooks
-
-**Status:** Private beta (need to request access)
-
-**Pros:**
-
-- Polar handles seat management UI
-- Dynamic add/remove seats with proration
-- Scales revenue with team size
-
----
-
-#### Option B: Organization-Level Subscription (Available Now)
-
-**How it works:**
-
-1. Customer buys "Team plan" subscription via Polar
-2. Create Clerk Organization for them
-3. Org admin invites unlimited team members via Clerk UI
-4. All members inherit organization's subscription status
-5. Validate: `user.orgId` → check subscription in metadata
-
-**Pros:**
-
-- Available immediately (no beta access needed)
-- Simpler pricing (unlimited seats)
-- Easier to sell ("bring your whole team")
-- Less customer support burden
-
-**Cons:**
-
-- No per-seat revenue scaling
-
-**Recommendation:** Start with unlimited seats, switch to per-seat if teams average 20+ people
-
----
-
-### Webhook Sync Pattern (Polar → Clerk)
-
-**Simple serverless function flow:**
-
-```text
-1. Customer buys Pro plan ($99/year) on Polar
-   ↓
-2. Polar webhook → your Cloudflare Worker
-   ↓
-3. Webhook handler:
-   - Receive subscription_created event
-   - Extract customer email + subscription_id
-   - Update Clerk user metadata:
-     clerk.users.updateUserMetadata(userId, {
-       privateMetadata: {
-         subscription: {
-           polarId: subscription_id,
-           tier: "pro",
-           status: "active"
-         }
-       }
-     })
-   ↓
-4. React app checks Clerk metadata
-   - tier === "pro" → unlimited projects
-   - no tier → free tier limits (1 project)
-```
-
-**No backend needed!** Just a simple serverless function (~100 lines of code).
-
----
-
-## Storage Architecture (Resolved)
-
-### Current State: Yjs + Cloudflare Durable Objects ✅
-
-**Implemented architecture:**
+**Architecture:**
 
 - Yjs CRDT for conflict-free real-time collaboration
 - IndexedDB (y-indexeddb) for offline persistence
 - Cloudflare Durable Objects for WebSocket sync
-- All projects automatically sync to cloud
 
-**Benefits achieved:**
+**Benefits:**
 
-- ✅ True multi-user collaboration (real-time sync)
-- ✅ Works across devices (cloud-synced)
-- ✅ Offline editing works (Yjs buffers changes)
-- ✅ No data loss risk (cloud persistence)
-- ✅ Global low latency (Cloudflare edge)
+- True multi-user collaboration (real-time)
+- Works across devices (cloud-synced)
+- Offline editing works (Yjs buffers changes)
+- Global low latency (Cloudflare edge)
 
-**See:** `docs/CLOUD_SYNC_PLAN.md` for implementation details
+### Alternatives Evaluated
 
----
-
-### Cloud Sync Options
-
-#### Option 1: Supabase Storage + IndexedDB Cache ⭐ RECOMMENDED (when needed)
-
-**Pattern:** Cloud-first with offline fallback
-
-**Architecture:**
-
-```text
-All Tiers (Current Implementation):
-├─ Yjs CRDT for conflict-free collaboration
-├─ Cloudflare Durable Objects for sync
-└─ IndexedDB for offline persistence
-
-Free Tier: Limited to 1 project (unlimited contexts)
-Pro Tier: Unlimited projects
-```
-
-**Pros:**
-✅ True multi-user collaboration
-✅ Works across devices
-✅ Offline editing still works
-✅ Supabase free tier: 500MB database + 1GB storage
-✅ RxDB + Supabase plugin handles sync automatically
-
-**Cons:**
-⚠️ Requires backend (breaks "no backend" goal)
-⚠️ More complex implementation
-
-**Cost:** Free tier → $25/mo Pro when needed
-
-**Implementation tool:** RxDB-Supabase plugin (handles bidirectional sync)
+| Option | Pros | Cons | Status |
+|--------|------|------|--------|
+| **Supabase + RxDB** | Good free tier, SQL queries | Requires backend, more complex | Not chosen |
+| **Dexie Cloud** | Most turnkey, offline-first | Vendor lock-in, unclear pricing | Not chosen |
+| **IndexedDB only** | Zero backend | No collaboration | Superseded |
 
 ---
 
-#### Option 2: Dexie Cloud (Most Turnkey)
+## Pricing Strategy Rationale
 
-**Pattern:** IndexedDB + managed cloud sync service
+### Why 3 Tiers (Free/Pro/Enterprise)
 
-**How it works:**
+Penpot and other successful tools use 3 tiers. Benefits:
 
-- Keep using IndexedDB via Dexie.js wrapper
-- Dexie Cloud handles sync/auth/multi-user automatically
-- Minimal code changes from current setup
+- Simpler pricing story
+- Lower decision friction
+- Collaboration as default feels generous
+- Less infrastructure complexity
 
-**Pros:**
-✅ **Most turnkey** - drop-in replacement
-✅ Designed for offline-first apps
-✅ Built-in auth, permissions, sharing
-✅ Real-time sync automatic
-✅ Keeps "browser-first" philosophy
+A Team tier can be added later if customers demand pricing between Pro and Enterprise.
 
-**Cons:**
-⚠️ Vendor lock-in (newer service)
-⚠️ Pricing unclear (contact sales)
-⚠️ Smaller ecosystem
+### Why $99/year for Pro
 
-**Cost:** Free tier available, paid tiers likely $25-100/mo
+**Rationale:**
 
----
+- Competitive with Miro/Excalidraw ($72-96/year range)
+- Much cheaper than Structurizr ($300/year minimum)
+- Easy impulse purchase for consultants
 
-#### Option 3: Yjs CRDT + Cloudflare Durable Objects ✅ IMPLEMENTED
+**Risk:** May signal "toy tool" at $150-300/hr billing rate. Consider A/B testing $299/year.
 
-**Pattern:** Real-time collaboration with conflict-free data types
+### Why Project-Based Limits (Not Context Limits)
 
-**How it works:**
+**Decision:** Free tier limited to 1 owned project, unlimited contexts.
 
-- Data model uses Yjs CRDT format
-- IndexedDB for offline persistence (y-indexeddb)
-- Cloudflare Durable Objects for WebSocket sync
-- Automatic conflict resolution
+**Rationale:**
 
-**Implementation details:** See `docs/CLOUD_SYNC_PLAN.md`
+1. Context limits conflicted with sample projects (9-23 contexts)
+2. DDD workshops need full context maps to be useful
+3. Project limits create natural upgrade trigger for consultants with multiple clients
+4. Full collaboration on free tier differentiates from Structurizr
 
-**Pros:**
-✅ True collaborative editing (Google Docs-style)
-✅ Automatic conflict resolution
-✅ Cloudflare edge hosting (global low latency)
-✅ Built-in offline support via Yjs
+### Why "Pay for What You Own" Licensing
 
-**Architecture:**
-
-- Frontend: Yjs + y-indexeddb for local persistence
-- Backend: Cloudflare Durable Objects for real-time sync
-- All projects automatically sync to cloud
-
-**Cost:** Cloudflare Workers/DO pricing (minimal at current scale)
-
----
-
-#### Option 4: Keep IndexedDB, No Multi-Tenancy (Superseded)
-
-**Pattern:** Different pricing model to avoid multi-user problem
-
-**How it works:**
-
-- Keep current IndexedDB architecture
-- Only offer **single-user licenses** (no team tier)
-- Add cloud export/backup features
-
-**Note:** This option is superseded by the current Yjs + Cloudflare DO implementation which provides real-time collaboration for all tiers.
-
-**Pros:**
-✅ **Zero backend work**
-✅ Maintains "browser-first" philosophy
-✅ Simplest implementation (already done!)
-✅ Export/import for manual collaboration
-
-**Cons:**
-❌ No real multi-user collaboration
-❌ Limits market size
-
-**Cost:** $0 (maybe $5/mo for backup storage)
-
-**Recommendation:** Start here, add multi-tenancy only if customers demand it
-
----
-
-## Phased Rollout Plan
-
-### Phase 1: Cloud Sync ✅ COMPLETE
-
-**Implemented:** Yjs + Cloudflare Durable Objects cloud sync
-
-- All projects automatically sync to cloud
-- Offline support via y-indexeddb
-- Real-time collaboration ready
-- See `docs/CLOUD_SYNC_PLAN.md` for details
-
----
-
-### Phase 1.5: Auth & Payments (CURRENT)
-
-**What to build:**
-
-1. Integrate Clerk authentication
-2. Integrate Polar.sh for payments
-3. Implement project-based feature gates (project limits only)
-4. Deploy webhook handler (Cloudflare Worker) for Polar → Clerk sync
-
-**Tiers:**
-
-| Tier | Price | Limits |
-|------|-------|--------|
-| **Free** | $0 | 1 project, unlimited contexts, full collaboration |
-| **Pro** | $99/year | Unlimited projects |
-| **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
-
-**Key principle:** Collaboration/sync works for ALL tiers. Tiers differ only in quantity limits, not feature lockouts.
-
-**Licensing model:** You pay for what you own, not what you collaborate on. License is tied to project owner - anyone can collaborate on shared projects regardless of their tier.
-
-**No Team tier** - deferred until customers request org/billing features
-
-**Backend required:** Webhook endpoint (Cloudflare Worker)
-**Messaging:** "Professional DDD context mapping for software architects"
-
----
-
-### Phase 2: Validate Demand (Early Adoption Period)
-
-**Goals:**
-
-- Get first 10 paying customers
-- Survey customers: "Would you pay more for team collaboration?"
-- Track feature requests
-
-**Decision criteria:**
-
-- If >50% ask for team features → proceed to Phase 3
-- If <20% ask for teams → stay single-user
-- If customers want "share projects" but not real-time → add export/import only
-
----
-
-### Phase 3: Add Multi-Tenancy & Team Tier (If Validated)
-
-**When:** After customers ask for team collaboration (see Multi-Tenancy Strategy section)
-
-**New tier:** Team ($999/year) - Shared workspace, unlimited seats
-
----
-
-### Phase 4: Enterprise Features (After $50k ARR)
-
-**If enterprise customers appear:**
-
-- Self-hosted deployment option
-- SSO/SAML (already have via Clerk)
-- Custom contracts, invoicing
-- Consider switching to Paddle or FastSpring for better B2B features
-
----
-
-## Pricing Strategy
-
-### 3-Tier vs 4-Tier Model Decision
-
-Before defining tiers, consider whether a Team tier is necessary. Penpot (a comparable open-source design tool) uses only 3 tiers: Free → Professional → Enterprise, with no separate Team tier.
-
-#### 3-Tier Model (Penpot-style: Free/Pro/Enterprise)
-
-**Pros:**
-
-- Simpler pricing story - easier for customers to understand and choose
-- Lower decision friction - no "should I get Team or Enterprise?" confusion
-- Collaboration as default - makes the product feel more generous/modern
-- Less infrastructure complexity - one collaboration tier to build, not two
-- Easier marketing - "Pro includes your whole team" is compelling
-
-**Cons:**
-
-- Leaves money on table - teams of 20+ pay same as teams of 3
-- No revenue scaling - flat price regardless of organization size
-- Enterprise jump is steep - $299/year → $950/mo is a big gap
-- May attract tire-kickers - unlimited seats could attract teams who won't pay for Enterprise later
-
-#### 4-Tier Model (Free/Pro/Team/Enterprise)
-
-**Pros:**
-
-- Revenue scales with usage - larger teams pay more
-- Gradual upgrade path - $299 → $999 → $5k+ feels natural
-- Pricing flexibility - can experiment with per-seat vs flat team pricing
-- Captures mid-market - teams too small for Enterprise but willing to pay more than Pro
-- Validates demand - Team tier acts as signal for collaboration feature demand
-
-**Cons:**
-
-- More complex pricing page - customers must compare 4 options
-- Feature allocation headaches - what goes in Team vs Enterprise?
-- More infrastructure - potentially different collaboration/sync implementations per tier
-- Cannibalizes Enterprise - some customers buy Team when they'd have paid Enterprise
-
-#### Decision Guide
-
-| If you value... | Choose |
-|-----------------|--------|
-| Simplicity & speed to market | 3-tier |
-| Revenue maximization | 4-tier |
-| Validation-first (stated goal) | 3-tier |
-| Enterprise sales motion | 4-tier |
-
-**Recommendation:** Given the validation-first philosophy, start with 3 tiers (Free/Pro/Enterprise). Add a Team tier later only if customers explicitly demand pricing between Pro and Enterprise.
-
----
-
-### Recommended Tiers
-
-#### Free Tier
-
-- **Price:** $0
-- **Limits:** 1 project (unlimited contexts)
-- **Features:**
-  - Full editing and collaboration on your project
-  - Real-time sync with collaborators
-  - Export to JSON
-  - Collaborate on unlimited Pro-owned projects (no license needed to join)
-  - Access and edit sample projects (don't count against limit)
-- **Goal:** Demonstrate full value, natural upgrade when users need multiple projects
-
----
-
-#### Pro Tier
-
-- **Price:** $99/year
-- **Target:** Individual software architects, consultants
-- **Limits:** Unlimited projects
-- **Features:**
-  - Everything in Free, without project limits
-  - Priority support
-- **Positioning:** "Unlimited projects for professional DDD practitioners"
-
----
-
-#### Enterprise Tier (Later - After validation)
-
-- **Price:** Custom ($5k-50k/year)
-- **Target:** Large enterprises, regulated industries
-- **Features:**
-  - Everything in Pro
-  - SSO/SAML integration (via Clerk)
-  - Audit logging
-  - Custom SLA
-  - Dedicated support
-  - Custom contracts/invoicing
-- **Positioning:** "Secure, compliant, enterprise-ready"
-
-**Deferred:** Team tier - revisit only if customers request org/billing features
+- License tied to project owner, not collaborators
+- Anyone can join shared projects regardless of tier
+- Free users can participate in unlimited Pro-owned workshops
+- Creates network effects and reduces friction
 
 ---
 
 ## Cost Analysis
 
-### Monthly Recurring Costs
+### Monthly Recurring Costs by Phase
 
-**Phase 1 (Validation - first 100 users):**
-
-- Clerk: $0 (free tier up to 10k MAU)
-- Polar.sh: $0 monthly fee
-- Simple Analytics: $9/mo (10k visitors)
-- Webhook hosting: $0 (Vercel/Cloudflare free tier)
-- **Total: $9/month**
-
-**Phase 2 (Growing - 500 users):**
-
-- Clerk: $25-50/mo (exceeds free tier)
-- Polar.sh: $0 monthly fee
-- Simple Analytics: $9-19/mo (still within tier)
-- Webhook hosting: $0 (still free)
-- **Total: ~$34-69/month**
-
-**Phase 3 (With multi-tenancy - 2k users):**
-
-- Clerk: $50-100/mo
-- Polar.sh: $0 monthly fee
-- Simple Analytics: $19-29/mo
-- Supabase OR Dexie Cloud: $25-100/mo
-- PostHog (optional): $0-50/mo if added
-- Webhook hosting: $0
-- **Total: ~$94-279/month**
-
----
+| Phase | Users | Clerk | Analytics | Total/mo |
+|-------|-------|-------|-----------|----------|
+| Validation | 0-100 | $0 | $9 | **$9** |
+| Growing | 500 | $25-50 | $9-19 | **$34-69** |
+| Scale | 2k+ | $50-100 | $19-29 | **$69-129** |
 
 ### Transaction Costs
 
-**Polar.sh pricing:**
+Polar.sh: 5% + ~3% payment processing = **~8% total**
 
-- 5% Polar fee
-- ~3% payment processing (Stripe/PayPal)
-- **Total: ~8% per transaction**
+| ARR | Transaction Fees | Platform Costs | Total | % of Revenue |
+|-----|-----------------|----------------|-------|--------------|
+| $10k | $800 | $108 | $908 | 9.1% |
+| $50k | $4,000 | $408 | $4,408 | 8.8% |
+| $100k | $8,000 | $828 | $8,828 | 8.8% |
 
-**Example at different ARR levels:**
+### Turnkey vs DIY Comparison
 
-| Annual Recurring Revenue | Transaction Fees (8%) | Monthly Platform Costs | Total Annual Cost | % of Revenue |
-|-------------------------|----------------------|----------------------|-------------------|-------------|
-| $10k | $800 | $108 ($9/mo) | $908 | 9.1% |
-| $50k | $4,000 | $408 ($34/mo avg) | $4,408 | 8.8% |
-| $100k | $8,000 | $828 ($69/mo avg) | $8,828 | 8.8% |
-| $250k | $20,000 | $2,000 ($167/mo avg) | $22,000 | 8.8% |
+**At $50k ARR:**
 
----
+| Approach | Transaction | Platform | Dev Effort | Total |
+|----------|-------------|----------|------------|-------|
+| Turnkey (Polar+Clerk) | $4,000 | $408 | Minimal | $4,408 (8.8%) |
+| DIY (Stripe+custom) | $1,450 | $800 | Substantial | $2,250 (4.5%) |
 
-### Cost Comparison: Turnkey vs DIY
-
-**Turnkey (Polar + Clerk + Simple Analytics) at $50k ARR:**
-
-- Transaction fees: $4,000/year (8%)
-- Platform costs: $408/year (Clerk + Simple Analytics)
-- Development effort: Minimal
-- **Total cost: $4,408/year (8.8% of revenue)**
-- **Your time saved: Significant (avoids custom implementation)**
-
-**DIY (Stripe + custom auth) at $50k ARR:**
-
-- Stripe fees: $1,450/year (2.9%)
-- Stripe Tax: $500/year (for compliance)
-- Supabase: $300/year
-- Development effort: Substantial initial + ongoing maintenance
-- **Total cost: $2,250/year (4.5% of revenue)**
-- **Your time cost: Significant opportunity cost**
-
-**Verdict:** Pay extra 5% to avoid substantial development work during validation phase. Consider DIY migration after $250k ARR.
+**Verdict:** Pay extra ~4% to avoid substantial development work during validation. Consider DIY migration after $250k ARR.
 
 ---
 
-## Decision Framework
+## Enterprise Features Research
 
-### Decision Matrix
+### When Selling to Enterprises
 
-| Scenario | Payment | Auth | Analytics | Storage | Team Support | Implementation Effort |
-|----------|---------|------|-----------|---------|--------------|----------------------|
-| **ContextFlow current** ⭐ | Polar.sh | Clerk | Simple Analytics | Yjs + Cloudflare DO ✅ | Yes (real-time) | Auth/payments remaining |
-| **Cost optimized** | Polar.sh | Supabase | Plausible | Yjs + Cloudflare DO | Yes (real-time) | Medium |
-| **Enterprise-ready** | Paddle | Clerk | PostHog | Yjs + Cloudflare DO + on-prem | Yes (real-time) | Substantial |
-| **Full control** | Stripe | Supabase | Self-hosted | Yjs + self-hosted | Yes (real-time) | Very substantial |
+#### Must-Have (Deal Breakers)
 
-**Note:** ContextFlow has already implemented Yjs + Cloudflare Durable Objects for cloud sync. The remaining work is adding Clerk auth and Polar.sh payments.
+| Feature | Why Required | Solution |
+|---------|--------------|----------|
+| SSO/SAML | 83% of buyers require it | Clerk (built-in) |
+| SOC 2 Type II | Contractual requirement | Vanta/Drata ($7.5-15k/yr) |
+| Audit Logging | SOX, GLBA, DORA compliance | Retraced (free, OSS) |
+| MFA/2FA | Basic security | Clerk (built-in) |
 
----
+#### Strongly Expected
 
-## Recommended Next Steps
+| Feature | Solution |
+|---------|----------|
+| SCIM Provisioning | WorkOS, BoxyHQ |
+| Role-Based Access Control | Permit.io, Cerbos, or built-in |
+| Data Residency | Multi-region deployment |
 
-### Step 1: Decide on Approach
+### SOC 2 Compliance Platforms
 
-1. **Choose validation path:**
-   - ✅ Recommended: "Fastest validation" path
-   - Keep IndexedDB, add Polar + Clerk
-   - Launch with Free + Pro tiers only
+| Platform | Starting Price | Notes |
+|----------|---------------|-------|
+| Secureframe | $7,500/year | Budget-conscious |
+| Vanta | $11,500/year | Most integrations (375+) |
+| Drata | $7,500-15,000/year | Multi-framework |
 
-2. **Set up accounts:**
-   - Create Polar.sh account
-   - Create Clerk account
-   - Create Simple Analytics account ✅ **Done!**
+**Recommendation:** Defer SOC 2 until enterprise customers demand it (~$15-30k total investment).
 
-3. **Plan implementation:**
-   - Review current codebase
-   - Identify where to add feature gates
-   - Plan webhook endpoint deployment
+### Financial Services Requirements
 
----
+Most financial regulations (GLBA, 23 NYCRR 500, DORA) are satisfied by:
 
-### Step 2: Basic Integration
-
-**Core payment and auth integration:**
-
-1. Add Clerk authentication components
-2. Create Polar products (Free, Pro tiers)
-3. Implement feature gates in React
-4. Add "Download JSON" export for Pro users
-
----
-
-### Step 3: Polish & Launch
-
-**Finalize and deploy:**
-
-1. Deploy webhook handler (Vercel function)
-2. Test purchase flow end-to-end
-3. Add basic landing page / pricing page
-4. Soft launch to small audience
-
----
-
-### Step 4: Validate & Learn
-
-**Gather customer feedback:**
-
-1. Get first paying customers
-2. Survey: "What features would make you upgrade?"
-3. Track: "How many ask for team collaboration?"
-4. Decide: Add multi-tenancy or stay single-user?
-
----
-
-### Step 5 (If Needed): Add Multi-Tenancy
-
-**If demand validated:**
-
-1. Enable Clerk Organizations
-2. Integrate Dexie Cloud OR Supabase
-3. Launch Team tier
-4. Migrate existing customers if needed
-
----
-
-## Appendix: Integration Examples
-
-### EventCatalog's Simple Analytics Implementation
-
-**Real-world example of what you're building:**
-
-EventCatalog (3.5k+ stars, solo founder project) uses Simple Analytics with this approach:
-
-**Code structure:**
-
-```javascript
-// src/analytics/analytics.js
-import axios from 'axios';
-
-export const trackEvent = async (eventName, metadata = {}) => {
-  try {
-    await axios.post('https://queue.simpleanalyticscdn.com/events', {
-      type: 'event',
-      hostname: 'eventcatalog.dev',
-      event: eventName,
-      metadata: {
-        ...metadata,
-        timestamp: new Date().toISOString(),
-      }
-    });
-  } catch (error) {
-    // Silently fail - don't break UX if analytics is down
-  }
-};
-```
-
-**Events they track:**
-
-- Page views (automatic)
-- Custom events: user actions, feature usage
-- Metadata: timestamp, user agent, platform
-
-**Key lessons:**
-
-- ✅ Simple POST requests (no complex SDK)
-- ✅ Error handling that doesn't break UX
-- ✅ Custom event tracking for conversions
-- ✅ Privacy-first (no cookies)
-
-**You can copy this exact pattern for ContextFlow.**
-
----
-
-### Example Boilerplates Using Similar Stack
-
-**SaasterKit** - Next.js + Clerk + Lemon Squeezy: <https://github.com/leandroercoli/SaasterKit>
-
-**Supastarter** - Next.js + Clerk + Lemon Squeezy/Polar/Stripe: <https://supastarter.dev>
-
-**Pipedream Integration** - Auto-sync Lemon Squeezy/Polar → Clerk: <https://pipedream.com/apps/lemon-squeezy/integrations/clerk>
+- SOC 2 certification
+- SSO/SAML
+- Audit logging
 
 ---
 
 ## Resources
 
-**Polar.sh:**
+### Payment Platforms
 
-- Homepage: <https://polar.sh>
-- Docs: <https://docs.polar.sh>
-- Seat-based pricing: <https://polar.sh/docs/features/seat-based-pricing>
+- [Polar.sh](https://polar.sh) - [Docs](https://docs.polar.sh)
+- [Lemon Squeezy](https://lemonsqueezy.com)
+- [Paddle](https://paddle.com)
 
-**Clerk:**
+### Authentication
 
-- Homepage: <https://clerk.com>
-- Multi-tenancy guide: <https://clerk.com/articles/multi-tenancy-in-react-applications-guide>
-- Organizations docs: <https://clerk.com/docs/guides/multi-tenant-architecture>
+- [Clerk](https://clerk.com) - [Organizations docs](https://clerk.com/docs/guides/multi-tenant-architecture)
+- [WorkOS](https://workos.com) - Enterprise SSO
 
-**Simple Analytics:**
+### Analytics
 
-- Homepage: <https://simpleanalytics.com>
-- Docs: <https://docs.simpleanalytics.com>
-- Event tracking API: <https://docs.simpleanalytics.com/events>
-- EventCatalog implementation: <https://github.com/event-catalog/eventcatalog/blob/main/src/analytics/analytics.js>
+- [Simple Analytics](https://simpleanalytics.com) - [Docs](https://docs.simpleanalytics.com)
+- [Plausible](https://plausible.io)
+- [PostHog](https://posthog.com)
 
-**Alternative Analytics:**
+### Enterprise Compliance
 
-- Plausible: <https://plausible.io>
-- Fathom: <https://usefathom.com>
-- PostHog: <https://posthog.com>
+- [Retraced (Audit Logging)](https://github.com/retracedhq/retraced)
+- [SOC 2 Checklist](https://secureleap.tech/blog/soc-2-compliance-checklist-saas)
+- [Enterprise Ready Guide](https://www.enterpriseready.io/)
 
-**Dexie Cloud:**
+### Real-Time Collaboration
 
-- Homepage: <https://dexie.org>
-- Cloud sync: <https://dexie.org> (see "Dexie Cloud" section)
-
-**Supabase + RxDB:**
-
-- RxDB-Supabase plugin: <https://rxdb.info/replication-supabase.html>
-- PowerSync (alternative): <https://www.powersync.com>
-
-**Yjs:**
-
-- Homepage: <https://yjs.dev>
-- Docs: <https://docs.yjs.dev>
+- [Yjs](https://yjs.dev) - [Docs](https://docs.yjs.dev)
+- [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
 
 ---
 
-## Enterprise Features & Compliance
-
-This section covers what's needed beyond the basic MoR stack to sell into enterprises and financial institutions.
-
-### Penpot Pricing Model (Reference)
-
-[Penpot](https://penpot.app/pricing) uses a simple, flat pricing model with capped monthly costs:
-
-| Tier | Price | Key Features |
-|------|-------|--------------|
-| Free | $0 | Unlimited teams, designers, files; community support |
-| Professional | Max $175/mo (capped) | Preferred hosting region, premium support, 25GB storage |
-| Enterprise | Max $950/mo (capped) | SSO/SAML, 2FA, team access controls, audit logs, self-hosted option |
-
-**Key insight**: Capped monthly pricing regardless of team size gives enterprises budget predictability.
-
----
-
-### Enterprise Feature Requirements
-
-When selling to financial institutions and large enterprises:
-
-#### Tier 1: Must-Have (Deal Breakers)
-
-| Feature | Why Required | Turnkey Solution |
-|---------|--------------|------------------|
-| SSO/SAML | 83% of enterprise buyers require before vendor onboarding | Clerk (built-in), WorkOS, BoxyHQ |
-| SOC 2 Type II | Industry standard; often contractual requirement | Vanta, Drata, Secureframe |
-| Audit Logging | Regulatory compliance (SOX, GLBA, DORA) | [Retraced](https://github.com/retracedhq/retraced) (free, OSS) |
-| Data Encryption | At rest and in transit; non-negotiable | Standard TLS + cloud provider |
-| MFA/2FA | Basic security requirement | Clerk (built-in) |
-
-#### Tier 2: Strongly Expected
-
-| Feature | Why Required | Turnkey Solution |
-|---------|--------------|------------------|
-| SCIM Provisioning | Auto user sync with corporate directory | WorkOS, BoxyHQ |
-| Role-Based Access Control | Granular permissions within teams | Permit.io, Cerbos, or built-in |
-| Data Residency Options | GDPR, regional compliance | Multi-region cloud deployment |
-| SLA/Uptime Guarantees | Contractual requirements | Your operational commitment |
-
----
-
-### Turnkey Enterprise Platforms
-
-#### SSO/SAML: Clerk (Recommended) or WorkOS
-
-**Clerk** (already in your stack):
-
-- SSO/SAML available on Pro tier
-- No additional vendor needed
-- Includes MFA, Organizations, RBAC
-
-**WorkOS** (if you need more enterprise polish):
-
-- $125 per SSO/SCIM connection
-- Supports all major IdPs (Okta, Azure AD, Google Workspace)
-- Per-connection costs add up with many enterprise customers
-
-#### Audit Logging: Retraced by BoxyHQ
-
-- **Pricing**: Free (open source)
-- **Features**: Embeddable UI, Kubernetes-ready, searchable/exportable logs
-- **Why needed**: SOC 2, SOX, GLBA compliance all require audit trails
-- **GitHub**: <https://github.com/retracedhq/retraced>
-
-#### SOC 2 Compliance Automation
-
-| Platform | Starting Price | Best For |
-|----------|---------------|----------|
-| Secureframe | $7,500/year | Budget-conscious, fast certification |
-| Vanta | $11,500/year | Most integrations (375+), polished |
-| Drata | $7,500-15,000/year | Multi-framework, growing enterprises |
-
-**Key stat**: 83% of enterprise buyers require SOC 2 before vendor onboarding.
-
-**Recommendation**: Defer SOC 2 until enterprise customers demand it (~$15-30k total investment).
-
----
-
-### Financial Services-Specific Requirements
-
-Beyond general enterprise needs, financial institutions may require:
-
-| Requirement | Framework | How to Address |
-|-------------|-----------|----------------|
-| Customer data protection | GLBA (US) | Encryption, access controls, audit logs |
-| Cybersecurity program | 23 NYCRR 500 (NY) | SOC 2 covers most requirements |
-| Operational resilience | DORA (EU) | Incident response, testing |
-| Record retention | SEC-17 4a | Audit logs with 6-year retention |
-
-**Key insight**: Most financial regulations are satisfied by SOC 2 + SSO + audit logging.
-
----
-
-### Final Pricing Strategy
-
-Based on competitor research (see [Competitor Pricing Analysis](#competitor-pricing-analysis)):
-
-| Tier | Price | Limits |
-|------|-------|--------|
-| **Free** | $0 | 1 project, unlimited contexts, full collaboration |
-| **Pro** | $99/year | Unlimited projects |
-| **Enterprise** | Custom | SSO/SAML, audit logs, SLA, priority support |
-
-**Key principles:**
-
-- Collaboration/sync works for ALL tiers (already built)
-- Tiers differ only in project count, not context limits or feature lockouts
-- License tied to project owner - collaborators don't need licenses
-- Sample projects don't count against limits (platform-owned, editable by all)
-- $99/year is competitive with Miro/Excalidraw ($72-96/year range) and much cheaper than Structurizr ($300/year min)
-- Team tier deferred until customer demand validates it
-
----
-
-### Implementation Phases
-
-#### Phase 1: Validation (Current)
-
-- Polar.sh + Clerk + Simple Analytics
-- Free + Pro tiers only
-- Project-based limits only (no context limits)
-
-#### Phase 2: Enterprise-Ready (When demanded)
-
-- Enable Clerk SSO/SAML (already available in Clerk Pro)
-- Integrate Retraced for audit logging (free, OSS)
-- Launch Enterprise tier
-- Create security questionnaire responses
-
-#### Phase 3: SOC 2 (When required for deals)
-
-- Complete SOC 2 Type II certification ($15-30k)
-- Switch to Paddle/FastSpring if enterprise billing needed
-- Only pursue if enterprise customers require it
-
----
-
-### Enterprise Resources
-
-**SSO/Identity**:
-
-- [WorkOS SSO Guide](https://workos.com/blog/the-best-5-sso-providers-to-power-your-saas-app-in-2025)
-- [BoxyHQ SaaS Starter Kit](https://github.com/boxyhq/saas-starter-kit)
-
-**Compliance**:
-
-- [SOC 2 Compliance Checklist](https://secureleap.tech/blog/soc-2-compliance-checklist-saas)
-- [SSO Implementation Requirements](https://ssojet.com/ciam-101/sso-implementation-checklist-enterprise-security-requirements-for-b2b-saas)
-- [Financial Services Compliance](https://endgrate.com/blog/saas-compliance-for-financial-services-10-key-requirements)
-
-**Audit Logging**:
-
-- [Retraced GitHub](https://github.com/retracedhq/retraced)
-- [Enterprise Ready Audit Log Guide](https://www.enterpriseready.io/features/audit-log/)
-
----
-
-## Technical Requirements (Blocking Issues)
-
-### Durable Object Authentication (CRITICAL)
-
-**Current state:** `workers/server.ts` has NO user authentication.
-
-**Issue:** The `YjsRoom` class extends `YServer` with no auth checks:
-
-- Anyone with a project ID can connect and edit
-- No user ID associated with projects
-- No tier verification at sync layer
-
-**This is a blocking security issue** - must be fixed before SaaS launch.
-
----
-
-### Correct Authentication Architecture
-
-**Problem:** The original plan suggested "add JWT verification in `onConnect()`" but y-partyserver doesn't provide an `onConnect()` hook for pre-flight validation. WebSocket connections are established before you can validate.
-
-**Solution:** Validate in Worker fetch handler BEFORE routing to Durable Object:
-
-```typescript
-// workers/server.ts - fetch handler
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    if (request.headers.get('Upgrade') === 'websocket') {
-      const url = new URL(request.url);
-      const token = url.searchParams.get('token');
-
-      if (!token) {
-        return new Response('Unauthorized: Missing token', { status: 401 });
-      }
-
-      // Verify Clerk JWT BEFORE routing to DO
-      const verified = await verifyClerkJWT(token, env.CLERK_SECRET_KEY);
-      const userId = verified.sub;
-
-      // Check project access against D1
-      const projectId = url.searchParams.get('room');
-      const hasAccess = await checkProjectAccess(projectId, userId, env);
-      if (!hasAccess) {
-        return new Response('Forbidden: No access to project', { status: 403 });
-      }
-
-      // Pass verified userId to DO (DO trusts Worker validation)
-    }
-
-    return await routePartykitRequest(request, env);
-  }
-}
-```
-
-**Required infrastructure:**
-
-- D1 database for `project_ownership` + `project_collaborators` tables
-- KV namespace for webhook idempotency
-- Clerk SDK for JWT verification in Worker
-
----
-
-### Server-Side Tier Enforcement (Simplified)
-
-**Problem:** The original plan stated "Accept client-side gates as primary defense, server-side is audit-only." This is trivially bypassed by modifying JavaScript or replaying WebSocket messages.
-
-**Simplified with project-based limits:** Since we only limit project count (not contexts), server-side enforcement is simpler:
-
-1. **Project creation** - Check owned project count before allowing new project creation
-2. **No context enforcement needed** - Contexts are unlimited on all tiers
-
-**Solution:** Enforce project limits at project creation time (not per-message):
-
-```typescript
-// workers/server.ts - before creating new project room
-async createProject(userId: string, userTier: Tier): Promise<Response> {
-  if (userTier !== 'pro') {
-    const ownedCount = await this.getOwnedProjectCount(userId);
-    if (ownedCount >= 1) {
-      return new Response('Upgrade to Pro for unlimited projects', { status: 403 });
-    }
-  }
-  // Proceed with project creation...
-}
-```
-
-**Two-layer gate architecture:**
-
-| Layer | Purpose | Location |
-|-------|---------|----------|
-| **UI** | User feedback (disabled buttons, upgrade prompts) | `src/utils/featureGates.ts` |
-| **Server** | Security (block project creation) | `workers/server.ts` |
-
-**Note:** Yjs mutation helpers are no longer needed for tier enforcement since there are no context limits to enforce.
-
----
-
-### Webhook Handler Requirements
-
-**File:** `workers/webhook.ts`
-
-**Security requirements:**
-
-1. **HMAC-SHA256 signature verification** - Verify `X-Polar-Signature` header
-2. **Timestamp validation** - Reject if >5 minutes old (prevent replay attacks)
-3. **Idempotency** - Store processed event IDs in KV namespace (7-day TTL)
-4. **Retry logic** - Exponential backoff (1s, 2s, 4s) if Clerk API fails
-5. **Failed webhook queue** - Store in KV or D1 for manual resolution
-
-**Events to handle:**
-
-| Event | Action |
-|-------|--------|
-| `subscription_created` | Set tier: "pro" in Clerk metadata |
-| `subscription_cancelled` | Set tier: "free" in Clerk metadata |
-| `subscription_updated` | Update tier based on new plan |
-
-**Cache invalidation:** After updating Clerk metadata, webhook should call a cache invalidation endpoint on the relevant Durable Object(s) to flush stale tier data. Otherwise users may see "Free tier" for seconds/minutes after paying.
-
----
-
-### Rate Limiting (Required for Phase 0)
-
-**Problem:** Without rate limiting, attackers can DoS the service via:
-
-- Excessive WebSocket connections (exhaust DO limits)
-- Rapid project/context creation (storage exhaustion)
-- Large Yjs update messages (memory exhaustion)
-
-**Solution:** Implement rate limits at Worker layer:
-
-```typescript
-// Rate limit configuration
-const LIMITS = {
-  wsConnectionsPerUser: 10,      // Max concurrent WebSocket connections
-  projectsPerMinute: 5,          // Max project creations per minute
-  maxMessageSize: 1024 * 1024,   // 1MB max Yjs update size
-};
-```
-
-**Implementation:** Use Cloudflare Rate Limiting or KV-based counters with sliding window.
-
----
-
-### Token Security
-
-**Problem:** Stolen JWTs remain valid until natural expiration. With long-lived tokens (e.g., 24hr), this is a significant security risk.
-
-**Options:**
-
-1. **Short-lived tokens (recommended):** 15-minute access tokens with refresh tokens. More complex but industry standard.
-2. **Token blocklist:** Store revoked token IDs in KV namespace. Check on each request. Adds latency.
-3. **Accept the risk:** For MVP, use 1-hour tokens and accept the window of exposure.
-
-**Recommendation:** Start with Option 3 for MVP, implement Option 1 before enterprise launch.
-
----
-
-### Pricing Validation (BEFORE Launch)
-
-**Risk:** $99/year may be too low for target persona. At $150-300/hr, this is 4-8 minutes of billable time - signals "toy tool" not "professional instrument."
-
-**Validation steps:**
-
-1. Interview 10 target consultants: "How much would you pay?"
-2. A/B test landing page: $99/year vs $299/year
-3. Ask beta users: "What's your max price before you wouldn't buy?"
-
-**Alternative pricing to test:**
-
-- $299/year (still easy to expense, signals professionalism)
-- $29/month ($348/year effective, lower initial commitment)
-- $99/year + $49/project (usage-based component)
-
----
-
-### Free Tier Limits - RESOLVED
-
-**Decision:** Free tier has unlimited contexts, limited to 1 project.
-
-**Rationale:** After analyzing Structurizr (no collaboration on free tier, $300/year minimum for paid) and ContextFlow's collaborative workshop value proposition, we determined:
-
-1. Context limits conflicted with sample projects (9-23 contexts)
-2. DDD workshops need full context maps to be useful
-3. Limiting projects (not contexts) creates a natural upgrade trigger for consultants with multiple clients
-4. Full collaboration on free tier showcases ContextFlow's core differentiator vs Structurizr
-
-**Conversion trigger:** User needs a second project (second client, second domain).
-
----
-
-### Product Gaps to Address
-
-**Workshop facilitation features (if this is the value prop vs Context Mapper):**
-
-- Presentation mode (hide UI chrome, full-screen canvas)
-- Facilitator controls (lock/unlock editing for participants)
-- Workshop templates (pre-built starter maps)
-- Timer/agenda integration
-
-**Virality mechanics (critical for word-of-mouth growth):**
-
-- "Made with ContextFlow" footer on Free tier projects
-- Referral program ("Invite 3 consultants, get 3 months free")
-- Public gallery of example maps (SEO + social proof)
-
-**Data portability:**
-
-- Local-only project mode for compliance-sensitive clients
-- GDPR data export endpoint (all user data, not just current project)
-
----
-
-*Last updated: 2025-12-08 (project-based limits decision, Structurizr comparison)*
+Last updated: 2025-12-09
