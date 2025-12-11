@@ -84,7 +84,7 @@ export function InspectorPanel() {
   const [showPatternsGuide, setShowPatternsGuide] = React.useState(false)
   const [useCodeCohesionAPI, setUseCodeCohesionAPI] = React.useState(() => {
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
-    return stored === null ? true : stored === 'true' // Default to true if not set
+    return stored === 'true' // Default to false if not set (matches TopBar)
   })
 
   const handleToggleAPI = (checked: boolean) => {
