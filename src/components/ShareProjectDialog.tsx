@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
-import { X, Link2, Copy, Check, AlertTriangle } from 'lucide-react'
+import { X, Link2, Copy, Check, AlertTriangle, Loader2 } from 'lucide-react'
+import { useCollabStore } from '../model/collabStore'
+import { useEditorStore } from '../model/store'
 
 interface ShareProjectDialogProps {
   projectId: string
@@ -19,8 +21,34 @@ export function ShareProjectDialog({
 }: ShareProjectDialogProps) {
   const [showConfirmation, setShowConfirmation] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
+
+  const connectionState = useCollabStore((s) => s.connectionState)
+  const setActiveProject = useEditorStore((s) => s.setActiveProject)
 
   const shareUrl = getShareUrl(projectId)
+
+  const handleShareAnyway = async () => {
+    // If already connected, go straight to URL screen
+    if (connectionState === 'connected') {
+      setShowConfirmation(false)
+      return
+    }
+
+    // Need to establish cloud connection first
+    setIsConnecting(true)
+    setConnectionError(null)
+
+    try {
+      await setActiveProject(projectId)
+      setShowConfirmation(false)
+    } catch {
+      setConnectionError('Failed to connect. Please try again.')
+    } finally {
+      setIsConnecting(false)
+    }
+  }
 
   const handleCopy = async () => {
     try {
@@ -87,6 +115,15 @@ export function ShareProjectDialog({
             </p>
           </div>
 
+          {/* Connection error */}
+          {connectionError && (
+            <div className="px-4 pb-2">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {connectionError}
+              </p>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 px-4 pb-4">
             <button
@@ -98,10 +135,18 @@ export function ShareProjectDialog({
             </button>
             <button
               type="button"
-              onClick={() => setShowConfirmation(false)}
-              className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+              onClick={handleShareAnyway}
+              disabled={isConnecting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded transition-colors"
             >
-              Share Anyway
+              {isConnecting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                'Share Anyway'
+              )}
             </button>
           </div>
         </div>
