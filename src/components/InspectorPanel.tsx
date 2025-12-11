@@ -159,13 +159,14 @@ export function InspectorPanel() {
                 >
                   {context.name}
                 </button>
-                <button
-                  onClick={() => removeContextFromGroup(group.id, context.id)}
-                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                  title="Remove from group"
-                >
-                  <X size={12} />
-                </button>
+                <SimpleTooltip text="Remove this context from the group">
+                  <button
+                    onClick={() => removeContextFromGroup(group.id, context.id)}
+                    className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <X size={12} />
+                  </button>
+                </SimpleTooltip>
               </div>
             ))}
           </div>
@@ -296,13 +297,14 @@ export function InspectorPanel() {
                   >
                     {userNeed!.name}
                   </button>
-                  <button
-                    onClick={() => deleteUserNeedConnection(connection.id)}
-                    className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
-                    title="Remove connection"
-                  >
-                    <X size={14} />
-                  </button>
+                  <SimpleTooltip text="Remove this connection">
+                    <button
+                      onClick={() => deleteUserNeedConnection(connection.id)}
+                      className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
+                    >
+                      <X size={14} />
+                    </button>
+                  </SimpleTooltip>
                 </div>
               ))
             )}
@@ -399,13 +401,14 @@ export function InspectorPanel() {
                   >
                     {user!.name}
                   </button>
-                  <button
-                    onClick={() => deleteUserNeedConnection(connection.id)}
-                    className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
-                    title="Remove connection"
-                  >
-                    <X size={14} />
-                  </button>
+                  <SimpleTooltip text="Remove this connection">
+                    <button
+                      onClick={() => deleteUserNeedConnection(connection.id)}
+                      className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
+                    >
+                      <X size={14} />
+                    </button>
+                  </SimpleTooltip>
                 </div>
               ))
             )}
@@ -431,13 +434,14 @@ export function InspectorPanel() {
                   >
                     {context!.name}
                   </button>
-                  <button
-                    onClick={() => deleteNeedContextConnection(connection.id)}
-                    className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
-                    title="Remove connection"
-                  >
-                    <X size={14} />
-                  </button>
+                  <SimpleTooltip text="Remove this connection">
+                    <button
+                      onClick={() => deleteNeedContextConnection(connection.id)}
+                      className="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
+                    >
+                      <X size={14} />
+                    </button>
+                  </SimpleTooltip>
                 </div>
               ))
             )}

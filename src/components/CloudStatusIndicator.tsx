@@ -21,7 +21,7 @@ const STATUS_CONFIG: Record<ConnectionState, StatusConfig> = {
   disconnected: {
     icon: <CloudOff size={14} />,
     label: '',
-    tooltip: 'Not connected to cloud sync',
+    tooltip: 'Cloud sync activates when you select a project',
     color: 'text-slate-400 dark:text-slate-500',
   },
   connecting: {

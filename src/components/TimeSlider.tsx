@@ -4,6 +4,7 @@ import type { TemporalKeyframe } from '../model/types'
 import { dateToNumeric, findNearestKeyframe, shouldSnapToKeyframe } from '../lib/temporal'
 import { Copy, Trash2, X, Calendar, Play, Pause, HelpCircle } from 'lucide-react'
 import { InfoTooltip } from './InfoTooltip'
+import { SimpleTooltip } from './SimpleTooltip'
 import { KEYFRAME_DEFINITION } from '../model/conceptDefinitions'
 
 const PLAYBACK_UPDATE_INTERVAL_MS = 200
@@ -302,24 +303,26 @@ export function TimeSlider() {
   return (
     <div className="absolute bottom-0 left-0 right-0 h-24 bg-white dark:bg-neutral-800 border-t border-slate-200 dark:border-neutral-700 flex items-center gap-4 px-8 z-20">
       {/* Play/Pause button */}
-      <button
-        onClick={handlePlayPause}
-        disabled={keyframes.length === 0}
-        className="flex items-center justify-center w-10 h-10 text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-md transition-colors shadow-md"
-        title={isPlaying ? "Pause animation" : "Play animation"}
-      >
-        {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-      </button>
+      <SimpleTooltip text={isPlaying ? "Pause animation" : "Animate through timeline"} position="top">
+        <button
+          onClick={handlePlayPause}
+          disabled={keyframes.length === 0}
+          className="flex items-center justify-center w-10 h-10 text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-md transition-colors shadow-md"
+        >
+          {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+        </button>
+      </SimpleTooltip>
 
       {/* Back to Now button */}
-      <button
-        onClick={handleBackToNow}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded-md transition-colors border border-slate-300 dark:border-neutral-600"
-        title="Jump to current year"
-      >
-        <Calendar size={16} />
-        Now
-      </button>
+      <SimpleTooltip text="Jump to current time" position="top">
+        <button
+          onClick={handleBackToNow}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded-md transition-colors border border-slate-300 dark:border-neutral-600"
+        >
+          <Calendar size={16} />
+          Now
+        </button>
+      </SimpleTooltip>
 
       <div className="relative flex-1 h-16">
         {/* Year markers */}
@@ -425,14 +428,15 @@ export function TimeSlider() {
                   Drag contexts to set positions for this keyframe
                 </div>
               </div>
-              <button
-                onClick={handleExitKeyframeMode}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors shadow-md"
-                title="Exit keyframe editing mode"
-              >
-                <X size={16} />
-                Exit
-              </button>
+              <SimpleTooltip text="Stop editing this keyframe" position="top">
+                <button
+                  onClick={handleExitKeyframeMode}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors shadow-md"
+                >
+                  <X size={16} />
+                  Exit
+                </button>
+              </SimpleTooltip>
             </div>
           ) : (
             <div className="space-y-0.5">

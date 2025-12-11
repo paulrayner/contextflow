@@ -198,13 +198,15 @@ export function TopBar() {
       {project && (
         <>
           <div className="text-slate-400 dark:text-slate-500">•</div>
-          <button
-            onClick={() => setShowProjectList(true)}
-            className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 rounded px-2 py-1 outline-none cursor-pointer max-w-[220px]"
-          >
-            <span className="truncate">{project.name}</span>
-            <ChevronDown size={14} className="shrink-0 text-slate-400" />
-          </button>
+          <SimpleTooltip text="Switch between projects or create new ones">
+            <button
+              onClick={() => setShowProjectList(true)}
+              className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 rounded px-2 py-1 outline-none cursor-pointer max-w-[220px]"
+            >
+              <span className="truncate">{project.name}</span>
+              <ChevronDown size={14} className="shrink-0 text-slate-400" />
+            </button>
+          </SimpleTooltip>
         </>
       )}
 
@@ -335,21 +337,21 @@ export function TopBar() {
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
-        <SimpleTooltip text="Share project">
+        <SimpleTooltip text="Get a shareable link to collaborate with others">
           <IconButton
             onClick={() => setShowShareDialog(true)}
             icon={<Share2 size={16} />}
             ariaLabel="Share project"
           />
         </SimpleTooltip>
-        <SimpleTooltip text="Export project JSON">
+        <SimpleTooltip text="Download project as a file for backup or sharing">
           <IconButton
             onClick={handleExport}
             icon={<Download size={16} />}
             ariaLabel="Export project"
           />
         </SimpleTooltip>
-        <SimpleTooltip text="Import project JSON">
+        <SimpleTooltip text="Load a project from a downloaded file">
           <IconButton
             onClick={handleImport}
             icon={<Upload size={16} />}
@@ -364,7 +366,7 @@ export function TopBar() {
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
         <div className="relative" ref={settingsRef}>
-          <SimpleTooltip text="Settings">
+          <SimpleTooltip text="Display options and preferences">
             <IconButton
               onClick={() => setShowSettings(!showSettings)}
               icon={<Settings size={16} />}
